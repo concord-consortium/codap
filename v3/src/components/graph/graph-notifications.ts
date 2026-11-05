@@ -212,30 +212,34 @@ export function repositionEquationNotification(graphTile: ITileModel | undefined
 interface IGraphAttributeChangeOptions {
   attrId: string
   attrName?: string
-  // the change or removal was made from an attribute menu rather than by a drop
+  // the id of an attribute removed from an axis's menu
+  attrIdToRemove?: string
+  // the change was made from an attribute menu rather than by a drop
   fromMenu?: boolean
 }
 
 // Chooses the notification for an attribute placed on, replaced on or removed from a graph, as V2 does.
-// `place` is where the attribute ends up: a plot-area drop on an empty graph goes to the bottom axis,
-// as in V2 (graph_controller.js:743-747), and is reported as an axis change.
+// `place` is where the attribute ends up; a plot-area drop arrives as `bottom` on a graph with no
+// attributes and as `legend` otherwise (DroppablePlot).
 // - Drops on the y-axis "+" target and the Y2 axis send their own operations (see above).
-// - A drop on the legend or the plot area sends `legendAttributeChange`.
-// - A change or removal from the legend's menu sends `attributeChange` with axisOrientation "none"
+// - A drop on the legend sends `legendAttributeChange`.
+// - A change from the legend's menu sends `attributeChange` with axisOrientation "none"
 //   (see legendMenuAttributeChangeNotification).
 // - Everything else -- an axis drop, or a change or removal from an axis's menu, the Y2 axis's included
 //   (data_display_controller.js:843-866) -- sends `attributeChange` with the axis's orientation.
 export function graphAttributeChangeNotification(
   graphTile: ITileModel | undefined, place: GraphPlace, values: IAttrChangeValues | undefined,
-  { attrId, attrName, fromMenu }: IGraphAttributeChangeOptions
+  { attrId, attrName, attrIdToRemove, fromMenu }: IGraphAttributeChangeOptions
 ) {
   if (graphTile?.content.type !== kGraphTileType) return
-  const isLegend = place === "legend" || place === "plot"
-  if (fromMenu && isLegend) return legendMenuAttributeChangeNotification(graphTile, attrId, attrName)
-  if (!fromMenu) {
+  const isMenuChange = fromMenu || !!attrIdToRemove
+  if (isMenuChange && place === "legend") {
+    return legendMenuAttributeChangeNotification(graphTile, attrId || attrIdToRemove || "", attrName, !!attrIdToRemove)
+  }
+  if (!isMenuChange) {
     if (place === "yPlus") return addAxisAttributeNotification(graphTile, values)
     if (place === "rightNumeric") return add2ndAxisAttributeNotification(graphTile, values)
-    if (isLegend) return legendAttributeChangeNotification(graphTile, values)
+    if (place === "legend") return legendAttributeChangeNotification(graphTile, values)
   }
   return updateTileNotification("attributeChange", values ?? {}, graphTile)
 }

@@ -8,6 +8,7 @@ import {
   toggleBackgroundTransparencyNotification, toggleMeasuresForSelectionNotification,
   toggleNumberToggleNotification, toggleShowICINotification, toggleShowOutliersNotification
 } from "./graph-notifications"
+import { attrChangeNotificationValues } from "./models/graph-notification-utils"
 
 const v2Id = 77001
 // V2 component-resource notifications carry the SC class name (`DG.GraphView`) in
@@ -377,22 +378,40 @@ describe("graphAttributeChangeNotification", () => {
       ?.message.values
 
   it("sends V2's operation for each way of changing a graph's attributes", () => {
+    const withTile = (operation: string, type = v2SCType) => ({ operation, ...values, id: v2Id, type, diType })
     // axis drops and axis-menu changes
-    expect(notice("bottom")).toMatchObject({ operation: "attributeChange", type: v2SCType })
-    // legend and plot-area drops, with the display model's type
-    expect(notice("legend")).toMatchObject({ operation: "legendAttributeChange", type: "DG.GraphModel" })
-    expect(notice("plot")).toMatchObject({ operation: "legendAttributeChange", type: "DG.GraphModel" })
-    // a change or removal from the legend's menu
+    expect(notice("bottom")).toEqual(withTile("attributeChange"))
+    expect(notice("bottom", { fromMenu: true })).toEqual(withTile("attributeChange"))
+    // a legend drop (a plot-area drop on a graph with attributes arrives as one), with the display model's type
+    expect(notice("legend")).toEqual(withTile("legendAttributeChange", "DG.GraphModel"))
+    // a change from the legend's menu
     expect(notice("legend", { fromMenu: true })).toEqual({
       operation: "attributeChange", attributeId: 12, attributeName: "Height", axisOrientation: "none",
       id: v2Id, type: "DG.GraphView", diType
     })
     // drops on the y-axis "+" target and the Y2 axis
-    expect(notice("yPlus")).toMatchObject({ operation: "add axis attribute" })
-    expect(notice("rightNumeric")).toMatchObject({ operation: "add 2nd axis attribute" })
-    // a change or removal from an axis's menu, the Y2 axis's included
-    expect(notice("rightNumeric", { fromMenu: true })).toMatchObject({ operation: "attributeChange" })
-    expect(notice("bottom", { fromMenu: true })).toMatchObject({ operation: "attributeChange" })
+    expect(notice("yPlus")).toEqual(withTile("add axis attribute"))
+    expect(notice("rightNumeric")).toEqual(withTile("add 2nd axis attribute"))
+    // a removal from the legend's menu
+    expect(notice("legend", { attrId: "", attrIdToRemove: "ATTR12" })).toEqual({
+      operation: "attributeChange", attributeId: 12, attributeName: "Remove Legend: Height", axisOrientation: "none",
+      id: v2Id, type: "DG.GraphView", diType
+    })
+    // a change from the Y2 axis's menu
+    expect(notice("rightNumeric", { fromMenu: true })).toEqual(withTile("attributeChange"))
+  })
+
+  it("sends attributeChange for a removal from an axis's menu, the Y2 axis's included", () => {
+    const graphTile = {
+      id: "GRAPH1", content: { type: "Graph", plotType: "scatterPlot", dataConfiguration: { primaryRole: "x" } }
+    } as any
+    // graph.tsx passes "" as the attribute id for a removal, and the removed attribute's id separately
+    const removalValues = attrChangeNotificationValues("rightNumeric", "", "Height", "ATTR12", graphTile)
+    expect(graphAttributeChangeNotification(graphTile, "rightNumeric", removalValues,
+      { attrId: "", attrName: "Height", attrIdToRemove: "ATTR12" })?.message.values).toEqual({
+      operation: "attributeChange", attributeId: 12, attributeName: "Remove Y: Height", axisOrientation: "vertical2",
+      plotType: "scatterPlot", primaryAxis: "x", id: v2Id, type: v2SCType, diType
+    })
   })
 
   it("is a no-op for non-graph tiles", () => {

@@ -13,8 +13,7 @@ import {MultiLegend} from "../../data-display/components/legend/multi-legend"
 import { PointRendererArray, RendererCapability } from "../../data-display/renderer"
 import { DEBUG_PIXI_POINTS } from "../../../lib/debug"
 import {logStringifiedObjectMessage} from "../../../lib/log-message"
-import { legendMenuAttributeChangeNotification } from "../../data-display/data-display-notifications"
-import { mapLegendAttributeChangeNotification } from "../map-notifications"
+import { mapLegendChangeNotification } from "../map-notifications"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import {DroppableMapArea} from "./droppable-map-area"
 import {MapBackground} from "./map-background"
@@ -69,10 +68,7 @@ export const CodapMap = observer(function CodapMap({
     mapModel.applyModelChange(
       () => mapModel.setLegendAttribute(dataSet.id, attrId, attribute?.type),
       {
-        // as in V2, a drop sends legendAttributeChange and a change from the legend's menu attributeChange
-        notify: () => fromLegendMenu
-                        ? legendMenuAttributeChangeNotification(tile, attrId, attribute?.name)
-                        : mapLegendAttributeChangeNotification(tile, attrId, attribute?.name),
+        notify: () => mapLegendChangeNotification(tile, attrId, attribute?.name, fromLegendMenu),
         undoStringKey: "V3.Undo.mapLegendAttributeChange",
         redoStringKey: "V3.Redo.mapLegendAttributeChange",
         log: logStringifiedObjectMessage("legendAttributeChange: %@", {to_attribute: attribute?.name})

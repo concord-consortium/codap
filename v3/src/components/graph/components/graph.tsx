@@ -13,7 +13,6 @@ import { AttributeType, isCategoricalAttributeType, isNumericAttributeType } fro
 import {IDataSet} from "../../../models/data/data-set"
 import {isUndoingOrRedoing} from "../../../models/history/tree-types"
 import { getTileModel } from "../../../models/tiles/tile-model"
-import { updateTileNotification } from "../../../models/tiles/tile-notifications"
 import {mstAutorun} from "../../../utilities/mst-autorun"
 import {mstReaction} from "../../../utilities/mst-reaction"
 import {onAnyAction} from "../../../utilities/mst-utils"
@@ -254,23 +253,22 @@ export const Graph = observer(function Graph({
 
   const handleChangeAttribute = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string,
            attrIdToRemove = "", fromMenu = false) => {
-    const computedPlace = place === 'plot' && graphModel.dataConfiguration.noAttributesAssigned ? 'bottom' : place
-    const attrRole = graphPlaceToAttrRole[computedPlace]
+    const attrRole = graphPlaceToAttrRole[place]
     const attribute = dataSet.getAttribute(attrId || attrIdToRemove)
     const attrName = attribute?.name
     const tile = getTileModel(graphModel)
     let notificationValues: IAttrChangeValues | undefined = undefined
 
     const notify = () => graphAttributeChangeNotification(
-      tile, computedPlace, notificationValues, { attrId, attrName, fromMenu: fromMenu || !!attrIdToRemove })
+      tile, place, notificationValues, { attrId, attrName, attrIdToRemove, fromMenu })
 
     graphModel.applyModelChange(
       () => {
         // We need to call setNumberOfCategoriesLimit early to avoid potential performance bottlenecks
-        isCategoricalAttributeType(attribute?.type) && isAxisPlace(computedPlace) &&
-          setNumberOfCategoriesLimit(graphModel.dataConfiguration, computedPlace, layout)
+        isCategoricalAttributeType(attribute?.type) && isAxisPlace(place) &&
+          setNumberOfCategoriesLimit(graphModel.dataConfiguration, place, layout)
         graphModel.setAttributeID(attrRole, dataSet.id, attrId)
-        notificationValues = attrChangeNotificationValues(computedPlace, attrId, attrName, attrIdToRemove, tile)
+        notificationValues = attrChangeNotificationValues(place, attrId, attrName, attrIdToRemove, tile)
       },
       {
         notify,
@@ -283,7 +281,6 @@ export const Graph = observer(function Graph({
     )
   }, [graphModel, layout])
 
-  // a change from an axis's or the legend's attribute menu, rather than a drop
   const handleChangeAttributeFromMenu = useCallback((place: GraphPlace, dataSet: IDataSet, attrId: string) => {
     handleChangeAttribute(place, dataSet, attrId, "", true)
   }, [handleChangeAttribute])
@@ -305,7 +302,8 @@ export const Graph = observer(function Graph({
           setNiceDomain(yValues, yAxisModel, graphModel.plot.axisDomainOptions)
         },
         {
-          notify: () => updateTileNotification("attributeChange", notificationValues, tile),
+          notify: () => graphAttributeChangeNotification(
+            tile, place, notificationValues, { attrId: "", attrName, attrIdToRemove: idOfAttributeToRemove }),
           undoStringKey: "DG.Undo.axisAttributeChange",
           redoStringKey: "DG.Redo.axisAttributeChange",
           log: logStringifiedObjectMessage(

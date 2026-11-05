@@ -228,8 +228,8 @@ the user's language:
 | Bottom axis | `horizontal` | `Remove X: <name>` |
 | Left axis | `vertical` | `Remove Y: <name>` |
 | Right numeric axis, from its menu | `vertical2` | `Remove Y: <name>` |
-| Top axis | `top` | `Remove Side-by-side Layout by <name>` |
-| Right categorical axis | `right` | `Remove Vertical Layout by <name>` |
+| Top axis, once the graph is split | `top` | `Remove Side-by-side Layout by <name>` |
+| Right categorical axis, once the graph is split | `right` | `Remove Vertical Layout by <name>` |
 | Legend, from its menu | `none` | `Remove Legend: <name>` |
 
 ### Axis
@@ -307,7 +307,7 @@ Shared by graphs and maps.
 | `change legend bins type` | a numeric legend switches between linear and quantile binning | `binningType` |
 | `change legend range` | a numeric legend's min or max is edited | `max`, `min` |
 | `swap categories` | the user finishes dragging a category label to reorder it | `place` |
-| `attributeChange` | on a graph, an attribute is placed on, replaced on, or removed from an axis, by dropping it or from an axis label's menu, including when an attribute dropped on an empty graph's plot area goes to the x axis. On a graph or a map, the legend attribute is changed or removed from the legend's menu. See [Graph](#graph) for `axisOrientation` | `attributeId`, `attributeName`, `axisOrientation`, … |
+| `attributeChange` | on a graph, an attribute is placed on, replaced on, or removed from an axis, by dropping it or from an axis label's menu, including when an attribute dropped on the plot area of a graph with no attributes goes to the x axis. On a graph or a map, the legend attribute is changed or removed from the legend's menu. See [Graph](#graph) for `axisOrientation` | `attributeId`, `attributeName`, `axisOrientation`, … |
 <!-- END GENERATED: notifications-component-data-display -->
 
 A legend whose attribute holds colors uses those colors directly, so it has no color control and
@@ -473,6 +473,19 @@ is a known bug; the intended behavior is that the tokens match v2's.
 for every attribute-menu item, so choosing either one on an axis or a legend sent `attributeChange`
 with `attributeName` `Treat as Categorical` or `Treat as Numeric`. v3 sends nothing. This is a known
 bug.
+
+**The drop that first splits a graph sends `attributeChange` with `top` or `right`.** v2 showed
+the top and right axes only once the graph was split, so that drop landed on another target: near
+the top edge, the y axis's "+" target, sending `add axis attribute`, and near the right edge, the
+right numeric axis, sending `add 2nd axis attribute`, neither with `axisOrientation`. v2 sent
+`attributeChange` with `top` or `right` only once the split existed. v3 sends it for the first split
+too. This is a known bug.
+
+**A drop on the plot area of a graph whose only attribute is a split sets the legend.** v2 put an
+attribute dropped on the plot area on the x axis whenever no x, y or legend attribute was set,
+whatever the splits, and sent `attributeChange` with `horizontal`. v3 treats a split as an
+attribute, so it makes the dropped attribute the legend and sends `legendAttributeChange`. This is a
+known bug.
 
 ## See also
 

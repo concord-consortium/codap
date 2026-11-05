@@ -1,6 +1,7 @@
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { toV2Id } from "../../utilities/codap-utils"
+import { legendMenuAttributeChangeNotification } from "../data-display/data-display-notifications"
 import { kMapTileType } from "./map-defs"
 import { BaseMapKey } from "./map-types"
 
@@ -80,4 +81,15 @@ export function mapLegendAttributeChangeNotification(
     updateTileNotification("legendAttributeChange", { attributeId: toV2Id(attributeId), attributeName }, mapTile)
   if (notification) notification.message.values.type = "DG.MapModel"
   return notification
+}
+
+// The notice for a change to a map's legend attribute: as in V2, a drop sends `legendAttributeChange`,
+// and a change from the legend's menu sends `attributeChange` (legendMenuAttributeChangeNotification).
+export function mapLegendChangeNotification(
+  mapTile: ITileModel | undefined, attributeId: string, attributeName: string | undefined, fromLegendMenu: boolean
+) {
+  if (mapTile?.content.type !== kMapTileType) return
+  return fromLegendMenu
+          ? legendMenuAttributeChangeNotification(mapTile, attributeId, attributeName)
+          : mapLegendAttributeChangeNotification(mapTile, attributeId, attributeName)
 }

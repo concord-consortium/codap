@@ -267,7 +267,9 @@ describe("legendMenuAttributeChangeNotification", () => {
 
   it("names a removal as V2's menu item does", () => {
     const graph = { id: "GRAPH1", content: { type: "Graph" } } as any
-    expect(legendMenuAttributeChangeNotification(graph, "ATTR7", "Habitat", true)?.message.values)
-      .toMatchObject({ attributeName: "Remove Legend: Habitat", axisOrientation: "none" })
+    expect(legendMenuAttributeChangeNotification(graph, "ATTR7", "Habitat", true)?.message.values).toEqual({
+      operation: "attributeChange", attributeId: 7, attributeName: "Remove Legend: Habitat", axisOrientation: "none",
+      id: "GRAPH1", type: "DG.GraphView", diType: "graph"
+    })
   })
 })

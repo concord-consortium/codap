@@ -2,9 +2,10 @@ import { AttributeBinningType } from "../../models/shared/data-set-metadata"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { toV2Id } from "../../utilities/codap-utils"
-import { t } from "../../utilities/translation/translate"
 import { PointShape } from "../../utilities/point-shape-utils"
 import { GraphPlace } from "../axis-graph-shared"
+import { V2AxisOrientation } from "./data-display-types"
+import { removeAttributeLabel } from "./remove-attribute-label"
 
 // Shared notification helpers for the graph and map tiles (the V3 "data-display" tiles).
 // Callers are responsible for invoking these only where contextually appropriate — these
@@ -125,21 +126,15 @@ export function changeLegendBinsTypeNotification(
   return updateTileNotification("change legend bins type", { binningType }, tile)
 }
 
-// V2 handles a change or removal from a legend's attribute menu in the attribute-menu code that graphs
-// and maps share (apps/dg/components/graph_map_common/data_display_controller.js:843-866). So it sends
-// `attributeChange`, not `legendAttributeChange`, with the legend's orientation, "none", and with
-// `type: "DG.GraphView"` even for a map. Its `attributeName` is the menu item's title: the new
-// attribute's name, or the localized "Remove Legend: <name>" for a removal. V3 additionally carries
-// `attributeId`.
+// As in V2 (data_display_controller.js:843-866), a change or removal from a legend's menu sends
+// `attributeChange` with `none` and `DG.GraphView`, even for maps, named by the menu item's title.
 export function legendMenuAttributeChangeNotification(
   tile: ITileModel | undefined, attributeId: string, attributeName = "", isRemoval = false
 ) {
   const notification = updateTileNotification("attributeChange", {
     attributeId: toV2Id(attributeId),
-    attributeName: isRemoval
-                    ? t("DG.DataDisplayMenu.removeAttribute_legend", { vars: [attributeName] })
-                    : attributeName,
-    axisOrientation: "none"
+    attributeName: isRemoval ? removeAttributeLabel("legend", attributeName) : attributeName,
+    axisOrientation: "none" satisfies V2AxisOrientation
   }, tile)
   if (notification) notification.message.values.type = "DG.GraphView"
   return notification
