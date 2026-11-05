@@ -28,7 +28,8 @@ export const diGlobalHandler: DIHandler = {
       return { success: false, values: { error: t("V3.DI.Error.globalDuplicateName") } }
     }
 
-    const global = globalManager?.addValueSnapshot(globalSnapshot)
+    // like other plugin API changes, adding a global stays off the undo history, as in V2
+    const global = document.applyModelChange(() => globalManager?.addValueSnapshot(globalSnapshot))
     if (global) {
       return { success: true, values: valuesFromGlobal(global) }
     }

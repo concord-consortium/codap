@@ -179,8 +179,10 @@ export const diComponentHandler: DIHandler = {
         } else if (isCaseTableModel(content)) {
           // V2's resize-all path (case_table_controller.js:1136) is undoable and emits
           // `resize columns`. Mirror that here so plugin-initiated rescales are also
-          // undoable and visible to V2 plugins (CODAP-1353). Graph/Map rescales above are
-          // not yet wrapped — deferred to CODAP-1351 / CODAP-1352.
+          // undoable and visible to V2 plugins (CODAP-1353). The graph rescale above is undoable
+          // too, as in V2: it changes the axes outside applyModelChange, so a rescale that moves
+          // them adds an (unlabeled) undo entry. Labeling it, and the map rescale, are
+          // CODAP-1351 / CODAP-1352.
           //
           // Don't echo the notification back to the requesting plugin — Story Builder
           // otherwise treats notifications about its own DI-API actions as document edits
