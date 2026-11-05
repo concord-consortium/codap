@@ -1,6 +1,7 @@
 import {
   changeBaseMapNotification, changeGridSizeNotification, changeMapCoordinatesNotification,
-  hideSelectedCasesNotification, hideUnselectedCasesNotification, showAllCasesNotification
+  hideSelectedCasesNotification, hideUnselectedCasesNotification, mapLegendAttributeChangeNotification,
+  showAllCasesNotification
 } from "./map-notifications"
 
 const v2Id = 77001
@@ -126,5 +127,18 @@ describe("changeMapCoordinatesNotification", () => {
 
   it("returns undefined when the tile is missing", () => {
     expect(changeMapCoordinatesNotification(undefined, { lat: 0, lng: 0 }, 1)).toBeUndefined()
+  })
+})
+
+describe("mapLegendAttributeChangeNotification", () => {
+  it("emits 'legendAttributeChange' with the attribute's v2 id and name", () => {
+    const tile = { id: "MAP1", content: { type: "Map" } } as any
+    const notification = mapLegendAttributeChangeNotification(tile, "ATTR123", "Habitat")
+    expect(notification?.message.values).toMatchObject(
+      { operation: "legendAttributeChange", attributeId: 123, attributeName: "Habitat", type: "DG.MapModel" })
+  })
+
+  it("is a no-op for non-map tiles", () => {
+    expect(mapLegendAttributeChangeNotification({ content: { type: "Graph" } } as any, "ATTR1")).toBeUndefined()
   })
 })

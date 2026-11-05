@@ -1,5 +1,6 @@
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
+import { toV2Id } from "../../utilities/codap-utils"
 import { kMapTileType } from "./map-defs"
 import { BaseMapKey } from "./map-types"
 
@@ -65,4 +66,18 @@ export function changeMapCoordinatesNotification(
 ) {
   if (mapTile?.content.type !== kMapTileType) return
   return updateTileNotification("change map coordinates", { center, zoom }, mapTile)
+}
+
+// V2 emits `legendAttributeChange` when an attribute is dropped on a map or its legend, from
+// apps/dg/components/graph_map_common/data_display_controller.js (:941-950), which maps and graphs
+// share. Its `type` is the display model's class, `DG.MapModel`, rather than the map view's
+// `DG.MapView`. V3 additionally carries `attributeId`, as the graph's does. No-ops for non-map tiles.
+export function mapLegendAttributeChangeNotification(
+  mapTile: ITileModel | undefined, attributeId: string, attributeName?: string
+) {
+  if (mapTile?.content.type !== kMapTileType) return
+  const notification =
+    updateTileNotification("legendAttributeChange", { attributeId: toV2Id(attributeId), attributeName }, mapTile)
+  if (notification) notification.message.values.type = "DG.MapModel"
+  return notification
 }
