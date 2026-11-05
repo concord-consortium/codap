@@ -36,24 +36,43 @@ describe("DataInteractive GlobalHandler", () => {
     const global1 = GlobalValue.create({ name: name1, value: value1 })
     const resources = { global: global1 }
 
+    const missing = { success: false, values: { error: "missing global or value" } }
+
     // Global and value are required
-    expect(handler.update?.({}, { value: value2 }).success).toBe(false)
-    expect(handler.update?.(resources, {}).success).toBe(false)
+    expect(handler.update?.({}, { value: value2 })).toEqual(missing)
+    expect(handler.update?.(resources, {})).toEqual(missing)
 
     // Value must be a number
-    expect(handler.update?.(resources, { value: "a" }).success).toBe(false)
+    expect(handler.update?.(resources, { value: "a" }))
+      .toEqual({ success: false, values: { error: "global values must be numbers" } })
 
     expect(handler.update?.(resources, { value: value2 }).success).toBe(true)
     expect(global1?.value).toBe(value2)
+
+    // a null value is rejected and leaves the value alone
+    expect(handler.update?.(resources, { value: null })).toEqual(missing)
+    expect(global1?.value).toBe(value2)
+
+    // 0 is a value, and false and "" are stored as 0, as on create
+    expect(handler.update?.(resources, { value: 0 }).success).toBe(true)
+    expect(global1?.value).toBe(0)
+    for (const value of [false, ""]) {
+      expect(handler.update?.(resources, { value: value2 }).success).toBe(true)
+      expect(handler.update?.(resources, { value } as any).success).toBe(true)
+      expect(global1?.value).toBe(0)
+    }
   })
 
   it("update notifies plugins with global[<name>], as v2's model observer did", async () => {
+    const name = "notified"
+    expect((await processAction({ action: "create", resource: "global", values: { name, value: 1 } })).success)
+      .toBe(true)
     const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
-    expect((await processAction({ action: "update", resource: `global[${name1}]`, values: { value: 7 } })).success)
+    expect((await processAction({ action: "update", resource: `global[${name}]`, values: { value: 7 } })).success)
       .toBe(true)
     const globalNotices = broadcastSpy.mock.calls.map(([message]) => message)
-      .filter(message => message.resource === `global[${name1}]`)
-    expect(globalNotices).toEqual([{ action: "notify", resource: `global[${name1}]`, values: { globalValue: 7 } }])
+      .filter(message => message.resource === `global[${name}]`)
+    expect(globalNotices).toEqual([{ action: "notify", resource: `global[${name}]`, values: { globalValue: 7 } }])
     broadcastSpy.mockRestore()
   })
 })

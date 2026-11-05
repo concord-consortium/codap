@@ -1,4 +1,4 @@
-import { fixYear, isDateString, isValidDateSpec, parseDate } from './date-parser'
+import { fixYear, isDateString, isValidDateSpec, parseDate, parseTimeZoneOffset } from './date-parser'
 
 describe('Date Parser tests - V2 compatibility', () => {
   // These tests are ported from V2 and should always pass unchanged as long as we want to maintain compatibility.
@@ -111,6 +111,96 @@ describe('Date Parser tests - V2 compatibility', () => {
     expect(isDateString('2016-1-10T21:27:42.123Z')).toBe(false)
     expect(isDateString('2016-1-10T21:7:42.123Z')).toBe(false)
     expect(isDateString('2016-1-10T1:07:42.123Z')).toBe(false)
+  })
+})
+
+// These tests must pass in any time zone. CI also runs them in Asia/Kolkata (see .github/workflows/v3.yml);
+// to do the same locally, run `TZ=Asia/Kolkata npm test -- date-parser`.
+// (Assigning process.env.TZ from inside a Jest test has no effect, so the zone must be set when Jest starts.)
+describe('Date Parser tests - time zone offsets', () => {
+  test('ISO date-times with an explicit offset produce the instant the offset specifies', () => {
+    expect(parseDate('2026-02-01T07:18:00-07:00')?.toISOString()).toBe('2026-02-01T14:18:00.000Z')
+    expect(parseDate('2026-02-01T07:18:00-0700')?.toISOString()).toBe('2026-02-01T14:18:00.000Z')
+    expect(parseDate('2026-02-01T10:00:00+02:00')?.toISOString()).toBe('2026-02-01T08:00:00.000Z')
+    expect(parseDate('2026-02-01T10:00:00+0200')?.toISOString()).toBe('2026-02-01T08:00:00.000Z')
+    expect(parseDate('2026-02-01T10:00+02:00')?.toISOString()).toBe('2026-02-01T08:00:00.000Z')
+    expect(parseDate('2026-02-01T10:00:00.123+02:00')?.toISOString()).toBe('2026-02-01T08:00:00.123Z')
+    // half-hour offset
+    expect(parseDate('2026-02-01T10:00:00+05:30')?.toISOString()).toBe('2026-02-01T04:30:00.000Z')
+    // offsets that move the instant to a different day, month or year
+    expect(parseDate('2026-02-01T22:00:00-05:00')?.toISOString()).toBe('2026-02-02T03:00:00.000Z')
+    expect(parseDate('2026-01-01T00:30:00+01:00')?.toISOString()).toBe('2025-12-31T23:30:00.000Z')
+    // space instead of T
+    expect(parseDate('2026-02-01 10:00:00-07:00')?.toISOString()).toBe('2026-02-01T17:00:00.000Z')
+    // an explicit zero offset is UTC
+    expect(parseDate('2026-02-01T09:00:00+00:00')?.toISOString()).toBe('2026-02-01T09:00:00.000Z')
+  })
+
+  test('Date.toString() strings with a GMT offset produce the instant the offset specifies', () => {
+    expect(parseDate('Sun Feb 01 2026 07:18:00 GMT-0700 (Mountain Standard Time)')?.toISOString())
+      .toBe('2026-02-01T14:18:00.000Z')
+    expect(parseDate('Sun Feb 01 2026 10:00:00 GMT+0530 (India Standard Time)')?.toISOString())
+      .toBe('2026-02-01T04:30:00.000Z')
+  })
+
+  test('date-times with different offsets compare by instant', () => {
+    // reading these offsets as local time would reverse both comparisons
+    const t1 = parseDate('2026-02-01T07:18:00-07:00')!   // 14:18Z
+    const t2 = parseDate('2026-02-01T08:00:00+00:00')!   // 08:00Z
+    expect(t1.getTime()).toBeGreaterThan(t2.getTime())
+    const t3 = parseDate('2026-02-01T10:00:00+02:00')!   // 08:00Z
+    const t4 = parseDate('2026-02-01T09:00:00+00:00')!   // 09:00Z
+    expect(t3.getTime()).toBeLessThan(t4.getTime())
+  })
+
+  test('ISO date-times without an offset are local', () => {
+    expect(parseDate('2026-02-01T07:18:00')?.toISOString()).toBe(new Date(2026, 1, 1, 7, 18).toISOString())
+    expect(parseDate('2026-02-01T07:18')?.toISOString()).toBe(new Date(2026, 1, 1, 7, 18).toISOString())
+    expect(parseDate('2026-02-01')?.toISOString()).toBe(new Date(2026, 1, 1).toISOString())
+  })
+
+  test('ISO date-times with a bare Z, a zone abbreviation or a malformed offset are local', () => {
+    const local9am = new Date(2026, 1, 1, 9).toISOString()
+    expect(parseDate('2026-02-01T09:00Z')?.toISOString()).toBe(local9am)
+    expect(parseDate('2026-02-01T09:00:00Z')?.toISOString()).toBe(local9am)
+    expect(parseDate('2026-02-01T09:00:00 EST')?.toISOString()).toBe(local9am)
+    expect(parseDate('2026-02-01T09:00:00+05:3')?.toISOString()).toBe(local9am)
+    expect(parseDate('2026-02-01T09:00:00+99:00')?.toISOString()).toBe(local9am)
+    expect(parseDate('2026-02-01T09:00:00+14:30')?.toISOString()).toBe(local9am)
+  })
+
+  test('strings in Date.toISOString() format are read as local time, because CODAP saves local dates that way', () => {
+    expect(parseDate('2026-02-01T09:00:00.000Z')?.toISOString()).toBe(new Date(2026, 1, 1, 9).toISOString())
+  })
+})
+
+describe('parseTimeZoneOffset', () => {
+  test('returns the offset in minutes for explicit numeric offsets', () => {
+    expect(parseTimeZoneOffset('-07:00')).toBe(-420)
+    expect(parseTimeZoneOffset('-0700')).toBe(-420)
+    expect(parseTimeZoneOffset('+05:30')).toBe(330)
+    expect(parseTimeZoneOffset('+0000')).toBe(0)
+    expect(parseTimeZoneOffset('GMT-0700 (Mountain Standard Time)')).toBe(-420)
+  })
+  test('returns undefined when there is no numeric offset', () => {
+    expect(parseTimeZoneOffset(undefined)).toBeUndefined()
+    expect(parseTimeZoneOffset('Z')).toBeUndefined()
+    expect(parseTimeZoneOffset('GMT')).toBeUndefined()
+    expect(parseTimeZoneOffset('PDT')).toBeUndefined()
+  })
+  test('returns undefined for malformed or out-of-range offsets', () => {
+    expect(parseTimeZoneOffset('+05:3')).toBeUndefined()
+    expect(parseTimeZoneOffset('+053')).toBeUndefined()
+    expect(parseTimeZoneOffset('+15:00')).toBeUndefined()
+    expect(parseTimeZoneOffset('+14:30')).toBeUndefined()
+    expect(parseTimeZoneOffset('-12:30')).toBeUndefined()
+    expect(parseTimeZoneOffset('-14:00')).toBeUndefined()
+    expect(parseTimeZoneOffset('+05:60')).toBeUndefined()
+  })
+  test('accepts the full range of real-world offsets', () => {
+    expect(parseTimeZoneOffset('+14:00')).toBe(840)
+    expect(parseTimeZoneOffset('-12:00')).toBe(-720)
+    expect(parseTimeZoneOffset('+05:45')).toBe(345)
   })
 })
 

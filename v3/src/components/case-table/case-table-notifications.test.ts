@@ -162,8 +162,8 @@ describe("closeCaseTableNotification", () => {
     const tile = { id: "TABLE1", content: { type: "CaseTable" } } as any
     const notification = closeCaseTableNotification(tile)
     expect(notification?.message.resource).toBe("component")
-    expect(notification?.message.values).toMatchObject(
-      { operation: "delete", type: "DG.TableView", id: v2Id, title: "Mammals" })
+    // case-tile-title-bar.test.tsx checks the whole notice for a case table linked to a dataset
+    expect(notification?.message.values).toMatchObject({ operation: "delete", type: "DG.TableView", id: v2Id })
   })
 
   it("is a no-op for case cards and missing tiles", () => {

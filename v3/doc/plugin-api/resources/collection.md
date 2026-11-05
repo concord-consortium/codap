@@ -292,16 +292,11 @@ fixed, add attributes to an existing collection with `create` on
 included `name`, which is also how v2's own case table renamed collections. v3 ignores `name`.
 This is a known bug. Until it is fixed, a plugin cannot rename a collection.
 
-**`update` and `delete` notify no other plugin.** v2 sent `updateCollection` and
-`deleteCollection` to the other plugins. This is a known bug; see
-[the catalog's known limitations](../notifications.md#known-limitations).
-
 ## Notifications
 
 `create` notifies the plugins listening to the data context with `createCollection` on
-`dataContextChangeNotice[<context>]`, one for each collection created. `update` and `delete` are
-intended to send `updateCollection` and `deleteCollection`, but currently send nothing; see
-[Known limitations](#known-limitations). `collectionList` sends none. See
+`dataContextChangeNotice[<context>]`, one for each collection created. `update` and `delete` send
+`updateCollection` and `deleteCollection`. `collectionList` sends none. See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext) for
 what each carries.
 

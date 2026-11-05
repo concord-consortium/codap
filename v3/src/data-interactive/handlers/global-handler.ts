@@ -48,7 +48,7 @@ export const diGlobalHandler: DIHandler = {
     const { document } = appState
     const { global } = resources
     const { value } = values as DIGlobal
-    if (!global || !value) return { success: false, values: { error: t("V3.DI.Error.missingGlobalOrValue") } }
+    if (!global || value == null) return { success: false, values: { error: t("V3.DI.Error.missingGlobalOrValue") } }
 
     const _value = Number(value)
     if (isIllegalValue(_value)) return illegalValueResult

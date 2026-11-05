@@ -1,6 +1,6 @@
 import { GlobalValue } from "./global-value"
 import { GlobalValueManager } from "./global-value-manager"
-import { observeGlobalValueChanges, withoutGlobalValueNotifications } from "./global-value-notifications"
+import { observeGlobalValueChanges } from "./global-value-notifications"
 
 describe("observeGlobalValueChanges", () => {
   function setup() {
@@ -42,18 +42,5 @@ describe("observeGlobalValueChanges", () => {
     disposer()
     v1.setValue(11)
     expect(notices()).toHaveLength(1)
-  })
-
-  it("sends nothing for changes made without notifications, such as a document update", () => {
-    const { v1, disposer, notices } = setup()
-    withoutGlobalValueNotifications(() => v1.setValue(4))
-    expect(notices()).toEqual([])
-
-    // later changes are compared with the value set without notification
-    v1.setValue(4)
-    expect(notices()).toEqual([])
-    v1.setValue(6)
-    expect(notices()).toEqual([{ action: "notify", resource: "global[v1]", values: { globalValue: 6 } }])
-    disposer()
   })
 })

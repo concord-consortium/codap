@@ -122,11 +122,3 @@ fresh `dataDisplay` when you need a current image.
 |---|---|
 | `Component not found` | the selector matched nothing in the document |
 | `DataDisplay not found` | one of two causes: the component's type has no data display handler registered — which is every component other than a graph — or the graph handler ran and could not produce an image |
-
-> **Known bug in the failure response — do not code against it.** `Component not found` returns
-> the normal shape, `{success: false, values: {error: "Component not found"}}`. The
-> `DataDisplay not found` path currently does not: `values.error` holds a nested result object
-> instead of the error string, and `success` can be `undefined` rather than `false`. **This will
-> be corrected to the normal shape.** Write `if (!result.success)` — a truthiness test that keeps
-> working either way — and check `typeof result.values?.error === "string"` before using it as a
-> message, which is correct both before and after the fix.

@@ -64,5 +64,60 @@ describe("DataInteractive ItemSearchHandler", () => {
 
     expect(notify({ dataContext, itemSearch }, { itemOrder: [1] }).success).toBe(true)
     expect(dataContext.itemIds[1]).toBe(item.__id__)
+
+    expect(notify({ dataContext, itemSearch }, { itemOrder: [2] }).success).toBe(true)
+    expect(notify({ dataContext, itemSearch }, { itemOrder: [0] }).success).toBe(true)
+    expect(dataContext.itemIds[0]).toBe(item.__id__)
+    // positions are converted to numbers
+    expect(notify({ dataContext, itemSearch }, { itemOrder: ["3"] } as any).success).toBe(true)
+    expect(dataContext.itemIds[3]).toBe(item.__id__)
+    expect(notify({ dataContext, itemSearch }, { itemOrder: [""] } as any).success).toBe(true)
+    expect(dataContext.itemIds[0]).toBe(item.__id__)
+    // an item with no position stays where it is, as in v2
+    expect(notify({ dataContext, itemSearch }, { itemOrder: [2] }).success).toBe(true)
+    expect(notify({ dataContext, itemSearch }, { itemOrder: [null] } as any).success).toBe(true)
+    expect(dataContext.itemIds[2]).toBe(item.__id__)
+  })
+
+  it("notify moves the matching items when an item is set aside", () => {
+    const { dataset: dataContext, a3 } = setupTestDataset()
+    const notify = handler.notify!
+    const a3Values = () => dataContext.items.map(({ __id__ }) => dataContext.getNumeric(__id__, a3.id))
+    dataContext.hideCasesOrItems([dataContext.itemIds[1]])
+    dataContext.validateCases()
+    expect(a3Values()).toEqual([1, 3, 4, 5, 6])
+
+    const fifth = dataContext.items[3]
+    expect(notify({ dataContext, itemSearch: [fifth] }, { itemOrder: "first" }).success).toBe(true)
+    expect(a3Values()).toEqual([5, 1, 3, 4, 6])
+
+    const sixth = dataContext.items[4]
+    expect(notify({ dataContext, itemSearch: [sixth] }, { itemOrder: "first" }).success).toBe(true)
+    expect(a3Values()).toEqual([6, 5, 1, 3, 4])
+
+    expect(notify({ dataContext, itemSearch: [fifth] }, { itemOrder: "last" }).success).toBe(true)
+    expect(a3Values()).toEqual([6, 1, 3, 4, 5])
+
+    dataContext.showHiddenCasesAndItems()
+    dataContext.validateCases()
+    expect(a3Values()).toEqual([6, 1, 2, 3, 4, 5])
+  })
+
+  it("notify moves items ahead of a set-aside item at the start with \"first\"", () => {
+    const { dataset: dataContext, a3 } = setupTestDataset()
+    const notify = handler.notify!
+    const a3Values = () => dataContext.items.map(({ __id__ }) => dataContext.getNumeric(__id__, a3.id))
+    dataContext.hideCasesOrItems([dataContext.itemIds[0]])
+    dataContext.validateCases()
+    expect(a3Values()).toEqual([2, 3, 4, 5, 6])
+
+    const fourth = dataContext.items[2]
+    expect(notify({ dataContext, itemSearch: [fourth] }, { itemOrder: "first" }).success).toBe(true)
+    expect(a3Values()).toEqual([4, 2, 3, 5, 6])
+
+    // the moved item is ahead of the set-aside item once it is restored, as in v2
+    dataContext.showHiddenCasesAndItems()
+    dataContext.validateCases()
+    expect(a3Values()).toEqual([4, 1, 2, 3, 5, 6])
   })
 })

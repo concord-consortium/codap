@@ -69,3 +69,22 @@ describe("rSquared", () => {
     expect(evaluate("rSquared(Height, Mass)")).toBeCloseTo(0.468709, 6)
   })
 })
+
+describe("filter arguments with 0/1 and \"true\"/\"false\" values", () => {
+  // Each filter selects the same cases as `Diet = 'plants'`, so each formula should give the same result.
+  const filters = [
+    "if(Diet = 'plants', 1, 0)",
+    "if(Diet = 'plants', '1', '0')",
+    "if(Diet = 'plants', 'true', 'false')"
+  ]
+
+  it.each(filters)("filters bivariate functions with %s", filter => {
+    expect(evaluate(`correlation(Height, Mass, ${filter})`))
+      .toBe(evaluate("correlation(Height, Mass, Diet = 'plants')"))
+    // linRegrResidual also checks the filter for the current case, so test cases that pass and don't pass
+    for (const casePointer of [0, 1, 2, 3]) {
+      expect(evaluate(`linRegrResidual(Height, Mass, ${filter})`, casePointer))
+        .toBe(evaluate("linRegrResidual(Height, Mass, Diet = 'plants')", casePointer))
+    }
+  })
+})

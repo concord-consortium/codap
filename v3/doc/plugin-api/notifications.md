@@ -22,15 +22,14 @@ for something. Those are documented on each resource's own page.
 A notification arrives through the same channel as a reply to your own request: CODAP calls the
 `requestHandler(command, callback)` your plugin passed to its iframe-phone endpoint (see
 [Sending requests and receiving notifications](README.md#sending-requests-and-receiving-notifications)).
-Branch on `command.resource`, then on `command.values.operation`, and call `callback` when you
-are done:
+Branch on `command.resource`, then on `command.values.operation`. For
+`dataContextChangeNotice[<context>]`, `values` is an array of changes, so iterate it and read each
+change's `operation`. Call `callback` when you are done:
 
 ```js
 function requestHandler (command, callback) {
   if (command.action === "notify" && command.resource.startsWith("dataContextChangeNotice[")) {
-    // v2 sent an array of changes; v3 currently sends one object. Accept both.
-    const changes = Array.isArray(command.values) ? command.values : [command.values]
-    changes.forEach(change => {
+    command.values.forEach(change => {
       // change.operation is "createCases", "updateCases", ...
     })
   }
@@ -52,9 +51,14 @@ every connected plugin. The exceptions:
   - `drag`, `dragenter`, `dragleave` and `drop` go only to the plugin under the pointer. See
     [Attribute drag](#attribute-drag--dragdropattribute).
 
-**Your own changes.** A plugin is not sent notifications about changes it requested itself, so it
-never has to recognize and ignore its own work. Component notifications follow this rule. Data
-notifications currently do not: see [Known limitations](#known-limitations).
+**Your own changes.** A plugin is not sent component or `dataContextChangeNotice[<context>]`
+notifications about changes it requested itself, so it never has to recognize and ignore its own
+work. Changes the user makes are sent to every plugin.
+
+v2 followed this rule only for data changes that recorded which plugin asked for them. `update`
+on `attribute`, the `createCases` sent when items are created, `moveCases`, `moveAttribute`, and
+`dependentCases` all went to the requester too, and v2 sent component notifications to every
+plugin, the requester included.
 
 ## The envelope
 
@@ -69,9 +73,9 @@ then name the change in `values.operation`:
 }
 ```
 
-**Data changes carry a list.** On `dataContextChangeNotice[<context>]`, `values` is meant to be an
-array of changes, each with its own `operation` and `result`, because several changes can be
-reported in one notification. This is the form v2 sends:
+**Data changes carry a list.** On `dataContextChangeNotice[<context>]`, `values` is an array of
+changes, each with its own `operation` and `result`, because several changes can be reported in
+one notification:
 
 ```json
 {
@@ -86,24 +90,10 @@ reported in one notification. This is the form v2 sends:
 }
 ```
 
-**v3 currently sends a single change object instead of the array:**
-
-```json
-{
-  "action": "notify",
-  "resource": "dataContextChangeNotice[Mammals]",
-  "values": {
-    "operation": "createCases",
-    "result": { "success": true, "caseIDs": [17], "itemIDs": [9], "caseID": 17, "itemID": 9 }
-  }
-}
-```
-
-See [Known limitations](#known-limitations). The example in [Receiving them](#receiving-them)
-handles both.
+Each notification currently reports one change; see [Known limitations](#known-limitations).
 
 **Some notifications have no `operation`.** A `logMessageNotice` carries the log event itself, and
-the slider notice on `global[<name>]` carries only the new value:
+the value notice on `global[<name>]` carries only the new value:
 
 ```json
 {
@@ -113,7 +103,8 @@ the slider notice on `global[<name>]` carries only the new value:
 }
 ```
 
-So branch on `resource` first, and only then on `values.operation`.
+So branch on `resource` first, and only then on `values.operation`, or, for
+`dataContextChangeNotice[<context>]`, on the `operation` of each change in the `values` array.
 
 `resource` belongs to one of these families, each a section below:
 
@@ -151,7 +142,7 @@ plugin watching one data set can filter on it.
 | `deleteCollection` | a collection is removed |
 | `updateDataContext` | the context's own properties change, such as its title |
 
-Every one carries `result` in `values`.
+Every change in `values` carries `result`.
 <!-- END GENERATED: notifications-data -->
 
 These operations are part of the contract, but CODAP does not send them yet; see
@@ -179,7 +170,7 @@ for it.
 | Operation | Fires when | `values` also carries |
 |---|---|---|
 | `create` | a component is created. The calculator usually sends `show` instead; see below | — |
-| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed, and a case table is when it is closed from its title bar. For the case table, `type` is `DG.TableView`, as in v2. v2 also sent `create` when that close was undone; v3 does not, see [Known limitations](#known-limitations). Closing a case card sends nothing | `name`, `title` |
+| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed, and a case table is when it is closed from its title bar or deleted with `delete` on `component` (in the mosaic layout, `delete` removes it). For the case table, `type` is `DG.TableView` and `title` is its data context's title, as in v2. v2 also sent `create` when that close was undone; v3 does not, see [Known limitations](#known-limitations). Closing a case card sends nothing | `name`, `title` |
 | `titleChange` | a component is renamed. Sent on `component[<id>]` rather than `component` | `from`, `to` |
 | `hide`, `show` | the calculator is closed, or toggled from the tool shelf | — |
 | `move`, `resize` | a component is moved or resized | — |
@@ -241,7 +232,7 @@ The largest group.
 <!-- BEGIN GENERATED: notifications-component-slider -->
 | Operation | Fires when | `values` also carries |
 |---|---|---|
-| `change slider value` | the user finishes changing a slider's value: releasing the thumb, entering a value, or using the arrow keys. While the thumb is being dragged, and while the slider animates, only the value notice on `global[<name>]` is sent; see [Everything else](#everything-else) | _not readable from the code_ |
+| `change slider value` | the user finishes changing a slider's value: releasing the thumb, entering a value, or using the arrow keys. While the thumb is being dragged, and while the slider animates, only the value notice on `global[<name>]` is sent; see [Everything else](#everything-else). For an entered value, the value notice follows this one; for the thumb and the arrow keys, it comes first | _not readable from the code_ |
 <!-- END GENERATED: notifications-component-slider -->
 
 ### Map
@@ -375,7 +366,7 @@ Four more resources, each with a few notifications.
 | `documentChangeNotice` | `dataContextCountChanged` | a data context is created or deleted anywhere in the document | — |
 | `documentChangeNotice` | `dataContextDeleted` | a data context is deleted. `deletedContext` is its name | `deletedContext` |
 | `documentChangeNotice` | `updateDocumentBegun`, `updateDocumentEnded` | a plugin, or the host page CODAP is embedded in, replaced the document with `update document`; the two bracket the replacement. Sent to every plugin, the one that asked included, and to the host page. `updateDocumentEnded` carries `success`, and is also sent when the replacement fails, which v2 did not do | — |
-| `global[<name>]` | none | a global value changes: a slider is dragged or animates, or a plugin sets the value with `update` on `global`. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. Also sent when a change is undone or redone, and to every plugin, including the one that set the value | `globalValue` |
+| `global[<name>]` | none | a global value changes: a slider is dragged or animates, the user enters a slider value or uses the arrow keys, a plugin sets the value with `update` on `global`, or `update document` changes an existing global's value. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. Also sent when a change is undone or redone, and to every plugin, including the one that set the value | `globalValue` |
 | `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the locale itself, such as `pt-BR`. Sent only to plugins that set `handlesLocaleChange`; see [Language and locale](guides/locale.md) | `lang`, `locale` |
 | `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` | `formatStr`, `logMonitor`, `message`, … |
 | `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. Not documented further yet, because the implementation behind them is being replaced | _not readable from the code_ |
@@ -398,40 +389,15 @@ name alongside the old one and go through [deprecation](conventions.md#deprecate
 
 ## Known limitations
 
-**A plugin receives notifications about its own data changes.** v3 sends every data notification —
-attributes, cases, collections, the selection — to every plugin, including the one that made the
-change. A plugin that refetches or writes back whenever its data changes reacts to its own
-changes, and can loop. This is a known bug; the intended behavior is that the requesting plugin is
-skipped, as it already is for v3's component notifications.
+**Data changes arrive one at a time.** v2 collected the changes made together and sent one
+`dataContextChangeNotice[<context>]` whose `values` array holds all of them. CODAP sends one
+notification per change, each with a `values` array of one. A plugin that iterates over `values`
+sees the same changes, but across several notifications rather than one. This is a known bug; the
+intended behavior is v2's.
 
-v2 is only a partial precedent. It skipped the requesting plugin for data changes that recorded
-which plugin asked for them, but several did not: `update` on `attribute`, the `createCases` sent
-when items are created, `moveCases`, `moveAttribute`, and `dependentCases` all went to the
-requester too. v2 sent
-component notifications to every plugin, the requester included.
-
-**Data changes arrive one at a time, not as a list.** v2 collected the changes made together and
-sent one `dataContextChangeNotice[<context>]` whose `values` is an array of
-`{ operation, result }`. v3 sends one notification per change, with `values` as a single object.
-A plugin that iterates over `values` fails on v3's object. This is a known bug; the intended
-behavior is v2's array. Until it is fixed, accept both, as the example in
-[Receiving them](#receiving-them) does.
-
-**Some API changes send no notification.** These requests change data, but v3 does not notify
-other plugins about them. v2 did, for every one of them:
-
-- `update` and `delete` on `caseByID`, `caseByIndex`, `itemByID` and `itemByCaseID`
-- `update` on `item` with a single item
-- `delete` on `itemSearch`. v2 reported item deletes as `deleteCases`
-- `notify` on `itemSearch`, which moves items. v2 reported the move as `moveCases`
-- `delete` on `attribute`
-- `delete` on `allCases`
-- `update` and `delete` on `collection`
-- `create` on `dataContextFromURL`. v2 reported the new data context as
-  `dataContextCountChanged` on `documentChangeNotice`
-
-This is a known bug; the intended behavior is that each sends the same notification as the
-equivalent change made in CODAP's own interface.
+**`create` on `dataContextFromURL` sends no notification.** v2 reported the new data context as
+`dataContextCountChanged` on `documentChangeNotice`. CODAP sends nothing, so other plugins do not
+learn of the new data context. This is a known bug; the intended behavior is v2's.
 
 **Formula recalculation rarely sends `dependentCases`.** v2 sent `dependentCases` for formula
 attributes whose values had to be recalculated:
@@ -450,8 +416,8 @@ through an item resource, v2 sent `createItems` or `updateItems` in addition to 
 operation. v3 sends only `createCases` or `updateCases`, so a plugin filtering on the item
 operations receives nothing. v2 also sent `resetCollections` when moving an attribute to another collection was undone,
 which v3 does not send. This is a known bug; the intended behavior is that v3 sends these as v2
-did. Deleting and moving items belong to the previous entry: v2 reported them as `deleteCases`
-and `moveCases`, not as item operations.
+did. Deleting and moving items are reported as `deleteCases` and `moveCases`, as in v2, not as
+item operations.
 
 **Some map moves send no `change map coordinates`.** v3 does not notify plugins when a plugin sets
 a map's center or zoom with `update component`, when a plugin rescales it with `notify component`
@@ -462,6 +428,10 @@ when a plugin set the center or zoom. This is a known bug.
 the creation of a component sent `delete`, undoing the calculator being shown or hidden sent the
 opposite, and undoing or redoing a case table close sent `create` or `delete`. v3 sends no
 component notification on undo or redo. This is a known bug.
+
+**`delete` on `component` hides a case table rather than deleting it.** v2 deleted the table, as it
+did any component a plugin deleted (`close-component.js`), and undoing that brought it back. v3
+hides the table, as its close box does, except in the mosaic layout. The notice is the same.
 
 **Undo and redo are not announced on `document`.** v3 does not send v2's `undo` and `redo`
 notifications on `document`. This is a known bug; see

@@ -15,7 +15,6 @@ import { importV2Document } from "../../v2/import-v2-document"
 import { isSharedDataSet, isSharedDataSetSnapshot } from "../../models/shared/shared-data-set"
 import { isDataSetMetadata, isDataSetMetadataSnapshot } from "../../models/shared/data-set-metadata"
 import { isGlobalValueManager, isGlobalValueManagerSnapshot } from "../../models/global/global-value-manager"
-import { withoutGlobalValueNotifications } from "../../models/global/global-value-notifications"
 import { ISharedModel, ISharedModelSnapshot } from "../../models/shared/shared-model"
 import { isGraphContentModel, isGraphContentModelSnapshot } from "../../components/graph/models/graph-content-model"
 import { isMapContentModel, isMapModelContentSnapshot } from "../../components/map/models/map-content-model"
@@ -289,11 +288,8 @@ async function replaceDocument(v2DocumentJson: ICodapV2DocumentJson) {
   // happen. So to prevent the duplicate recomputation, we also need to make changes
   // to how the formula manager observers work and how the manual recomputation is
   // triggered.
-  // as in V2, which rebuilt the document, the restored global values send no global[<name>] notices
-  withoutGlobalValueNotifications(() => {
-    applySnapshot(document, v3Snapshot)
-    document.content?.afterApplySnapshot()
-  })
+  applySnapshot(document, v3Snapshot)
+  document.content?.afterApplySnapshot()
 }
 
 // `update` waits for the document to be replaced before replying, as in V2

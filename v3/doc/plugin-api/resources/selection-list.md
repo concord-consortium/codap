@@ -175,8 +175,7 @@ IDs.` — no part of the selection is applied.
 
 Changing the selection causes CODAP to notify plugins that are listening to the data context,
 with the `selectCases` operation on `dataContextChangeNotice[<context>]`. The plugin that changed
-the selection is not meant to receive it, but today it does; see
-[Receiving them](../notifications.md#receiving-them).
+the selection does not receive it; see [Receiving them](../notifications.md#receiving-them).
 
 Selecting a parent case notifies for its whole group. See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext).

@@ -140,7 +140,8 @@ export const CaseTileTitleBar =
       documentContent?.applyModelChange(() => {
         documentContent?.toggleNonDestroyableTileVisibility(tile?.id)
       }, {
-        notify: () => closeCaseTableNotification(tile),
+        // in the mosaic layout, the table can't be hidden, so it stays on screen and sends nothing
+        notify: () => documentContent?.isTileHidden(tile?.id) ? closeCaseTableNotification(tile) : undefined,
         undoStringKey: `V3.Undo.case${suffix}.hide`,
         redoStringKey: `V3.Redo.case${suffix}.hide`,
         log: logMessageWithReplacement("Close component: %@", {tileType: tile?.content.type}, "component")
