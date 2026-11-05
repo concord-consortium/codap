@@ -2,11 +2,13 @@ import {
   add2ndAxisAttributeNotification, addAxisAttributeNotification, addMovableValueNotification,
   changeBackgroundColorNotification, displayOnlySelectedNotification, dragBinBoundaryNotification,
   dragMovableLineNotification, dragMovablePointNotification, dragMovableValueNotification,
-  editPlotFormulaNotification, removeMovableValueNotification, repositionEquationNotification,
+  editPlotFormulaNotification, graphAttributeChangeNotification, legendAttributeChangeNotification,
+  removeMovableValueNotification, repositionEquationNotification,
   setNumStdErrsNotification, showAllCasesNotification,
   toggleBackgroundTransparencyNotification, toggleMeasuresForSelectionNotification,
   toggleNumberToggleNotification, toggleShowICINotification, toggleShowOutliersNotification
 } from "./graph-notifications"
+import { attrChangeNotificationValues } from "./models/graph-notification-utils"
 
 const v2Id = 77001
 // V2 component-resource notifications carry the SC class name (`DG.GraphView`) in
@@ -365,5 +367,56 @@ describe("toggleBackgroundTransparencyNotification", () => {
 
   it("returns undefined when the graph tile is missing", () => {
     expect(toggleBackgroundTransparencyNotification(undefined, false)).toBeUndefined()
+  })
+})
+
+describe("graphAttributeChangeNotification", () => {
+  const tile = { id: "GRAPH1", content: { type: "Graph" } } as any
+  const values = { attributeId: 12, attributeName: "Height" }
+  const notice = (place: any, options: any = {}) =>
+    graphAttributeChangeNotification(tile, place, values, { attrId: "ATTR12", attrName: "Height", ...options })
+      ?.message.values
+
+  it("sends V2's operation for each way of changing a graph's attributes", () => {
+    const withTile = (operation: string, type = v2SCType) => ({ operation, ...values, id: v2Id, type, diType })
+    // axis drops and axis-menu changes
+    expect(notice("bottom")).toEqual(withTile("attributeChange"))
+    expect(notice("bottom", { fromMenu: true })).toEqual(withTile("attributeChange"))
+    // a legend drop (a plot-area drop on a graph with attributes arrives as one), with the display model's type
+    expect(notice("legend")).toEqual(withTile("legendAttributeChange", "DG.GraphModel"))
+    // a change from the legend's menu
+    expect(notice("legend", { fromMenu: true })).toEqual({
+      operation: "attributeChange", attributeId: 12, attributeName: "Height", axisOrientation: "none",
+      id: v2Id, type: "DG.GraphView", diType
+    })
+    // drops on the y-axis "+" target and the Y2 axis
+    expect(notice("yPlus")).toEqual(withTile("add axis attribute"))
+    expect(notice("rightNumeric")).toEqual(withTile("add 2nd axis attribute"))
+    // a removal from the legend's menu
+    expect(notice("legend", { attrId: "", attrIdToRemove: "ATTR12" })).toEqual({
+      operation: "attributeChange", attributeId: 12, attributeName: "Remove Legend: Height", axisOrientation: "none",
+      id: v2Id, type: "DG.GraphView", diType
+    })
+    // a change from the Y2 axis's menu
+    expect(notice("rightNumeric", { fromMenu: true })).toEqual(withTile("attributeChange"))
+  })
+
+  it("sends attributeChange for a removal from an axis's menu, the Y2 axis's included", () => {
+    const graphTile = {
+      id: "GRAPH1", content: { type: "Graph", plotType: "scatterPlot", dataConfiguration: { primaryRole: "x" } }
+    } as any
+    // graph.tsx passes "" as the attribute id for a removal, and the removed attribute's id separately
+    const removalValues = attrChangeNotificationValues("rightNumeric", "", "Height", "ATTR12", graphTile)
+    expect(graphAttributeChangeNotification(graphTile, "rightNumeric", removalValues,
+      { attrId: "", attrName: "Height", attrIdToRemove: "ATTR12" })?.message.values).toEqual({
+      operation: "attributeChange", attributeId: 12, attributeName: "Remove Y: Height", axisOrientation: "vertical2",
+      plotType: "scatterPlot", primaryAxis: "x", id: v2Id, type: v2SCType, diType
+    })
+  })
+
+  it("is a no-op for non-graph tiles", () => {
+    expect(graphAttributeChangeNotification({ content: { type: "Map" } } as any, "legend", values,
+      { attrId: "ATTR12" })).toBeUndefined()
+    expect(legendAttributeChangeNotification(undefined, values)).toBeUndefined()
   })
 })

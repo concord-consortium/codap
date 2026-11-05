@@ -1,7 +1,7 @@
 import {
   changeBaseMapNotification, changeGridSizeNotification, changeMapCoordinatesNotification,
   hideSelectedCasesNotification, hideUnselectedCasesNotification, mapLegendAttributeChangeNotification,
-  showAllCasesNotification
+  mapLegendChangeNotification, showAllCasesNotification
 } from "./map-notifications"
 
 const v2Id = 77001
@@ -140,5 +140,24 @@ describe("mapLegendAttributeChangeNotification", () => {
 
   it("is a no-op for non-map tiles", () => {
     expect(mapLegendAttributeChangeNotification({ content: { type: "Graph" } } as any, "ATTR1")).toBeUndefined()
+  })
+})
+
+describe("mapLegendChangeNotification", () => {
+  const tile = { id: "MAP1", content: { type: "Map" } } as any
+
+  it("sends legendAttributeChange for a drop and V2's legend-menu attributeChange for a change from the menu", () => {
+    expect(mapLegendChangeNotification(tile, "ATTR123", "Habitat", false)?.message.values).toEqual({
+      operation: "legendAttributeChange", attributeId: 123, attributeName: "Habitat",
+      id: v2Id, type: "DG.MapModel", diType
+    })
+    expect(mapLegendChangeNotification(tile, "ATTR123", "Habitat", true)?.message.values).toEqual({
+      operation: "attributeChange", attributeId: 123, attributeName: "Habitat", axisOrientation: "none",
+      id: v2Id, type: "DG.GraphView", diType
+    })
+  })
+
+  it("is a no-op for non-map tiles", () => {
+    expect(mapLegendChangeNotification({ content: { type: "Graph" } } as any, "ATTR1", "", true)).toBeUndefined()
   })
 })

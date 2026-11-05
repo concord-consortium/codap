@@ -186,9 +186,8 @@ The largest group.
 | Operation | Fires when | `values` also carries |
 |---|---|---|
 | `add axis attribute` | an attribute is dropped on the y-axis "+" target | _not readable from the code_ |
-| `add 2nd axis attribute` | an attribute is dropped on the right-hand numeric axis. Also sent when that attribute is removed | _not readable from the code_ |
-| `attributeChange` | an attribute is placed on, replaced on, or removed from an axis or the plot, by dropping it or from an axis label's menu | _not readable from the code_ |
-| `legendAttributeChange` | the legend attribute is set or replaced, by dropping it or from the legend's menu. Removing it sends nothing | `attributeId`, `attributeName`, … |
+| `add 2nd axis attribute` | an attribute is dropped on the right-hand numeric axis. Changing or removing it from that axis's menu sends `attributeChange` instead | _not readable from the code_ |
+| `legendAttributeChange` | an attribute is dropped on the legend or the plot area, and becomes the legend attribute. `type` is `DG.GraphModel`, as in v2 | `attributeId`, `attributeName`, … |
 | `change background color`, `toggle background transparency` | the plot background changes | `to` |
 | `add movable value`, `remove movable value`, `drag movable value` | movable values are added, removed or dragged | — |
 | `drag movable point` | the user finishes dragging the movable point | — |
@@ -219,6 +218,20 @@ The largest group.
 | `lockBackgroundImage`, `unlockBackgroundImage` | the background image is locked to the axes, or released | — |
 <!-- END GENERATED: notifications-component-graph -->
 
+`attributeChange`, listed under [Data display](#data-display) because maps send it too, carries
+`axisOrientation` for where the change was made, with v2's values. When
+the change removes an attribute, `attributeName` is the label of the menu item that removed it, in
+the user's language:
+
+| Where | `axisOrientation` | `attributeName` on removal |
+|---|---|---|
+| Bottom axis | `horizontal` | `Remove X: <name>` |
+| Left axis | `vertical` | `Remove Y: <name>` |
+| Right numeric axis, from its menu | `vertical2` | `Remove Y: <name>` |
+| Top axis, once the graph is split | `top` | `Remove Side-by-side Layout by <name>` |
+| Right categorical axis, once the graph is split | `right` | `Remove Vertical Layout by <name>` |
+| Legend, from its menu | `none` | `Remove Legend: <name>` |
+
 ### Axis
 
 <!-- BEGIN GENERATED: notifications-component-axis -->
@@ -247,8 +260,9 @@ The largest group.
 <!-- END GENERATED: notifications-component-map -->
 
 Dropping an attribute on a map or its legend sends `legendAttributeChange`, as on a graph (see
-[Graph](#graph)), with `type` `DG.MapModel`, as in v2. Changing or removing it from the legend's
-menu is handled as on a graph, which differs from v2; see [Known limitations](#known-limitations).
+[Graph](#graph)), with `type` `DG.MapModel`, as in v2. Changing or removing the legend attribute
+from the legend's menu sends `attributeChange` with `axisOrientation` `none`, as on a graph. Its
+`type` is `DG.GraphView`, as v2 sent it for maps too.
 
 ### Case table and case card
 
@@ -293,6 +307,7 @@ Shared by graphs and maps.
 | `change legend bins type` | a numeric legend switches between linear and quantile binning | `binningType` |
 | `change legend range` | a numeric legend's min or max is edited | `max`, `min` |
 | `swap categories` | the user finishes dragging a category label to reorder it | `place` |
+| `attributeChange` | on a graph, an attribute is placed on, replaced on, or removed from an axis, by dropping it or from an axis label's menu, including when an attribute dropped on the plot area of a graph with no attributes goes to the x axis. On a graph or a map, the legend attribute is changed or removed from the legend's menu. See [Graph](#graph) for `axisOrientation` | `attributeId`, `attributeName`, `axisOrientation`, … |
 <!-- END GENERATED: notifications-component-data-display -->
 
 A legend whose attribute holds colors uses those colors directly, so it has no color control and
@@ -449,22 +464,23 @@ matches on `formatStr` sees different strings from the ones v2 emitted, and ador
 particular collapsed to a generic `Added <x>` / `Removed <x>` where v2 named each adornment. This
 is a known bug; the intended behavior is that the tokens match v2's.
 
-**`attributeChange` and `legendAttributeChange` are crossed in two cases, and `axisOrientation`
-loses two values.** Dropping an attribute on the bottom or left axis, and dropping one on the
-legend, both behave as v2 did. These cases do not:
+**"Treat as Categorical" and "Treat as Numeric" send no notification.** v2 sent `attributeChange`
+for every attribute-menu item, so choosing either one on an axis or a legend sent `attributeChange`
+with `attributeName` `Treat as Categorical` or `Treat as Numeric`. v3 sends nothing. This is a known
+bug.
 
-| What the user does | v2 sends | v3 sends |
-|---|---|---|
-| Changes the legend attribute **from its menu** | `attributeChange`, `axisOrientation: "none"` | `legendAttributeChange`, no `axisOrientation` |
-| Removes the legend attribute **from its menu** | `attributeChange`, `axisOrientation: "none"` | nothing |
-| Drops an attribute on the **plot area** | `legendAttributeChange` | `attributeChange` |
-| Drops on the **top** axis | `attributeChange`, `axisOrientation: "top"` | `axisOrientation: "horizontal"` |
-| Drops on the **right** categorical axis | `attributeChange`, `axisOrientation: "right"` | `axisOrientation: "vertical"` |
+**The drop that first splits a graph sends `attributeChange` with `top` or `right`.** v2 showed
+the top and right axes only once the graph was split, so that drop landed on another target: near
+the top edge, the y axis's "+" target, sending `add axis attribute`, and near the right edge, the
+right numeric axis, sending `add 2nd axis attribute`, neither with `axisOrientation`. v2 sent
+`attributeChange` with `top` or `right` only once the split existed. v3 sends it for the first split
+too. This is a known bug.
 
-So a v2 plugin watching `attributeChange` never sees a legend-menu change, and one watching
-`legendAttributeChange` never sees a plot-area drop. The two legend-menu rows apply to maps too:
-for a map, v2 also sent `attributeChange`, with `type` `DG.GraphView`. This is a known bug; match
-on both operations, and do not rely on `axisOrientation` distinguishing the top and right axes.
+**A drop on the plot area of a graph whose only attribute is a split sets the legend.** v2 put an
+attribute dropped on the plot area on the x axis whenever no x, y or legend attribute was set,
+whatever the splits, and sent `attributeChange` with `horizontal`. v3 treats a split as an
+attribute, so it makes the dropped attribute the legend and sends `legendAttributeChange`. This is a
+known bug.
 
 ## See also
 
