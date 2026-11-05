@@ -23,6 +23,8 @@ import {GraphAttributeLabel} from "./graph-attribute-label"
 interface IProps {
   place: AxisPlace
   onDropAttribute?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
+  // a change from the axis's attribute menu; drops are handled by onDropAttribute
+  onChangeAttribute?: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
   onRemoveAttribute?: (place: GraphPlace, attrId: string) => void
   onTreatAttributeAs?: (place: GraphPlace, attrId: string, treatAs: AttributeType) => void
   // forwarded to DroppableAxis to avoid overlap with adjacent add-attribute drop zones
@@ -32,7 +34,7 @@ interface IProps {
 const trueFn = () => true
 
 export const GraphAxis = observer(function GraphAxis(
-  {place, onDropAttribute, onRemoveAttribute, onTreatAttributeAs, topInset}: IProps) {
+  {place, onDropAttribute, onChangeAttribute, onRemoveAttribute, onTreatAttributeAs, topInset}: IProps) {
   const dataConfig = useGraphDataConfigurationContext(),
     isDropAllowed = dataConfig?.placeCanAcceptAttributeIDDrop ?? trueFn,
     graphModel = useGraphContentModelContext(),
@@ -104,7 +106,7 @@ export const GraphAxis = observer(function GraphAxis(
         />}
       <GraphAttributeLabel
         place={place}
-        onChangeAttribute={onDropAttribute}
+        onChangeAttribute={onChangeAttribute}
         onRemoveAttribute={onRemoveAttribute}
         onTreatAttributeAs={onTreatAttributeAs}
       />
