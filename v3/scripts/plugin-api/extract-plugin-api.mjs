@@ -125,6 +125,24 @@ function asString(node) {
   return undefined
 }
 
+// The property names of an object literal. A spread of a factory call, `...makeHandlers()`, is
+// recorded by the factory's name and resolved once every factory has been indexed (resolveProps).
+function literalProps(literal) {
+  const props = new Set()
+  const spreads = []
+  for (const m of literal.properties) {
+    if (ts.isSpreadAssignment(m)) {
+      if (ts.isCallExpression(m.expression) && ts.isIdentifier(m.expression.expression)) {
+        spreads.push(m.expression.expression.text)
+      }
+      continue
+    }
+    const n = m.name && (ts.isIdentifier(m.name) || ts.isStringLiteralLike(m.name)) ? m.name.text : undefined
+    if (n) props.add(n)
+  }
+  return { props, spreads }
+}
+
 // --- pass 2: index every `const X = <object literal>` so handlers can be resolved ---------
 // Handlers are declared as `export const diXHandler: DIHandler = { get() {...}, ... }` in the
 // same file as their registration. A few are produced by a factory call instead; those are
@@ -137,12 +155,7 @@ for (const [, sf] of sources) {
     if (objectConsts.has(name)) return
     const init = node.initializer
     if (ts.isObjectLiteralExpression(init)) {
-      const props = new Set()
-      for (const m of init.properties) {
-        const n = m.name && (ts.isIdentifier(m.name) || ts.isStringLiteralLike(m.name)) ? m.name.text : undefined
-        if (n) props.add(n)
-      }
-      objectConsts.set(name, { props, site: siteOf(sf, node) })
+      objectConsts.set(name, { ...literalProps(init), site: siteOf(sf, node) })
     } else if (ts.isCallExpression(init) && ts.isIdentifier(init.expression)) {
       objectConsts.set(name, { props: null, factory: init.expression.text, site: siteOf(sf, node) })
     }
@@ -153,7 +166,7 @@ for (const [, sf] of sources) {
 // Several adornments share a handler built by a factory — univariateMeasureAdornmentBaseHandler
 // is the notable one, and it is a shape that recurs wherever a factory builds handlers. Index the properties of the
 // object literal such a factory returns so those handlers resolve like any other.
-const factoryProps = new Map()  // function name -> Set of property names
+const factoryProps = new Map()  // function name -> { props: Set of property names, spreads }
 for (const [, sf] of sources) {
   eachNode(sf, node => {
     const isFn = ts.isFunctionDeclaration(node) || ts.isArrowFunction(node) || ts.isFunctionExpression(node)
@@ -164,9 +177,11 @@ for (const [, sf] of sources) {
     else if (ts.isVariableDeclaration(node.parent) && ts.isIdentifier(node.parent.name)) name = node.parent.name.text
     if (!name || factoryProps.has(name)) return
 
-    // An arrow with an expression body, or any `return { ... }` in the body.
+    // An arrow with an expression body, parenthesized or not, or any `return { ... }` in the body.
     let literal
-    if (!ts.isBlock(node.body) && ts.isObjectLiteralExpression(node.body)) literal = node.body
+    let body = node.body
+    while (ts.isParenthesizedExpression(body)) body = body.expression
+    if (!ts.isBlock(body) && ts.isObjectLiteralExpression(body)) literal = body
     else if (ts.isBlock(node.body)) {
       // Only return statements belonging to *this* function. Recursing would let an inner
       // callback's object literal be recorded as the factory's handler.
@@ -183,13 +198,19 @@ for (const [, sf] of sources) {
       })
     }
     if (!literal) return
-    const props = new Set()
-    for (const m of literal.properties) {
-      const n = m.name && (ts.isIdentifier(m.name) || ts.isStringLiteralLike(m.name)) ? m.name.text : undefined
-      if (n) props.add(n)
-    }
-    factoryProps.set(name, props)
+    factoryProps.set(name, literalProps(literal))
   })
+}
+
+// A literal's property names, with those of the factories it spreads (one level of nesting is
+// enough for the handlers today; a deeper chain stops rather than loops).
+function resolveProps({ props, spreads }, depth = 0) {
+  const all = new Set(props)
+  for (const factory of spreads) {
+    const spread = factoryProps.get(factory)
+    if (spread && depth < 3) resolveProps(spread, depth + 1).forEach(p => all.add(p))
+  }
+  return all
 }
 
 // Actions a handler object defines. Resolves one level of factory indirection; anything
@@ -197,9 +218,15 @@ for (const [, sf] of sources) {
 function actionsOf(identName) {
   const entry = objectConsts.get(identName)
   if (!entry) return { actions: null, note: "handler not found" }
-  if (entry.props) return { actions: ACTIONS.filter(a => entry.props.has(a)) }
+  if (entry.props) {
+    const props = resolveProps(entry)
+    return { actions: ACTIONS.filter(a => props.has(a)) }
+  }
   const viaFactory = factoryProps.get(entry.factory)
-  if (viaFactory) return { actions: ACTIONS.filter(a => viaFactory.has(a)), via: `${entry.factory}()` }
+  if (viaFactory) {
+    const props = resolveProps(viaFactory)
+    return { actions: ACTIONS.filter(a => props.has(a)), via: `${entry.factory}()` }
+  }
   return { actions: null, note: `built by ${entry.factory}()` }
 }
 

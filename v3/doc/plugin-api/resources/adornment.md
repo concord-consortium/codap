@@ -77,28 +77,27 @@ falls back to hiding, so it works everywhere.
 <!-- BEGIN GENERATED: adornment-types -->
 | Type | get | create | update | delete |
 |---|---|---|---|---|
-| `Box Plot` (alias `BoxPlot`) | ✓ | — | — | hides |
+| `Box Plot` (alias `BoxPlot`) | ✓ | ✓ | ✓ | hides |
 | `Count` (alias `Percent`) | ✓ | ✓ | ✓ | ✓ |
 | `LSRL` | ✓ | ✓ | ✓ | hides |
 | `Mean` | ✓ | ✓ | ✓ | hides |
-| `Mean Absolute Deviation` (alias `MeanAbsoluteDeviation`) | ✓ | — | — | hides |
+| `Mean Absolute Deviation` (alias `MeanAbsoluteDeviation`) | ✓ | ✓ | ✓ | hides |
 | `Median` | ✓ | ✓ | ✓ | hides |
 | `Movable Line` (alias `MovableLine`) | ✓ | — | — | hides |
 | `Movable Point` (alias `MovablePoint`) | ✓ | — | — | hides |
 | `Movable Value` (alias `MovableValue`) | ✓ | ✓ | ✓ | ✓ |
-| `Normal Curve` (alias `NormalCurve`) | ✓ | — | — | hides |
+| `Normal Curve` (alias `NormalCurve`) | ✓ | ✓ | ✓ | hides |
 | `Plotted Function` (alias `PlottedFunction`) | ✓ | — | — | hides |
 | `Plotted Value` (alias `PlottedValue`) | ✓ | ✓ | ✓ | ✓ |
 | `Region of Interest` (alias `RegionofInterest`) | ✓ | ✓ | ✓ | hides |
 | `Standard Deviation` (alias `StandardDeviation`) | ✓ | ✓ | ✓ | hides |
-| `Standard Error` (alias `StandardError`) | ✓ | — | — | hides |
+| `Standard Error` (alias `StandardError`) | ✓ | ✓ | ✓ | hides |
 <!-- END GENERATED: adornment-types -->
 
-The seven read-only types **cannot be turned on through the API** — `create` and `update` both
-return `The <type> adornment does not currently support <action> requests.` A plugin can read
-them once the user has enabled them in the graph's inspector, and can hide them with `delete`,
-but cannot display them in the first place. This is a known gap rather than a deliberate
-limitation; the table above changes when it is closed.
+`Movable Line`, `Movable Point` and `Plotted Function` **cannot be turned on through the API** —
+`create` and `update` both return `The <type> adornment does not currently support <action>
+requests.` A plugin can read them once the user has enabled them in the graph's inspector, and
+can hide them with `delete`, but cannot display them in the first place. This is a known bug.
 
 "hides" in the table means `delete` succeeds by hiding rather than removing. It does **not** mean
 `delete` always succeeds: deleting a type the graph has never shown returns `Adornment not
@@ -145,6 +144,11 @@ on the type — **do not assume the key matches the adornment name.** Three wort
 `interquartileRange`, `lower` and `upper` — and the result also carries top-level `showICI` and
 `showOutliers` alongside `data`.
 
+`Mean Absolute Deviation` and `Standard Error` report a `min` and `max` around the mean, like
+`Standard Deviation`; the first carries the `mean` with them, the second the `standardError`.
+`Standard Error` also carries top-level `_numStErrs`, the number of standard errors the range
+spans. `Normal Curve` carries the `mean`, `standardDeviation` and `standardError`.
+
 For other types, read the handler under `src/components/graph/adornments/` — the full per-type
 catalog is not yet here.
 
@@ -163,7 +167,18 @@ All three take a `values` object containing at least `type`:
 
 Individual types accept further properties — a `Movable Value` takes a value to place, a
 `Plotted Value` takes an expression. Those are documented with the types themselves, which this
-page does not yet cover.
+page does not yet cover, except for these:
+
+| Type | Property | Effect on `create` and `update` |
+|---|---|---|
+| `Mean`, `Median`, `Standard Deviation`, `Mean Absolute Deviation`, `Normal Curve`, `Standard Error`, `Box Plot` | `isVisible` | `update` shows or hides the adornment; `create` always shows it |
+| `Box Plot` | `showOutliers` | shows outliers separately, as the inspector's checkbox does |
+| `Box Plot` | `showICI` | shows the informal confidence interval. The inspector offers this only when CODAP is opened with the `ICI` URL parameter; the API sets it either way |
+| `Standard Error` | `_numStErrs` | the number of standard errors shown, as `get` reports it. A negative value, or one that isn't a finite number, is ignored, as the inspector does |
+
+For these types, `create` on a graph whose plot cannot show the adornment returns
+`Adornment not supported by plot type.`, and creating one that already exists shows it again.
+`create` replies with the same values as `get`.
 
 ## Examples
 
@@ -248,6 +263,9 @@ Toggling an adornment emits a component notification whose operation is specific
 adornment — `togglePlottedMean`, `toggle connecting line`, `add movable value` and so on. These
 match the v2 operation strings, including v2's inconsistent casing. See
 [the notification catalog](../notifications.md#component-changes--component) for the full list.
+Only changes made in the graph's inspector send them: showing, hiding or configuring `Mean`,
+`Median`, `Standard Deviation`, `Mean Absolute Deviation`, `Normal Curve`, `Standard Error` or
+`Box Plot` with `create` or `update` sends no notification.
 
 ## Errors
 
