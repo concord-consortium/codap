@@ -34,6 +34,10 @@ describe("ossLibrariesJson", () => {
 describe("thirdPartyNoticesMarkdown", () => {
   const markdown = thirdPartyNoticesMarkdown(packages)
 
+  it("starts with a UTF-8 byte order mark so browsers pick the right encoding", () => {
+    expect(markdown.startsWith("\uFEFF# Third-Party Notices")).toBe(true)
+  })
+
   it("has a section for every package, in name order", () => {
     const headings = markdown.split("\n").filter(line => line.startsWith("## "))
     expect(headings).toEqual([

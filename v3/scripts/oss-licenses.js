@@ -116,7 +116,8 @@ function thirdPartyNoticesMarkdown(packages) {
     if (pkg.noticeText) lines.push("", "Notice:", "", fence(pkg.noticeText))
     return lines.join("\n")
   })
-  return [
+  // S3 serves the file as text/markdown with no charset; the byte order mark tells browsers it's UTF-8
+  return "\uFEFF" + [
     "# Third-Party Notices",
     "CODAP includes the following open-source software. Each package's license and notices are reproduced below.",
     ...sections
