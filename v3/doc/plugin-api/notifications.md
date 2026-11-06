@@ -141,17 +141,20 @@ plugin watching one data set can filter on it.
 | `updateCollection` | a collection's properties change |
 | `deleteCollection` | a collection is removed |
 | `updateDataContext` | the context's own properties change, such as its title |
+| `createItems` | items are created through an item resource. Follows the `createCases` notices for the same request, or for the whole batch when CODAP combines a run of item creates. `caseIDs` lists the cases created, collection by collection, and, as in v2, `itemIDs` lists alongside each one the id of the item it was built from. v2 listed each new parent case just before its own new children |
+| `updateItems` | items are updated through an item resource. Follows the case notices for the same request: `updateCases`, and `createCases` when the change regroups cases. v2 carried only `success`; v3 also carries the items' ids |
+| `deleteItems` | items are deleted through an item resource (`item`, `itemByID`, `itemByCaseID`, `itemSearch`). Follows the `deleteCases` for the same request, with the deleted items' ids. New in v3: v2 never sent it |
 
 Every change in `values` carries `result`.
 <!-- END GENERATED: notifications-data -->
 
-These operations are part of the contract, but CODAP does not send them yet; see
+Moving items is reported only as `moveCases`, as in v2, which never sent `moveItems` to plugins.
+
+This operation is part of the contract, but CODAP does not send it yet; see
 [Known limitations](#known-limitations):
 
 | Operation | Should fire when |
 |---|---|
-| `createItems` | items are created through an item resource. Follows the `createCases` for the same change |
-| `updateItems` | items are updated through an item resource. Accompanies the `updateCases` for the same change |
 | `resetCollections` | moving an attribute to another collection is undone, and the collections are rebuilt. Undoing a move within a collection sends `moveAttribute` instead |
 
 ## Component changes — `component`
@@ -426,13 +429,9 @@ attributes whose values had to be recalculated:
 v3 sends it only when random values are rerandomized or a join adds values, so a plugin that relies
 on it to see recalculated values misses them. This is a known bug; the intended behavior is v2's.
 
-**Item-level changes are reported only as case changes.** When items were created or updated
-through an item resource, v2 sent `createItems` or `updateItems` in addition to the case
-operation. v3 sends only `createCases` or `updateCases`, so a plugin filtering on the item
-operations receives nothing. v2 also sent `resetCollections` when moving an attribute to another collection was undone,
-which v3 does not send. This is a known bug; the intended behavior is that v3 sends these as v2
-did. Deleting and moving items are reported as `deleteCases` and `moveCases`, as in v2, not as
-item operations.
+**`resetCollections` is not sent.** v2 sent it when moving an attribute to another collection was
+undone. v3 sends no notification when that move is undone. This is a known bug; the intended
+behavior is v2's.
 
 **Some map moves send no `change map coordinates`.** v3 does not notify plugins when a plugin sets
 a map's center or zoom with `update component`, when a plugin rescales it with `notify component`
