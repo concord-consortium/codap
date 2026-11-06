@@ -1,9 +1,14 @@
 import { getSnapshot, onAction } from "mobx-state-tree"
 import { RequestQueue } from "../components/web-view/request-queue"
+import { kWebViewTileType } from "../components/web-view/web-view-defs"
+import { IWebViewModel } from "../components/web-view/web-view-model"
+import "../components/web-view/web-view-registration"
 import { appState } from "../models/app-state"
+import { createDefaultTileOfType } from "../models/codap/add-default-content"
 import { SharedDataSet } from "../models/shared/shared-data-set"
 import { uiState } from "../models/ui-state"
 import { setupTestDataset } from "../test/dataset-test-utils"
+import { editingBlockedPluginId } from "../utilities/plugin-utils"
 import { registerDIHandler } from "./data-interactive-handler"
 import * as itemHandler from "./handlers/item-handler"
 import { processRequest, setupRequestQueueProcessor } from "./data-interactive-request-processor"
@@ -40,7 +45,7 @@ describe("setupRequestQueueProcessor", () => {
   }
   function startBlockingEdit() {
     uiState.setIsEditingCell(true)
-    uiState.setIsEditingBlockingCell(kPluginTile.id)
+    uiState.setIsEditingBlockingCell(() => kPluginTile.id)
   }
 
   function createItemRequest(values: object, resource = `dataContext[${datasetName}].item`): DIRequest {
@@ -316,6 +321,65 @@ describe("setupRequestQueueProcessor", () => {
     expect(uiState.interruptionCount).toBe(interruptionCount)
     expect(uiState.wasEditingCellBeforeInterruption).toBe(false)
     otherDisposer()
+  })
+
+  it("moves the hold when another plugin takes over the data set during a cell edit", async () => {
+    const pluginTile = () => {
+      const tile = createDefaultTileOfType(kWebViewTileType)!
+      content!.insertTileInDefaultRow(tile)
+      ;(tile.content as IWebViewModel).setBlockAPIRequestsWhileEditing(true)
+      return tile
+    }
+    const tileA = pluginTile()
+    const tileB = pluginTile()
+    const queueA = new RequestQueue()
+    const queueB = new RequestQueue()
+    const disposerA = setupRequestQueueProcessor(queueA, { tile: tileA })
+    const disposerB = setupRequestQueueProcessor(queueB, { tile: tileB })
+    dataset.setManagingControllerId(tileA.id)
+    uiState.setIsEditingCell(true)
+    uiState.setIsEditingBlockingCell(() => editingBlockedPluginId(dataset))
+
+    const responses: string[] = []
+    const get = { action: "get", resource: `dataContext[${datasetName}]` } as DIRequest
+    const send = async (plugin: string, pluginQueue: RequestQueue) => {
+      pluginQueue.push({ request: get, callback: () => responses.push(plugin) })
+      await jest.runAllTimersAsync()
+    }
+    await send("A", queueA)
+    await send("B", queueB)
+    expect(responses).toEqual(["B"])
+
+    // B takes over: A's held request runs, and B's requests now wait
+    dataset.setManagingControllerId(tileB.id)
+    await jest.runAllTimersAsync()
+    await send("B", queueB)
+    expect(responses).toEqual(["B", "A"])
+
+    // B stops blocking: its request runs
+    ;(tileB.content as IWebViewModel).setBlockAPIRequestsWhileEditing(false)
+    await jest.runAllTimersAsync()
+    expect(responses).toEqual(["B", "A", "B"])
+
+    dataset.setManagingControllerId(undefined)
+    disposerA()
+    disposerB()
+  })
+
+  it("replies to a malformed request, alone or in an array", async () => {
+    const responses: DIRequestResponse[] = []
+    const get = { action: "get", resource: `dataContext[${datasetName}]` }
+    queue.push({ request: null as any, callback: r => responses.push(r) })
+    queue.push({ request: [null, { action: "get" }, get] as any, callback: r => responses.push(r) })
+    await jest.runAllTimersAsync()
+    expect(responses).toEqual([
+      { success: false, values: { error: expect.any(String) } },
+      [
+        { success: false, values: { error: expect.any(String) } },
+        { success: false, values: { error: expect.any(String) } },
+        expect.objectContaining({ success: true })
+      ]
+    ])
   })
 })
 

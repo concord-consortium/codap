@@ -125,7 +125,10 @@ those data contexts, CODAP holds back your plugin's requests until the edit ends
 them in order. Nothing is dropped.
 
 The hold starts only once the user has actually changed the cell's value, and ends when the cell
-editor closes. It applies only to case table cells, not to the case card or to attribute names.
+editor closes. It follows the data context: if another plugin becomes its `managingController`
+during the edit, the hold moves to that plugin, if it sets `blockAPIRequestsWhileEditing`, and
+your plugin's waiting requests are processed. Turning the setting off ends the hold at once. It
+applies only to case table cells, not to the case card or to attribute names.
 
 **The hold applies only to your plugin.** While it lasts, all of your plugin's requests wait,
 including `get`s, so if your plugin polls, it sees its responses arrive late while the user types.

@@ -6,7 +6,7 @@ import { useLoggingContext } from "../../hooks/use-log-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
-import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
+import { blockAPIRequestsWhileEditing, editingBlockedPluginId } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { TRenderEditCellProps } from "./case-table-types"
 
@@ -56,7 +56,7 @@ export default function CellTextEditor({ row, column, onRowChange, onClose }: TR
         attribute: column.key, old: initialValueRef.current, new: valueRef.current }))
     if (blockAPIRequests && value !== initialValueRef.current) {
       // Only block API requests if the user has actually changed the value.
-      data && uiState.setIsEditingBlockingCell(data.managingControllerId)
+      data && uiState.setIsEditingBlockingCell(() => editingBlockedPluginId(data))
     }
   }
 

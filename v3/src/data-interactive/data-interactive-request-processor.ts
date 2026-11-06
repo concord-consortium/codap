@@ -82,7 +82,8 @@ export async function processRequest(
  * Check if an action may have modified table data.
  */
 function mayHaveModifiedTable(action: DIAction, result: DIHandlerFnResult): boolean {
-  if (!result) return false
+  // a malformed action (null, or with no resource) has already been answered with an error
+  if (!result || typeof action?.resource !== "string") return false
   const resourceSelector = parseResourceSelector(action.resource)
   const type = resourceSelector.type ?? ""
   const a = action.action
