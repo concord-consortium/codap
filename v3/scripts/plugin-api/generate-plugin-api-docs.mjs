@@ -281,10 +281,11 @@ const notificationKey = n => `${n.resource}\u0000${n.operation ?? ""}`
 // be reported, even though another area's table lists that operation.
 const placedNotifications = new Set()
 
-// "—" means no values beyond the operation; unreadable keys say so rather than guess.
+// "—" means no values beyond the operation, and "…" values the extractor couldn't name;
+// unreadable keys say so rather than guess.
 function notificationValues(n) {
   if (!n.valueKeys) return "_not readable from the code_"
-  if (!n.valueKeys.length) return "—"
+  if (!n.valueKeys.length) return n.valueKeysPartial ? "…" : "—"
   return n.valueKeys.map(k => `\`${k}\``).join(", ") + (n.valueKeysPartial ? ", …" : "")
 }
 

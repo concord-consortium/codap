@@ -31,10 +31,12 @@ interface ILegendProps {
   layerIndex: number
   setDesiredExtent: (layerIndex:number, extent: number) => void
   onDropAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
+  // a change from the legend's attribute menu; drops are handled by onDropAttribute
+  onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
 }
 
 export const Legend = observer(function Legend({
-                                        layerIndex, setDesiredExtent, onDropAttribute
+                                        layerIndex, setDesiredExtent, onDropAttribute, onChangeAttribute
                                       }: ILegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     legendID = dataConfiguration?.attributeID("legend"),
@@ -52,7 +54,7 @@ export const Legend = observer(function Legend({
     <>
       <svg ref={legendRef} className='legend-component' data-testid='legend-component'>
         <LegendAttributeLabel
-          onChangeAttribute={onDropAttribute}
+          onChangeAttribute={onChangeAttribute}
         />
         {isInoperable
           ? <InoperableLegendMessage layerIndex={layerIndex} setDesiredExtent={setDesiredExtent} />

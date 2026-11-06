@@ -93,7 +93,7 @@ one notification:
 Each notification currently reports one change; see [Known limitations](#known-limitations).
 
 **Some notifications have no `operation`.** A `logMessageNotice` carries the log event itself, and
-the slider notice on `global[<name>]` carries only the new value:
+the value notice on `global[<name>]` carries only the new value:
 
 ```json
 {
@@ -173,7 +173,7 @@ for it.
 | Operation | Fires when | `values` also carries |
 |---|---|---|
 | `create` | a component is created. The calculator usually sends `show` instead; see below | — |
-| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed. v2 also sent it when a case table was closed from its title bar, and `create` when that close was undone; v3 sends neither, see [Known limitations](#known-limitations). Closing a case card sends nothing | `name`, `title` |
+| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed, and a case table is when it is closed from its title bar or deleted with `delete` on `component` (in the mosaic layout, `delete` removes it). For the case table, `type` is `DG.TableView` and `title` is its data context's title, as in v2. v2 also sent `create` when that close was undone; v3 does not, see [Known limitations](#known-limitations). Closing a case card sends nothing | `name`, `title` |
 | `titleChange` | a component is renamed. Sent on `component[<id>]` rather than `component` | `from`, `to` |
 | `hide`, `show` | the calculator is closed, or toggled from the tool shelf | — |
 | `move`, `resize` | a component is moved or resized | — |
@@ -189,9 +189,8 @@ The largest group.
 | Operation | Fires when | `values` also carries |
 |---|---|---|
 | `add axis attribute` | an attribute is dropped on the y-axis "+" target | _not readable from the code_ |
-| `add 2nd axis attribute` | an attribute is dropped on the right-hand numeric axis. Also sent when that attribute is removed | _not readable from the code_ |
-| `attributeChange` | an attribute is placed on, replaced on, or removed from an axis or the plot, by dropping it or from an axis label's menu | _not readable from the code_ |
-| `legendAttributeChange` | the legend attribute is set or replaced, by dropping it or from the legend's menu. Removing it sends nothing | _not readable from the code_ |
+| `add 2nd axis attribute` | an attribute is dropped on the right-hand numeric axis. Changing or removing it from that axis's menu sends `attributeChange` instead | _not readable from the code_ |
+| `legendAttributeChange` | an attribute is dropped on the legend or the plot area, and becomes the legend attribute. `type` is `DG.GraphModel`, as in v2 | `attributeId`, `attributeName`, … |
 | `change background color`, `toggle background transparency` | the plot background changes | `to` |
 | `add movable value`, `remove movable value`, `drag movable value` | movable values are added, removed or dragged | — |
 | `drag movable point` | the user finishes dragging the movable point | — |
@@ -222,6 +221,20 @@ The largest group.
 | `lockBackgroundImage`, `unlockBackgroundImage` | the background image is locked to the axes, or released | — |
 <!-- END GENERATED: notifications-component-graph -->
 
+`attributeChange`, listed under [Data display](#data-display) because maps send it too, carries
+`axisOrientation` for where the change was made, with v2's values. When
+the change removes an attribute, `attributeName` is the label of the menu item that removed it, in
+the user's language:
+
+| Where | `axisOrientation` | `attributeName` on removal |
+|---|---|---|
+| Bottom axis | `horizontal` | `Remove X: <name>` |
+| Left axis | `vertical` | `Remove Y: <name>` |
+| Right numeric axis, from its menu | `vertical2` | `Remove Y: <name>` |
+| Top axis, once the graph is split | `top` | `Remove Side-by-side Layout by <name>` |
+| Right categorical axis, once the graph is split | `right` | `Remove Vertical Layout by <name>` |
+| Legend, from its menu | `none` | `Remove Legend: <name>` |
+
 ### Axis
 
 <!-- BEGIN GENERATED: notifications-component-axis -->
@@ -235,7 +248,7 @@ The largest group.
 <!-- BEGIN GENERATED: notifications-component-slider -->
 | Operation | Fires when | `values` also carries |
 |---|---|---|
-| `change slider value` | the user finishes changing a slider's value: releasing the thumb, entering a value, or using the arrow keys. While the thumb is being dragged, and while the slider animates, only the value notice on `global[<name>]` is sent; see [Everything else](#everything-else) | _not readable from the code_ |
+| `change slider value` | the user finishes changing a slider's value: releasing the thumb, entering a value, or using the arrow keys. While the thumb is being dragged, and while the slider animates, only the value notice on `global[<name>]` is sent; see [Everything else](#everything-else). For an entered value, the value notice follows this one; for the thumb and the arrow keys, it comes first | _not readable from the code_ |
 <!-- END GENERATED: notifications-component-slider -->
 
 ### Map
@@ -249,8 +262,10 @@ The largest group.
 | `hide selected cases`, `hide unselected cases`, `show all cases` | case visibility changes on a map | `hide selected cases`: `numberHidden`; `hide unselected cases`: `numberHidden`; `show all cases`: — |
 <!-- END GENERATED: notifications-component-map -->
 
-Changing a map's legend attribute should send `legendAttributeChange`, as it does on a graph. v3
-does not send it yet; see [Known limitations](#known-limitations).
+Dropping an attribute on a map or its legend sends `legendAttributeChange`, as on a graph (see
+[Graph](#graph)), with `type` `DG.MapModel`, as in v2. Changing or removing the legend attribute
+from the legend's menu sends `attributeChange` with `axisOrientation` `none`, as on a graph. Its
+`type` is `DG.GraphView`, as v2 sent it for maps too.
 
 ### Case table and case card
 
@@ -295,6 +310,7 @@ Shared by graphs and maps.
 | `change legend bins type` | a numeric legend switches between linear and quantile binning | `binningType` |
 | `change legend range` | a numeric legend's min or max is edited | `max`, `min` |
 | `swap categories` | the user finishes dragging a category label to reorder it | `place` |
+| `attributeChange` | on a graph, an attribute is placed on, replaced on, or removed from an axis, by dropping it or from an axis label's menu, including when an attribute dropped on the plot area of a graph with no attributes goes to the x axis. On a graph or a map, the legend attribute is changed or removed from the legend's menu. See [Graph](#graph) for `axisOrientation` | `attributeId`, `attributeName`, `axisOrientation`, … |
 <!-- END GENERATED: notifications-component-data-display -->
 
 A legend whose attribute holds colors uses those colors directly, so it has no color control and
@@ -367,8 +383,8 @@ Four more resources, each with a few notifications.
 |---|---|---|---|
 | `documentChangeNotice` | `dataContextCountChanged` | a data context is created or deleted anywhere in the document | — |
 | `documentChangeNotice` | `dataContextDeleted` | a data context is deleted. `deletedContext` is its name | `deletedContext` |
-| `documentChangeNotice` | `updateDocumentBegun`, `updateDocumentEnded` | a plugin, or the host page CODAP is embedded in, replaced the document with `update document`; the two bracket the replacement. Sent to every plugin. v3 sends them only to the plugin that asked; see [Known limitations](#known-limitations) | — |
-| `global[<name>]` | none | a global value changes: a slider is dragged or animates, or a plugin sets the value with `update` on `global`. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. v3 does not yet send it when a plugin sets the value; see [Known limitations](#known-limitations) | `globalValue` |
+| `documentChangeNotice` | `updateDocumentBegun`, `updateDocumentEnded` | a plugin, or the host page CODAP is embedded in, replaced the document with `update document`; the two bracket the replacement. Sent to every plugin, the one that asked included, and to the host page. `updateDocumentEnded` carries `success`, and is also sent when the replacement fails, which v2 did not do | … |
+| `global[<name>]` | none | a global value changes: a slider is dragged or animates, the user enters a slider value or uses the arrow keys, a plugin sets the value with `update` on `global`, or `update document` changes an existing global's value. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. Also sent when a change is undone or redone, and to every plugin, including the one that set the value | `globalValue` |
 | `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the locale itself, such as `pt-BR`. Sent only to plugins that set `handlesLocaleChange`; see [Language and locale](guides/locale.md) | `lang`, `locale` |
 | `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` | `formatStr`, `logMonitor`, `message`, … |
 | `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. Not documented further yet, because the implementation behind them is being replaced | _not readable from the code_ |
@@ -422,17 +438,14 @@ a map's center or zoom with `update component`, when a plugin rescales it with `
 and `request: "autoScale"`, or when the map rescales itself because its layers changed. v2 sent it
 when a plugin set the center or zoom. This is a known bug.
 
-**Closing a case table sends no notification.** v2 sent `delete` on `component` when the user
-closed a case table from its title bar, and `create` when that close was undone. v3 sends
-neither. This is a known bug.
+**Undo and redo send no component notifications.** v2 sent one for many component changes: undoing
+the creation of a component sent `delete`, undoing the calculator being shown or hidden sent the
+opposite, and undoing or redoing a case table close sent `create` or `delete`. v3 sends no
+component notification on undo or redo. This is a known bug.
 
-**Changing a map's legend attribute sends no notification.** v2 sent `legendAttributeChange` for
-maps as for graphs. v3 sends nothing. This is a known bug.
-
-**A plugin setting a global value sends no notification.** v2 sent `global[<name>]` whenever a
-global value changed, whoever changed it. v3 sends it only when a slider changes the value, so a
-plugin following a slider that another plugin drives through `update` on `global` hears nothing.
-This is a known bug.
+**`delete` on `component` hides a case table rather than deleting it.** v2 deleted the table, as it
+did any component a plugin deleted (`close-component.js`), and undoing that brought it back. v3
+hides the table, as its close box does, except in the mosaic layout. The notice is the same.
 
 **Undo and redo are not announced on `document`.** v3 does not send v2's `undo` and `redo`
 notifications on `document`. This is a known bug; see
@@ -443,11 +456,6 @@ nothing when an action is added to an empty redo history, so a plugin does not h
 has become possible. This is a known bug; see
 [Undo and redo](guides/undo-and-redo.md#known-limitations).
 
-**`updateDocumentBegun` and `updateDocumentEnded` go only to the plugin that asked.** v2 sent
-both to every plugin whoever replaced the document, so each could tell that the document was
-being replaced. v3 does that only when the host page CODAP is
-[embedded in](guides/embedded-server.md) makes the request. This is a known bug.
-
 **Log event names do not match v2's.** About 27 event tokens were renamed in v3, and about 11
 payloads reshaped — `addAxisAttribute`, `attributeRemoved`, `dragEnd`, the `toggle*` family and
 the `Create <X> component` events among them. A plugin that registered a `logMessageMonitor` and
@@ -455,21 +463,23 @@ matches on `formatStr` sees different strings from the ones v2 emitted, and ador
 particular collapsed to a generic `Added <x>` / `Removed <x>` where v2 named each adornment. This
 is a known bug; the intended behavior is that the tokens match v2's.
 
-**`attributeChange` and `legendAttributeChange` are crossed in two cases, and `axisOrientation`
-loses two values.** Dropping an attribute on the bottom or left axis, and dropping one on the
-legend, both behave as v2 did. These cases do not:
+**"Treat as Categorical" and "Treat as Numeric" send no notification.** v2 sent `attributeChange`
+for every attribute-menu item, so choosing either one on an axis or a legend sent `attributeChange`
+with `attributeName` `Treat as Categorical` or `Treat as Numeric`. v3 sends nothing. This is a known
+bug.
 
-| What the user does | v2 sends | v3 sends |
-|---|---|---|
-| Changes the legend attribute **from its menu** | `attributeChange`, `axisOrientation: "none"` | `legendAttributeChange`, no `axisOrientation` |
-| Removes the legend attribute **from its menu** | `attributeChange`, `axisOrientation: "none"` | nothing |
-| Drops an attribute on the **plot area** | `legendAttributeChange` | `attributeChange` |
-| Drops on the **top** axis | `attributeChange`, `axisOrientation: "top"` | `axisOrientation: "horizontal"` |
-| Drops on the **right** categorical axis | `attributeChange`, `axisOrientation: "right"` | `axisOrientation: "vertical"` |
+**The drop that first splits a graph sends `attributeChange` with `top` or `right`.** v2 showed
+the top and right axes only once the graph was split, so that drop landed on another target: near
+the top edge, the y axis's "+" target, sending `add axis attribute`, and near the right edge, the
+right numeric axis, sending `add 2nd axis attribute`, neither with `axisOrientation`. v2 sent
+`attributeChange` with `top` or `right` only once the split existed. v3 sends it for the first split
+too. This is a known bug.
 
-So a v2 plugin watching `attributeChange` never sees a legend-menu change, and one watching
-`legendAttributeChange` never sees a plot-area drop. This is a known bug; match on both
-operations, and do not rely on `axisOrientation` distinguishing the top and right axes.
+**A drop on the plot area of a graph whose only attribute is a split sets the legend.** v2 put an
+attribute dropped on the plot area on the x axis whenever no x, y or legend attribute was set,
+whatever the splits, and sent `attributeChange` with `horizontal`. v3 treats a split as an
+attribute, so it makes the dropped attribute the legend and sends `legendAttributeChange`. This is a
+known bug.
 
 ## See also
 
