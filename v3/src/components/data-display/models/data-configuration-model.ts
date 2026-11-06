@@ -831,6 +831,15 @@ export const DataConfigurationModel = types
       if (binningType != null && binningType !== "quantile") return undefined
       return this.legendQuantileScaleAndExtents.extents
     },
+    // When the effective range is defined, values outside it are "missing" rather than clamped
+    // into an end bin. legendDisplayRange is the same range used for the endpoint labels, so
+    // colors and labels stay in lockstep (and, while locked, a value added later beyond the locked
+    // range is missing). A degenerate domain yields no min/max but still produces a valid
+    // single-bin scale, so there is no check there and the scale colors the value.
+    isOutsideLegendRange(value: number): boolean {
+      const { min, max } = this.legendDisplayRange
+      return min != null && max != null && (value < min || value > max)
+    },
   }))
   .views(self => (
     {
@@ -850,22 +859,15 @@ export const DataConfigurationModel = types
         // A log scale is undefined for values <= 0; they are always missing, including when the log
         // domain is degenerate (<= 1 distinct positive value) and legendDisplayRange is empty.
         if (self.legendIsLogarithmic && value <= 0) return missingColor
-        // When the effective range is defined, values outside it are "missing" rather than clamped
-        // into an end bin. legendDisplayRange is the same range used for the endpoint labels, so
-        // colors and labels stay in lockstep. A degenerate domain yields no min/max but still
-        // produces a valid single-bin scale, so skip the check there and let the scale color it.
-        const { min, max } = self.legendDisplayRange
-        if (min != null && max != null && (value < min || value > max)) return missingColor
+        if (self.isOutsideLegendRange(value)) return missingColor
         return self.legendNumericColorScale(value)
       },
 
       getLegendColorForDateValue(value: string): string {
         const [seconds] = stringValuesToDateSeconds([value])
-        // Dates outside the range are "missing", as numbers are, so a date added after the legend
-        // was locked does not take an end bin's color. (A date <= 0 is just a date before 1970,
-        // so the logarithmic rule for numbers does not apply.)
-        const { min, max } = self.legendDisplayRange
-        if (min != null && max != null && (seconds < min || seconds > max)) return missingColor
+        // The same range check as for numbers. (A date <= 0 is just a date before 1970, so the
+        // logarithmic rule for numbers does not apply.)
+        if (self.isOutsideLegendRange(seconds)) return missingColor
         return self.legendNumericColorScale(seconds)
       },
 

@@ -1923,14 +1923,18 @@ describe("DataConfigurationModel legend range overrides", () => {
 })
 
 describe("DataConfigurationModel locked legend", () => {
-  // Eleven cases with legend values 0, 10, ..., 100, default (quantile) binning, 5 bins.
-  function makeTree() {
-    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+  // Adds a "leg" attribute with one case per value (ids c0, c1, ...) and connects the data.
+  function addLegendData(t: Instance<typeof TreeModel>, values: Array<number | string>) {
     t.data.addAttribute({ id: "legId", name: "leg" })
     t.metadata.setData(t.data)
-    t.data.addCases(toCanonical(t.data,
-      Array.from({ length: 11 }, (_, i) => ({ __id__: `c${i}`, leg: i * 10 }))))
+    t.data.addCases(toCanonical(t.data, values.map((leg, i) => ({ __id__: `c${i}`, leg }))))
     t.config.setDataset(t.data, t.metadata)
+  }
+  // A tree with "leg" as the legend. By default: eleven cases with legend values 0, 10, ..., 100,
+  // default (quantile) binning, 5 bins.
+  function makeTree(values: Array<number | string> = Array.from({ length: 11 }, (_, i) => i * 10)) {
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    addLegendData(t, values)
     t.config.setAttribute("legend", { attributeID: "legId" })
     return t
   }
@@ -1977,21 +1981,14 @@ describe("DataConfigurationModel locked legend", () => {
     })
 
     it("gives a new date above the locked max the missing color", () => {
-      const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
-      t.data.addAttribute({ id: "legId", name: "leg" })
-      t.metadata.setData(t.data)
-      t.data.addCases(toCanonical(t.data, Array.from({ length: 6 }, (_, i) => (
-        { __id__: `d${i}`, leg: `${2020 + i}-06-15` }
-      ))))
-      t.config.setDataset(t.data, t.metadata)
-      t.config.setAttribute("legend", { attributeID: "legId" })
+      const t = makeTree(Array.from({ length: 6 }, (_, i) => `${2020 + i}-06-15`))
       expect(t.config.attributeType("legend")).toBe("date")
       t.config.setLegendQuantilesAreLocked(true)
 
       t.data.addCases(toCanonical(t.data, [{ __id__: "later", leg: "2030-06-15" }]))
       expect(t.config.getLegendColorForCase(caseIdOf(t, "later"))).toBe(missingColor)
-      expect(t.config.getLegendColorForCase(caseIdOf(t, "d5"))).not.toBe(missingColor)
-      expect(t.config.getLegendColorForCase(caseIdOf(t, "d0"))).not.toBe(missingColor)
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "c5"))).not.toBe(missingColor)
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "c0"))).not.toBe(missingColor)
     })
 
     it("selects the last bin up to the locked max, not the live max", () => {
@@ -2008,12 +2005,7 @@ describe("DataConfigurationModel locked legend", () => {
     })
 
     it("keeps a locked one-bin legend when a second distinct value arrives", () => {
-      const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
-      t.data.addAttribute({ id: "legId", name: "leg" })
-      t.metadata.setData(t.data)
-      t.data.addCases(toCanonical(t.data, [{ leg: 5 }, { leg: 5 }]))
-      t.config.setDataset(t.data, t.metadata)
-      t.config.setAttribute("legend", { attributeID: "legId" })
+      const t = makeTree([5, 5])
       t.config.setLegendQuantilesAreLocked(true)
       expect(t.config.legendQuantiles.length).toBe(0)
       expect(t.config.legendDisplayRange).toEqual({ min: 5, max: 5 })
@@ -2026,12 +2018,7 @@ describe("DataConfigurationModel locked legend", () => {
     })
 
     it("saves the positive log domain in log mode, and keeps it when a larger value arrives", () => {
-      const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
-      t.data.addAttribute({ id: "legId", name: "leg" })
-      t.metadata.setData(t.data)
-      t.data.addCases(toCanonical(t.data, [{ leg: -5 }, { leg: 0 }, { leg: 2 }, { leg: 8 }, { leg: 32 }]))
-      t.config.setDataset(t.data, t.metadata)
-      t.config.setAttribute("legend", { attributeID: "legId" })
+      const t = makeTree([-5, 0, 2, 8, 32])
       t.metadata.setAttributeBinningType("legId", "logarithmic")
       const liveThresholds = thresholdsOf(t)
       t.config.setLegendQuantilesAreLocked(true)
@@ -2099,10 +2086,8 @@ describe("DataConfigurationModel locked legend", () => {
         data: {}, metadata: {},
         config: { _attributeDescriptions: { legend: { attributeID: "legId" } }, ...lockProps }
       })
-      t.data.addAttribute({ id: "legId", name: "leg" })
-      t.metadata.setData(t.data)
-      t.data.addCases(toCanonical(t.data, [{ leg: 15 }, { leg: 25 }]))
-      t.config.setDataset(t.data, t.metadata)
+      // no setAttribute here: it would recompute the locked values from the snapshot
+      addLegendData(t, [15, 25])
       return t
     }
 

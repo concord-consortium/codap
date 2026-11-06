@@ -1,5 +1,5 @@
 import { clsx } from "clsx"
-import { extent, format, max as d3Max, min as d3Min } from "d3"
+import { extent, format } from "d3"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useId, useRef, useState } from "react"
 import {
@@ -17,7 +17,7 @@ import { PointShape } from "../../../utilities/point-shape-utils"
 import { t } from "../../../utilities/translation/translate"
 import { If } from "../../common/if"
 import { PaletteCheckbox } from "../../palette-checkbox"
-import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
+import { getLegendBoundaries } from "../components/legend/choropleth-legend/choropleth-legend"
 import {
   changeAttributeColorNotification, changeLegendBinCountNotification, changeLegendBinsTypeNotification,
   changeLegendRangeNotification, changePointColorAndAlphaNotification, changePointColorNotification,
@@ -444,16 +444,11 @@ const kLegendRangeBufferChars = 2 // accounts for input field padding
 function legendBoundaryDecimals(dataConfiguration: IDataConfigurationModel) {
   const scale = dataConfiguration.legendNumericColorScale
   if (!scale) return undefined
-  // Mirror choropleth-legend's boundary set so the input precision matches the rendered labels: the
-  // legend's display range (the locked range while locked), falling back to the scale domain's extent.
-  // A locked threshold scale's domain holds only the inner edges, and is empty for a single bin.
-  const domain = scale.domain()
+  // The same boundaries the legend labels use (with the same display range the legend gets), so the
+  // input precision matches the rendered labels.
   const { min, max } = dataConfiguration.legendDisplayRange
-  const lo = Number(min ?? d3Min(domain))
-  const hi = Number(max ?? d3Max(domain))
-  if (isNaN(lo) || isNaN(hi)) return undefined
-  const fullBoundaries = [lo, ...getScaleThresholds(scale), hi]
-  return binBoundaryDecimalPlaces(fullBoundaries)
+  const boundaries = getLegendBoundaries(scale, min, max)
+  return boundaries && binBoundaryDecimalPlaces(boundaries)
 }
 
 // Formats a legend bound for display in the Min/Max inputs. With a known decimal count (from the
