@@ -7,7 +7,7 @@ import { logMessageWithReplacement } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
-import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
+import { blockAPIRequestsWhileEditing, editingBlockedPluginId } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { ColorPickerPalette } from "../common/color-picker-palette"
 import { useColorPickerPopoverOffset } from "../common/use-color-picker-popover-offset"
@@ -97,7 +97,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
         attribute: column.key, old: initialInputValue.current, new: value }))
     if (blockAPIRequests && value !== initialInputValue.current) {
       // Only block API requests if the user has actually changed the value.
-      uiState.setIsEditingBlockingCell()
+      data && uiState.setIsEditingBlockingCell(() => editingBlockedPluginId(data))
     }
   }, [blockAPIRequests, column.key, data, onRowChange, row, setPendingLogMessage])
 
