@@ -1237,6 +1237,12 @@ export const DataConfigurationModel = types
       self.legendLockedMin = min
       self.legendLockedMax = max
     },
+    // When the legend attribute or its type changes while locked, lock the new attribute's values.
+    // The old values would not fit the new attribute. Callers run this in the same action as the
+    // change, after the case caches are reset, so one undo reverses both.
+    recomputeLockedLegend() {
+      if (self.legendQuantilesAreLocked) this.saveLockedLegend()
+    },
     setLegendQuantilesAreLocked(areLocked: boolean | undefined) {
       if (areLocked === self.legendQuantilesAreLocked) {
         return
@@ -1418,10 +1424,12 @@ export const DataConfigurationModel = types
       self.invalidateCases()
       // No harm in invalidating even if not numeric
       self.numericValuesForAttribute.invalidate(role, self.attributeType(role))
+      if (role === "legend") self.recomputeLockedLegend()
     },
     setAttributeType(role: AttrRole, type: AttributeType, plotNumber = 0) {
       self._attributeDescriptions.get(role)?.setType(type)
       self._setAttributeType(type, plotNumber)
+      if (role === "legend") self.recomputeLockedLegend()
     },
     addNewHiddenCases(hiddenCases: string[]) {
       self.hiddenCases.push(...hiddenCases)

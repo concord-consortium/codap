@@ -2079,6 +2079,103 @@ describe("DataConfigurationModel locked legend", () => {
       expect(t.config.legendDisplayRange).toEqual({ min: 15, max: 25 })
     })
   })
+
+  describe("recomputes the locked values when the legend attribute changes", () => {
+    // Adds a numeric attribute with values 1000, 1100, ..., 2000 (no overlap with leg's 0..100),
+    // and a categorical attribute.
+    function addOtherAttributes(t: Instance<typeof TreeModel>) {
+      t.data.addAttribute({ id: "bigId", name: "big" })
+      t.data.addAttribute({ id: "catId", name: "cat" })
+      t.data.setCaseValues(Array.from({ length: 11 }, (_, i) => (
+        { __id__: caseIdOf(t, `c${i}`), bigId: 1000 + i * 100, catId: i % 2 ? "odd" : "even" }
+      )))
+    }
+    // the locked values match what the live data gives now
+    function expectLockedToMatchLive(t: Instance<typeof TreeModel>) {
+      expect(t.config.legendQuantilesAreLocked).toBe(true)
+      expect(t.config.legendQuantiles.slice()).toEqual(getScaleThresholds(t.config.liveLegendNumericColorScale))
+      expect(t.config.legendDisplayRange).toEqual(t.config.liveLegendDisplayRange)
+    }
+
+    it("uses the new attribute's values when it does not overlap the old one", () => {
+      const t = makeTree()
+      addOtherAttributes(t)
+      t.config.setLegendQuantilesAreLocked(true)
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+
+      t.config.setAttribute("legend", { attributeID: "bigId" })
+      expect(t.config.legendDisplayRange).toEqual({ min: 1000, max: 2000 })
+      expect(thresholdsOf(t).every(edge => edge > 1000 && edge < 2000)).toBe(true)
+      expectLockedToMatchLive(t)
+    })
+
+    it("recomputes after a change to a categorical attribute and back to a numeric one", () => {
+      const t = makeTree()
+      addOtherAttributes(t)
+      t.config.setLegendQuantilesAreLocked(true)
+
+      t.config.setAttribute("legend", { attributeID: "catId" })
+      expect(t.config.legendQuantilesAreLocked).toBe(true)
+      expect(t.config.legendQuantiles.length).toBe(0)
+      expect(t.config.legendLockedMin).toBeUndefined()
+      expect(t.config.legendLockedMax).toBeUndefined()
+
+      t.config.setAttribute("legend", { attributeID: "bigId" })
+      expect(t.config.legendDisplayRange).toEqual({ min: 1000, max: 2000 })
+      expectLockedToMatchLive(t)
+    })
+
+    it("clears the locked values when the legend attribute is removed", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      t.config.setAttribute("legend", { attributeID: "" })
+      expect(t.config.legendQuantilesAreLocked).toBe(true)
+      expect(t.config.legendQuantiles.length).toBe(0)
+      expect(t.config.legendLockedMin).toBeUndefined()
+      expect(t.config.legendLockedMax).toBeUndefined()
+    })
+
+    it("recomputes when the legend is treated as a date", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      // Hide the top cases first. The locked values do not change, so a change after "Treat as"
+      // shows that the values were recomputed.
+      t.config.setHiddenCases([caseIdOf(t, "c10"), caseIdOf(t, "c9")])
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+
+      t.config.setAttributeType("legend", "date")
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 80 })
+      expectLockedToMatchLive(t)
+    })
+
+    it("restores the old locked values when the attribute change is undone", () => {
+      const t = makeTree()
+      addOtherAttributes(t)
+      t.config.setLegendQuantilesAreLocked(true)
+      const thresholds = thresholdsOf(t)
+
+      const recorder = recordPatches(t.config)
+      t.config.setAttribute("legend", { attributeID: "bigId" })
+      recorder.stop()
+      expect(t.config.legendDisplayRange).toEqual({ min: 1000, max: 2000 })
+      recorder.undo()
+
+      expect(t.config.attributeID("legend")).toBe("legId")
+      expect(t.config.legendQuantilesAreLocked).toBe(true)
+      expect(thresholdsOf(t)).toEqual(thresholds)
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+    })
+
+    it("does not change the locked values when another role's attribute changes", () => {
+      const t = makeTree()
+      addOtherAttributes(t)
+      t.config.setLegendQuantilesAreLocked(true)
+      t.config.setHiddenCases([caseIdOf(t, "c10")])
+      t.config.setAttribute("x", { attributeID: "bigId" })
+      t.config.setAttributeType("x", "categorical")
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+    })
+  })
 })
 
 describe("DataConfigurationModel legend point shapes", () => {
