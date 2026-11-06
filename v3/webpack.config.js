@@ -120,6 +120,8 @@ module.exports = (env, argv) => {
         'oss-libraries.json': ossLibrariesJson,
         'THIRD-PARTY-NOTICES.md': thirdPartyNoticesMarkdown,
       },
+      // CODAP's own code is in the bundle too, but it isn't a third-party library
+      excludedPackageTest: (name) => name === packageName,
       includeNoticeText: true,
       // the Rollbar snippet is inlined into index.html by file path, so it isn't in the module graph
       includePackages: () => [path.join(__dirname, 'node_modules/rollbar')],
