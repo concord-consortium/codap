@@ -5,7 +5,7 @@ import { IAdornmentModel } from "../../adornment-models"
 import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
 import { isStandardErrorAdornment } from "./standard-error-adornment-model"
 import { kStandardErrorType } from "./standard-error-adornment-types"
-import { univariateMeasureAdornmentWriteHandlers } from "../univariate-measure-adornment-base-handler"
+import { adornmentWriteHandlers } from "../../utilities/adornment-write-handlers"
 
 function get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
   if (!isStandardErrorAdornment(adornment)) return adornmentMismatchResult(kStandardErrorType)
@@ -42,5 +42,5 @@ function applyValues(adornment: IAdornmentModel, values: Record<string, unknown>
 
 export const standardErrorAdornmentHandler: DIAdornmentHandler = {
   get,
-  ...univariateMeasureAdornmentWriteHandlers({ adornmentType: kStandardErrorType, get, applyValues })
+  ...adornmentWriteHandlers({ adornmentType: kStandardErrorType, get, applyValues })
 }

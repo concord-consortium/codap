@@ -128,6 +128,8 @@ the string is what reaches your plugin.
 <!-- BEGIN GENERATED: error-catalog -->
 | Error | Prebuilt result |
 |---|---|
+| `<value> must be a number.` | — |
+| `<value> must be a string.` | — |
 | `<value1> <value2>: <value3> required` | — |
 | `<value1> contains an invalid attribute name or ID.` | — |
 | `<value1> selectionList requires a list of case IDs.` | — |
