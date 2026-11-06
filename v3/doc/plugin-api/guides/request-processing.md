@@ -95,8 +95,8 @@ not combined. A plugin sees three effects:
   `An error occurred while processing the request.`, and some of the batch's cases may already
   have been added.
 - **Notifications are combined.** A batch sends one `createCases` notification per collection
-  for all its requests, before any of their responses. Do not count `createCases` notifications
-  to count requests or cases; read the case ids they carry.
+  for all its requests, then one `createItems`, before any of their responses. Do not count these
+  notifications to count requests or cases; read the ids they carry.
 
 Only consecutive item creates with the same resource are combined. Anything else between them —
 a `get`, a selection change, a create on another data context — ends the run, so the order of

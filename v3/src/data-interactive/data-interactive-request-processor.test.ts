@@ -4,6 +4,7 @@ import { appState } from "../models/app-state"
 import { SharedDataSet } from "../models/shared/shared-data-set"
 import { uiState } from "../models/ui-state"
 import { setupTestDataset } from "../test/dataset-test-utils"
+import { toV2Id, toV3ItemId } from "../utilities/codap-utils"
 import { registerDIHandler } from "./data-interactive-handler"
 import * as itemHandler from "./handlers/item-handler"
 import { setupRequestQueueProcessor } from "./data-interactive-request-processor"
@@ -66,27 +67,50 @@ describe("setupRequestQueueProcessor", () => {
     actionDisposer()
   })
 
-  it("sends each coalesced create request's createCases, then its createItems, as if processed one by one",
-    async () => {
+  it("sends one createCases per collection, then one createItems, for a coalesced batch of creates", async () => {
+    // an existing parent "m" with child "y"
+    queue.push({ request: createItemRequest({ a1: "m", a2: "y", a3: 16 }), callback: () => null })
+    await jest.runAllTimersAsync()
+
     const broadcastSpy = jest.spyOn(content!, "broadcastMessage")
-    queue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 17 }), callback: () => null })
-    queue.push({ request: createItemRequest({ a1: "b", a2: "y", a3: 18 }), callback: () => null })
-    queue.push({ request: createItemRequest({ a1: "a", a2: "z", a3: 19 }), callback: () => null })
+    const responses: DISuccessResult[] = []
+    // the first request creates parent "n", the second joins the existing "m", the third joins "n"
+    queue.push({ request: createItemRequest({ a1: "n", a2: "x", a3: 17 }),
+      callback: r => responses.push(r as DISuccessResult) })
+    queue.push({ request: createItemRequest({ a1: "m", a2: "y", a3: 18 }),
+      callback: r => responses.push(r as DISuccessResult) })
+    queue.push({ request: createItemRequest({ a1: "n", a2: "w", a3: 19 }),
+      callback: r => responses.push(r as DISuccessResult) })
     await jest.runAllTimersAsync()
 
     const changes = broadcastSpy.mock.calls
       .map(([message]) => message)
       .filter(message => message.resource === `dataContextChangeNotice[${datasetName}]`)
       .flatMap(message => ([] as any[]).concat(message.values))
-    const operations = changes.map(({ operation }) => operation)
-    const createItems = changes.filter(({ operation }) => operation === "createItems")
-    expect(createItems).toHaveLength(3)
-    // each request's notices: one or more createCases (each request here creates cases), then createItems
-    const requestOperations = operations.join(",").split("createItems").slice(0, -1)
-    expect(requestOperations).toHaveLength(3)
-    requestOperations.forEach(ops => expect(ops).toMatch(/^,?(createCases,)+$/))
-    // as in V2, itemIDs lists, alongside each created case, the item it was built from
-    createItems.forEach(({ result }) => expect(result.itemIDs).toHaveLength(result.caseIDs.length))
+    expect(changes.map(({ operation }) => operation))
+      .toEqual(["createCases", "createCases", "createCases", "createItems"])
+
+    const [i1, i2, i3] = responses.map(response => response.itemIDs![0])
+    // the v2 id of the case in the given collection that contains the item
+    const caseOf = (itemId: number, collectionIndex: number) => {
+      const collectionId = dataset.collections[collectionIndex].id
+      const entry = Array.from(dataset.caseInfoMap.entries()).find(([, info]) =>
+        info.collectionId === collectionId && info.childItemIds.includes(toV3ItemId(itemId)))
+      return entry && toV2Id(entry[0])
+    }
+    const [c1, c2, c3] = changes.slice(0, 3).map(({ result }) => result.caseIDs)
+    expect(c1).toEqual([caseOf(i1, 0)])
+    expect(c2).toEqual([caseOf(i1, 1), caseOf(i3, 1)])
+    // in collection order: the existing parent "m"'s new child comes before "n"'s
+    expect(c3).toEqual([caseOf(i2, 2), caseOf(i1, 2), caseOf(i3, 2)])
+    // as in V2, createItems pairs each created case with the item it was built from
+    expect(changes[3].result).toEqual({
+      success: true, caseIDs: [...c1, ...c2, ...c3], itemIDs: [i1, i1, i3, i2, i1, i3]
+    })
+    // each response still names only the cases its own request created
+    expect(responses.map(response => response.caseIDs)).toEqual([
+      [caseOf(i1, 0), caseOf(i1, 1), caseOf(i1, 2)], [caseOf(i2, 2)], [caseOf(i3, 1), caseOf(i3, 2)]
+    ])
     broadcastSpy.mockRestore()
   })
 

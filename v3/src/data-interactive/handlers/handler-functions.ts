@@ -35,10 +35,10 @@ export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
 // then `deleteItems` for the items themselves (new in V3; V2 never forwarded deleteItems)
 export function deleteItemsNotifications(dataContext: IDataSet, itemIds: string[]) {
   const existingItemIds = Array.from(new Set(itemIds)).filter(itemId => dataContext.itemInfoMap.has(itemId))
-  return [
-    deleteCasesNotification(dataContext, getGroupedCases(dataContext, existingItemIds)),
-    deleteItemsNotification(dataContext, existingItemIds)
-  ]
+  const notifications = [deleteCasesNotification(dataContext, getGroupedCases(dataContext, existingItemIds))]
+  // no deleteItems when none of the listed items existed
+  if (existingItemIds.length > 0) notifications.push(deleteItemsNotification(dataContext, existingItemIds))
+  return notifications
 }
 
 export function deleteItem(resources: DIResources, item?: ICase | string[]) {
@@ -162,8 +162,9 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
         updatedCases.push({ ...updatedAttributes, __id__: v3Id })
         if (Object.keys(updatedAttributes).length > 0) {
           changedIds.add(v3Id)
-          // a case id (which `update item` also accepts) stands for every item under it
-          const itemIds = dcCase ? [...dcCase.childItemIds, ...dcCase.hiddenChildItemIds] : [v3Id]
+          // a case id (which `update item` also accepts) stands for the items setCaseValues changes:
+          // its visible ones, not those set aside
+          const itemIds = dcCase ? dcCase.childItemIds : [v3Id]
           itemIds.forEach(itemId => changedItemIds.add(itemId))
         }
       }
@@ -177,8 +178,9 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
       // an item is reported as the childmost case containing it
       const caseIds = new Set(getGroupedCases(dataContext, Array.from(changedIds)).map(({ __id__ }) => __id__))
       const newCaseIds = Array.from(dataContext.caseInfoMap.keys()).filter(caseId => !priorCaseIds.has(caseId))
-      const notifications = []
-      if (caseIds.size > 0) notifications.push(updateCasesNotificationFromIds(dataContext, Array.from(caseIds)))
+      // updateCases goes out even when every changed case merged into an existing group and so is gone, as
+      // updateCaseBy and the case table send it
+      const notifications = [updateCasesNotificationFromIds(dataContext, Array.from(caseIds))]
       if (newCaseIds.length > 0) notifications.push(createCasesNotification(newCaseIds, dataContext))
       if (itemReturnStyle) notifications.push(updateItemsNotification(dataContext, Array.from(changedItemIds)))
       return notifications

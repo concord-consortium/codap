@@ -113,12 +113,9 @@ describe("data context change notices and the requesting plugin", () => {
 
     expect(responses.length).toBe(3)
     const calls = dataContextNoticeCalls()
-    // per request: the first creates a case in each collection, the others only a child case; each ends
-    // with createItems
-    expect(calls.map(([message]) => message.values[0].operation)).toEqual([
-      "createCases", "createCases", "createCases", "createItems",
-      "createCases", "createItems", "createCases", "createItems"
-    ])
+    // one createCases per collection for the batch, then one createItems
+    expect(calls.map(([message]) => message.values[0].operation))
+      .toEqual(["createCases", "createCases", "createCases", "createItems"])
     calls.forEach(([message, , , excludeTileId]) => {
       expect(excludeTileId).toBe(pluginTile.id)
       expect(message.values).toEqual([

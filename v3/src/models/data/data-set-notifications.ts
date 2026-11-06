@@ -114,7 +114,8 @@ export function createCasesNotification(caseIDs: string[], data?: IDataSet) {
 }
 
 // V2 sends `createItems` after the `createCases` notices for a plugin's `create item`
-// (data_context.js:785-795): `caseIDs` are the cases the items created, `itemIDs` the new items
+// (data_context.js:785-795): `caseIDs` are the cases the items created, and `itemIDs`, parallel to it,
+// the item each case was built from (so an item can appear more than once)
 export function createItemsNotification(data: IDataSet, caseIDs: number[], itemIDs: number[]) {
   return dataSetNotification("createItems", { success: true, caseIDs, itemIDs }, data)
 }
@@ -126,7 +127,7 @@ export function updateItemsNotification(data: IDataSet, itemIds: string[]) {
 }
 
 // New in V3: `deleteItems` after the `deleteCases` for a plugin's item delete, with the deleted items'
-// ids. V2 had a deleteItems change but never forwarded it to plugins (data_context.js:919-947 returns
+// ids. V2 had a deleteItems change but never forwarded it to plugins (data_context.js:919-945 returns
 // no `success`), so a plugin that tracks items had to map the deleted cases back to items.
 export function deleteItemsNotification(data: IDataSet, itemIds: string[]) {
   return dataSetNotification("deleteItems", { success: true, itemIDs: itemIds.map(id => toV2Id(id)) }, data)

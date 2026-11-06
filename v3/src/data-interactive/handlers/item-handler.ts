@@ -111,21 +111,24 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
     })
     segmentCases = attributeCasesToSegments()
   }, {
-    // As in V2, where each create request was its own change, each request's `createCases` notices
-    // (one per collection) are followed by its `createItems` (data_context.js:1664-1721, 785-795).
-    // V2's `createItems` lists, alongside each created case, the id of the item it was built from.
-    notify: () => segmentCases.flatMap(casesByCollection => {
+    // As in V2, the `createCases` notices (one per collection) are followed by `createItems`
+    // (data_context.js:1694-1708, 785-795), whose `caseIDs` pair each created case with the item it
+    // was built from. A coalesced batch sends these once for the whole batch rather than once per
+    // request, to keep a stream of creates from multiplying the notices other plugins receive.
+    notify: () => {
       const notifications = []
       const caseIds: string[] = []
-      for (const collectionId in casesByCollection) {
-        notifications.push(createCasesNotification(casesByCollection[collectionId], dataContext))
-        caseIds.push(...casesByCollection[collectionId])
+      for (const collectionId in newCaseIds) {
+        if (newCaseIds[collectionId].length > 0) {
+          notifications.push(createCasesNotification(newCaseIds[collectionId], dataContext))
+          caseIds.push(...newCaseIds[collectionId])
+        }
       }
       const caseItemIds = caseIds.map(caseId => dataContext.caseInfoMap.get(caseId)?.childItemIds[0] ?? "")
       notifications.push(createItemsNotification(dataContext,
         caseIds.map(caseId => toV2Id(caseId)), caseItemIds.map(itemId => toV2Id(itemId))))
       return notifications
-    })
+    }
   })
 
   return segmentRanges.map(({ start, count }, index) => ({

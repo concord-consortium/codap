@@ -70,9 +70,54 @@ describe("API data changes send dataContextChangeNotice", () => {
       expect(changes()).toEqual([{ operation: "updateCases", result: { success: true, caseIDs: [], cases: [] } }])
     })
 
+  it("list updates send updateCases when a case merges into an existing group", async () => {
+    const empty = { operation: "updateCases", result: { success: true, caseIDs: [], cases: [] } }
+    const parentCase = (collectionIndex: number, index: number) =>
+      dataset.getCasesForCollection(dataset.collections[collectionIndex].id)[index].__id__
+    // collection1's "a" case takes the value of the existing "b" case
+    await request("update", "item", [{ id: toV2Id(parentCase(0, 0)), values: { a1: "b" } }])
+    expect(changes()[0]).toEqual(empty)
+    expect(operations()).toEqual(["updateCases", "updateItems"])
+
+    // collection2's (b, z) case takes the value of the existing (b, y) case
+    broadcastSpy.mockClear()
+    const bzCase = dataset.getCasesForCollection(dataset.collections[1].id)
+      .find(aCase => dataset.getStrValue(aCase.__id__, dataset.attrIDFromName("a2")!) === "z")!.__id__
+    await request("update", "item", [{ id: toV2Id(bzCase), values: { a2: "y" } }])
+    expect(operations()).toEqual(["updateCases", "updateItems"])
+    expect(changes()[0]).toEqual(empty)
+
+    // the same kind of change through collection[...].case: collection1's only case "b" takes a new value...
+    broadcastSpy.mockClear()
+    await request("update", "collection[collection1].case", [{ id: toV2Id(parentCase(0, 0)), values: { a1: "c" } }])
+    expect(operations()).toEqual(["updateCases"])
+    // ...and then merges back into a group that exists again
+    await request("create", "item", [{ a1: "d", a2: "y", a3: 70 }])
+    broadcastSpy.mockClear()
+    await request("update", "collection[collection1].case", [{ id: toV2Id(parentCase(0, 1)), values: { a1: "c" } }])
+    expect(changes()).toEqual([empty])
+  })
+
+  it("a list update compares against up-to-date grouping, so existing cases aren't reported as created",
+    async () => {
+      // a change made without revalidating leaves the grouping stale when the request arrives
+      dataset.setCaseValues([{ __id__: dataset.itemIds[0], [dataset.attrIDFromName("a1")!]: "c" }])
+      await request("update", "item", [{ id: toV2Id(dataset.itemIds[2]), values: { a3: 10 } }])
+      expect(operations()).toEqual(["updateCases", "updateItems"])
+    })
+
+  it("a list update item given a case id names the items it changed, not those set aside", async () => {
+    // collection1's "a" case holds items 0, 2 and 4; item 4 is set aside
+    dataset.hideCasesOrItems([dataset.itemIds[4]])
+    dataset.validateCases()
+    const aCase = dataset.getCasesForCollection(dataset.collections[0].id)[0].__id__
+    await request("update", "item", [{ id: toV2Id(aCase), values: { a3: 99 } }])
+    expect(changes()[1].result.itemIDs).toEqual([dataset.itemIds[0], dataset.itemIds[2]].map(id => toV2Id(id)))
+  })
+
   it("update compares against up-to-date grouping, so existing cases aren't reported as created", async () => {
     // a change made without revalidating leaves the grouping stale when the request arrives
-    dataset.setCaseValues([{ __id__: dataset.itemIds[0], a1: "c" }])
+    dataset.setCaseValues([{ __id__: dataset.itemIds[0], [dataset.attrIDFromName("a1")!]: "c" }])
     await request("update", `itemByID[${toV2Id(dataset.itemIds[2])}]`, { a3: 10 })
     expect(operations()).toEqual(["updateCases", "updateItems"])
   })
@@ -145,6 +190,16 @@ describe("API data changes send dataContextChangeNotice", () => {
     expect(createItems.success).toBe(true)
   })
 
+  it("create item pairs each created case with its first item when one parent gets several items", async () => {
+    const response = await processAction({ action: "create", resource: `dataContext[${dataset.name}].item`,
+      values: [{ a1: "new", a2: "w", a3: 50 }, { a1: "new", a2: "v", a3: 51 }] })
+    const [i1, i2] = (response as any).itemIDs
+    expect(operations()).toEqual(["createCases", "createCases", "createCases", "createItems"])
+    const caseIDs = changes().slice(0, 3).flatMap(change => change.result.caseIDs)
+    // one parent, then each item's middle and child cases in collection order
+    expect(changes()[3].result).toEqual({ success: true, caseIDs, itemIDs: [i1, i1, i2, i1, i2] })
+  })
+
   it("update item with a list sends createCases when it regroups, and nothing when no attribute matches",
     async () => {
       const itemId = dataset.itemIds[0]
@@ -193,6 +248,22 @@ describe("API data changes send dataContextChangeNotice", () => {
     await request("delete", "item[0]")
     expect(operations()).toEqual(["deleteCases", "deleteItems"])
   })
+
+  it("delete item with a list names each existing item once, and sends no deleteItems when none existed",
+    async () => {
+      const [item0, item4] = [dataset.itemIds[0], dataset.itemIds[4]]
+      dataset.hideCasesOrItems([item4])
+      dataset.validateCases()
+      const unknownId = 999999999
+      await request("delete", "item",
+        [{ id: toV2Id(item0) }, { id: toV2Id(item0) }, { id: toV2Id(item4) }, { id: unknownId }])
+      expect(operations()).toEqual(["deleteCases", "deleteItems"])
+      expect(changes()[1].result).toEqual({ success: true, itemIDs: [toV2Id(item0), toV2Id(item4)] })
+
+      broadcastSpy.mockClear()
+      await request("delete", "item", [{ id: unknownId }])
+      expect(operations()).toEqual(["deleteCases"])
+    })
 
   it("delete itemSearch sends deleteCases, then deleteItems, for every matching item", async () => {
     const matchingItemIds = dataset.itemIds.filter(id => dataset.getStrValue(id, dataset.attrIDFromName("a1")!) === "a")

@@ -141,7 +141,7 @@ plugin watching one data set can filter on it.
 | `updateCollection` | a collection's properties change |
 | `deleteCollection` | a collection is removed |
 | `updateDataContext` | the context's own properties change, such as its title |
-| `createItems` | items are created through an item resource. Follows the `createCases` notices for the same request. `caseIDs` lists the cases it created and, as in v2, `itemIDs` lists alongside each one the id of the item it was built from |
+| `createItems` | items are created through an item resource. Follows the `createCases` notices for the same request, or for the whole batch when CODAP combines a run of item creates. `caseIDs` lists the cases created, collection by collection, and, as in v2, `itemIDs` lists alongside each one the id of the item it was built from. v2 listed each new parent case just before its own new children |
 | `updateItems` | items are updated through an item resource. Follows the case notices for the same request: `updateCases`, and `createCases` when the change regroups cases. v2 carried only `success`; v3 also carries the items' ids |
 | `deleteItems` | items are deleted through an item resource (`item`, `itemByID`, `itemByCaseID`, `itemSearch`). Follows the `deleteCases` for the same request, with the deleted items' ids. New in v3: v2 never sent it |
 
