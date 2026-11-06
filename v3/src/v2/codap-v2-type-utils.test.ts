@@ -120,6 +120,23 @@ describe("importLegendLockProps", () => {
       legendQuantilesAreLocked: true, legendQuantiles: [], legendLockedMin: 5, legendLockedMax: 5
     })
   })
+  it("splits V2's edges when the bin count does not match them", () => {
+    // V2 keeps the locked edges when the bin count changes, so the count can differ
+    const props = {
+      numberOfLegendQuantiles: 3, legendQuantilesAreLocked: true, legendQuantiles: [0, 2, 4, 6, padV2LegendMax(0, 8)]
+    }
+    expect(importLegendLockProps(props)).toEqual({
+      legendQuantilesAreLocked: true, legendQuantiles: [2, 4, 6], legendLockedMin: 0, legendLockedMax: 8
+    })
+  })
+  it("keeps an older V3 export's N-1 inner edges as they are", () => {
+    const props = { numberOfLegendQuantiles: 5, legendQuantilesAreLocked: true, legendQuantiles: [20, 40, 60, 80] }
+    expect(importLegendLockProps(props)).toEqual({ legendQuantilesAreLocked: true, legendQuantiles: [20, 40, 60, 80] })
+  })
+  it("keeps an older V3 map's N-1 inner edges from the v3: extension as they are", () => {
+    const v3 = { numberOfLegendQuantiles: 5, legendQuantilesAreLocked: true, legendQuantiles: [20, 40, 60, 80] }
+    expect(importV3Properties(v3)).toEqual({ legendQuantilesAreLocked: true, legendQuantiles: [20, 40, 60, 80] })
+  })
   it("returns empty when nothing is locked", () => {
     expect(importLegendLockProps({ numberOfLegendQuantiles: 5 })).toEqual({})
   })
