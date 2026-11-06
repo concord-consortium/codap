@@ -1,4 +1,4 @@
-import { GraphLayout } from "./graph-layout"
+import { GraphLayout, kGraphBottomClearance } from "./graph-layout"
 import { kDefaultTileWidth, kDefaultTileHeight } from "../../data-display/models/data-display-layout"
 
 // Mock measureTextExtent to avoid DOM dependencies
@@ -109,6 +109,7 @@ describe("GraphLayout", () => {
       expect(bounds.plot.top).toBe(0)
       expect(bounds.plot.width).toBe(380)
       expect(bounds.plot.height).toBe(280)
+      expect(bounds.bottom.top + bounds.bottom.height).toBe(300)
     })
 
     it("should reduce plot height when banners are registered", () => {
@@ -156,9 +157,37 @@ describe("GraphLayout", () => {
     it("should account for legend height", () => {
       layout.setDesiredExtent("legend", 30)
       const bounds = layout.computedBounds
-      expect(bounds.plot.height).toBe(250) // 300 - 20 (bottom default) - 30 (legend)
+      expect(bounds.plot.height).toBe(240) // 300 - 10 (clearance) - 20 (bottom default) - 30
       expect(bounds.legend.height).toBe(30)
-      expect(bounds.legend.top).toBe(270) // 300 - 30
+      expect(bounds.legend.top).toBe(260) // 300 - 10 (clearance) - 30
+      expect(bounds.bottom.top + bounds.bottom.height).toBe(bounds.legend.top)
+      expect(bounds.legend.top + bounds.legend.height).toBe(300 - kGraphBottomClearance)
+    })
+
+    it("reserves space for a numeric bottom axis and restores it for a categorical axis", () => {
+      layout.setAxisScaleType("left", "linear")
+      layout.setAxisScaleType("bottom", "linear")
+      expect(layout.computedBounds.plot.height).toBe(270)
+      expect(layout.computedBounds.bottom.top + layout.computedBounds.bottom.height)
+        .toBe(300 - kGraphBottomClearance)
+      expect(layout.getAxisMultiScale("left").length).toBe(270)
+
+      layout.resetAxisScale("bottom")
+      expect(layout.computedBounds.plot.height).toBe(280)
+      expect(layout.computedBounds.bottom.top + layout.computedBounds.bottom.height).toBe(300)
+      expect(layout.getAxisMultiScale("left").length).toBe(280)
+    })
+
+    it("updates vertical scale lengths when the bottom scale changes type directly", () => {
+      layout.setAxisScaleType("left", "linear")
+      const bottomScale = layout.getAxisMultiScale("bottom")
+
+      bottomScale.setScaleType("linear")
+      expect(layout.getAxisMultiScale("left").length).toBe(270)
+
+      // setCategoricalDomain changes a numeric scale to a band scale without calling GraphLayout.
+      bottomScale.setCategoricalDomain(["both", "meat", "plants"])
+      expect(layout.getAxisMultiScale("left").length).toBe(280)
     })
 
     it("should position top axis correctly with banners", () => {
@@ -175,6 +204,17 @@ describe("GraphLayout", () => {
       const bounds = layout.computedBounds
       expect(bounds.banners.top).toBe(0)
       expect(bounds.banners.height).toBe(25)
+    })
+
+    it("keeps plot and lower plot heights nonnegative in a very short tile", () => {
+      layout.setTileExtent(400, 10)
+      layout.setShowLowerPlot(true)
+      const bounds = layout.computedBounds
+      expect(bounds.plot.height).toBe(0)
+      expect(bounds.lowerPlot.height).toBe(0)
+      expect(layout.contentHeight).toBe(0)
+      expect(layout.plotHeight).toBe(0)
+      expect(layout.getAxisMultiScale("left").length).toBe(0)
     })
   })
 
