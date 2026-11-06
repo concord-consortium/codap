@@ -1,6 +1,7 @@
 import { getSnapshot } from "mobx-state-tree"
 import "../../components/graph/graph-registration"
 import { appState } from "../../models/app-state"
+import { IDataSet } from "../../models/data/data-set"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { processAction } from "../data-interactive-request-processor"
 
@@ -16,16 +17,20 @@ describe("create and update on the univariate adornments", () => {
   const getAdornment = async (graph: string, type: string) =>
     (await request("get", `${graph}.adornment[${type}]`)).values
 
-  beforeAll(async () => {
+  const createDataSet = () => {
     const source = setupTestDataset().dataset
     source.prepareSnapshot()
-    const dataset = document.content!.createDataSet(getSnapshot(source)).sharedDataSet.dataSet
-    const createGraph = async (values: any) => {
-      const result = await request("create", "component", { type: "graph", dataContext: dataset.name, ...values })
-      return `component[${result.values.id}]`
-    }
-    dotPlot = await createGraph({ xAttributeName: "a3" })
-    scatterPlot = await createGraph({ xAttributeName: "a3", yAttributeName: "a4" })
+    return document.content!.createDataSet(getSnapshot(source)).sharedDataSet.dataSet
+  }
+  const createGraph = async (dataset: IDataSet, values: any) => {
+    const result = await request("create", "component", { type: "graph", dataContext: dataset.name, ...values })
+    return `component[${result.values.id}]`
+  }
+
+  beforeAll(async () => {
+    const dataset = createDataSet()
+    dotPlot = await createGraph(dataset, { xAttributeName: "a3" })
+    scatterPlot = await createGraph(dataset, { xAttributeName: "a3", yAttributeName: "a4" })
   })
 
   // a3 is 1 through 6: mean 3.5, mean absolute deviation 1.5
@@ -64,16 +69,38 @@ describe("create and update on the univariate adornments", () => {
     expect(await getAdornment(dotPlot, "Box Plot")).toMatchObject({ showOutliers: false, showICI: true })
   })
 
+  it("Box Plot: showOutliers moves the whisker, even while the box plot is hidden", async () => {
+    // a3 is 100, 2, 3, 4, 5, 6: with outliers shown, the upper whisker ends at 6
+    const dataset = createDataSet()
+    dataset.setCaseValues([{ __id__: dataset.items[0].__id__, [dataset.attrFromName("a3")!.id]: 100 }])
+    const graph = await createGraph(dataset, { xAttributeName: "a3" })
+    const upper = async () => (await getAdornment(graph, "Box Plot")).data[0].upper
+
+    await request("create", `${graph}.adornment`, { type: "Box Plot" })
+    expect(await upper()).toBe(100)
+    await request("update", `${graph}.adornment`, { type: "Box Plot", isVisible: false })
+    await request("update", `${graph}.adornment`, { type: "Box Plot", showOutliers: true })
+    expect(await upper()).toBe(6)
+    await request("update", `${graph}.adornment`, { type: "Box Plot", showOutliers: false })
+    expect(await upper()).toBe(100)
+  })
+
   it("Standard Error: create and update set the number of standard errors", async () => {
     // by the type's space-free alias
-    await request("create", `${dotPlot}.adornment`, { type: "StandardError", _numStErrs: 2 })
-    expect((await getAdornment(dotPlot, "Standard Error"))._numStErrs).toBe(2)
+    const created = await request("create", `${dotPlot}.adornment`, { type: "StandardError", _numStErrs: 2 })
+    expect(created.values._numStErrs).toBe(2)
+    // the interval is the mean plus or minus that many standard errors
+    const [{ standardError, min, max }] = created.values.data
+    expect(max - min).toBeCloseTo(4 * standardError)
 
     await request("update", `${dotPlot}.adornment`, { type: "Standard Error", _numStErrs: 1.5 })
-    expect((await getAdornment(dotPlot, "Standard Error"))._numStErrs).toBe(1.5)
+    const updated = await getAdornment(dotPlot, "Standard Error")
+    expect(updated._numStErrs).toBe(1.5)
+    expect(updated.data[0].max - updated.data[0].min).toBeCloseTo(3 * standardError)
     // a negative value, or one that isn't a finite number, is ignored
-    await request("update", `${dotPlot}.adornment`, { type: "Standard Error", _numStErrs: "three" })
-    await request("update", `${dotPlot}.adornment`, { type: "Standard Error", _numStErrs: -2 })
+    for (const _numStErrs of ["three", -2, NaN, Infinity]) {
+      await request("update", `${dotPlot}.adornment`, { type: "Standard Error", _numStErrs })
+    }
     expect((await getAdornment(dotPlot, "Standard Error"))._numStErrs).toBe(1.5)
   })
 })

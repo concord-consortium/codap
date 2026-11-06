@@ -37,10 +37,14 @@ function get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
 }
 
 // `showOutliers` and `showICI` (the informal confidence interval), as set in the graph's inspector
-function applyValues(adornment: IAdornmentModel, values: Record<string, unknown>) {
+function applyValues(adornment: IAdornmentModel, values: Record<string, unknown>, graphContent: IGraphContentModel) {
   if (!isBoxPlotAdornment(adornment)) return
   const { showICI, showOutliers } = values
-  if (typeof showOutliers === "boolean") adornment.setShowOutliers(showOutliers)
+  if (typeof showOutliers === "boolean") {
+    adornment.setShowOutliers(showOutliers)
+    // the graph recomputes the whiskers only while the box plot is shown
+    adornment.updateCategories(graphContent.getUpdateCategoriesOptions())
+  }
   if (typeof showICI === "boolean") adornment.setShowICI(showICI)
 }
 
