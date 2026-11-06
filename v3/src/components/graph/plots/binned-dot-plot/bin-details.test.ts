@@ -73,6 +73,18 @@ describe("BinDetails", () => {
     const numericBinDetails = new BinDetails(0, 14, 2, 0)
     expect(numericBinDetails.getBinForValue(11.99)).toBe(5)
     expect(numericBinDetails.getBinForValue(12)).toBe(6)
+
+    const wideBinDetails = new BinDetails(1e9, 1.5e9 - 0.001, 1e8, 1e9)
+    expect(wideBinDetails.totalNumberOfBins).toBe(5)
+    expect(wideBinDetails.getBinForValue(1.5e9 - 0.001)).toBe(4)
+  })
+
+  it("should put large values exactly on a narrow bin edge in the upper bin", () => {
+    const minDate = Date.UTC(2024, 0, 5) / 1000
+    const binDetails = new BinDetails(minDate, minDate + 1, 0.2, minDate)
+    expect(binDetails.getBinEdge(3)).toBe(minDate + 0.6)
+    expect(binDetails.getBinForValue(minDate + 0.6)).toBe(3)
+    expect(binDetails.getBinForValue(minDate + 0.59)).toBe(2)
   })
 
   it("should determine bin for values whose bin value precision is zero", () => {

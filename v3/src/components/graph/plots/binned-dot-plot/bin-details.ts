@@ -102,10 +102,13 @@ export class BinDetails {
 
   getBinForValue(value: number): number | undefined {
     if (!this.binWidth || this.minBinEdge == null) return undefined
-    // The ratio is a fractional bin index, not a data value, so it's rounded to at least ten decimal places,
-    // enough to absorb floating-point error at bin edges without moving values just below an edge into the next bin.
-    const ratioPrecision = Math.max(this.binValuePrecision ?? 0, 10)
-    return Math.floor(roundToPrecision((value - this.minBinEdge) / this.binWidth, ratioPrecision))
+    const binIndex = (value - this.minBinEdge) / this.binWidth
+    // Numbers in JS carry about 16 significant digits, so binIndex can be off by an error proportional to the size
+    // of the values relative to the bin width. A tolerance of 1e-14 of that ratio is comfortably above the error
+    // and far below any meaningful difference in the data, so values within it of a bin edge are treated as on it.
+    const tolerance = 1e-14 * (Math.abs(value) + Math.abs(this.minBinEdge)) / this.binWidth
+    const nearestEdge = Math.round(binIndex)
+    return Math.abs(binIndex - nearestEdge) <= tolerance ? nearestEdge : Math.floor(binIndex)
   }
 
   getBinMidpoint(binNumber?: number): number | undefined {
