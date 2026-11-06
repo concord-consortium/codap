@@ -109,7 +109,8 @@ export const DataConfigurationModel = types
     filterFormula: types.maybe(Formula),
     legendQuantilesAreLocked: types.maybe(types.boolean),
     // When locked: the inner bin edges (N-1 values for N bins), and the legend's min and max.
-    // Older documents may have legendQuantiles without the min and max.
+    // Older documents may have legendQuantiles without the min and max. Documents that imported a
+    // locked V2 legend before the min and max were saved may hold V2's N+1 edges instead.
     legendQuantiles: types.array(types.number),
     legendLockedMin: types.maybe(types.number),
     legendLockedMax: types.maybe(types.number)
@@ -632,12 +633,13 @@ export const DataConfigurationModel = types
       },
       name: "caseIdsForCategory"
     }),
-    // The effective numeric-legend display range: the per-attribute Min/Max override where set, else
+    // The live numeric-legend display range: the per-attribute Min/Max override where set, else
     // the live data extent. A reversed/degenerate effective range (e.g. an orphaned override after
-    // the other bound was cleared) falls back to the data extent. This drives both the quantize color
-    // scale's domain and the legend's displayed endpoint labels, so the legend always matches the
-    // Min/Max the user set -- including in quantile mode, whose trained domain is the data quantiles
-    // rather than the override (CODAP-1292).
+    // the other bound was cleared) falls back to the data extent. This drives the quantize color
+    // scale's domain and, while the legend is not locked, the legend's displayed endpoint labels, so
+    // the legend matches the Min/Max the user set -- including in quantile mode, whose trained domain
+    // is the data quantiles rather than the override (CODAP-1292). While locked, the locked range is
+    // shown instead (see legendDisplayRange).
     get legendNumericRange(): { min?: number, max?: number } {
       const values = self.numericValuesForAttrRole("legend") ?? []
       const [dataMin, dataMax] = extent(values)
@@ -700,8 +702,9 @@ export const DataConfigurationModel = types
       if (!self.legendQuantilesAreLocked) return false
       return (self.legendLockedMin != null && self.legendLockedMax != null) || self.legendQuantiles.length > 0
     },
-    // The number of bins the legend shows: the saved bin count when locked, else the live count.
-    // The live count can drop while locked, for example when cases with distinct values are hidden.
+    // The number of bins the legend shows: the locked bin count (from the saved edges) when there is
+    // a locked scale, else the live count. The live count can drop while locked, for example when
+    // cases with distinct values are hidden.
     get displayedLegendBinCount(): number {
       return this.hasLockedLegendScale ? self.legendQuantiles.length + 1 : self.legendBinCount
     },

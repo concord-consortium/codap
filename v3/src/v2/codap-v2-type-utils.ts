@@ -112,12 +112,12 @@ interface IExportLegendQuantileStorageOptions {
   // extension namespace (v3:) and maps omit the block for a default (5, unlocked) legend.
   v2Native?: boolean
 }
-// Derives the V2 legend-quantile storage from a data configuration. The bin count is sourced from
-// the per-attribute binCount (via displayedLegendBinCount). A numeric or date legend has bins, as in
-// V2; for any other or absent legend it falls back to V2's default of 5 (the bin count collapses to 1
-// there). For the v3 extension namespace (and maps) the block is emitted only when the count differs
-// from V2's default of 5 or the quantiles are locked; the native V2 graph path (v2Native) always
-// emits it.
+// Derives the V2 legend-quantile storage from a data configuration. The bin count is
+// displayedLegendBinCount: the locked count while locked, else the per-attribute bin count (clamped).
+// A numeric or date legend has bins, as in V2; for any other or absent legend it falls back to V2's
+// default of 5 (the bin count collapses to 1 there). For the v3 extension namespace (and maps) the
+// block is emitted only when the count differs from V2's default of 5 or the quantiles are locked;
+// the native V2 graph path (v2Native) always emits it.
 // Defensive: some callers (e.g. the data-interactive data-context export) pass a bare DataSet that
 // has neither attributeType nor a bin count; for those this returns {} rather than throwing.
 export function exportLegendQuantileStorage(

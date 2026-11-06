@@ -439,7 +439,8 @@ const kLegendRangeBufferChars = 2 // accounts for input field padding
 
 // The number of decimal places the legend uses for its boundary labels, so the Min/Max inputs
 // match the legend labels rather than showing raw ~10-digit data values (e.g. random() defaults).
-// Returns undefined when the scale is empty/degenerate; the caller then falls back to a plain form.
+// Returns undefined when there is no scale, or when neither the legend's display range nor the
+// scale's domain gives a min and max; the caller then falls back to a plain form.
 function legendBoundaryDecimals(dataConfiguration: IDataConfigurationModel) {
   const scale = dataConfiguration.legendNumericColorScale
   if (!scale) return undefined
