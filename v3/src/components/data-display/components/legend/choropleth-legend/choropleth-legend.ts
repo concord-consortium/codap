@@ -69,8 +69,13 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
   // Handle invalid or not enough cases:
   // - Quantile legends: the domain length will be 0
   // - Quantize legends: the domain will be [NaN, NaN]
+  // - Threshold legends with no inner edges: the domain length will be 0. This is a valid one-bin
+  //   legend when the caller gives both legendMin and legendMax (a locked one-bin legend). Without
+  //   them (a degenerate log legend) there is nothing to show.
   const domain = scale.domain()
-  if (domain.length === 0 || isNaN(domain[0])) {
+  const isValidOneBinThreshold = !isScaleQuantile(scale) && !isScaleQuantize(scale) &&
+    scale.range().length === 1 && props.legendMin != null && props.legendMax != null
+  if (domain.length === 0 ? !isValidOneBinThreshold : isNaN(domain[0])) {
     select(choroplethElt).selectAll("*").remove()
     return
   }

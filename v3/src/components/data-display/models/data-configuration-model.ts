@@ -1,4 +1,4 @@
-import { extent, ScaleQuantile, scaleQuantile, ScaleQuantize, scaleQuantize, scaleThreshold, ScaleThreshold } from "d3"
+import { extent, ScaleQuantile, scaleQuantile, scaleQuantize, scaleThreshold, ScaleThreshold } from "d3"
 import {comparer, observable, reaction} from "mobx"
 import {
   addDisposer, getEnv, getSnapshot, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
@@ -108,7 +108,11 @@ export const DataConfigurationModel = types
     displayOnlySelectedCases: types.maybe(types.boolean),
     filterFormula: types.maybe(Formula),
     legendQuantilesAreLocked: types.maybe(types.boolean),
-    legendQuantiles: types.array(types.number)
+    // When locked: the inner bin edges (N-1 values for N bins), and the legend's min and max.
+    // Older documents may have legendQuantiles without the min and max.
+    legendQuantiles: types.array(types.number),
+    legendLockedMin: types.maybe(types.number),
+    legendLockedMax: types.maybe(types.number)
   })
   .volatile(() => ({
     actionHandlerDisposer: undefined as (() => void) | undefined,
@@ -123,9 +127,6 @@ export const DataConfigurationModel = types
     suppressAnimation: false,
     // The following is set in useSubAxis:setupCategories based on how many fit in available space
     numberOfCategoriesLimitByRole: observable.map<AttrRole, Maybe<number>>(),
-    // When legendQuantilesAreLocked is true, this holds the quantile thresholds
-    _legendNumericColorScale: null as ScaleQuantize<string, never> | ScaleQuantile<string, never> |
-      ScaleThreshold<number, string, never> | null,
   }))
   .views(self => ({
     get axisAttributeIDs() {
@@ -687,11 +688,37 @@ export const DataConfigurationModel = types
     get legendIsLogarithmic(): boolean {
       return self.metadata?.getAttributeBinningType(self.attributeID("legend")) === "logarithmic"
     },
-    // Endpoint labels to display: the log domain in logarithmic mode, else the linear/quantile range.
-    get legendDisplayRange(): { min?: number, max?: number } {
+    // The live endpoint range: the log domain in logarithmic mode, else the linear/quantile range.
+    // It ignores the lock, so the lock code can always read the current values.
+    get liveLegendDisplayRange(): { min?: number, max?: number } {
       return this.legendIsLogarithmic ? this.legendLogDomain : this.legendNumericRange
     },
+    // True when the legend is locked and has saved values to build the locked scale from. New
+    // documents save the min and max (legendQuantiles can be empty for a one-bin legend). Older
+    // documents only saved the inner edges.
+    get hasLockedLegendScale(): boolean {
+      if (!self.legendQuantilesAreLocked) return false
+      return (self.legendLockedMin != null && self.legendLockedMax != null) || self.legendQuantiles.length > 0
+    },
+    // The endpoint range to display, and to use for out-of-range colors and bin selection. When locked
+    // with a saved min and max, those win over the live data and over a Min/Max override.
+    get legendDisplayRange(): { min?: number, max?: number } {
+      const { legendLockedMin: min, legendLockedMax: max } = self
+      if (self.legendQuantilesAreLocked && min != null && max != null) return { min, max }
+      return this.liveLegendDisplayRange
+    },
+    // The locked scale, built only from saved properties, so undo, redo, and reload restore it.
+    get lockedLegendColorScale(): ScaleThreshold<number, string> {
+      const edges = self.legendQuantiles.slice()
+      return scaleThreshold<number, string>()
+        .domain(edges)
+        .range(getChoroplethColors(self.lowColor, self.highColor, edges.length + 1))
+    },
     get legendNumericColorScale() {
+      return this.hasLockedLegendScale ? this.lockedLegendColorScale : this.liveLegendNumericColorScale
+    },
+    // The scale from the live data. It ignores the lock.
+    get liveLegendNumericColorScale() {
       // TODO: Handle the displayOnlySelectedCases better. What we would like to do is
       // to basically ignore displayOnlySelectedCases when computing the legend bins.
       // This way the legend will not jump around when the user is selecting different
@@ -716,9 +743,6 @@ export const DataConfigurationModel = types
       // The best solution might be to separate the displayOnlySelectedCases from FilterCases,
       // perhaps by renaming it PlottableCases and then apply the displayOnlySelectedCases
       // criteria further up chain of filters.
-      if (self.legendQuantilesAreLocked && self._legendNumericColorScale) {
-        return self._legendNumericColorScale
-      }
       const binningType = self.metadata?.getAttributeBinningType(self.attributeID("legend"))
       switch (binningType) {
         case "quantize": {
@@ -1200,19 +1224,25 @@ export const DataConfigurationModel = types
     setLegendQuantiles(quantiles: number[]) {
       self.legendQuantiles.replace(quantiles)
     },
+    // Saves the live inner edges, min, and max as the locked legend. It reads only the live views,
+    // so it never saves back the old locked values.
+    saveLockedLegend() {
+      this.setLegendQuantiles(getScaleThresholds(self.liveLegendNumericColorScale))
+      const { min, max } = self.liveLegendDisplayRange
+      self.legendLockedMin = min
+      self.legendLockedMax = max
+    },
     setLegendQuantilesAreLocked(areLocked: boolean | undefined) {
       if (areLocked === self.legendQuantilesAreLocked) {
         return
       }
       if (areLocked) {
-        const scale = self.legendNumericColorScale
-        const thresholds = getScaleThresholds(scale)
-        this.setLegendQuantiles(thresholds)
-        self._legendNumericColorScale = scale
+        this.saveLockedLegend()
       }
       else {
-        self._legendNumericColorScale = null
         this.setLegendQuantiles([])
+        self.legendLockedMin = undefined
+        self.legendLockedMax = undefined
       }
       self.legendQuantilesAreLocked = areLocked
     },
@@ -1291,9 +1321,6 @@ export const DataConfigurationModel = types
   }))
   .actions(self => ({
     afterCreate() {
-      if (self.legendQuantilesAreLocked && self.legendQuantiles.length > 0) {
-        self._legendNumericColorScale = scaleThreshold(self.legendQuantiles, self.choroplethColors)
-      }
       // respond to change of dataset
       addDisposer(self, reaction(
         () => self.dataset,

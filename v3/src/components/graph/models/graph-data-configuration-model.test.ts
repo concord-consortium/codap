@@ -1,8 +1,9 @@
 import { reaction } from "mobx"
-import {applyPatch, Instance, types} from "mobx-state-tree"
+import {applyPatch, Instance, recordPatches, types} from "mobx-state-tree"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
 import {DataSetMetadata} from "../../../models/shared/data-set-metadata"
 import { defaultSelectedColor, defaultSelectedStroke, missingColor } from "../../../utilities/color-utils"
+import { getScaleThresholds } from "../../data-display/components/legend/choropleth-legend/choropleth-legend"
 import { kMain, kOther } from "../../data-display/data-display-types"
 import { matchCirclesToData } from "../../data-display/data-display-utils"
 import {GraphDataConfigurationModel, isGraphDataConfigurationModel} from "./graph-data-configuration-model"
@@ -1903,7 +1904,8 @@ describe("DataConfigurationModel legend range overrides", () => {
     t.metadata.setAttributeBinningType("legId", "quantile")
     t.metadata.setAttributeBinCount("legId", 3)
     t.config.setLegendQuantilesAreLocked(true)
-    const frozen = t.config.legendNumericColorScale
+    const frozenThresholds = getScaleThresholds(t.config.legendNumericColorScale)
+    const frozenColors = t.config.legendNumericColorScale.range()
     expect(t.config.legendBinDataExtents).toBeUndefined()
 
     // make the data degenerate (four 1s plus 2 and 3) — unlocked this would trigger the threshold repair
@@ -1913,9 +1915,155 @@ describe("DataConfigurationModel legend range overrides", () => {
       { __id__: caseId("c5"), legId: 1 },
       { __id__: caseId("c6"), legId: 1 }
     ])
-    // the frozen scale is still used (same instance) and the repair's bin extents stay opted out
-    expect(t.config.legendNumericColorScale).toBe(frozen)
+    // the locked edges and colors are still used and the repair's bin extents stay opted out
+    expect(getScaleThresholds(t.config.legendNumericColorScale)).toEqual(frozenThresholds)
+    expect(t.config.legendNumericColorScale.range()).toEqual(frozenColors)
     expect(t.config.legendBinDataExtents).toBeUndefined()
+  })
+})
+
+describe("DataConfigurationModel locked legend", () => {
+  // Eleven cases with legend values 0, 10, ..., 100, default (quantile) binning, 5 bins.
+  function makeTree() {
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    t.data.addCases(toCanonical(t.data,
+      Array.from({ length: 11 }, (_, i) => ({ __id__: `c${i}`, leg: i * 10 }))))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    return t
+  }
+  const thresholdsOf = (t: Instance<typeof TreeModel>) => getScaleThresholds(t.config.legendNumericColorScale)
+  const caseIdOf = (t: Instance<typeof TreeModel>, itemId: string) => t.data.getItemChildCaseId(itemId)!
+
+  describe("keeps the range, edges, and colors fixed while the data changes", () => {
+    it("keeps the range and edges when the top cases are hidden", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      const thresholds = thresholdsOf(t)
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+      expect(t.config.legendLockedMin).toBe(0)
+      expect(t.config.legendLockedMax).toBe(100)
+
+      t.config.setHiddenCases([caseIdOf(t, "c10"), caseIdOf(t, "c9")])
+      // the live range shrinks, but the legend does not
+      expect(t.config.liveLegendDisplayRange).toEqual({ min: 0, max: 80 })
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+      expect(thresholdsOf(t)).toEqual(thresholds)
+    })
+
+    it("gives a new case above the locked max the missing color", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      t.data.addCases(toCanonical(t.data, [{ __id__: "big", leg: 150 }]))
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "big"))).toBe(missingColor)
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "c10"))).not.toBe(missingColor)
+    })
+
+    it("selects the last bin using the locked max after cases are hidden", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      const lastBin = thresholdsOf(t).length
+      t.config.setHiddenCases([caseIdOf(t, "c10")])
+      t.data.addCases(toCanonical(t.data, [{ __id__: "big", leg: 150 }]))
+      const binCases = t.config.getCasesForLegendBin(lastBin)
+      // 150 is above the locked max, so it is not in the last bin; 90 is
+      expect(binCases).not.toContain(caseIdOf(t, "big"))
+      expect(binCases).toContain(caseIdOf(t, "c9"))
+      expect(binCases).not.toContain(caseIdOf(t, "c10"))
+    })
+
+    it("keeps a locked one-bin legend when a second distinct value arrives", () => {
+      const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+      t.data.addAttribute({ id: "legId", name: "leg" })
+      t.metadata.setData(t.data)
+      t.data.addCases(toCanonical(t.data, [{ leg: 5 }, { leg: 5 }]))
+      t.config.setDataset(t.data, t.metadata)
+      t.config.setAttribute("legend", { attributeID: "legId" })
+      t.config.setLegendQuantilesAreLocked(true)
+      expect(t.config.legendQuantiles.length).toBe(0)
+      expect(t.config.legendDisplayRange).toEqual({ min: 5, max: 5 })
+
+      t.data.addCases(toCanonical(t.data, [{ __id__: "seven", leg: 7 }]))
+      expect(t.config.legendNumericColorScale.range().length).toBe(1)
+      expect(thresholdsOf(t)).toEqual([])
+      expect(t.config.legendDisplayRange).toEqual({ min: 5, max: 5 })
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "seven"))).toBe(missingColor)
+    })
+
+    it("saves the positive log domain in log mode", () => {
+      const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+      t.data.addAttribute({ id: "legId", name: "leg" })
+      t.metadata.setData(t.data)
+      t.data.addCases(toCanonical(t.data, [{ leg: -5 }, { leg: 0 }, { leg: 2 }, { leg: 8 }, { leg: 32 }]))
+      t.config.setDataset(t.data, t.metadata)
+      t.config.setAttribute("legend", { attributeID: "legId" })
+      t.metadata.setAttributeBinningType("legId", "logarithmic")
+      const liveThresholds = thresholdsOf(t)
+      t.config.setLegendQuantilesAreLocked(true)
+      expect(t.config.legendLockedMin).toBe(2)
+      expect(t.config.legendLockedMax).toBe(32)
+      expect(thresholdsOf(t)).toEqual(liveThresholds)
+    })
+
+    it("keeps the colors of a locked legend the same as just before it was locked", () => {
+      const t = makeTree()
+      const before = t.data.items.map(item => t.config.getLegendColorForCase(caseIdOf(t, item.__id__)))
+      t.config.setLegendQuantilesAreLocked(true)
+      const after = t.data.items.map(item => t.config.getLegendColorForCase(caseIdOf(t, item.__id__)))
+      expect(after).toEqual(before)
+    })
+  })
+
+  describe("undo and saved state", () => {
+    it("restores the lock and its saved values when an unlock is undone", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      const thresholds = thresholdsOf(t)
+      t.config.setHiddenCases([caseIdOf(t, "c10")])
+
+      const recorder = recordPatches(t.config)
+      t.config.setLegendQuantilesAreLocked(false)
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 90 })
+      recorder.stop()
+      recorder.undo()
+
+      expect(t.config.legendQuantilesAreLocked).toBe(true)
+      expect(thresholdsOf(t)).toEqual(thresholds)
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+    })
+
+    // Creates a config from a snapshot, then connects data with only two distinct values (15, 25).
+    function makeTreeFromConfigSnapshot(lockProps: Record<string, unknown>) {
+      const t = TreeModel.create({
+        data: {}, metadata: {},
+        config: { _attributeDescriptions: { legend: { attributeID: "legId" } }, ...lockProps }
+      })
+      t.data.addAttribute({ id: "legId", name: "leg" })
+      t.metadata.setData(t.data)
+      t.data.addCases(toCanonical(t.data, [{ leg: 15 }, { leg: 25 }]))
+      t.config.setDataset(t.data, t.metadata)
+      return t
+    }
+
+    it("builds the scale and range from a snapshot, even with fewer distinct values than bins", () => {
+      const t = makeTreeFromConfigSnapshot({
+        legendQuantilesAreLocked: true, legendQuantiles: [10, 20, 30, 40], legendLockedMin: 0, legendLockedMax: 50
+      })
+      expect(t.config.legendBinCount).toBe(2)
+      expect(thresholdsOf(t)).toEqual([10, 20, 30, 40])
+      expect(t.config.legendNumericColorScale.range().length).toBe(5)
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 50 })
+    })
+
+    it("loads an old locked snapshot without a saved min and max, using the live range", () => {
+      const t = makeTreeFromConfigSnapshot({ legendQuantilesAreLocked: true, legendQuantiles: [10, 20, 30, 40] })
+      expect(thresholdsOf(t)).toEqual([10, 20, 30, 40])
+      expect(t.config.legendNumericColorScale.range().length).toBe(5)
+      expect(t.config.legendDisplayRange).toEqual({ min: 15, max: 25 })
+    })
   })
 })
 
