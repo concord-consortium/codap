@@ -1,14 +1,23 @@
+import { types } from "mobx-state-tree"
+import { GraphDataConfigurationModel } from "../components/graph/models/graph-data-configuration-model"
+import { DataSet, toCanonical } from "../models/data/data-set"
+import { DataSetMetadata } from "../models/shared/data-set-metadata"
 import {
-  applyImportedLegendBinCount, exportLegendQuantileStorage, importLegendLockProps
+  applyImportedLegendBinCount, exportLegendQuantileStorage, exportV3Properties, importLegendLockProps,
+  importV3Properties, padV2LegendMax, unpadV2LegendMax
 } from "./codap-v2-type-utils"
 
 const stubConfig = (over: Partial<{
-  legendType: string, legendBinCount: number, locked: boolean, quantiles: number[]
+  legendType: string, legendBinCount: number, locked: boolean, quantiles: number[],
+  lockedMin: number, lockedMax: number, liveRange: { min?: number, max?: number }
 }> = {}) => ({
   attributeType: (_role: string) => over.legendType ?? "numeric",
-  legendBinCount: over.legendBinCount ?? 5,
+  displayedLegendBinCount: over.legendBinCount ?? 5,
   legendQuantilesAreLocked: over.locked ?? false,
-  legendQuantiles: over.quantiles ?? []
+  legendQuantiles: over.quantiles ?? [],
+  legendLockedMin: over.lockedMin,
+  legendLockedMax: over.lockedMax,
+  liveLegendDisplayRange: over.liveRange ?? {}
 }) as any
 
 describe("exportLegendQuantileStorage (v3 extension namespace / maps)", () => {
@@ -28,9 +37,11 @@ describe("exportLegendQuantileStorage (v3 extension namespace / maps)", () => {
     expect(exportLegendQuantileStorage(stubConfig({ legendBinCount: 8 })))
       .toEqual({ numberOfLegendQuantiles: 8, legendQuantilesAreLocked: false })
   })
-  it("exports locked quantiles with the frozen thresholds", () => {
-    expect(exportLegendQuantileStorage(stubConfig({ locked: true, quantiles: [2, 4] })))
-      .toEqual({ numberOfLegendQuantiles: 5, legendQuantilesAreLocked: true, legendQuantiles: [2, 4] })
+  it("exports locked edges as [min, ...inner edges, padded max]", () => {
+    const config = stubConfig({ legendBinCount: 3, locked: true, quantiles: [2, 4], lockedMin: 0, lockedMax: 10 })
+    expect(exportLegendQuantileStorage(config)).toEqual({
+      numberOfLegendQuantiles: 3, legendQuantilesAreLocked: true, legendQuantiles: [0, 2, 4, padV2LegendMax(0, 10)]
+    })
   })
 })
 
@@ -44,20 +55,62 @@ describe("exportLegendQuantileStorage (native V2 graph storage)", () => {
     expect(exportLegendQuantileStorage(config, { v2Native: true }))
       .toEqual({ numberOfLegendQuantiles: 5, legendQuantilesAreLocked: false })
   })
+  it("emits a date legend's bin count, as V2 does for dates", () => {
+    expect(exportLegendQuantileStorage(stubConfig({ legendType: "date", legendBinCount: 3 }), { v2Native: true }))
+      .toEqual({ numberOfLegendQuantiles: 3, legendQuantilesAreLocked: false })
+  })
+  it("emits a locked date legend's bin count, matching its exported edges", () => {
+    const config = stubConfig({
+      legendType: "date", legendBinCount: 3, locked: true, quantiles: [2, 4], lockedMin: 0, lockedMax: 10
+    })
+    const storage = exportLegendQuantileStorage(config, { v2Native: true })
+    expect(storage.numberOfLegendQuantiles).toBe(3)
+    expect(storage.legendQuantiles).toHaveLength(4)
+  })
   it("emits a non-default numeric bin count", () => {
     expect(exportLegendQuantileStorage(stubConfig({ legendBinCount: 8 }), { v2Native: true }))
       .toEqual({ numberOfLegendQuantiles: 8, legendQuantilesAreLocked: false })
   })
-  it("emits locked quantiles", () => {
-    expect(exportLegendQuantileStorage(stubConfig({ locked: true, quantiles: [2, 4] }), { v2Native: true }))
-      .toEqual({ numberOfLegendQuantiles: 5, legendQuantilesAreLocked: true, legendQuantiles: [2, 4] })
+  it("emits locked edges as [min, ...inner edges, padded max]", () => {
+    const config = stubConfig({ legendBinCount: 3, locked: true, quantiles: [2, 4], lockedMin: 0, lockedMax: 10 })
+    expect(exportLegendQuantileStorage(config, { v2Native: true })).toEqual({
+      numberOfLegendQuantiles: 3, legendQuantilesAreLocked: true, legendQuantiles: [0, 2, 4, padV2LegendMax(0, 10)]
+    })
+  })
+  it("pads the max once, by V2's formula", () => {
+    // V2: max + |max - min| * 0.000001
+    expect(padV2LegendMax(0, 10)).toBe(10.00001)
+    expect(padV2LegendMax(5, 5)).toBe(5)
+  })
+  it("uses the live range for an older locked document with no saved min and max", () => {
+    const config = stubConfig({ legendBinCount: 3, locked: true, quantiles: [2, 4], liveRange: { min: 1, max: 9 } })
+    expect(exportLegendQuantileStorage(config, { v2Native: true }).legendQuantiles)
+      .toEqual([1, 2, 4, padV2LegendMax(1, 9)])
+  })
+  it("exports only the inner edges when there is no range at all", () => {
+    const config = stubConfig({ legendBinCount: 3, locked: true, quantiles: [2, 4] })
+    expect(exportLegendQuantileStorage(config, { v2Native: true }).legendQuantiles).toEqual([2, 4])
   })
 })
 
 describe("importLegendLockProps", () => {
   it("keeps only lock props for the config snapshot (no numberOfLegendQuantiles)", () => {
-    const props = { numberOfLegendQuantiles: 8, legendQuantilesAreLocked: true, legendQuantiles: [2, 4] }
-    expect(importLegendLockProps(props)).toEqual({ legendQuantilesAreLocked: true, legendQuantiles: [2, 4] })
+    const props = { numberOfLegendQuantiles: 2, legendQuantilesAreLocked: true, legendQuantiles: [0, 2, 4] }
+    expect(Object.keys(importLegendLockProps(props)))
+      .toEqual(["legendQuantilesAreLocked", "legendQuantiles", "legendLockedMin", "legendLockedMax"])
+  })
+  it("splits V2's N+1 edges into min, inner edges, and max, and removes the padding from max", () => {
+    const props = { legendQuantilesAreLocked: true, legendQuantiles: [0, 2, 4, 6, 8, padV2LegendMax(0, 10)] }
+    const result = importLegendLockProps(props)
+    expect(result.legendQuantiles).toEqual([2, 4, 6, 8])
+    expect(result.legendLockedMin).toBe(0)
+    expect(result.legendLockedMax).toBeCloseTo(10, 12)
+  })
+  it("imports a one-bin V2 legend (2 edges) as no inner edges", () => {
+    const result = importLegendLockProps({ legendQuantilesAreLocked: true, legendQuantiles: [5, 5] })
+    expect(result).toEqual({
+      legendQuantilesAreLocked: true, legendQuantiles: [], legendLockedMin: 5, legendLockedMax: 5
+    })
   })
   it("returns empty when nothing is locked", () => {
     expect(importLegendLockProps({ numberOfLegendQuantiles: 5 })).toEqual({})
@@ -86,5 +139,86 @@ describe("applyImportedLegendBinCount", () => {
   })
   it("does nothing without metadata", () => {
     expect(() => applyImportedLegendBinCount({ numberOfLegendQuantiles: 8 }, "legId", undefined)).not.toThrow()
+  })
+})
+
+describe("locked legend round trips", () => {
+  // A V3 config (as a stub) holding what importLegendLockProps produced
+  const configFromImport = (imported: ReturnType<typeof importLegendLockProps>) => stubConfig({
+    legendBinCount: (imported.legendQuantiles?.length ?? 0) + 1,
+    locked: true,
+    quantiles: imported.legendQuantiles,
+    lockedMin: imported.legendLockedMin,
+    lockedMax: imported.legendLockedMax
+  })
+  const roundTrip = (v2Edges: number[]) => {
+    const imported = importLegendLockProps({ legendQuantilesAreLocked: true, legendQuantiles: v2Edges })
+    return exportLegendQuantileStorage(configFromImport(imported), { v2Native: true }).legendQuantiles!
+  }
+  // Reversing the padding can be off in the last digits, so compare with a small relative tolerance.
+  const expectClose = (actual: number[], expected: number[]) => {
+    expect(actual.length).toBe(expected.length)
+    actual.forEach((value, i) => {
+      expect(Math.abs(value - expected[i])).toBeLessThanOrEqual(Math.abs(expected[i]) * 1e-12)
+    })
+  }
+
+  it("keeps the same edges in a V2 -> V3 -> V2 round trip", () => {
+    const v2Edges = [3.2, 10.5, 47.25, 61, 88.8, padV2LegendMax(3.2, 1024.75)]
+    const result = roundTrip(v2Edges)
+    expect(result.slice(0, -1)).toEqual(v2Edges.slice(0, -1))
+    expectClose(result, v2Edges)
+  })
+
+  it("does not make max grow over two round trips", () => {
+    const v2Edges = [0, 25, 50, 75, padV2LegendMax(0, 100)]
+    const twice = roundTrip(roundTrip(v2Edges))
+    expectClose(twice, v2Edges)
+    const imported = importLegendLockProps({ legendQuantilesAreLocked: true, legendQuantiles: twice })
+    expect(imported.legendLockedMax).toBeCloseTo(100, 12)
+  })
+
+  it("removes the padding from a negative range", () => {
+    expect(unpadV2LegendMax(-50, padV2LegendMax(-50, -10))).toBeCloseTo(-10, 12)
+  })
+
+  it("imports and exports the same way through the v3: extension (maps)", () => {
+    const config = stubConfig({ legendBinCount: 3, locked: true, quantiles: [2, 4], lockedMin: 0, lockedMax: 10 })
+    const { v3 } = exportV3Properties(config, { includeLegendQuantiles: true }) as { v3: any }
+    expect(v3.legendQuantiles).toEqual([0, 2, 4, padV2LegendMax(0, 10)])
+    expect(v3.numberOfLegendQuantiles).toBe(3)
+    const imported = importV3Properties(v3) as ReturnType<typeof importLegendLockProps>
+    expect(imported.legendQuantiles).toEqual([2, 4])
+    expect(imported.legendLockedMin).toBe(0)
+    expect(imported.legendLockedMax).toBeCloseTo(10, 12)
+  })
+})
+
+describe("exporting a locked legend from a real data configuration", () => {
+  const TreeModel = types.model("Tree", {
+    data: DataSet,
+    metadata: DataSetMetadata,
+    config: GraphDataConfigurationModel
+  })
+
+  it("keeps the locked bin count after hiding cases lowers the live bin count", () => {
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    t.data.addCases(toCanonical(t.data, Array.from({ length: 11 }, (_, i) => ({ __id__: `c${i}`, leg: i * 10 }))))
+    t.config.setDataset(t.data, t.metadata)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    t.config.setLegendQuantilesAreLocked(true)
+
+    // leave only 3 distinct values visible
+    t.config.setHiddenCases(["c3", "c4", "c5", "c6", "c7", "c8", "c9", "c10"]
+      .map(id => t.data.getItemChildCaseId(id)!))
+    expect(t.config.legendBinCount).toBe(3)
+
+    const storage = exportLegendQuantileStorage(t.config, { v2Native: true })
+    expect(storage.numberOfLegendQuantiles).toBe(5)
+    expect(storage.legendQuantiles).toHaveLength(6)
+    expect(storage.legendQuantiles?.[0]).toBe(0)
+    expect(storage.legendQuantiles?.[5]).toBe(padV2LegendMax(0, 100))
   })
 })

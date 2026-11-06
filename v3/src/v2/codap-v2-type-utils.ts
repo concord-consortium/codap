@@ -40,9 +40,40 @@ function hasLegendQuantiles(props?: IExportLegendQuantileProps | IImportLegendQu
 
 interface ILegendQuantileSource {
   attributeType(role: string): string | undefined
-  legendBinCount: number
+  displayedLegendBinCount: number
   legendQuantilesAreLocked?: boolean
   legendQuantiles: number[]
+  legendLockedMin?: number
+  legendLockedMax?: number
+  liveLegendDisplayRange: { min?: number, max?: number }
+}
+
+// V2 saves a locked legend's bin edges with the min first and the max last (N+1 values for N bins).
+// It adds a small amount to the max so the max value itself falls in the last bin, because V2's bins
+// do not include their upper edge. V3 saves the true min and max separately from the inner edges, so
+// the padding is removed on import and added once on export.
+const kV2LegendMaxPaddingFactor = 0.000001
+
+export function padV2LegendMax(min: number, max: number) {
+  return max + Math.abs(max - min) * kV2LegendMaxPaddingFactor
+}
+
+// The inverse of padV2LegendMax. For paddedMax >= min, paddedMax = max + (max - min) * f, so
+// max = (paddedMax + min * f) / (1 + f). A paddedMax below min was not padded this way; keep it.
+export function unpadV2LegendMax(min: number, paddedMax: number) {
+  if (paddedMax < min) return paddedMax
+  return (paddedMax + min * kV2LegendMaxPaddingFactor) / (1 + kV2LegendMaxPaddingFactor)
+}
+
+// The locked bin edges in V2 format: [min, ...inner edges, padded max]. An older V3 document may
+// have no saved min and max; then the live range is used. With no range at all, only the inner
+// edges can be written, as before.
+function exportLockedLegendEdges(dataConfig: ILegendQuantileSource) {
+  const inner = [...dataConfig.legendQuantiles]
+  const min = dataConfig.legendLockedMin ?? dataConfig.liveLegendDisplayRange?.min
+  const max = dataConfig.legendLockedMax ?? dataConfig.liveLegendDisplayRange?.max
+  if (min == null || max == null) return inner
+  return [min, ...inner, padV2LegendMax(min, max)]
 }
 
 interface IExportLegendQuantileStorageOptions {
@@ -52,36 +83,49 @@ interface IExportLegendQuantileStorageOptions {
   v2Native?: boolean
 }
 // Derives the V2 legend-quantile storage from a data configuration. The bin count is sourced from
-// the per-attribute binCount (via legendBinCount); for a non-numeric or absent legend it falls back
-// to V2's default of 5 (legendBinCount collapses to 1 when the legend isn't numeric). For the v3
-// extension namespace (and maps) the block is emitted only when the count differs from V2's default
-// of 5 or the quantiles are locked; the native V2 graph path (v2Native) always emits it.
+// the per-attribute binCount (via displayedLegendBinCount). A numeric or date legend has bins, as in
+// V2; for any other or absent legend it falls back to V2's default of 5 (the bin count collapses to 1
+// there). For the v3 extension namespace (and maps) the block is emitted only when the count differs
+// from V2's default of 5 or the quantiles are locked; the native V2 graph path (v2Native) always
+// emits it.
 // Defensive: some callers (e.g. the data-interactive data-context export) pass a bare DataSet that
-// has neither attributeType nor legendBinCount; for those this returns {} rather than throwing.
+// has neither attributeType nor a bin count; for those this returns {} rather than throwing.
 export function exportLegendQuantileStorage(
   dataConfig: ILegendQuantileSource, options?: IExportLegendQuantileStorageOptions
-) {
+): IExportLegendQuantileProps {
   if (typeof dataConfig?.attributeType !== "function") return {}
-  const isNumericLegend = dataConfig.attributeType("legend") === "numeric"
+  const legendType = dataConfig.attributeType("legend")
+  const isBinnedLegend = legendType === "numeric" || legendType === "date"
   const locked = dataConfig.legendQuantilesAreLocked ?? false
-  const count = isNumericLegend ? dataConfig.legendBinCount : 5
+  // displayedLegendBinCount is the locked bin count while locked, so it matches the exported edges
+  // even after hiding cases has lowered the live bin count.
+  const count = isBinnedLegend ? dataConfig.displayedLegendBinCount : 5
   if (!options?.v2Native && count === 5 && !locked) return {}
   return {
     numberOfLegendQuantiles: count,
     legendQuantilesAreLocked: locked,
-    ...(locked ? { legendQuantiles: [...dataConfig.legendQuantiles] } : {})
+    ...(locked ? { legendQuantiles: exportLockedLegendEdges(dataConfig) } : {})
   }
 }
 
 // Lock props for the DataConfiguration snapshot. The bin count is handled separately
 // (applyImportedLegendBinCount) because it lives in per-attribute metadata, not the config.
+// The V2 edges [min, ...inner edges, padded max] are split into V3's legendLockedMin, inner
+// legendQuantiles, and legendLockedMax, with the padding removed from the max.
 export function importLegendLockProps(props?: IImportLegendQuantileProps) {
   if (!props?.legendQuantilesAreLocked) return {}
   const validQuantiles = !!props.legendQuantiles?.length &&
     props.legendQuantiles.every((q: number | null) => q != null)
+  if (!validQuantiles) return { legendQuantilesAreLocked: true }
+  const edges = props.legendQuantiles as number[]
+  // V2 always writes at least 2 values (N+1 for N >= 1 bins); keep anything shorter as it is.
+  if (edges.length < 2) return { legendQuantilesAreLocked: true, legendQuantiles: edges }
+  const min = edges[0]
   return {
     legendQuantilesAreLocked: true,
-    ...(validQuantiles ? { legendQuantiles: props.legendQuantiles as number[] } : {})
+    legendQuantiles: edges.slice(1, -1),
+    legendLockedMin: min,
+    legendLockedMax: unpadV2LegendMax(min, edges[edges.length - 1])
   }
 }
 
