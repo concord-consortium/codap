@@ -58,33 +58,35 @@ export function padV2LegendMax(min: number, max: number) {
   return max + Math.abs(max - min) * kV2LegendMaxPaddingFactor
 }
 
-// The next representable number above (up = true) or below (up = false) a finite number.
-const stepView = new DataView(new ArrayBuffer(8))
-function stepFloat(value: number, up: boolean) {
-  if (value === 0) return up ? Number.MIN_VALUE : -Number.MIN_VALUE
-  stepView.setFloat64(0, value)
-  const bits = stepView.getBigUint64(0)
-  // For a positive number, a larger bit pattern is a larger number; for a negative one, it is smaller.
-  stepView.setBigUint64(0, (value > 0) === up ? bits + 1n : bits - 1n)
-  return stepView.getFloat64(0)
-}
-
-// The inverse of padV2LegendMax. For paddedMax >= min, paddedMax = max + (max - min) * f, so
-// max ~= (paddedMax + min * f) / (1 + f). That result can be off in the last digit, and a result
-// just below the true max would make the max case "missing". So step to the largest number that
-// pads to paddedMax or less. V2 padded the true max with the same arithmetic, so the result is
-// never below it. A paddedMax below min was not padded this way; keep it.
+// The inverse of padV2LegendMax: the largest number that pads to paddedMax or less. V2 padded the
+// true max with the same arithmetic, so the result is never below it. (A result below it would make
+// the max case "missing".) When the min is much larger in size than the max, the padding is much
+// larger than the max, and many numbers pad to the same value. Then the result can be a little above
+// the true max, because the saved value does not hold the exact max. A paddedMax below min was not
+// padded this way; keep it.
 export function unpadV2LegendMax(min: number, paddedMax: number) {
-  if (!(paddedMax >= min) || !Number.isFinite(paddedMax)) return paddedMax
-  let max = (paddedMax + min * kV2LegendMaxPaddingFactor) / (1 + kV2LegendMaxPaddingFactor)
-  // A few steps are enough; the limits only guard against an unexpected input.
-  for (let i = 0; i < 64 && padV2LegendMax(min, max) > paddedMax; i++) max = stepFloat(max, false)
-  for (let i = 0; i < 64; i++) {
-    const next = stepFloat(max, true)
-    if (padV2LegendMax(min, next) > paddedMax) break
-    max = next
+  if (!(paddedMax >= min) || !Number.isFinite(paddedMax) || !Number.isFinite(min)) return paddedMax
+  const padsWithin = (value: number) => padV2LegendMax(min, value) <= paddedMax
+  // The padding can be too small to change paddedMax; then paddedMax is the largest such number.
+  if (padsWithin(paddedMax)) return paddedMax
+  // Binary search between low (pads to paddedMax or less) and high (pads to more). Start from the
+  // estimate max ~= (paddedMax + min * f) / (1 + f), from paddedMax = max + (max - min) * f.
+  let low = min
+  let high = paddedMax
+  const estimate = (paddedMax + min * kV2LegendMaxPaddingFactor) / (1 + kV2LegendMaxPaddingFactor)
+  if (estimate > low && estimate < high) {
+    if (padsWithin(estimate)) low = estimate
+    else high = estimate
   }
-  return max
+  // Halve the interval until low and high are neighboring numbers. About 2,100 halvings reach that
+  // from any interval; the limit only guards against an unexpected input.
+  for (let i = 0; i < 2200; i++) {
+    const middle = Number.isFinite(high - low) ? low + (high - low) / 2 : low / 2 + high / 2
+    if (middle <= low || middle >= high) break
+    if (padsWithin(middle)) low = middle
+    else high = middle
+  }
+  return low
 }
 
 // The locked bin edges in V2 format: [min, ...inner edges, padded max]. An older V3 document may

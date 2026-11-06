@@ -220,6 +220,33 @@ describe("locked legend round trips", () => {
     expect(below).toBe(0)
   })
 
+  it("never gives a max below the true max when the min is much larger in size than the max", () => {
+    // The padding is much larger than the max here, so many numbers pad to the same value.
+    const max = 0.000001
+    const result = unpadV2LegendMax(-1000000, padV2LegendMax(-1000000, max))
+    expect(result).toBeGreaterThanOrEqual(max)
+    expect(result).toBeCloseTo(max, 12)
+
+    let below = 0
+    for (let minExp = 0; minExp <= 12; minExp++) {
+      for (let maxExp = -12; maxExp <= 0; maxExp++) {
+        for (let i = 1; i <= 20; i++) {
+          const min = -((i * 7919) % 1000 + 1) * Math.pow(10, minExp) / 97
+          const trueMax = ((i * 104729) % 1000 + 1) * Math.pow(10, maxExp) / 89
+          if (unpadV2LegendMax(min, padV2LegendMax(min, trueMax)) < trueMax) below++
+        }
+      }
+    }
+    expect(below).toBe(0)
+  })
+
+  it("gives the same padded max again after a second round trip", () => {
+    for (const [min, max] of [[-1000000, 0.000001], [-1e9, 0.001], [-1, 1e-12], [0, 100], [-100, -99]]) {
+      const padded = padV2LegendMax(min, max)
+      expect(padV2LegendMax(min, unpadV2LegendMax(min, padded))).toBe(padded)
+    }
+  })
+
   it("imports and exports the same way through the v3: extension (maps)", () => {
     const config = stubConfig({ legendBinCount: 3, locked: true, quantiles: [2, 4], lockedMin: 0, lockedMax: 10 })
     const { v3 } = exportV3Properties(config, { includeLegendQuantiles: true }) as { v3: any }
