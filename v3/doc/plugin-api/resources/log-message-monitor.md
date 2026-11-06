@@ -162,16 +162,16 @@ with an error saying at least one of the five properties was required. This is a
 put `logMonitor` next to `success` and included the properties you registered. This is a known
 bug. Until it is fixed, read `result.logMonitor ?? result.values.logMonitor`.
 
-**Your `clientId` is ignored.** v3 records CODAP's own id for your plugin as the monitor's
-`clientId`, reports that id in the reply and in each notice, and `unregister` with your own
-`clientId` removes nothing, although it replies `{ "success": true }`. This is a known bug.
-Until it is fixed, unregister monitors by `id`.
+**Your `clientId` is ignored.** v3 records CODAP's own id for your plugin, or `"__hostPage__"`
+for the page CODAP is embedded in, as the monitor's `clientId`. It reports that id in the reply
+and in each notice, and `unregister` with your own `clientId` removes nothing, although it replies
+`{ "success": true }`. This is a known bug. Until it is fixed, unregister monitors by `id`.
 
 **`unregister` with an `id` that matches no monitor replies `{ "success": false }`.** v2 replied
 `{ "success": true }`. This is a known bug.
 
-**A monitor can be told about a plugin's log message twice.** When a plugin sends `logMessage`,
-CODAP first treats the message as one of its own events: it has no `topic` and no
+**A monitor can be told about a log message twice.** When a plugin or the host page sends
+`logMessage`, CODAP first treats the message as one of its own events: it has no `topic` and no
 `replaceArgs`, and its `formatStr` is the message with its placeholders already filled in. A
 monitor that matches that, such as one with `message: "*"`, receives a notice for it, and then
 the notice described under [Notifications](#notifications). v2 sent only the second. This is a
@@ -186,9 +186,6 @@ message with its values already filled in, and no `replaceArgs`. This is a known
 **`replaceArgs` is missing from a notice for an event with no values.** v2 always sent
 `replaceArgs` as an array, empty when the event had no values. v3 leaves the property out. This
 is a known bug. Until it is fixed, read it as `replaceArgs ?? []`.
-
-A monitor cannot be registered by the page CODAP is embedded in; see
-[Embedding CODAP in your page](../guides/embedded-server.md#known-limitations).
 
 ## Notifications
 
@@ -227,7 +224,7 @@ event twice. v2 also added which of the monitor's properties had matched; v3 doe
 
 | Error | Condition |
 |---|---|
-| `clientId and filter values are required` | `register` with no `values`, or from the page CODAP is embedded in |
+| `clientId and filter values are required` | `register` with no `values` |
 | `id or clientId required` | `unregister` with neither `id` nor `clientId` |
 
 v2 reported a `register` with none of the five properties with an error naming them, and an

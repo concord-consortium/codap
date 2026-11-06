@@ -122,9 +122,6 @@ v3 also replaces text of the form `%{name}` with nothing. v2 counted only the un
 placeholders and left `%{name}` as written. This is a known bug. Until it is fixed, do not mix
 numbered and unnumbered placeholders in one `formatStr`, and do not use `%{`.
 
-A log message sent by the page CODAP is embedded in is not logged; see
-[Embedding CODAP in your page](../guides/embedded-server.md#known-limitations).
-
 ## Notifications
 
 This resource sends no notification of its own. A log message that matches a monitor some plugin

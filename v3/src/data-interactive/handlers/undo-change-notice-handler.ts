@@ -1,5 +1,6 @@
 import { IAnyStateTreeNode } from "mobx-state-tree"
 import { isWebViewModel } from "../../components/web-view/web-view-model"
+import { kHostPageId } from "../../lib/embedded-mode/embedded-mode-registry"
 import { appState } from "../../models/app-state"
 import { ICustomUndoRedoPatcher, registerCustomUndoRedo } from "../../models/history/custom-undo-redo-registry"
 import { ICustomPatch } from "../../models/history/tree-types"
@@ -7,7 +8,7 @@ import { withCustomUndoRedo } from "../../models/history/with-custom-undo-redo"
 import { getDocumentContentFromNode } from "../../utilities/mst-document-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIHandlerFnResult, DIResources, DIValues } from "../data-interactive-types"
-import { errorResult, noInteractiveFrameResult } from "./di-results"
+import { errorResult } from "./di-results"
 
 const kPluginUndoRedoPatchType = "PluginUndoRedo"
 
@@ -59,23 +60,25 @@ function undoRedoResult(): { canUndo: boolean, canRedo: boolean } {
 export const diUndoChangeNoticeHandler: DIHandler = {
   notify(resources: DIResources, values?: DIValues) {
     const { interactiveFrame } = resources
-    if (!interactiveFrame) return noInteractiveFrameResult
 
     const vals = values as { operation?: string } | undefined
     const operation = vals?.operation
 
     switch (operation) {
       case "undoableActionPerformed": {
-        const webViewContent = isWebViewModel(interactiveFrame.content)
-          ? interactiveFrame.content : undefined
-        if (!webViewContent) {
-          return errorResult("Interactive frame content not found")
+        // a request from the host page has no frame, so its entry goes on the document and its
+        // undoAction and redoAction go back to the host page, as in V2
+        if (interactiveFrame) {
+          if (!isWebViewModel(interactiveFrame.content)) {
+            return errorResult("Interactive frame content not found")
+          }
+          if (!getDocumentContentFromNode(interactiveFrame)) {
+            return errorResult("Document content not found")
+          }
         }
-        if (!getDocumentContentFromNode(interactiveFrame)) {
-          return errorResult("Document content not found")
-        }
-        const tileId = interactiveFrame.id
-        webViewContent.applyModelChange(() => {
+        const tileId = interactiveFrame?.id ?? kHostPageId
+        const model = interactiveFrame?.content ?? appState.document
+        model.applyModelChange(() => {
           withCustomUndoRedo<IPluginUndoRedoPatch>({
             type: kPluginUndoRedoPatchType,
             data: { tileId }
