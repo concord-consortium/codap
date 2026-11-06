@@ -1976,6 +1976,24 @@ describe("DataConfigurationModel locked legend", () => {
       expect(t.config.getLegendColorForCase(caseIdOf(t, "c10"))).not.toBe(missingColor)
     })
 
+    it("gives a new date above the locked max the missing color", () => {
+      const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+      t.data.addAttribute({ id: "legId", name: "leg" })
+      t.metadata.setData(t.data)
+      t.data.addCases(toCanonical(t.data, Array.from({ length: 6 }, (_, i) => (
+        { __id__: `d${i}`, leg: `${2020 + i}-06-15` }
+      ))))
+      t.config.setDataset(t.data, t.metadata)
+      t.config.setAttribute("legend", { attributeID: "legId" })
+      expect(t.config.attributeType("legend")).toBe("date")
+      t.config.setLegendQuantilesAreLocked(true)
+
+      t.data.addCases(toCanonical(t.data, [{ __id__: "later", leg: "2030-06-15" }]))
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "later"))).toBe(missingColor)
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "d5"))).not.toBe(missingColor)
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "d0"))).not.toBe(missingColor)
+    })
+
     it("selects the last bin using the locked max after cases are hidden", () => {
       const t = makeTree()
       t.config.setLegendQuantilesAreLocked(true)

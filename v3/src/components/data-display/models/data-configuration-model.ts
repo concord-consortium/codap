@@ -857,8 +857,13 @@ export const DataConfigurationModel = types
       },
 
       getLegendColorForDateValue(value: string): string {
-        const dateValueArray = stringValuesToDateSeconds([value])
-        return self.legendNumericColorScale(dateValueArray[0])
+        const [seconds] = stringValuesToDateSeconds([value])
+        // Dates outside the range are "missing", as numbers are, so a date added after the legend
+        // was locked does not take an end bin's color. (A date <= 0 is just a date before 1970,
+        // so the logarithmic rule for numbers does not apply.)
+        const { min, max } = self.legendDisplayRange
+        if (min != null && max != null && (seconds < min || seconds > max)) return missingColor
+        return self.legendNumericColorScale(seconds)
       },
 
       getCasesForCategoryValues(

@@ -87,6 +87,14 @@ describe("exportLegendQuantileStorage (native V2 graph storage)", () => {
     expect(exportLegendQuantileStorage(config, { v2Native: true }).legendQuantiles)
       .toEqual([1, 2, 4, padV2LegendMax(1, 9)])
   })
+  it("widens an older document's live range to include the saved edges, keeping the values in order", () => {
+    // the data changed after locking, so the live range 15..25 no longer includes the edges 10..40
+    const config = stubConfig({
+      legendBinCount: 5, locked: true, quantiles: [10, 20, 30, 40], liveRange: { min: 15, max: 25 }
+    })
+    expect(exportLegendQuantileStorage(config, { v2Native: true }).legendQuantiles)
+      .toEqual([10, 10, 20, 30, 40, padV2LegendMax(10, 40)])
+  })
   it("exports only the inner edges when there is no range at all", () => {
     const config = stubConfig({ legendBinCount: 3, locked: true, quantiles: [2, 4] })
     expect(exportLegendQuantileStorage(config, { v2Native: true }).legendQuantiles).toEqual([2, 4])
@@ -180,6 +188,26 @@ describe("locked legend round trips", () => {
 
   it("removes the padding from a negative range", () => {
     expect(unpadV2LegendMax(-50, padV2LegendMax(-50, -10))).toBeCloseTo(-10, 12)
+  })
+
+  it("gives back exactly the max where plain arithmetic would land just below it", () => {
+    // (paddedMax + min * f) / (1 + f) gives -99.00000000000001 here, which would make -99 "missing"
+    expect(unpadV2LegendMax(-100, padV2LegendMax(-100, -99))).toBe(-99)
+    expect(unpadV2LegendMax(0, padV2LegendMax(0, 100))).toBe(100)
+    expect(unpadV2LegendMax(5, padV2LegendMax(5, 5))).toBe(5)
+  })
+
+  it("never gives a max below the true max", () => {
+    // a fixed set of ranges across many sizes, so the test is repeatable
+    let below = 0
+    for (let exp = -6; exp <= 9; exp++) {
+      for (let i = 1; i <= 200; i++) {
+        const min = ((i * 7919) % 1000 - 500) * Math.pow(10, exp) / 97
+        const max = min + ((i * 104729) % 1000 + 1) * Math.pow(10, exp) / 89
+        if (unpadV2LegendMax(min, padV2LegendMax(min, max)) < max) below++
+      }
+    }
+    expect(below).toBe(0)
   })
 
   it("imports and exports the same way through the v3: extension (maps)", () => {
