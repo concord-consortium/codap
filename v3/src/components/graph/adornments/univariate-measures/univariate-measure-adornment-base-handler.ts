@@ -27,7 +27,7 @@ export interface IUnivariateMeasureAdornmentWriteConfig {
   // the adornment's `get` values, with which `create` also replies
   get: (adornment: IAdornmentModel, graphContent: IGraphContentModel) => Record<string, any>
   // sets the type's own display settings from `create` or `update` values
-  applyValues?: (adornment: IAdornmentModel, values: Record<string, unknown>) => void
+  applyValues?: (adornment: IAdornmentModel, values: Record<string, unknown>, graphContent: IGraphContentModel) => void
 }
 
 // `create` and `update` for a univariate measure: `create` shows the adornment, adding it to the graph if
@@ -49,7 +49,7 @@ export const univariateMeasureAdornmentWriteHandlers = (
 
     adornment.setVisibility(true)
     const settings = valuesObject(values)
-    if (settings) applyValues?.(adornment, settings)
+    if (settings) applyValues?.(adornment, settings, graphContent)
 
     const { id, isVisible, type } = adornment
     return { success: true, values: { id, isVisible, type, ...get(adornment, graphContent) } }
@@ -63,7 +63,7 @@ export const univariateMeasureAdornmentWriteHandlers = (
     const settings = valuesObject(values)
     if (settings) {
       if (typeof settings.isVisible === "boolean") existingAdornment.setVisibility(settings.isVisible)
-      applyValues?.(existingAdornment, settings)
+      applyValues?.(existingAdornment, settings, graphContent)
     }
 
     return { success: true }
