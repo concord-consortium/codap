@@ -8,7 +8,7 @@ import {
 } from "../../../utilities/stats-utils"
 import { CurrentScope, IFormulaMathjsFunction } from "../formula-types"
 import { aggregateBivariateNumericFnWithFilterFactory, cachedAggregateFnFactory } from "./aggregate-functions"
-import { evaluateNode, getRootScope, isValueTruthy, UNDEF_RESULT } from "./function-utils"
+import { evaluateNode, getRootScope, passesFilter, UNDEF_RESULT } from "./function-utils"
 
 export const bivariateStatsFunctions: Record<string, IFormulaMathjsFunction> = {
 
@@ -117,7 +117,7 @@ function evaluateRawLinearRegressionSemiAggregate(fn: (lsr: ValidLSRResult, x: n
       for (let i = 0; i < _count; ++i) {
         const [isXValid, x] = checkNumber(xValues[i])
         const [isYValid, y] = checkNumber(yValues[i])
-        if (isXValid && isYValid && (filterValues ? isValueTruthy(filterValues[i]) : true)) {
+        if (isXValid && isYValid && (filterValues ? passesFilter(filterValues[i]) : true)) {
           xyValues.push({ x, y })
         }
       }
@@ -135,7 +135,7 @@ function evaluateRawLinearRegressionSemiAggregate(fn: (lsr: ValidLSRResult, x: n
       const [xIsValid, x] = checkNumber(evaluateNode(xArg, scope))
       const [yIsValid, y] = checkNumber(evaluateNode(yArg, scope))
       const filterValue = filterArg ? evaluateNode(filterArg, scope) : true
-      if (xIsValid && yIsValid && isValueTruthy(filterValue)) {
+      if (xIsValid && yIsValid && passesFilter(filterValue)) {
         result = fn(lsrResult, x, y)
       }
     })
