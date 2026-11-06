@@ -35,8 +35,8 @@
   }
 
   .about-dialog-version {
-    background-color: #F2F5F7;
-    border: 1px solid #E2E6EA;
+    background-color: vars.$menu-item-hover-bg;
+    border: 1px solid vars.$menu-border-color;
     border-radius: 20px;
     margin-top: 4px;
     padding: 0 10px;

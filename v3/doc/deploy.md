@@ -2,7 +2,7 @@
 
 S3 deployment is handled by GitHub Actions. Pushes are deployed to `models-resources/codap3/` by the `s3-deploy` job in [`v3.yml`](../../.github/workflows/v3.yml).
 
-Each build also writes `oss-licenses.json`, `oss-libraries.json`, and `THIRD-PARTY-NOTICES.md` next to `index.html` (see `webpack-license-plugin` in [`webpack.config.js`](../webpack.config.js)). The About dialog loads them with `getBuildAssetUrl()`, so pages promoted to the top level still load them from their version folder.
+Each build also writes `oss-libraries.json` and `THIRD-PARTY-NOTICES.md` next to `index.html` (see `webpack-license-plugin` in [`webpack.config.js`](../webpack.config.js)). The About dialog loads `oss-libraries.json` and links to `THIRD-PARTY-NOTICES.md`, building both URLs with `getBuildAssetUrl()`, so pages promoted to the top level still use the files in their version folder.
 
 A released version is promoted to the top-level `index.html` by [`release-v3-production.yml`](../../.github/workflows/release-v3-production.yml) via `workflow_dispatch`. [`release-v3-beta.yml`](../../.github/workflows/release-v3-beta.yml) and [`release-v3-ai4vs.yml`](../../.github/workflows/release-v3-ai4vs.yml) promote a version the same way, to `beta` and `ai4vs`. [`release-v3-staging.yml`](../../.github/workflows/release-v3-staging.yml) copies to two destinations, `index-staging.html` and `staging`, in two separate steps.
 

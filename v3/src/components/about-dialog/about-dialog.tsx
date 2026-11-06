@@ -14,8 +14,7 @@ import { displayVersion } from "../../utilities/version-utils"
 import { CodapModal } from "../codap-modal"
 import { ExternalLink } from "../common/external-link"
 import {
-  kLicensingDetailsUrl, kLicensingEmail, kLicensingUrl, kMitLicenseUrl, kSourceCodeUrl, kTermsOfUseUrl,
-  kThirdPartyNoticesFile
+  kLicensingEmail, kLicensingUrl, kMitLicenseUrl, kSourceCodeUrl, kTermsOfUseUrl, kThirdPartyNoticesFile
 } from "./about-dialog-constants"
 import { IOssLibrary, OssLibrariesState, useOssLibraries } from "./use-oss-libraries"
 
@@ -49,7 +48,7 @@ export function AboutDialog({ isOpen, initialView, returnFocusRef, onClose }: IP
   const acknowledgementsButtonRef = useRef<HTMLButtonElement>(null)
   const getStartedButtonRef = useRef<HTMLButtonElement>(null)
   const pendingFocusRef = useRef<RefObject<HTMLElement>>()
-  const librariesState = useOssLibraries(isOpen)
+  const librariesState = useOssLibraries(isOpen && view !== "welcome")
 
   // Move focus to the element `showView()` asked for once the new view has rendered.
   useEffect(() => {
@@ -201,7 +200,7 @@ function AboutView({ acknowledgementsButtonRef, librariesState, onShowLibraries 
       <hr className="about-dialog-divider"/>
       <div className="about-dialog-links">
         <ExternalLink href={kTermsOfUseUrl} showArrow={true}>{t("V3.AboutDialog.termsOfUse")}</ExternalLink>
-        <ExternalLink href={kLicensingDetailsUrl} showArrow={true}>
+        <ExternalLink href={kLicensingUrl} showArrow={true}>
           {t("V3.AboutDialog.links.licensingDetails")}
         </ExternalLink>
         <ExternalLink href={kSourceCodeUrl} showArrow={true}>{t("V3.AboutDialog.links.sourceCode")}</ExternalLink>

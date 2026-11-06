@@ -14,6 +14,7 @@ const LicensePlugin = require('webpack-license-plugin')
 // keep these file names in sync with src/components/about-dialog/about-dialog-constants.ts
 const { ossLibrariesJson, thirdPartyNoticesMarkdown } = require('./scripts/oss-licenses')
 const ts = require('typescript')
+const webpack = require('webpack')
 
 const TSCONFIG_PATH = path.resolve(__dirname, 'tsconfig.json')
 
@@ -129,6 +130,18 @@ module.exports = (env, argv) => {
       // replenishDefaultLicenseTexts is off so builds don't use the network; packages that don't ship a
       // license file get a generic license text from scripts/oss-licenses.js instead
     }),
+    // webpack-license-plugin always writes oss-licenses.json, but nothing uses it, so don't deploy it.
+    // The plugin writes its files at the ANALYSE stage, so this removes it just after.
+    {
+      apply(compiler) {
+        compiler.hooks.thisCompilation.tap('RemoveOssLicensesJson', compilation => {
+          compilation.hooks.processAssets.tap(
+            { name: 'RemoveOssLicensesJson', stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ANALYSE + 1 },
+            () => compilation.deleteAsset('oss-licenses.json')
+          )
+        })
+      }
+    },
   ]
   if (devMode && !process.env.SKIP_ESLINT) {
     // `build` script runs eslint independently in production mode,
