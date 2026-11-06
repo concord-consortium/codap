@@ -1,5 +1,6 @@
 import { AxisHelper as ah } from "../support/helpers/axis-helper"
 import { GraphLegendHelper as glh } from "../support/helpers/graph-legend-helper"
+import { GraphLegendElements as gle } from "../support/elements/graph-legend-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { GraphTileElements as graph } from "../support/elements/graph-tile"
 import { ColorPickerPaletteElements as color_picker } from "../support/elements/color-picker-palette"
@@ -836,5 +837,49 @@ context("Test changing the legend bins", () => {
     cy.get("[data-testid=legend-bins-type-select]").find("button").click()
     cy.get("[role=option]").contains("Linear").click()
 
+  })
+})
+
+context("Test locking the legend", () => {
+  beforeEach(function () {
+    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
+    const url = `${Cypress.config("index")}${queryParams}`
+    cy.visit(url)
+    cy.wait(2500)
+  })
+
+  it("keeps the legend's end labels and bins when the top bin's cases are hidden", () => {
+    cy.dragAttributeToTarget("table", "LifeSpan", "bottom") // LifeSpan => x-axis
+    glh.dragAttributeToPlot("Height") // Height => plot area = adds Height to legend
+    glh.verifyNumericLegend()
+    gle.getNumericLegendCategories().should("have.length", 5)
+
+    gle.getNumericLegendEndLabels().should("have.length", 2)
+    gle.getNumericLegendEndLabels().then($labels => {
+      const lockedMin = $labels.eq(0).text()
+      const lockedMax = $labels.eq(1).text()
+
+      cy.log("Lock the legend")
+      graph.getDisplayStylesButton().click()
+      cy.get("[data-testid=lock-legend-quantiles-checkbox]").click()
+      graph.getDisplayStylesButton().click()
+
+      cy.log("Select the top bin's cases and hide them")
+      glh.selectNumericLegendCategory(4)
+      glh.verifyLegendQuintileSelected(4)
+      graph.getHideShowButton().click()
+      cy.get("[data-testid=hide-selected-cases]").click()
+
+      cy.log("The end labels and the number of bins do not change")
+      gle.getNumericLegendEndLabels().eq(0).should("have.text", lockedMin)
+      gle.getNumericLegendEndLabels().eq(1).should("have.text", lockedMax)
+      gle.getNumericLegendCategories().should("have.length", 5)
+
+      cy.log("Unlock the legend: the max label changes to the max of the cases still shown")
+      graph.getDisplayStylesButton().click()
+      cy.get("[data-testid=lock-legend-quantiles-checkbox]").click()
+      graph.getDisplayStylesButton().click()
+      gle.getNumericLegendEndLabels().eq(1).should("not.have.text", lockedMax)
+    })
   })
 })
