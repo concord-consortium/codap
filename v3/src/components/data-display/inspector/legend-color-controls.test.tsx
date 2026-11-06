@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { scaleQuantize } from "d3"
+import { extent, scaleQuantize, scaleThreshold } from "d3"
 import { featureFlagManager } from "../../../models/feature-flags/feature-flag-manager"
 import { missingColor } from "../../../utilities/color-utils"
 import {
@@ -64,6 +64,13 @@ const createMockDataConfig = (overrides?: Record<string, unknown>) => ({
   legendQuantilesAreLocked: false,
   // 4 distinct values in numericValuesForAttrRole -> cap 4, so the default of 5 clamps to 4
   legendBinCount: 4,
+  // Derived as on the real (unlocked) model. A test can override either with a plain value.
+  get displayedLegendBinCount(): number { return this.legendBinCount },
+  get legendDisplayRange(): { min?: number, max?: number } {
+    const { min, max } = this.metadata.getAttributeLegendRange()
+    const [dataMin, dataMax] = extent(this.numericValuesForAttrRole())
+    return { min: min ?? dataMin, max: max ?? dataMax }
+  },
   setLegendQuantilesAreLocked: jest.fn(),
   applyModelChange: jest.fn((fn: () => void) => fn()),
   ...overrides
@@ -472,6 +479,36 @@ describe("LegendRangeInputs", () => {
     expect(screen.getByTestId("legend-range-min-input")).toBeDisabled()
     expect(screen.getByTestId("legend-range-max-input")).toBeDisabled()
   })
+
+  it("shows the locked min and max while locked, not the live data range", () => {
+    // live data now spans 0..20, but the legend was locked at 0..100
+    const config = createMockDataConfig({
+      legendQuantilesAreLocked: true,
+      numericValuesForAttrRole: jest.fn(() => [0, 10, 20]),
+      legendDisplayRange: { min: 0, max: 100 },
+      legendNumericColorScale: scaleThreshold<number, string>().domain([20, 40, 60, 80]).range(kColors)
+    })
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("0")
+    expect(screen.getByTestId("legend-range-max-input")).toHaveValue("100")
+  })
+
+  it("uses the legend's decimal places for a locked one-bin legend", () => {
+    // A locked one-bin scale has an empty domain, so the decimals must come from the locked range.
+    // Without them the inputs would fall back to ~10 significant digits ("0.5488135039").
+    const lo = 0.5488135039273248, hi = 0.7151893663724195
+    const config = createMockDataConfig({
+      legendQuantilesAreLocked: true,
+      numericValuesForAttrRole: jest.fn(() => [lo, hi]),
+      legendDisplayRange: { min: lo, max: hi },
+      legendNumericColorScale: scaleThreshold<number, string>().domain([]).range(["#a"])
+    })
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("0.5")
+    expect(screen.getByTestId("legend-range-max-input")).toHaveValue("0.7")
+  })
 })
 
 describe("LegendBinCountInput", () => {
@@ -513,6 +550,18 @@ describe("LegendBinCountInput", () => {
     const config = fiveBinConfig({ legendQuantilesAreLocked: true })
     render(<LegendBinCountInput dataConfiguration={config as any} />)
     expect(screen.getByTestId("legend-bin-count-input")).toBeDisabled()
+  })
+
+  it("shows the locked bin count after cases are hidden", () => {
+    // locked with 5 bins; hiding cases left only 2 distinct values, so the live count dropped to 2
+    const config = fiveBinConfig({
+      legendQuantilesAreLocked: true,
+      numericValuesForAttrRole: jest.fn(() => [0, 10]),
+      legendBinCount: 2,
+      displayedLegendBinCount: 5
+    })
+    render(<LegendBinCountInput dataConfiguration={config as any} />)
+    expect(screen.getByTestId("legend-bin-count-input")).toHaveValue("5")
   })
 
   it("clears the override (stores undefined) when set back to the default", async () => {

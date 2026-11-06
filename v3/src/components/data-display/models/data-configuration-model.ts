@@ -700,6 +700,11 @@ export const DataConfigurationModel = types
       if (!self.legendQuantilesAreLocked) return false
       return (self.legendLockedMin != null && self.legendLockedMax != null) || self.legendQuantiles.length > 0
     },
+    // The number of bins the legend shows: the saved bin count when locked, else the live count.
+    // The live count can drop while locked, for example when cases with distinct values are hidden.
+    get displayedLegendBinCount(): number {
+      return this.hasLockedLegendScale ? self.legendQuantiles.length + 1 : self.legendBinCount
+    },
     // The endpoint range to display, and to use for out-of-range colors and bin selection. When locked
     // with a saved min and max, those win over the live data and over a Min/Max override.
     get legendDisplayRange(): { min?: number, max?: number } {

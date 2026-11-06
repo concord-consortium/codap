@@ -1953,6 +1953,20 @@ describe("DataConfigurationModel locked legend", () => {
       expect(thresholdsOf(t)).toEqual(thresholds)
     })
 
+    it("keeps the displayed bin count when hiding cases lowers the live bin count", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      expect(t.config.displayedLegendBinCount).toBe(5)
+
+      // leave only 3 distinct values visible
+      t.config.setHiddenCases(["c3", "c4", "c5", "c6", "c7", "c8", "c9", "c10"].map(id => caseIdOf(t, id)))
+      expect(t.config.legendBinCount).toBe(3)
+      expect(t.config.displayedLegendBinCount).toBe(5)
+
+      t.config.setLegendQuantilesAreLocked(false)
+      expect(t.config.displayedLegendBinCount).toBe(3)
+    })
+
     it("gives a new case above the locked max the missing color", () => {
       const t = makeTree()
       t.config.setLegendQuantilesAreLocked(true)
