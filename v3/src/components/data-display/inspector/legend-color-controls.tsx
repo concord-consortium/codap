@@ -1,5 +1,5 @@
 import { clsx } from "clsx"
-import { extent, format, max as d3Max, min as d3Min } from "d3"
+import { extent, format } from "d3"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useId, useRef, useState } from "react"
 import {
@@ -17,7 +17,7 @@ import { PointShape } from "../../../utilities/point-shape-utils"
 import { t } from "../../../utilities/translation/translate"
 import { If } from "../../common/if"
 import { PaletteCheckbox } from "../../palette-checkbox"
-import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
+import { getLegendBoundaries } from "../components/legend/choropleth-legend/choropleth-legend"
 import {
   changeAttributeColorNotification, changeLegendBinCountNotification, changeLegendBinsTypeNotification,
   changeLegendRangeNotification, changePointColorAndAlphaNotification, changePointColorNotification,
@@ -386,8 +386,10 @@ export const LegendBinCountInput = observer(function LegendBinCountInput(
   // While the quantiles are locked the legend scale is frozen, so this control has no effect.
   const isLocked = !!dataConfiguration.legendQuantilesAreLocked
   const isDisabled = isLocked || cap < 2
-  // The effective (clamped) bin count, so the field reflects what the legend actually renders.
-  const value = dataConfiguration.legendBinCount
+  // The bin count the legend actually renders: the effective (clamped) count, or the locked count
+  // while locked. The locked count can be outside the live limits (e.g. after cases are hidden), so
+  // the field's limits widen to include it rather than clamping the displayed value.
+  const value = dataConfiguration.displayedLegendBinCount
 
   const commit = (n: number) => {
     if (!Number.isFinite(n)) return
@@ -414,8 +416,8 @@ export const LegendBinCountInput = observer(function LegendBinCountInput(
       aria-label={t("V3.Inspector.graph.legendBinCount")}
       // A degenerate legend (<2 distinct values) renders a single bin; allow the (disabled) field
       // to reflect that 1 rather than clamping the display up to 2.
-      minValue={cap < 2 ? 1 : 2}
-      maxValue={Math.max(2, cap)}
+      minValue={Math.min(cap < 2 ? 1 : 2, value)}
+      maxValue={Math.max(2, cap, value)}
       step={1}
       formatOptions={{ maximumFractionDigits: 0 }}
       isDisabled={isDisabled}
@@ -437,16 +439,16 @@ const kLegendRangeBufferChars = 2 // accounts for input field padding
 
 // The number of decimal places the legend uses for its boundary labels, so the Min/Max inputs
 // match the legend labels rather than showing raw ~10-digit data values (e.g. random() defaults).
-// Returns undefined when the scale is empty/degenerate; the caller then falls back to a plain form.
+// Returns undefined when there is no scale, or when neither the legend's display range nor the
+// scale's domain gives a min and max; the caller then falls back to a plain form.
 function legendBoundaryDecimals(dataConfiguration: IDataConfigurationModel) {
   const scale = dataConfiguration.legendNumericColorScale
-  const domain = scale?.domain() ?? []
-  if (domain.length === 0 || isNaN(Number(domain[0]))) return undefined
-  const lo = Number(d3Min(domain as Iterable<number>))
-  const hi = Number(d3Max(domain as Iterable<number>))
-  // Mirror choropleth-legend's boundary set so the input precision matches the rendered labels.
-  const fullBoundaries = [lo, ...getScaleThresholds(scale), hi]
-  return binBoundaryDecimalPlaces(fullBoundaries)
+  if (!scale) return undefined
+  // The same boundaries the legend labels use (with the same display range the legend gets), so the
+  // input precision matches the rendered labels.
+  const { min, max } = dataConfiguration.legendDisplayRange
+  const boundaries = getLegendBoundaries(scale, min, max)
+  return boundaries && binBoundaryDecimalPlaces(boundaries)
 }
 
 // Formats a legend bound for display in the Min/Max inputs. With a known decimal count (from the
@@ -499,12 +501,14 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
   }
   const effectiveMin = overrideMin ?? dataMin
   const effectiveMax = overrideMax ?? dataMax
-  const decimals = legendBoundaryDecimals(dataConfiguration)
-  const displayMin = formatLegendBound(effectiveMin, decimals)
-  const displayMax = formatLegendBound(effectiveMax, decimals)
   // While the quantiles are locked the legend scale is frozen, so edits here have no
   // effect; disable the inputs to reflect that.
   const isLocked = !!dataConfiguration.legendQuantilesAreLocked
+  // While locked, show the legend's (locked) range rather than the live one, so the inputs match it.
+  const shownRange = isLocked ? dataConfiguration.legendDisplayRange : { min: effectiveMin, max: effectiveMax }
+  const decimals = legendBoundaryDecimals(dataConfiguration)
+  const displayMin = formatLegendBound(shownRange.min, decimals)
+  const displayMax = formatLegendBound(shownRange.max, decimals)
 
   const [minInput, setMinInput] = useState(displayMin)
   const [maxInput, setMaxInput] = useState(displayMax)

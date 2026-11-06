@@ -843,6 +843,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       self.invalidateCases()
       self.numericValuesForAttribute.invalidate(role, self.attributeType(role))
       self.cellMap.invalidateAll()
+      if (role === "legend") self.recomputeLockedLegend()
     },
     addYAttribute(desc: IAttributeDescriptionSnapshot, index?: number) {
       if (index != null && index >= 0) {
@@ -879,6 +880,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         self._attributeDescriptions.get(role)?.setType(type)
       }
       self._setAttributeType(type, plotNumber)
+      if (role === "legend") self.recomputeLockedLegend()
     }
   }))
   .actions(self => ({

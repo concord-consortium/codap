@@ -47,7 +47,7 @@ export const NumericLegend =
       // Display the effective legend range as the endpoint labels so the legend matches the user-set
       // Min/Max even in quantile mode (whose trained domain is the data quantiles, not the override
       // range); in logarithmic mode this is the positive log domain (floored to the smallest positive
-      // value), not the raw override/data extent.
+      // value), not the raw override/data extent. While locked, this is the locked min and max.
       const { min: legendMin, max: legendMax } = dataConfiguration.legendDisplayRange
       choroplethLegend(dataConfiguration.legendNumericColorScale, choroplethElt,
         {

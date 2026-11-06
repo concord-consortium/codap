@@ -1,4 +1,4 @@
-import { extent, ScaleQuantile, scaleQuantile, ScaleQuantize, scaleQuantize, scaleThreshold, ScaleThreshold } from "d3"
+import { extent, ScaleQuantile, scaleQuantile, scaleQuantize, scaleThreshold, ScaleThreshold } from "d3"
 import {comparer, observable, reaction} from "mobx"
 import {
   addDisposer, getEnv, getSnapshot, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
@@ -108,7 +108,12 @@ export const DataConfigurationModel = types
     displayOnlySelectedCases: types.maybe(types.boolean),
     filterFormula: types.maybe(Formula),
     legendQuantilesAreLocked: types.maybe(types.boolean),
-    legendQuantiles: types.array(types.number)
+    // When locked: the inner bin edges (N-1 values for N bins), and the legend's min and max.
+    // Older documents may have legendQuantiles without the min and max. Documents that imported a
+    // locked V2 legend before the min and max were saved may hold V2's N+1 edges instead.
+    legendQuantiles: types.array(types.number),
+    legendLockedMin: types.maybe(types.number),
+    legendLockedMax: types.maybe(types.number)
   })
   .volatile(() => ({
     actionHandlerDisposer: undefined as (() => void) | undefined,
@@ -123,9 +128,6 @@ export const DataConfigurationModel = types
     suppressAnimation: false,
     // The following is set in useSubAxis:setupCategories based on how many fit in available space
     numberOfCategoriesLimitByRole: observable.map<AttrRole, Maybe<number>>(),
-    // When legendQuantilesAreLocked is true, this holds the quantile thresholds
-    _legendNumericColorScale: null as ScaleQuantize<string, never> | ScaleQuantile<string, never> |
-      ScaleThreshold<number, string, never> | null,
   }))
   .views(self => ({
     get axisAttributeIDs() {
@@ -631,12 +633,13 @@ export const DataConfigurationModel = types
       },
       name: "caseIdsForCategory"
     }),
-    // The effective numeric-legend display range: the per-attribute Min/Max override where set, else
+    // The live numeric-legend display range: the per-attribute Min/Max override where set, else
     // the live data extent. A reversed/degenerate effective range (e.g. an orphaned override after
-    // the other bound was cleared) falls back to the data extent. This drives both the quantize color
-    // scale's domain and the legend's displayed endpoint labels, so the legend always matches the
-    // Min/Max the user set -- including in quantile mode, whose trained domain is the data quantiles
-    // rather than the override (CODAP-1292).
+    // the other bound was cleared) falls back to the data extent. This drives the quantize color
+    // scale's domain and, while the legend is not locked, the legend's displayed endpoint labels, so
+    // the legend matches the Min/Max the user set -- including in quantile mode, whose trained domain
+    // is the data quantiles rather than the override (CODAP-1292). While locked, the locked range is
+    // shown instead (see legendDisplayRange).
     get legendNumericRange(): { min?: number, max?: number } {
       const values = self.numericValuesForAttrRole("legend") ?? []
       const [dataMin, dataMax] = extent(values)
@@ -687,11 +690,43 @@ export const DataConfigurationModel = types
     get legendIsLogarithmic(): boolean {
       return self.metadata?.getAttributeBinningType(self.attributeID("legend")) === "logarithmic"
     },
-    // Endpoint labels to display: the log domain in logarithmic mode, else the linear/quantile range.
-    get legendDisplayRange(): { min?: number, max?: number } {
+    // The live endpoint range: the log domain in logarithmic mode, else the linear/quantile range.
+    // It ignores the lock, so the lock code can always read the current values.
+    get liveLegendDisplayRange(): { min?: number, max?: number } {
       return this.legendIsLogarithmic ? this.legendLogDomain : this.legendNumericRange
     },
+    // True when the legend is locked and has saved values to build the locked scale from. New
+    // documents save the min and max (legendQuantiles can be empty for a one-bin legend). Older
+    // documents only saved the inner edges.
+    get hasLockedLegendScale(): boolean {
+      if (!self.legendQuantilesAreLocked) return false
+      return (self.legendLockedMin != null && self.legendLockedMax != null) || self.legendQuantiles.length > 0
+    },
+    // The number of bins the legend shows: the locked bin count (from the saved edges) when there is
+    // a locked scale, else the live count. The live count can drop while locked, for example when
+    // cases with distinct values are hidden.
+    get displayedLegendBinCount(): number {
+      return this.hasLockedLegendScale ? self.legendQuantiles.length + 1 : self.legendBinCount
+    },
+    // The endpoint range to display, and to use for out-of-range colors and bin selection. When locked
+    // with a saved min and max, those win over the live data and over a Min/Max override.
+    get legendDisplayRange(): { min?: number, max?: number } {
+      const { legendLockedMin: min, legendLockedMax: max } = self
+      if (self.legendQuantilesAreLocked && min != null && max != null) return { min, max }
+      return this.liveLegendDisplayRange
+    },
+    // The locked scale, built only from saved properties, so undo, redo, and reload restore it.
+    get lockedLegendColorScale(): ScaleThreshold<number, string> {
+      const edges = self.legendQuantiles.slice()
+      return scaleThreshold<number, string>()
+        .domain(edges)
+        .range(getChoroplethColors(self.lowColor, self.highColor, edges.length + 1))
+    },
     get legendNumericColorScale() {
+      return this.hasLockedLegendScale ? this.lockedLegendColorScale : this.liveLegendNumericColorScale
+    },
+    // The scale from the live data. It ignores the lock.
+    get liveLegendNumericColorScale() {
       // TODO: Handle the displayOnlySelectedCases better. What we would like to do is
       // to basically ignore displayOnlySelectedCases when computing the legend bins.
       // This way the legend will not jump around when the user is selecting different
@@ -716,9 +751,6 @@ export const DataConfigurationModel = types
       // The best solution might be to separate the displayOnlySelectedCases from FilterCases,
       // perhaps by renaming it PlottableCases and then apply the displayOnlySelectedCases
       // criteria further up chain of filters.
-      if (self.legendQuantilesAreLocked && self._legendNumericColorScale) {
-        return self._legendNumericColorScale
-      }
       const binningType = self.metadata?.getAttributeBinningType(self.attributeID("legend"))
       switch (binningType) {
         case "quantize": {
@@ -799,6 +831,15 @@ export const DataConfigurationModel = types
       if (binningType != null && binningType !== "quantile") return undefined
       return this.legendQuantileScaleAndExtents.extents
     },
+    // When the effective range is defined, values outside it are "missing" rather than clamped
+    // into an end bin. legendDisplayRange is the same range used for the endpoint labels, so
+    // colors and labels stay in lockstep (and, while locked, a value added later beyond the locked
+    // range is missing). A degenerate domain yields no min/max but still produces a valid
+    // single-bin scale, so there is no check there and the scale colors the value.
+    isOutsideLegendRange(value: number): boolean {
+      const { min, max } = this.legendDisplayRange
+      return min != null && max != null && (value < min || value > max)
+    },
   }))
   .views(self => (
     {
@@ -818,18 +859,16 @@ export const DataConfigurationModel = types
         // A log scale is undefined for values <= 0; they are always missing, including when the log
         // domain is degenerate (<= 1 distinct positive value) and legendDisplayRange is empty.
         if (self.legendIsLogarithmic && value <= 0) return missingColor
-        // When the effective range is defined, values outside it are "missing" rather than clamped
-        // into an end bin. legendDisplayRange is the same range used for the endpoint labels, so
-        // colors and labels stay in lockstep. A degenerate domain yields no min/max but still
-        // produces a valid single-bin scale, so skip the check there and let the scale color it.
-        const { min, max } = self.legendDisplayRange
-        if (min != null && max != null && (value < min || value > max)) return missingColor
+        if (self.isOutsideLegendRange(value)) return missingColor
         return self.legendNumericColorScale(value)
       },
 
       getLegendColorForDateValue(value: string): string {
-        const dateValueArray = stringValuesToDateSeconds([value])
-        return self.legendNumericColorScale(dateValueArray[0])
+        const [seconds] = stringValuesToDateSeconds([value])
+        // The same range check as for numbers. (A date <= 0 is just a date before 1970, so the
+        // logarithmic rule for numbers does not apply.)
+        if (self.isOutsideLegendRange(seconds)) return missingColor
+        return self.legendNumericColorScale(seconds)
       },
 
       getCasesForCategoryValues(
@@ -1200,19 +1239,31 @@ export const DataConfigurationModel = types
     setLegendQuantiles(quantiles: number[]) {
       self.legendQuantiles.replace(quantiles)
     },
+    // Saves the live inner edges, min, and max as the locked legend. It reads only the live views,
+    // so it never saves back the old locked values.
+    saveLockedLegend() {
+      this.setLegendQuantiles(getScaleThresholds(self.liveLegendNumericColorScale))
+      const { min, max } = self.liveLegendDisplayRange
+      self.legendLockedMin = min
+      self.legendLockedMax = max
+    },
+    // When the legend attribute or its type changes while locked, lock the new attribute's values.
+    // The old values would not fit the new attribute. Callers run this in the same action as the
+    // change, after the case caches are reset, so one undo reverses both.
+    recomputeLockedLegend() {
+      if (self.legendQuantilesAreLocked) this.saveLockedLegend()
+    },
     setLegendQuantilesAreLocked(areLocked: boolean | undefined) {
       if (areLocked === self.legendQuantilesAreLocked) {
         return
       }
       if (areLocked) {
-        const scale = self.legendNumericColorScale
-        const thresholds = getScaleThresholds(scale)
-        this.setLegendQuantiles(thresholds)
-        self._legendNumericColorScale = scale
+        this.saveLockedLegend()
       }
       else {
-        self._legendNumericColorScale = null
         this.setLegendQuantiles([])
+        self.legendLockedMin = undefined
+        self.legendLockedMax = undefined
       }
       self.legendQuantilesAreLocked = areLocked
     },
@@ -1291,9 +1342,6 @@ export const DataConfigurationModel = types
   }))
   .actions(self => ({
     afterCreate() {
-      if (self.legendQuantilesAreLocked && self.legendQuantiles.length > 0) {
-        self._legendNumericColorScale = scaleThreshold(self.legendQuantiles, self.choroplethColors)
-      }
       // respond to change of dataset
       addDisposer(self, reaction(
         () => self.dataset,
@@ -1386,10 +1434,12 @@ export const DataConfigurationModel = types
       self.invalidateCases()
       // No harm in invalidating even if not numeric
       self.numericValuesForAttribute.invalidate(role, self.attributeType(role))
+      if (role === "legend") self.recomputeLockedLegend()
     },
     setAttributeType(role: AttrRole, type: AttributeType, plotNumber = 0) {
       self._attributeDescriptions.get(role)?.setType(type)
       self._setAttributeType(type, plotNumber)
+      if (role === "legend") self.recomputeLockedLegend()
     },
     addNewHiddenCases(hiddenCases: string[]) {
       self.hiddenCases.push(...hiddenCases)
