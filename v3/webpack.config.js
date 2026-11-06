@@ -126,8 +126,8 @@ module.exports = (env, argv) => {
         // no license field or file; the README includes the MIT license text
         '@nedb/binary-search-tree@2.1.5': 'MIT',
       },
-      // some packages don't ship a license file; use the standard text from spdx.org for those
-      replenishDefaultLicenseTexts: true,
+      // replenishDefaultLicenseTexts is off so builds don't use the network; packages that don't ship a
+      // license file get a generic license text from scripts/oss-licenses.js instead
     }),
   ]
   if (devMode && !process.env.SKIP_ESLINT) {

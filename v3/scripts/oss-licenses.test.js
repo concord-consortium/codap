@@ -64,11 +64,21 @@ describe("thirdPartyNoticesMarkdown", () => {
     expect(markdown).toContain("No license text was found for this package.")
   })
 
+  it("uses the generic license text for MIT and BSD-3-Clause packages without a license file", () => {
+    const generic = thirdPartyNoticesMarkdown([
+      { name: "mit-lib", version: "1.0.0", license: "MIT" },
+      { name: "bsd-lib", version: "1.0.0", license: "BSD-3-Clause" },
+      { name: "isc-lib", version: "1.0.0", license: "ISC" }
+    ])
+    expect(generic).toContain("```\nMIT License\n\nCopyright (c) <year> <copyright holders>\n")
+    expect(generic).toContain("```\nCopyright (c) <year> <owner>. \n\nRedistribution and use in source and binary forms")
+    expect(generic.split("No license text was found for this package.")).toHaveLength(2)
+  })
+
   it("uses the real license text for packages whose license the plugin can't find", () => {
-    const genericText = "MIT License\n\nCopyright (c) <year> <copyright holders>"
     const overridden = thirdPartyNoticesMarkdown([
-      { name: "@nedb/binary-search-tree", version: "2.1.5", license: "MIT", licenseText: genericText },
-      { name: "rtree", version: "1.4.2", license: "MIT", licenseText: genericText }
+      { name: "@nedb/binary-search-tree", version: "2.1.5", license: "MIT" },
+      { name: "rtree", version: "1.4.2", license: "MIT" }
     ])
     expect(overridden).toContain("Copyright (c) 2013 Louis Chatriot <louis.chatriot@gmail.com>")
     expect(overridden).toContain("Copyright (c) 2009 Jon-Carlos Rivera")
