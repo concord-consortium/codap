@@ -191,26 +191,18 @@ function updateIncomingSnapshotIds(incomingSnapshot: ISerializedV3Document) {
   return JSON.parse(updatedSnapshotString) as ISerializedV3Document
 }
 
-// As in V2 (document_helper.js:510-689), `update document` sends `updateDocumentBegun`, replaces the
-// document, replies, and sends `updateDocumentEnded` 500 ms later. Both notices go to every plugin,
-// the requester included, and to the host page CODAP is embedded in (V2 notification_manager.js:31-47).
-// Unlike V2, `updateDocumentEnded` is also sent when the update fails, and carries `success`, so a
-// plugin waiting for it can tell completion from failure.
+// Begun and Ended go to every plugin and the host page, as in V2 (document_helper.js:666-685);
+// unlike V2, Ended is also sent on failure and carries success
 async function updateDocument(values?: DIValues): Promise<DIHandlerFnResult> {
   if (!values) return valuesRequiredResult
   const { document } = appState
 
-  // a failure to notify must not stop the update, or the notice that ends it
   const notifyDocumentChange = (operation: string, success?: boolean) => {
-    try {
-      document.content?.broadcastMessage({
-        action: 'notify',
-        resource: 'documentChangeNotice',
-        values: { operation, ...(success != null && { success }) }
-      }, () => {})
-    } catch (error) {
-      debugLog(DEBUG_PLUGINS, `documentChangeNotice ${operation} failed`, error)
-    }
+    document.content?.broadcastMessage({
+      action: 'notify',
+      resource: 'documentChangeNotice',
+      values: { operation, ...(success != null && { success }) }
+    }, () => {})
   }
 
   notifyDocumentChange('updateDocumentBegun')
@@ -292,7 +284,6 @@ async function replaceDocument(v2DocumentJson: ICodapV2DocumentJson) {
   document.content?.afterApplySnapshot()
 }
 
-// `update` waits for the document to be replaced before replying, as in V2
 export const diDocumentHandler: DIAsyncHandler = {
   get() {
     // The following is asynchronous. The returned value is the JSON we send to the plugin.

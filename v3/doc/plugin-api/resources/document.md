@@ -74,7 +74,9 @@ Then issue `get document` and handle `newDocumentState` in your notification han
 
 `update document` takes a complete v2 document JSON in `values` and replaces the current document
 with it. It replies once the document has been replaced: `{"success": true}`, or an error if the
-replacement failed.
+replacement failed. For a large document, that can take longer than iframe-phone's two-second
+limit; see [Order and responses](../guides/request-processing.md#order-and-responses) for how
+your plugin's library handles a slow reply.
 
 The work is bracketed by two notifications on the `documentChangeNotice` resource:
 
@@ -88,9 +90,10 @@ The work is bracketed by two notifications on the `documentChangeNotice` resourc
 
 `updateDocumentBegun` is sent before the reply. After a successful replacement,
 `updateDocumentEnded` follows about half a second after the reply, once the replaced document has
-settled; after a failure, it comes just before the error reply. Both go to every plugin, including the one that sent
-the update, and to the page CODAP is [embedded in](../guides/embedded-server.md), as in v2. So each
-one can tell that the document is being replaced, whoever replaced it.
+settled; after a failure, it comes just before the error reply. Both go to every plugin,
+including the one that sent the update, and to the page CODAP is
+[embedded in](../guides/embedded-server.md), as in v2. So each one can tell that the document is
+being replaced, whoever replaced it.
 
 `updateDocumentEnded` is sent whether the replacement succeeded or failed, and its `success` says
 which. v2 sent no `success`, and sent no `updateDocumentEnded` at all when the replacement failed.

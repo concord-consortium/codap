@@ -14,10 +14,8 @@ finished its work before the next one starts, so you can send a `create` and the
 waiting for the first response.
 
 The queue guarantees order, not completion. A few requests reply at once and finish their work
-afterwards: `update` on [`document`](../resources/document.md#update--replacing-the-document)
-replies `success` before the new document is in place, so a request sent after it, even in the
-same array, can still see the old document. Wait for the `updateDocumentEnded` notification before
-sending anything that depends on the replacement.
+afterwards: `get` on [`document`](../resources/document.md) replies `success` at once, and the
+document itself arrives later, in a `newDocumentState` notification.
 
 Each plugin has its own queue. CODAP makes no promise about the order of requests from two
 different plugins.
