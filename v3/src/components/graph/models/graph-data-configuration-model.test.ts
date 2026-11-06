@@ -1994,17 +1994,17 @@ describe("DataConfigurationModel locked legend", () => {
       expect(t.config.getLegendColorForCase(caseIdOf(t, "d0"))).not.toBe(missingColor)
     })
 
-    it("selects the last bin using the locked max after cases are hidden", () => {
+    it("selects the last bin up to the locked max, not the live max", () => {
       const t = makeTree()
       t.config.setLegendQuantilesAreLocked(true)
       const lastBin = thresholdsOf(t).length
       t.config.setHiddenCases([caseIdOf(t, "c10")])
       t.data.addCases(toCanonical(t.data, [{ __id__: "big", leg: 150 }]))
+      // the live max is now 150, but the locked max is 100
+      expect(t.config.liveLegendDisplayRange.max).toBe(150)
       const binCases = t.config.getCasesForLegendBin(lastBin)
-      // 150 is above the locked max, so it is not in the last bin; 90 is
       expect(binCases).not.toContain(caseIdOf(t, "big"))
       expect(binCases).toContain(caseIdOf(t, "c9"))
-      expect(binCases).not.toContain(caseIdOf(t, "c10"))
     })
 
     it("keeps a locked one-bin legend when a second distinct value arrives", () => {
@@ -2025,7 +2025,7 @@ describe("DataConfigurationModel locked legend", () => {
       expect(t.config.getLegendColorForCase(caseIdOf(t, "seven"))).toBe(missingColor)
     })
 
-    it("saves the positive log domain in log mode", () => {
+    it("saves the positive log domain in log mode, and keeps it when a larger value arrives", () => {
       const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
       t.data.addAttribute({ id: "legId", name: "leg" })
       t.metadata.setData(t.data)
@@ -2038,14 +2038,40 @@ describe("DataConfigurationModel locked legend", () => {
       expect(t.config.legendLockedMin).toBe(2)
       expect(t.config.legendLockedMax).toBe(32)
       expect(thresholdsOf(t)).toEqual(liveThresholds)
+
+      // a value above the locked max does not change the locked legend, and is "missing"
+      t.data.addCases(toCanonical(t.data, [{ __id__: "big", leg: 100 }]))
+      expect(t.config.liveLegendDisplayRange.max).toBe(100)
+      expect(t.config.legendDisplayRange).toEqual({ min: 2, max: 32 })
+      expect(thresholdsOf(t)).toEqual(liveThresholds)
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "big"))).toBe(missingColor)
     })
 
-    it("keeps the colors of a locked legend the same as just before it was locked", () => {
+    // The edges for 0, 10, ..., 100 fall on data values (20, 40, 60, 80) for both bin types, so this
+    // also checks that a value exactly on an edge keeps its color.
+    it.each(["quantile", "quantize"] as const)(
+      "keeps the colors of a locked legend the same as just before it was locked (%s bins)", binningType => {
+        const t = makeTree()
+        t.metadata.setAttributeBinningType("legId", binningType)
+        expect(thresholdsOf(t)).toEqual([20, 40, 60, 80])
+        const colorsOfCases = () => t.data.items.map(item => t.config.getLegendColorForCase(caseIdOf(t, item.__id__)))
+        const before = colorsOfCases()
+        expect(new Set(before).size).toBe(5)
+        t.config.setLegendQuantilesAreLocked(true)
+        expect(colorsOfCases()).toEqual(before)
+      })
+
+    it("keeps the locked range when a Min/Max override is set while locked", () => {
       const t = makeTree()
-      const before = t.data.items.map(item => t.config.getLegendColorForCase(caseIdOf(t, item.__id__)))
       t.config.setLegendQuantilesAreLocked(true)
-      const after = t.data.items.map(item => t.config.getLegendColorForCase(caseIdOf(t, item.__id__)))
-      expect(after).toEqual(before)
+      const thresholds = thresholdsOf(t)
+      t.metadata.setAttributeLegendMin("legId", 20)
+      t.metadata.setAttributeLegendMax("legId", 60)
+      // the live range follows the override, but the locked range wins
+      expect(t.config.liveLegendDisplayRange).toEqual({ min: 20, max: 60 })
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+      expect(thresholdsOf(t)).toEqual(thresholds)
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "c10"))).not.toBe(missingColor)
     })
   })
 

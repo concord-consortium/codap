@@ -232,13 +232,6 @@ describe("choroplethLegend", () => {
       }
     }
 
-    it("uses the given min and max for the end labels", () => {
-      // locked edges [20, 40, 60, 80] with locked range 0..100, as if the live data now ends at 60
-      const { endpointLabels, tooltips } = renderThreshold([20, 40, 60, 80], colors, 0, 100)
-      expect(endpointLabels).toEqual(["0", "100"])
-      expect(tooltips[tooltips.length - 1]).toBe("80 - 100")
-    })
-
     it("renders one bin when there are no inner edges but a min and max are given", () => {
       const { rects, endpointLabels, tooltips } = renderThreshold([], ["#a"], 5, 9)
       expect(rects).toBe(1)

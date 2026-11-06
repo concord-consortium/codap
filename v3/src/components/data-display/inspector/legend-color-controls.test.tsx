@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { extent, scaleQuantize, scaleThreshold } from "d3"
+import { extent, scaleQuantile, scaleQuantize, scaleThreshold } from "d3"
 import { featureFlagManager } from "../../../models/feature-flags/feature-flag-manager"
 import { missingColor } from "../../../utilities/color-utils"
 import {
@@ -478,6 +478,36 @@ describe("LegendRangeInputs", () => {
 
     expect(screen.getByTestId("legend-range-min-input")).toBeDisabled()
     expect(screen.getByTestId("legend-range-max-input")).toBeDisabled()
+  })
+
+  it("takes its decimal places from the legend's range, not the quantile scale's data", () => {
+    // A quantile scale's domain is its data (2.2..10), but the legend shows the override range 0..10.
+    // With the override, the edges 0, 2.3, 4, 6, 8, 10 need no decimal places. With the data, the
+    // first two edges (2.2 and 2.3) would need one, and the inputs would show "0.0" and "10.0".
+    const values = [2.2, 2.3, 4, 6, 8, 10]
+    const config = createMockDataConfig({
+      numericValuesForAttrRole: jest.fn(() => values),
+      legendNumericColorScale: scaleQuantile(values, kColors)
+    })
+    config.metadata.getAttributeLegendRange = jest.fn(() => ({ min: 0, max: 10 }))
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("0")
+    expect(screen.getByTestId("legend-range-max-input")).toHaveValue("10")
+  })
+
+  it("takes its decimal places from the legend's range for a logarithmic scale", () => {
+    // A log scale's domain holds only the inner edges (1.4, 1.96, 2.744, 3.8416). The legend's range
+    // is 1..5.37824, and 1 and 1.4 need one decimal place to differ. With only the inner edges, no
+    // decimal places would be needed, and the inputs would show "1" and "5".
+    const config = createMockDataConfig({
+      numericValuesForAttrRole: jest.fn(() => [1, 5.37824]),
+      legendNumericColorScale: scaleThreshold<number, string>().domain([1.4, 1.96, 2.744, 3.8416]).range(kColors)
+    })
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("1.0")
+    expect(screen.getByTestId("legend-range-max-input")).toHaveValue("5.4")
   })
 
   it("shows the locked min and max while locked, not the live data range", () => {

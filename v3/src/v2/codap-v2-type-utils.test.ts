@@ -77,7 +77,7 @@ describe("exportLegendQuantileStorage (native V2 graph storage)", () => {
       numberOfLegendQuantiles: 3, legendQuantilesAreLocked: true, legendQuantiles: [0, 2, 4, padV2LegendMax(0, 10)]
     })
   })
-  it("pads the max once, by V2's formula", () => {
+  it("pads the max by V2's formula", () => {
     // V2: max + |max - min| * 0.000001
     expect(padV2LegendMax(0, 10)).toBe(10.00001)
     expect(padV2LegendMax(5, 5)).toBe(5)
@@ -112,7 +112,7 @@ describe("importLegendLockProps", () => {
     const result = importLegendLockProps(props)
     expect(result.legendQuantiles).toEqual([2, 4, 6, 8])
     expect(result.legendLockedMin).toBe(0)
-    expect(result.legendLockedMax).toBeCloseTo(10, 12)
+    expect(result.legendLockedMax).toBe(10)
   })
   it("imports a one-bin V2 legend (2 edges) as no inner edges", () => {
     const result = importLegendLockProps({ legendQuantilesAreLocked: true, legendQuantiles: [5, 5] })
@@ -163,31 +163,24 @@ describe("locked legend round trips", () => {
     const imported = importLegendLockProps({ legendQuantilesAreLocked: true, legendQuantiles: v2Edges })
     return exportLegendQuantileStorage(configFromImport(imported), { v2Native: true }).legendQuantiles!
   }
-  // Reversing the padding can be off in the last digits, so compare with a small relative tolerance.
-  const expectClose = (actual: number[], expected: number[]) => {
-    expect(actual.length).toBe(expected.length)
-    actual.forEach((value, i) => {
-      expect(Math.abs(value - expected[i])).toBeLessThanOrEqual(Math.abs(expected[i]) * 1e-12)
-    })
-  }
 
   it("keeps the same edges in a V2 -> V3 -> V2 round trip", () => {
     const v2Edges = [3.2, 10.5, 47.25, 61, 88.8, padV2LegendMax(3.2, 1024.75)]
-    const result = roundTrip(v2Edges)
-    expect(result.slice(0, -1)).toEqual(v2Edges.slice(0, -1))
-    expectClose(result, v2Edges)
+    // unpadV2LegendMax gives back the exact max, so the padded max is the same value too
+    expect(roundTrip(v2Edges)).toEqual(v2Edges)
   })
 
-  it("does not make max grow over two round trips", () => {
+  it("does not make max grow over many round trips", () => {
     const v2Edges = [0, 25, 50, 75, padV2LegendMax(0, 100)]
-    const twice = roundTrip(roundTrip(v2Edges))
-    expectClose(twice, v2Edges)
-    const imported = importLegendLockProps({ legendQuantilesAreLocked: true, legendQuantiles: twice })
-    expect(imported.legendLockedMax).toBeCloseTo(100, 12)
+    let edges = v2Edges
+    for (let i = 0; i < 10; i++) edges = roundTrip(edges)
+    expect(edges).toEqual(v2Edges)
+    const imported = importLegendLockProps({ legendQuantilesAreLocked: true, legendQuantiles: edges })
+    expect(imported.legendLockedMax).toBe(100)
   })
 
   it("removes the padding from a negative range", () => {
-    expect(unpadV2LegendMax(-50, padV2LegendMax(-50, -10))).toBeCloseTo(-10, 12)
+    expect(unpadV2LegendMax(-50, padV2LegendMax(-50, -10))).toBe(-10)
   })
 
   it("gives back exactly the max where plain arithmetic would land just below it", () => {
@@ -218,7 +211,7 @@ describe("locked legend round trips", () => {
     const imported = importV3Properties(v3) as ReturnType<typeof importLegendLockProps>
     expect(imported.legendQuantiles).toEqual([2, 4])
     expect(imported.legendLockedMin).toBe(0)
-    expect(imported.legendLockedMax).toBeCloseTo(10, 12)
+    expect(imported.legendLockedMax).toBe(10)
   })
 })
 
