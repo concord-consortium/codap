@@ -156,9 +156,6 @@ setting is on and `""` when it is off, whatever value a plugin set or the URL pa
 reported the value as stored, so a plugin that set `"no"` read back `"no"`. This is a known bug.
 Comparing `value` with `"yes"` works in both.
 
-**Both resources fail when CODAP is embedded in a host page and the host page asks.** See
-[Embedding CODAP in your page](../guides/embedded-server.md#known-limitations).
-
 ## Notifications
 
 Neither resource sends notifications, and changing the setting sends none, as in v2. The change
@@ -171,7 +168,6 @@ cannot be undone, also as in v2.
 | `unknown configuration "<name>"` | `get` or `update` names a setting other than `gaussianFitEnabled`, or names none, in which case `<name>` is `undefined` |
 | `A values object is required for this request.` | `update` with no `values` |
 | `<action> <resource>: <field> required` | `update` whose `values` has no `value`, or a `null` one. The setting is left alone |
-| `Interactive Frame not found` | a request on `configuration` that did not come from a plugin; see [Known limitations](#known-limitations). The same request on `configurationList` fails with an internal error message instead |
 
 v2's messages differed: for an unknown name, `get` replied that the setting was not found, and
 for an unknown name or a missing value, `update` replied `not found or missing value`.

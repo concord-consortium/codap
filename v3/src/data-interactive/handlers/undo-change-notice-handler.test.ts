@@ -2,6 +2,7 @@ import { Instance } from "@concord-consortium/mobx-state-tree"
 import { when } from "mobx"
 import "../../components/web-view/web-view-registration"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
+import { kHostPageId } from "../../lib/embedded-mode/embedded-mode-registry"
 import { appState } from "../../models/app-state"
 import { TreeManager } from "../../models/history/tree-manager"
 import { ITileModel } from "../../models/tiles/tile-model"
@@ -15,11 +16,6 @@ async function waitForHistoryEntry() {
 
 describe("DataInteractive UndoChangeNoticeHandler", () => {
   const handler = diUndoChangeNoticeHandler
-
-  it("returns error when interactiveFrame is missing", () => {
-    const result = handler.notify?.({}, { operation: "undoableActionPerformed" })
-    expect(result?.success).toBe(false)
-  })
 
   it("returns error for unknown operation", () => {
     const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
@@ -96,6 +92,26 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
       handler.notify?.({ interactiveFrame: tile }, { operation: "redoButtonPress" })
       await waitForHistoryEntry()
       expect(appState.document.canUndo).toBe(true)
+    })
+
+    it("undoableActionPerformed without an interactiveFrame, as from the host page, targets the host page",
+        async () => {
+      const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+
+      const result = handler.notify?.({}, { operation: "undoableActionPerformed" })
+      expect(result?.success).toBe(true)
+      await waitForHistoryEntry()
+
+      broadcastSpy.mockClear()
+      handler.notify?.({}, { operation: "undoButtonPress" })
+      await waitForHistoryEntry()
+
+      const undoCall = broadcastSpy.mock.calls.find(
+        ([msg]) => msg.resource === "undoChangeNotice" && msg.values?.operation === "undoAction"
+      )
+      expect(undoCall?.[2]).toBe(kHostPageId)
+
+      broadcastSpy.mockRestore()
     })
 
     it("undo sends undoAction message to the originating plugin", async () => {

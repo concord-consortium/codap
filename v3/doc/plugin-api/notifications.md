@@ -45,9 +45,10 @@ every connected plugin. The exceptions:
   [Everything else](#everything-else). A `logMessageNotice` requires registering a
   monitor; see [`logMessageMonitor`](resources/log-message-monitor.md).
 - **Sent to one plugin only.**
-  - `undoAction` and `redoAction` go only to the plugin that reported the undoable action. See
-    [Undo and redo](#undo-and-redo--undochangenotice).
-  - A `logMessageNotice` goes only to the plugin that registered the matching monitor.
+  - `undoAction` and `redoAction` go only to the plugin, or the host page, that reported the
+    undoable action. See [Undo and redo](#undo-and-redo--undochangenotice).
+  - A `logMessageNotice` goes only to the plugin, or the host page, that registered the matching
+    monitor.
   - `drag`, `dragenter`, `dragleave` and `drop` go only to the plugin under the pointer. See
     [Attribute drag](#attribute-drag--dragdropattribute).
 

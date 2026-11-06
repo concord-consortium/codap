@@ -1,6 +1,6 @@
 import { Instance, SnapshotIn, types } from "mobx-state-tree"
 import { kCaseTableTileType } from "../../components/case-table/case-table-defs"
-import { getRegisteredEmbeddedModeHandler } from "../../lib/embedded-mode/embedded-mode-registry"
+import { getRegisteredEmbeddedModeHandler, kHostPageId } from "../../lib/embedded-mode/embedded-mode-registry"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { t } from "../../utilities/translation/translate"
@@ -146,7 +146,7 @@ export const DocumentContentModel = BaseDocumentContentModel
       }
 
       // Also broadcast to embedded mode handler (parent window communication)
-      if (!targetTileId) {
+      if (!targetTileId || targetTileId === kHostPageId) {
         const embeddedHandler = getRegisteredEmbeddedModeHandler()
         if (embeddedHandler?.isPhoneInUse) {
           embeddedHandler.broadcastMessage(message, callback)
