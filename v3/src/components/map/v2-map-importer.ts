@@ -105,8 +105,6 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
           isVisible: grid.isVisible,
           _gridMultiplier: grid.gridMultiplier,
         },
-        // hot spots have no v2 counterpart; the snapshot is stored in the layer's v3 namespace
-        // (absent when the hot spot has its default settings)
         hotSpotModel: v2LayerModel.v3?.hotSpot,
         pointsAreVisible: pointsShouldBeVisible,
         connectingLinesAreVisible: connectingLines.isVisible

@@ -237,8 +237,8 @@ describe("V2 map legend bin count round-trip", () => {
 })
 
 describe("V2 map hot spot round-trip", () => {
-  // v2 has no hot spots, so they're stored only under the point layer's v3 namespace.
-  // The round-trip tests above cover the default (hidden) case, which writes nothing.
+  // Note: Round-trip tests above cover the case where the hot spot has all default values,
+  // in which case it isn't included in the v2 model.
   beforeEach(() => {
     resetMocks()
   })
