@@ -134,14 +134,23 @@ export function tinycolor(color: string) {
 
 // Returns a color that is between color1 and color2. Alpha is interpolated alongside RGB so
 // numeric legend gradients fade smoothly when an endpoint has transparency (CODAP-1385).
-export function interpolateColors(color1: string, color2: string, percentage: number) {
+/**
+ * Linearly interpolates each RGBA channel between two colors. Channels are not rounded, so callers
+ * that need exact values (e.g. filling a Uint8ClampedArray) control the rounding.
+ */
+export function interpolateRgba(color1: string, color2: string, t: number): RgbaColor {
   const rgb1 = colord(color1).toRgb()
   const rgb2 = colord(color2).toRgb()
-  const r = rgb1.r + percentage * (rgb2.r - rgb1.r)
-  const g = rgb1.g + percentage * (rgb2.g - rgb1.g)
-  const b = rgb1.b + percentage * (rgb2.b - rgb1.b)
-  const a = rgb1.a + percentage * (rgb2.a - rgb1.a)
-  return colord({ r, g, b, a }).toHex()
+  return {
+    r: rgb1.r + t * (rgb2.r - rgb1.r),
+    g: rgb1.g + t * (rgb2.g - rgb1.g),
+    b: rgb1.b + t * (rgb2.b - rgb1.b),
+    a: rgb1.a + t * (rgb2.a - rgb1.a)
+  }
+}
+
+export function interpolateColors(color1: string, color2: string, percentage: number) {
+  return colord(interpolateRgba(color1, color2, percentage)).toHex()
 }
 
 // Create a very light, low-saturation version of a base color. The defaults are used for default color ranges.

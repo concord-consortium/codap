@@ -1,4 +1,4 @@
-import { getChoroplethColors, interpolateColors, parseColor, parseColorToHex } from "./color-utils"
+import { getChoroplethColors, interpolateColors, interpolateRgba, parseColor, parseColorToHex } from "./color-utils"
 
 describe("Color utilities", () => {
   it("parseColor works as expected without color names", () => {
@@ -136,6 +136,14 @@ describe("Color utilities", () => {
     // alpha-only difference is preserved at the endpoints
     expect(interpolateColors("#ff0000ff", "#ff000000", 0)).toBe("#ff0000")
     expect(interpolateColors("#ff0000ff", "#ff000000", 1)).toBe("#ff000000")
+  })
+
+  it("interpolateRgba returns unrounded numeric RGBA", () => {
+    expect(interpolateRgba("#000000", "#ffffff", 0)).toEqual({ r: 0, g: 0, b: 0, a: 1 })
+    expect(interpolateRgba("#000000", "#ffffff", 1)).toEqual({ r: 255, g: 255, b: 255, a: 1 })
+    expect(interpolateRgba("#000000", "#ffffff", 0.5)).toEqual({ r: 127.5, g: 127.5, b: 127.5, a: 1 })
+    // alpha interpolates alongside RGB
+    expect(interpolateRgba("#ff0000ff", "#ff000000", 0.25)).toEqual({ r: 255, g: 0, b: 0, a: 0.75 })
   })
 
   it("getChoroplethColors propagates alpha across all five stops", () => {
