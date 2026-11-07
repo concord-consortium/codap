@@ -147,6 +147,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   // ordered parent-most to child-most
   collections: types.array(CollectionModel),
   attributesMap: types.map(Attribute),
+  // Every item, in order, including hidden (set-aside or filtered-out) ones. Items have two kinds of index:
+  // - a full index is a position in _itemIds and in the attribute value arrays (getItemIndex,
+  //   getItemIndexForCaseOrItem, the ...AtFullItemIndex getters)
+  // - a shown index is a position in `items` and `itemIds`, which leave out hidden items (getItemAtIndex)
+  // Never look up an index of one kind in the other: whenever an earlier item is hidden, it finds the wrong item.
   _itemIds: types.array(types.string),
   // for serialization only, not for dynamic selection tracking
   snapSelection: types.array(types.string),
@@ -300,6 +305,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         _caseValidationVersion.get()  // establish MobX dependency
         return _isValidItemIds
       },
+      // the shown items' ids, in order; positions here are shown indices (see _itemIds)
       get itemIds() {
         _caseValidationVersion.get()  // stable MobX dependency (survives cache-valid no-op)
         _validateItemIds()
@@ -561,9 +567,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   hasItem(itemId: string) {
     return !!self.itemInfoMap.get(itemId)
   },
+  // the item's full index: its position in _itemIds and the attribute value arrays, counting hidden items
   getItemIndex(itemId: string) {
     return self.itemInfoMap.get(itemId)?.index
   },
+  // the full index (see getItemIndex) of the item, or of a case's first item
   getItemIndexForCaseOrItem(caseOrItemId: string) {
     const caseInfo = self.caseInfoMap.get(caseOrItemId)
     // for cases, returns index of first item
@@ -578,15 +586,6 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     if (!itemInfo) return
     const childCaseIndex = itemInfo.caseIds.length - 1
     return itemInfo.caseIds[childCaseIndex]
-  },
-  itemIDFromIndex(index: number) {
-    return self.items[index]?.__id__
-  },
-  nextItemID(id: string) {
-    const index = this.getItemIndex(id),
-          nextItem = (index != null) && (index < self.items.length - 1)
-                      ? self.items[index + 1] : undefined
-    return nextItem?.__id__
   },
   addItemInfo(itemId: string, caseId: string) {
     const itemInfo = self.itemInfoMap.get(itemId)
@@ -1140,6 +1139,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     return items
   }
 
+  // the item at a shown index: its position in `items`, which leaves out hidden items
   function getItemAtIndex(index: number, options?: IGetCaseOptions) {
     const item = self.items[index],
           id = item?.__id__
@@ -1191,11 +1191,12 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
       getValue(caseID: string, attributeID: string) {
         const index = self.getItemIndexForCaseOrItem(caseID)
-        return index != null ? this.getValueAtItemIndex(index, attributeID) : undefined
+        return index != null ? this.getValueAtFullItemIndex(index, attributeID) : undefined
       },
-      getValueAtItemIndex(index: number, attributeID: string) {
+      // `index` is a full index (see getItemIndex), so the cache is looked up in _itemIds, not `items`
+      getValueAtFullItemIndex(index: number, attributeID: string) {
         if (self.isCaching()) {
-          const itemId = self.items[index]?.__id__
+          const itemId = self._itemIds[index]
           const cachedItem = self.itemCache.get(itemId)
           if (cachedItem && Object.prototype.hasOwnProperty.call(cachedItem, attributeID)) {
             return cachedItem[attributeID]
@@ -1206,11 +1207,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
       getStrValue(caseID: string, attributeID: string) {
         const index = self.getItemIndexForCaseOrItem(caseID)
-        return index != null ? this.getStrValueAtItemIndex(index, attributeID) : ""
+        return index != null ? this.getStrValueAtFullItemIndex(index, attributeID) : ""
       },
-      getStrValueAtItemIndex(itemIndex: number, attributeID: string) {
+      getStrValueAtFullItemIndex(itemIndex: number, attributeID: string) {
         if (self.isCaching()) {
-          const itemId = self.items[itemIndex]?.__id__
+          const itemId = self._itemIds[itemIndex]
           const cachedItem = self.itemCache.get(itemId)
           if (cachedItem && Object.prototype.hasOwnProperty.call(cachedItem, attributeID)) {
             return cachedItem[attributeID]?.toString()
@@ -1221,12 +1222,12 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
       getNumeric(caseID: string, attributeID: string): number | undefined {
         const index = self.getItemIndexForCaseOrItem(caseID)
-        return index != null ? this.getNumericAtItemIndex(index, attributeID) : undefined
+        return index != null ? this.getNumericAtFullItemIndex(index, attributeID) : undefined
       },
-      getNumericAtItemIndex(index: number, attributeID: string) {
+      getNumericAtFullItemIndex(index: number, attributeID: string) {
         const attr = self.getAttribute(attributeID)
         if (self.isCaching()) {
-          const itemId = self.items[index]?.__id__
+          const itemId = self._itemIds[index]
           const cachedItem = self.itemCache.get(itemId)
           if (cachedItem && Object.prototype.hasOwnProperty.call(cachedItem, attributeID)) {
             // Parse the cached value the same way the attribute does, so blanks become NaN

@@ -47,14 +47,4 @@ export class DGCollectionClient extends SCObject {
   get cases() {
     return this.collection.get("cases")
   }
-
-  getCaseAt(caseIndex: number) {
-    // TODO: treat this as a case index rather than an item index
-    return new DGCase(this.data, this.data.items[caseIndex].__id__, this.api)
-  }
-
-  getCaseIndexByID(caseId: string) {
-    // TODO: treat this as a case index rather than an item index
-    return this.data.getItemIndex(caseId)
-  }
 }

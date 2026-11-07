@@ -1,3 +1,4 @@
+import { IDataSet } from "../../data/data-set"
 import { evaluate } from "../test-utils/formula-test-utils"
 
 // Mock boundary functions because they require boundary info to be fetched, which
@@ -49,6 +50,24 @@ describe("lookupByIndex", () => {
     expect(evaluate("lookupByIndex('Mammals', 'Mammal', 2)")).toEqual("Asian Elephant")
     expect(evaluate("lookupByIndex('Mammals', 'Mass', 2)")).toEqual(5000)
     expect(evaluate("lookupByIndex('Cats', 'PadColor', 5)")).toEqual("pink")
+  })
+
+  it("counts only the items shown, as in V2", () => {
+    // with the first mammal set aside, index 1 is the second mammal
+    const setAsideFirst = ({ dataSetsByName: { Mammals } }: { dataSetsByName: { Mammals: IDataSet } }) => {
+      Mammals.hideCasesOrItems([Mammals.itemIds[0]])
+      Mammals.validateCases()
+    }
+    expect(evaluate("lookupByIndex('Mammals', 'Mammal', 1)", undefined, undefined, setAsideFirst))
+      .toEqual("Asian Elephant")
+
+    // items a filter formula hides are skipped too
+    const filterOutFirst = ({ dataSetsByName: { Mammals } }: { dataSetsByName: { Mammals: IDataSet } }) => {
+      Mammals.updateFilterFormulaResults([{ itemId: Mammals.itemIds[0], result: false }], {})
+      Mammals.validateCases()
+    }
+    expect(evaluate("lookupByIndex('Mammals', 'Mammal', 1)", undefined, undefined, filterOutFirst))
+      .toEqual("Asian Elephant")
   })
 
   it("returns the value at the given evaluated index (1-based)", () => {

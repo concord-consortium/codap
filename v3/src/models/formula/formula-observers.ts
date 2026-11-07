@@ -75,18 +75,17 @@ export const observeLookupDependencies = (formulaDependencies: IFormulaDependenc
     if (!externalDataSet) {
       return
     }
-    return onAnyAction(externalDataSet, mstAction => {
+    // Adding, removing, setting aside, showing, filtering or reordering items changes the shown items, which
+    // lookupByIndex counts
+    const disposeItemsObserver = mstReaction(
+      () => externalDataSet.itemIdsOrderedHash,
+      () => recalculateCallback("ALL_CASES"),
+      { name: "FormulaObservers.lookupItemsReaction" }, externalDataSet
+    )
+    const disposeActionsObserver = onAnyAction(externalDataSet, mstAction => {
       let casesToRecalculate: CaseList = []
       switch (mstAction.name) {
-        // TODO: these rules are very broad, think if there are some ways to optimize and narrow them down.
-        case "addCases": {
-          casesToRecalculate = "ALL_CASES"
-          break
-        }
-        case "removeCases": {
-          casesToRecalculate = "ALL_CASES"
-          break
-        }
+        // adding and removing cases are handled by the items reaction above
         case "setCaseValues": {
           // Recalculate for user-initiated value changes only.
           // Formula-to-formula cascading (setComputedCaseValues) is handled by
@@ -104,6 +103,10 @@ export const observeLookupDependencies = (formulaDependencies: IFormulaDependenc
         recalculateCallback(casesToRecalculate)
       }
     })
+    return () => {
+      disposeItemsObserver()
+      disposeActionsObserver()
+    }
   })
 
   return () => disposeLookupObserver.forEach(dispose => dispose?.())
