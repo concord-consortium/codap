@@ -77,7 +77,7 @@ Add to `src/components/map/utilities/map-utils.ts`:
  * world copy nearest the current viewport. The viewport bounds are read once, when the projector
  * is created, so create one per refresh, not per point.
  */
-export function createLatLongProjector(map: LeafletMap): (lat: number, long: number) => Point
+export function createLatLongProjector(map: LeafletMap): (latLong: ILatLong) => Point
 ```
 
 All four call sites, plus the hot spot grid (§6), use it.
@@ -86,12 +86,16 @@ All four call sites, plus the hot spot grid (§6), use it.
 
 `dataset.getNumeric(caseID, latId/longId)` with ad hoc fallbacks is repeated at the three
 `map-point-layer.tsx` sites (each with `|| 0`), `map-pin-layer.tsx` (explicit finite check), and
-`map-grid-model.ts` (`!== undefined` check). Add to `map-utils.ts`:
+`map-grid-model.ts` (`!== undefined` check). Add a named coordinate type to `map-types.ts` and the
+reader to `map-utils.ts`:
 
 ```ts
+/** A latitude/longitude pair, in degrees. */
+export interface ILatLong { lat: number, long: number }
+
 /** Returns the case's lat/long, or undefined if either value is missing or non-finite. */
 export function getCaseLatLong(dataset: IDataSet, caseID: string, latId: string, longId: string)
-  : Maybe<{ lat: number, long: number }>
+  : Maybe<ILatLong>
 ```
 
 Also add a convenience view, `MapPointLayerModel.getCaseLatLong(caseID)`, that supplies the layer's

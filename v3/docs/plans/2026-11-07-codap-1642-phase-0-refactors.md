@@ -261,6 +261,7 @@ Proposed commit message: `Extract interpolateRgba from interpolateColors (CODAP-
 ## Task 3 (R2a): Add `getCaseLatLong` utility
 
 **Files:**
+- Modify: `v3/src/components/map/map-types.ts`
 - Modify: `v3/src/components/map/utilities/map-utils.ts`
 - Test: `v3/src/components/map/utilities/map-utils.test.ts`
 
@@ -311,15 +312,28 @@ Expected: FAIL. `getCaseLatLong` is not a function.
 
 **Step 3: Implement**
 
-Add to `map-utils.ts`, below `shiftLongitudeIntoView`. `IDataSet` and `isFiniteNumber` are already
-imported.
+Add a named type for a coordinate pair to `map-types.ts`:
+
+```ts
+/** A latitude/longitude pair, in degrees. */
+export interface ILatLong {
+  lat: number
+  long: number
+}
+```
+
+Leaflet's `LatLng` uses `lng` and carries methods, so it isn't a substitute. CODAP's code and
+attribute roles use `long`.
+
+Then add to `map-utils.ts`, below `shiftLongitudeIntoView`. `IDataSet` and `isFiniteNumber` are already
+imported; add `ILatLong` to the existing `"../map-types"` import.
 
 ```ts
 /**
  * Returns the case's latitude and longitude, or undefined if either value is missing or not a finite number.
  */
 export const getCaseLatLong = (dataset: IDataSet, caseID: string, latId: string, longId: string)
-    : Maybe<{ lat: number, long: number }> => {
+    : Maybe<ILatLong> => {
   const lat = dataset.getNumeric(caseID, latId)
   const long = dataset.getNumeric(caseID, longId)
   return isFiniteNumber(lat) && isFiniteNumber(long) ? { lat, long } : undefined
@@ -481,8 +495,8 @@ The projector must return exactly what the inline code returned. The tests compa
 `latLngToContainerPoint` + `shiftLongitudeIntoView` on a real Leaflet map. jsdom has no layout, so
 give the container a size before creating the map.
 
-Add `createLatLongProjector` to the `./map-utils` import, and `Map as LeafletMap` to the `leaflet`
-import. Then add:
+Add `createLatLongProjector` to the `./map-utils` import, `Map as LeafletMap` to the `leaflet`
+import, and `ILatLong` to the `../map-types` import. Then add:
 
 ```ts
 describe("createLatLongProjector", () => {
@@ -494,7 +508,7 @@ describe("createLatLongProjector", () => {
     return new LeafletMap(container, { center, zoom })
   }
 
-  function inlineProjection(map: LeafletMap, lat: number, long: number) {
+  function inlineProjection(map: LeafletMap, { lat, long }: ILatLong) {
     const bounds = map.getBounds()
     return map.latLngToContainerPoint([lat, shiftLongitudeIntoView(long, bounds.getWest(), bounds.getEast())])
   }
@@ -502,8 +516,9 @@ describe("createLatLongProjector", () => {
   it("matches the inline projection in an ordinary view", () => {
     const map = createMap([40, -95], 4)
     const project = createLatLongProjector(map)
-    for (const [lat, long] of [[40, -95], [30, -120], [48, -70]]) {
-      expect(project(lat, long)).toEqual(inlineProjection(map, lat, long))
+    const latLongs: ILatLong[] = [{ lat: 40, long: -95 }, { lat: 30, long: -120 }, { lat: 48, long: -70 }]
+    for (const latLong of latLongs) {
+      expect(project(latLong)).toEqual(inlineProjection(map, latLong))
     }
     map.remove()
   })
@@ -511,9 +526,10 @@ describe("createLatLongProjector", () => {
   it("shifts longitudes into a view that crosses the antimeridian", () => {
     const map = createMap([60, 180], 4)
     const project = createLatLongProjector(map)
+    const east = { lat: 60, long: -175 }, west = { lat: 60, long: 175 }
     // -175 lies just east of the dateline, so it must project to the right of +175
-    expect(project(60, -175).x).toBeGreaterThan(project(60, 175).x)
-    expect(project(60, -175)).toEqual(inlineProjection(map, 60, -175))
+    expect(project(east).x).toBeGreaterThan(project(west).x)
+    expect(project(east)).toEqual(inlineProjection(map, east))
     map.remove()
   })
 })
@@ -529,7 +545,7 @@ Expected: FAIL. `createLatLongProjector` is not a function.
 In `map-utils.ts`, add `Point` to the `leaflet` import, then add below `shiftLongitudeIntoView`:
 
 ```ts
-export type LatLongProjector = (lat: number, long: number) => Point
+export type LatLongProjector = (latLong: ILatLong) => Point
 
 /**
  * Returns a function that projects a latitude/longitude to map container pixels, shifting the longitude
@@ -541,7 +557,7 @@ export const createLatLongProjector = (map: LeafletMap): LatLongProjector => {
   const bounds = map.getBounds()
   const west = bounds.getWest()
   const east = bounds.getEast()
-  return (lat, long) => map.latLngToContainerPoint([lat, shiftLongitudeIntoView(long, west, east)])
+  return ({ lat, long }) => map.latLngToContainerPoint([lat, shiftLongitudeIntoView(long, west, east)])
 }
 ```
 
@@ -558,12 +574,12 @@ Expected: PASS.
   `leafletMap` drops out of `connectingLine`'s dependency array.
 - **`refreshHeatmap`:** replace the bounds lines (217–219) with
   `const project = createLatLongProjector(leafletMap)`, and use
-  `const point = project(latLong.lat, latLong.long)`.
+  `const point = project(latLong)`.
 - **`refreshPoints`:** replace the bounds lines (330–332) with
   `const project = createLatLongProjector(leafletMap)`.
 - **`map-pin-layer.tsx`:** replace the bounds lines (151–153) with
   `const project = createLatLongProjector(map)`, and use
-  `const { x, y } = project(latLong.lat, latLong.long)`.
+  `const { x, y } = project(latLong)`.
 - Remove the now-unused `shiftLongitudeIntoView` imports from both components.
 
 **Step 6: Run the map tests, then smoke check as in Task 4 Step 7**
