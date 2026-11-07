@@ -1,10 +1,11 @@
-import {FormatLocaleDefinition, format, formatLocale} from "d3-format"
+import { FormatLocaleDefinition, format, formatLocale } from "d3-format"
 import {
   between,
   binBoundaryDecimalPlaces,
   binBoundarySignificantFigures,
   checkNumber,
   chooseDecimalPlaces,
+  degreesToRadians,
   equalFrequencyBins,
   extractNumeric,
   fitGaussianLM,
@@ -17,6 +18,15 @@ import {
 const asciiLocale = formatLocale({ minus: "-" } as FormatLocaleDefinition)
 
 describe("math-utils", () => {
+
+  describe("degreesToRadians", () => {
+    it("converts degrees to radians", () => {
+      expect(degreesToRadians(0)).toBe(0)
+      expect(degreesToRadians(180)).toBeCloseTo(Math.PI)
+      expect(degreesToRadians(-90)).toBeCloseTo(-Math.PI / 2)
+      expect(degreesToRadians(360)).toBeCloseTo(2 * Math.PI)
+    })
+  })
 
   describe("d3-format", () => {
     const defaultFormat = format("")

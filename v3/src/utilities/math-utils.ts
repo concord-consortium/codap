@@ -1,5 +1,9 @@
 export const sqrtTwoPi = Math.sqrt(2 * Math.PI)
 
+export function degreesToRadians(degrees: number) {
+  return degrees * Math.PI / 180
+}
+
 export function between(num: number, min: number, max: number) {
   return min < max ? (min <= num && num <= max) : (max <= num && num <= min)
 }
