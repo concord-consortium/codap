@@ -6,7 +6,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {isFiniteNumber} from "../../../utilities/math-utils"
 import {translate} from "../../../utilities/translation/translate"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
-import {kPinColors} from "../map-types"
+import {ILatLong, kPinColors} from "../map-types"
 
 export const isBoundaryAttribute = (attribute: IAttribute) => {
   return attribute.type === "boundary" ||
@@ -95,6 +95,17 @@ export const shiftLongitudeIntoView = (lng: number, west: number, east: number) 
   if (lng >= west && lng <= east) return lng
   const center = (west + east) / 2
   return lng + Math.round((center - lng) / 360) * 360
+}
+
+/**
+ * Returns the case's latitude and longitude, or undefined if either value is missing or not a finite number.
+ */
+export const getCaseLatLong = (
+  dataset: IDataSet, caseID: string, latId: string, longId: string
+): Maybe<ILatLong> => {
+  const lat = dataset.getNumeric(caseID, latId)
+  const long = dataset.getNumeric(caseID, longId)
+  return isFiniteNumber(lat) && isFiniteNumber(long) ? { lat, long } : undefined
 }
 
 /**

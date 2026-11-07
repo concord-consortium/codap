@@ -1,10 +1,39 @@
 import { latLngBounds } from "leaflet"
-import { DataSet } from "../../../models/data/data-set"
+import { DataSet, toCanonical } from "../../../models/data/data-set"
 import { kPinColors } from "../map-types"
 import {
-  computeBoundsFromCoordinates, getNextPinColorIndex, getNextPinColorIndexForDataSet, getRationalLongitudeBounds,
-  shiftLongitudeIntoView, wrapBoundsToCanonicalCenter
+  computeBoundsFromCoordinates, getCaseLatLong, getNextPinColorIndex, getNextPinColorIndexForDataSet,
+  getRationalLongitudeBounds, shiftLongitudeIntoView, wrapBoundsToCanonicalCenter
 } from "./map-utils"
+
+describe("getCaseLatLong", () => {
+  const dataset = DataSet.create()
+  dataset.addAttribute({ id: "latId", name: "lat" })
+  dataset.addAttribute({ id: "longId", name: "long" })
+  dataset.addCases(toCanonical(dataset, [
+    { __id__: "valid", lat: 42.5, long: -71.2 },
+    { __id__: "zero", lat: 0, long: 0 },
+    { __id__: "missingLat", lat: "", long: -71.2 },
+    { __id__: "nonNumeric", lat: 42.5, long: "east" }
+  ]))
+
+  it("returns the case's lat/long", () => {
+    expect(getCaseLatLong(dataset, "valid", "latId", "longId")).toEqual({ lat: 42.5, long: -71.2 })
+  })
+
+  it("returns zero coordinates, which are valid", () => {
+    expect(getCaseLatLong(dataset, "zero", "latId", "longId")).toEqual({ lat: 0, long: 0 })
+  })
+
+  it("returns undefined when either value is missing or non-numeric", () => {
+    expect(getCaseLatLong(dataset, "missingLat", "latId", "longId")).toBeUndefined()
+    expect(getCaseLatLong(dataset, "nonNumeric", "latId", "longId")).toBeUndefined()
+  })
+
+  it("returns undefined for an unknown case", () => {
+    expect(getCaseLatLong(dataset, "nope", "latId", "longId")).toBeUndefined()
+  })
+})
 
 describe("getRationalLongitudeBounds", () => {
   it("returns canonical min/max when all values fit within 180° of canonical range", () => {
