@@ -6,7 +6,7 @@ import { useMap } from "react-leaflet"
 import simpleheat from "simpleheat"
 import { useDebouncedCallback } from "use-debounce"
 import { select } from "d3"
-import { isCaseValueChangeAction, isSelectionAction } from "../../../models/data/data-set-actions"
+import { isSelectionAction } from "../../../models/data/data-set-actions"
 import { firstVisibleParentAttribute, idOfChildmostCollectionForAttributes } from "../../../models/data/data-set-utils"
 import { defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth } from "../../../utilities/color-utils"
 import { mstAutorun } from "../../../utilities/mst-autorun"
@@ -348,8 +348,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     refreshPointSelection()
   }, 10)
 
-  // Actions in the dataset can trigger need for point updates
-  useEffect(function setupResponsesToDatasetActions() {
+  // Selection actions in the dataset require restyling points. Changes to the plotted cases and their
+  // values are tracked by the layer model (see setupResponseToChangeInCases/Values below).
+  useEffect(function setupResponsesToSelectionActions() {
     if (dataset) {
       const disposer = onAnyAction(dataset, action => {
         if (isSelectionAction(action)) {
@@ -367,18 +368,11 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
             }
           }
           refreshPointSelection(caseIdsToUpdate)
-        } else if (isCaseValueChangeAction(action)) {
-          // assumes that if we're caching then only selected cases are being updated
-          refreshPoints(dataset.isCaching())
-          refreshHeatmap()
-        } else if (["addCases", "removeCases"].includes(action.name)) {
-          refreshPoints(false)
-          refreshHeatmap()
         }
       })
       return () => disposer()
     }
-  }, [dataset, refreshPoints, refreshHeatmap, refreshPointSelection, renderer])
+  }, [dataset, refreshPointSelection, renderer])
 
   // Refresh points when the renderer changes (e.g., after reacquiring a WebGL context)
   useEffect(function refreshPointsOnRendererChange() {
@@ -438,31 +432,30 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     return () => disposer()
   }, [refreshHeatmap, refreshPoints, dataConfiguration])
 
-  // Changing the type of the lat/long attributes (e.g. categorical → numeric) changes their numeric
-  // values and which cases have valid coordinates, so the cases are re-filtered and redrawn.
-  useEffect(function setupResponseToLatLongTypeChange() {
-    return mstReaction(
-      () => [dataConfiguration?.attributeType('lat'), dataConfiguration?.attributeType('long')],
-      () => {
-        dataConfiguration?.invalidateCases()
-        refreshPoints(false)
-        refreshConnectingLines()
-        refreshHeatmap()
-      },
-      {name: "MapPointLayer.respondToLatLongTypeChange", equals: comparer.structural}, dataConfiguration
-    )
-  }, [refreshConnectingLines, refreshHeatmap, refreshPoints, dataConfiguration])
-
+  // The set of plotted cases changed: re-match the renderer's points to the cases, then redraw
   useEffect(function setupResponseToChangeInCases() {
     return mstReaction(
-      () => dataConfiguration?.caseDataHash,
+      () => mapLayerModel.pointCasesVersion,
       () => {
         callMatchCirclesToData()
         refreshPoints(false)
         refreshHeatmap()
-      }, {name: "MapPointLayer.setupResponseToChangeInCases", fireImmediately: true}, dataConfiguration
+      }, {name: "MapPointLayer.setupResponseToChangeInCases", fireImmediately: true}, mapLayerModel
     )
-  }, [callMatchCirclesToData, dataConfiguration, refreshHeatmap, refreshPoints])
+  }, [callMatchCirclesToData, mapLayerModel, refreshHeatmap, refreshPoints])
+
+  // Plotted values changed (value edits, cases added or removed, lat/long attribute type changes).
+  // While the dataset is caching only selected cases change, so only they are restyled.
+  useEffect(function setupResponseToChangeInValues() {
+    return mstReaction(
+      () => mapLayerModel.pointValuesVersion,
+      () => {
+        refreshPoints(mapLayerModel.pointValuesChangedWhileCaching)
+        refreshConnectingLines()
+        refreshHeatmap()
+      }, {name: "MapPointLayer.setupResponseToChangeInValues"}, mapLayerModel
+    )
+  }, [mapLayerModel, refreshConnectingLines, refreshHeatmap, refreshPoints])
 
   // respond to visual item properties change
   useEffect(function respondToDisplayItemVisualPropsAction() {

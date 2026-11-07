@@ -11,6 +11,8 @@ export const MapGridModel = types.model("MapGridModel", {
 })
   .volatile(() => ({
     dataConfiguration: undefined as IDataConfigurationModel | undefined,
+    // Signals changes to the plotted cases or their coordinates (see MapPointLayerModel.pointDataVersion)
+    pointDataSource: undefined as Maybe<{ pointDataVersion: number }>,
     _latLngGrid: new LatLngGrid(),
     _gridSize: 0,  // degrees
     _dynamicGridMultiplier: undefined as number | undefined,  // Used during slider drag
@@ -33,6 +35,9 @@ export const MapGridModel = types.model("MapGridModel", {
     },
     setDataConfiguration(dataConfiguration: IDataConfigurationModel) {
       self.dataConfiguration = dataConfiguration
+    },
+    setPointDataSource(pointDataSource: { pointDataVersion: number }) {
+      self.pointDataSource = pointDataSource
     },
     setDynamicGridMultiplier(multiplier: number) {
       self._dynamicGridMultiplier = multiplier
@@ -139,7 +144,7 @@ export const MapGridModel = types.model("MapGridModel", {
   .actions(self => ({
     afterCreate() {
       addDisposer(self, reaction(
-        () => [self.dataConfiguration?.caseDataHash, self.gridMultiplier, self._gridSize],
+        () => [self.pointDataSource?.pointDataVersion, self.gridMultiplier, self._gridSize],
         () => {
           self.initializeGrid()
           self.updateSelection()

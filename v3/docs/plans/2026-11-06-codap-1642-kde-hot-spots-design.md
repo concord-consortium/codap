@@ -169,11 +169,11 @@ Consumers:
 - `MapGridModel`: its reaction watches `pointDataVersion` in addition to `gridMultiplier` and
   `_gridSize`.
 
-**Suspected existing bug:** `caseDataHash` hashes only *which* cases are included
-(`hashStringSets(filteredCases.map(c => c.caseIds))`), not their values. So editing a lat/long value
-probably doesn't update `MapGridModel`'s cell counts. Before the refactor, write a failing test
-that edits a case's latitude and expects the grid counts to change. If it fails, R5 fixes it; if it
-passes, note why and drop this paragraph.
+**Existing bug (confirmed and fixed in Phase 0):** `caseDataHash` hashes only *which* cases are included
+(`hashStringSets(filteredCases.map(c => c.caseIds))`), not their values, so editing a lat/long value
+didn't update `MapGridModel`'s cell counts. `map-grid-model.test.ts` reproduced it; forcing
+`initializeGrid()` after the edit gave the correct counts, so the only problem was the missing trigger.
+The grid now reacts to `pointDataVersion`, which includes value changes.
 
 ## Design
 

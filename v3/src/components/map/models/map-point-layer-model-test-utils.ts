@@ -10,15 +10,19 @@ import { MapPointLayerModel } from "./map-point-layer-model"
 const TreeModel = types.model("Tree", {
   data: DataSet,
   metadata: DataSetMetadata,
+  // An empty second dataset, for tests that switch the layer to another dataset. It has to be in the
+  // tree because the data configuration holds its dataset as a safe reference.
+  otherData: DataSet,
   layer: MapPointLayerModel
 })
 
 /**
- * Creates a point layer showing a dataset with lat/long attributes "latId"/"longId" and three cases:
- * c1 and c2 at the same location, and c3 with no latitude.
+ * Creates a point layer showing a dataset with lat/long attributes "latId"/"longId" and three items:
+ * c1 and c2 at the same location, and c3 with no latitude. Note that these are item IDs; the data
+ * configuration works with case IDs, which are generated (see getCaseDataArray).
  */
 export function createPointLayerTree() {
-  const tree = TreeModel.create({ data: {}, metadata: {}, layer: {} })
+  const tree = TreeModel.create({ data: {}, metadata: {}, otherData: {}, layer: {} })
   tree.data.addAttribute({ id: "latId", name: "lat" })
   tree.data.addAttribute({ id: "longId", name: "long" })
   tree.metadata.setData(tree.data)
