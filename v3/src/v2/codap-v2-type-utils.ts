@@ -1,6 +1,7 @@
 import { AxisModelType } from "../components/axis/models/axis-model"
 import { IFormula } from "../models/formula/formula"
 import { kDefaultPointShape } from "../utilities/point-shape-utils"
+import { ICodapV2MapHotSpotStorage } from "./codap-v2-types"
 
 interface IBaseLegendQuantileProps {
   numberOfLegendQuantiles?: number
@@ -102,11 +103,14 @@ export function applyImportedLegendBinCount(
 // Therefore, we provide an option to include legend quantiles when exporting v3 extension properties.
 interface IExportV3PropsOptions {
   axisTypes?: V2PlaceToV3AxisTypeMap
+  // map point layers only; v2 has no hot spots.
+  // Only include when the hot spot should actually be saved, i.e. it differs from the default.
+  hotSpot?: ICodapV2MapHotSpotStorage
   includeLegendQuantiles?: boolean
   pointShape?: string
 }
 export function exportV3Properties(props: IExportV3Properties, options?: IExportV3PropsOptions) {
-  const { axisTypes, includeLegendQuantiles, pointShape } = options || {}
+  const { axisTypes, hotSpot, includeLegendQuantiles, pointShape } = options || {}
   const _hasFilter = hasFilterFormula(props)
   // Only write legend quantile props into the v3 namespace when explicitly requested (maps). Graphs
   // round-trip the bin count via the native top-level numberOfLegendQuantiles, so a v3 copy would be
@@ -118,13 +122,15 @@ export function exportV3Properties(props: IExportV3Properties, options?: IExport
   const _hasAxisTypes = axisTypes && (Object.keys(axisTypes).length > 0)
   // Only a non-default shape is worth writing; a document that never used the feature gains nothing.
   const _hasPointShape = pointShape != null && pointShape !== kDefaultPointShape
-  return _hasFilter || _hasLegendQuantiles || _hasAxisTypes || _hasPointShape
+  const _hasHotSpot = hotSpot != null
+  return _hasFilter || _hasLegendQuantiles || _hasAxisTypes || _hasPointShape || _hasHotSpot
           ? {
               v3: {
                 ...(_hasFilter ? { filterFormula: props.filterFormula?.display } : {}),
                 ...legendStorage,
                 ...(axisTypes ? { axisTypes } : {}),
-                ...(_hasPointShape ? { pointShape } : {})
+                ...(_hasPointShape ? { pointShape } : {}),
+                ...(_hasHotSpot ? { hotSpot: { ...hotSpot } } : {})
               }
             }
           : {}
