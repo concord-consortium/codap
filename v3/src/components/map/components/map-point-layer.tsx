@@ -25,7 +25,7 @@ import { IPoint, IPointMetadata, PixiPointRenderer, useLayerRenderer } from "../
 import { useMapClickWithDoubleClickZoom } from "../hooks/use-map-click-with-double-click-zoom"
 import { useMapModelContext } from "../hooks/use-map-model-context"
 import { IMapPointLayerModel } from "../models/map-point-layer-model"
-import { shiftLongitudeIntoView } from "../utilities/map-utils"
+import { createLatLongProjector, LatLongProjector } from "../utilities/map-utils"
 import { MapHotSpotLayer } from "./map-hot-spot-layer"
 import { MapPointGrid } from "./map-point-grid"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
@@ -59,12 +59,11 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
 
   const { wrapClickHandler } = useMapClickWithDoubleClickZoom(leafletMap)
 
-  const connectingLine = useCallback((caseID: string, west: number, east: number) => {
+  const connectingLine = useCallback((caseID: string, project: LatLongProjector) => {
     const latLong = mapLayerModel.getCaseLatLong(caseID)
     if (!dataset || !latLong) return
 
-    const { x: xValue, y: yValue } =
-      leafletMap.latLngToContainerPoint([latLong.lat, shiftLongitudeIntoView(latLong.long, west, east)])
+    const { x: xValue, y: yValue } = project(latLong)
     if (isFinite(xValue) && isFinite(yValue)) {
       const caseData = dataset?.getFirstItemForCase(caseID, { numeric: false })
       if (caseData) {
@@ -72,16 +71,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         return { caseData, lineCoords }
       }
     }
-  }, [dataset, leafletMap, mapLayerModel])
+  }, [dataset, mapLayerModel])
 
   const connectingLinesForCases = useCallback(() => {
     const lineDescriptions: IConnectingLineDescription[] = []
-    // Compute the viewport bounds once per refresh; they're constant across all cases.
-    const mapBounds = leafletMap.getBounds()
-    const west = mapBounds.getWest()
-    const east = mapBounds.getEast()
+    // Create the projector once per refresh; the viewport bounds are constant across all cases.
+    const project = createLatLongProjector(leafletMap)
     dataConfiguration?.getCaseDataArray(0).forEach(c => {
-        const cLine = connectingLine(c.caseID, west, east)
+        const cLine = connectingLine(c.caseID, project)
         cLine && lineDescriptions.push(cLine)
     })
     return lineDescriptions
@@ -198,17 +195,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       })
 
       // Add the data to the heatmap
-      const mapBounds = leafletMap.getBounds()
-      const west = mapBounds.getWest()
-      const east = mapBounds.getEast()
+      const project = createLatLongProjector(leafletMap)
       dataConfiguration.joinedCaseDataArrays.forEach(c => {
         const { caseID } = c
         const latLong = mapLayerModel.getCaseLatLong(caseID)
         if (!latLong) return
         const value = dataset.getNumeric(caseID, legendAttributeId) || minValue
         const normalizedValue = (value - minValue) / (maxValue - minValue)
-        const shiftedLong = shiftLongitudeIntoView(latLong.long, west, east)
-        const point = leafletMap.latLngToContainerPoint([latLong.lat, shiftedLong])
+        const point = project(latLong)
         simpleheatRef.current?.add([point.x * scaleX, point.y * scaleY, normalizedValue])
       })
     }
@@ -311,9 +305,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
 
   const displayPoints = (displayType === "points" || !canDrawHeatmap) && pointsAreVisible && layerIsVisible
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
-    const mapBounds = leafletMap.getBounds()
-    const west = mapBounds.getWest()
-    const east = mapBounds.getEast()
+    const project = createLatLongProjector(leafletMap)
     const {pointSizeMultiplier, pointStrokeColor} = pointDescription
     if (!renderer || !dataset) {
       return
@@ -338,8 +330,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         const {caseID} = metadata
         const latLong = mapLayerModel.getCaseLatLong(caseID)
         if (latLong) {
-          const { x, y } =
-            leafletMap.latLngToContainerPoint([latLong.lat, shiftLongitudeIntoView(latLong.long, west, east)])
+          const { x, y } = project(latLong)
           renderer.setPointPosition(point, x, y)
         }
         renderer.setPointStyle(point, {

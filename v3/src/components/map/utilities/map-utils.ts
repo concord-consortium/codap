@@ -1,4 +1,4 @@
-import {LatLngBounds, latLngBounds, Map as LeafletMap} from 'leaflet'
+import {LatLngBounds, latLngBounds, Map as LeafletMap, Point} from 'leaflet'
 import {singular} from "pluralize"
 import {kPolygonNames} from "../../../models/boundaries/boundary-types"
 import { IAttribute } from "../../../models/data/attribute"
@@ -33,8 +33,8 @@ const canonicalizeLongitude = (lng: number) => {
  * line, the returned arc is the simple sorted min/max; otherwise the returned
  * `max` exceeds 180° to represent an arc that wraps east across the date line.
  *
- * Callers that render data on top of a Leaflet map should use
- * `shiftLongitudeIntoView` when projecting point coordinates so that points
+ * Callers that render data on top of a Leaflet map should project point coordinates
+ * with `createLatLongProjector` (which uses `shiftLongitudeIntoView`) so that points
  * in the canonical world copy still render inside a dateline-crossing view.
  */
 export const getRationalLongitudeBounds = (longs: number[]) => {
@@ -95,6 +95,21 @@ export const shiftLongitudeIntoView = (lng: number, west: number, east: number) 
   if (lng >= west && lng <= east) return lng
   const center = (west + east) / 2
   return lng + Math.round((center - lng) / 360) * 360
+}
+
+export type LatLongProjector = (latLong: ILatLong) => Point
+
+/**
+ * Returns a function that projects a latitude/longitude to map container pixels, shifting the longitude
+ * into the world copy nearest the current viewport (see shiftLongitudeIntoView). The viewport bounds
+ * are read when the projector is created, so create one per refresh and reuse it for every point in
+ * that refresh.
+ */
+export const createLatLongProjector = (map: LeafletMap): LatLongProjector => {
+  const bounds = map.getBounds()
+  const west = bounds.getWest()
+  const east = bounds.getEast()
+  return ({ lat, long }) => map.latLngToContainerPoint([lat, shiftLongitudeIntoView(long, west, east)])
 }
 
 /**

@@ -1,10 +1,45 @@
-import { latLngBounds } from "leaflet"
+import { latLngBounds, Map as LeafletMap } from "leaflet"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
-import { kPinColors } from "../map-types"
+import { ILatLong, kPinColors } from "../map-types"
 import {
-  computeBoundsFromCoordinates, getCaseLatLong, getNextPinColorIndex, getNextPinColorIndexForDataSet,
-  getRationalLongitudeBounds, shiftLongitudeIntoView, wrapBoundsToCanonicalCenter
+  computeBoundsFromCoordinates, createLatLongProjector, getCaseLatLong, getNextPinColorIndex,
+  getNextPinColorIndexForDataSet, getRationalLongitudeBounds, shiftLongitudeIntoView, wrapBoundsToCanonicalCenter
 } from "./map-utils"
+
+describe("createLatLongProjector", () => {
+  function createMap(center: [number, number], zoom: number) {
+    const container = document.createElement("div")
+    Object.defineProperty(container, "clientWidth", { value: 400 })
+    Object.defineProperty(container, "clientHeight", { value: 300 })
+    document.body.appendChild(container)
+    return new LeafletMap(container, { center, zoom })
+  }
+
+  function inlineProjection(map: LeafletMap, { lat, long }: ILatLong) {
+    const bounds = map.getBounds()
+    return map.latLngToContainerPoint([lat, shiftLongitudeIntoView(long, bounds.getWest(), bounds.getEast())])
+  }
+
+  it("matches the inline projection in an ordinary view", () => {
+    const map = createMap([40, -95], 4)
+    const project = createLatLongProjector(map)
+    const latLongs: ILatLong[] = [{ lat: 40, long: -95 }, { lat: 30, long: -120 }, { lat: 48, long: -70 }]
+    for (const latLong of latLongs) {
+      expect(project(latLong)).toEqual(inlineProjection(map, latLong))
+    }
+    map.remove()
+  })
+
+  it("shifts longitudes into a view that crosses the antimeridian", () => {
+    const map = createMap([60, 180], 4)
+    const project = createLatLongProjector(map)
+    const east = { lat: 60, long: -175 }, west = { lat: 60, long: 175 }
+    // -175 lies just east of the dateline, so it must project to the right of +175
+    expect(project(east).x).toBeGreaterThan(project(west).x)
+    expect(project(east)).toEqual(inlineProjection(map, east))
+    map.remove()
+  })
+})
 
 describe("getCaseLatLong", () => {
   const dataset = DataSet.create()
