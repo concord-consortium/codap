@@ -36,10 +36,62 @@ its tests) in the hot spot plan. Phase 0 stays a pure refactor.
 ## Task 1 (R3): Extract `greatCircleDistance` into `geo-utils.ts`
 
 **Files:**
+- Modify: `v3/src/utilities/math-utils.ts`
+- Modify: `v3/src/utilities/math-utils.test.ts`
+- Modify: `v3/src/components/data-display/renderer/point-shapes.ts:36-135`
+- Existing test (must still pass): `v3/src/components/data-display/renderer/point-shapes.test.ts`
 - Create: `v3/src/utilities/geo-utils.ts`
 - Create: `v3/src/utilities/geo-utils.test.ts`
 - Modify: `v3/src/models/formula/functions/other-functions.ts:107-124`
 - Existing test (must still pass): `v3/src/models/formula/functions/other-functions.test.ts:115-136`
+
+**Step 0a: Write the failing `degreesToRadians` test**
+
+In `math-utils.test.ts`, add `degreesToRadians` to the `./math-utils` import list, and add:
+
+```ts
+describe("degreesToRadians", () => {
+  it("converts degrees to radians", () => {
+    expect(degreesToRadians(0)).toBe(0)
+    expect(degreesToRadians(180)).toBeCloseTo(Math.PI)
+    expect(degreesToRadians(-90)).toBeCloseTo(-Math.PI / 2)
+    expect(degreesToRadians(360)).toBeCloseTo(2 * Math.PI)
+  })
+})
+```
+
+Run: `npm test -- src/utilities/math-utils.test.ts`
+Expected: FAIL. `degreesToRadians` is not a function.
+
+**Step 0b: Implement `degreesToRadians`**
+
+Add to `math-utils.ts`:
+
+```ts
+export function degreesToRadians(degrees: number) {
+  return degrees * Math.PI / 180
+}
+```
+
+Run: `npm test -- src/utilities/math-utils.test.ts`
+Expected: PASS.
+
+**Step 0c: Replace `kDegToRad` in `point-shapes.ts`**
+
+`v3/src/components/data-display/renderer/point-shapes.ts:36` defines its own
+`const kDegToRad = Math.PI / 180`, used at five sites (lines 57, 58, 66, 131, 135). Delete the constant,
+import `degreesToRadians` from `"../../../utilities/math-utils"`, and rewrite each `x * kDegToRad` as
+`degreesToRadians(x)`. For example, `Math.cos(rotationDeg * kDegToRad)` becomes
+`Math.cos(degreesToRadians(rotationDeg))`, and `(-90 + i * 36) * kDegToRad` becomes
+`degreesToRadians(-90 + i * 36)`.
+
+`degreesToRadians` computes `x * Math.PI / 180` rather than `x * (Math.PI / 180)`, so results can
+differ in the last floating-point bit. Shape vertices are rasterized, so this has no visible effect, but
+a test asserting exact equality could notice.
+
+Run: `npm test -- src/components/data-display/renderer/point-shapes.test.ts`
+Expected: PASS. If an exact-equality assertion fails by a rounding-level amount, switch that assertion to
+`toBeCloseTo` and mention it in the commit for review.
 
 **Step 1: Write the failing test**
 
@@ -85,6 +137,8 @@ Expected: FAIL. The module `./geo-utils` cannot be found.
 `v3/src/utilities/geo-utils.ts`:
 
 ```ts
+import { degreesToRadians } from "./math-utils"
+
 /**
  * Mean radius of the Earth, used for great-circle distances. Note that Leaflet's Web Mercator
  * projection (EPSG:3857) uses a different sphere (radius 6378137 m). Use that radius, not this one,
@@ -92,16 +146,14 @@ Expected: FAIL. The module `./geo-utils` cannot be found.
  */
 export const kEarthMeanRadiusMeters = 6371000
 
-const toRadians = (degrees: number) => degrees * Math.PI / 180
-
 /**
  * Returns the great-circle (haversine) distance in meters between two points given in degrees.
  */
 export function greatCircleDistance(lat1: number, long1: number, lat2: number, long2: number) {
-  const deltaLat = toRadians(lat2 - lat1)
-  const deltaLong = toRadians(long2 - long1)
+  const deltaLat = degreesToRadians(lat2 - lat1)
+  const deltaLong = degreesToRadians(long2 - long1)
   const a = Math.sin(deltaLat / 2) ** 2 +
-            Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(deltaLong / 2) ** 2
+            Math.cos(degreesToRadians(lat1)) * Math.cos(degreesToRadians(lat2)) * Math.sin(deltaLong / 2) ** 2
   return 2 * kEarthMeanRadiusMeters * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 ```
@@ -134,7 +186,8 @@ Expected: PASS, with no test changes.
 
 Run: `npm run lint && npm run build:tsc`
 
-Proposed commit message: `Extract greatCircleDistance into geo-utils (CODAP-1642)`
+Proposed commit message:
+`Add degreesToRadians and use it in point shapes; extract greatCircleDistance into geo-utils (CODAP-1642)`
 
 ---
 
