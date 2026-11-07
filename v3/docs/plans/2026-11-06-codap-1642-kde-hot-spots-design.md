@@ -52,6 +52,125 @@ low-color → high-color gradient over the map.
 - UI for bandwidth / opacity / colors.
 - Per-legend-category surfaces.
 
+## Shared-Code Refactors (Phase 0)
+
+The hot spot work needs several things existing map code already does inline. Before adding the
+hot spots, extract them into shared code and switch the existing call sites over. That removes
+duplication rather than adding a new copy. Each refactor should be behavior-preserving, with
+existing tests passing, and can be its own commit.
+
+### R1. Lat/long → container point projection
+
+The `getBounds()` → `west`/`east` → `shiftLongitudeIntoView` → `latLngToContainerPoint` sequence is
+duplicated at:
+
+- `map-point-layer.tsx` `connectingLine` (`getCoords`)
+- `map-point-layer.tsx` `refreshHeatmap`
+- `map-point-layer.tsx` `refreshPoints` (`getCoords`)
+- `map-pin-layer.tsx` pin rendering
+
+Add to `src/components/map/utilities/map-utils.ts`:
+
+```ts
+/**
+ * Returns a function that projects lat/long to container pixels, shifting longitudes into the
+ * world copy nearest the current viewport. The viewport bounds are read once, when the projector
+ * is created, so create one per refresh, not per point.
+ */
+export function createLatLongProjector(map: LeafletMap): (lat: number, long: number) => Point
+```
+
+All four call sites, plus the hot spot grid (§6), use it.
+
+### R2. Reading a case's lat/long
+
+`dataset.getNumeric(caseID, latId/longId)` with ad hoc fallbacks is repeated at the three
+`map-point-layer.tsx` sites (each with `|| 0`), `map-pin-layer.tsx` (explicit finite check), and
+`map-grid-model.ts` (`!== undefined` check). Add to `map-utils.ts`:
+
+```ts
+/** Returns the case's lat/long, or undefined if either value is missing or non-finite. */
+export function getCaseLatLong(dataset: IDataSet, caseID: string, latId: string, longId: string)
+  : Maybe<{ lat: number, long: number }>
+```
+
+Also add a convenience view, `MapPointLayerModel.getCaseLatLong(caseID)`, that supplies the layer's
+dataset and lat/long attribute IDs. Callers skip cases that return `undefined`.
+
+The point layer's `|| 0` fallbacks only ever applied to cases from `getCaseDataArray(0)`, which
+`_filterCase` has already limited to cases with valid lat/long values. Replacing "use 0" with
+"skip" therefore shouldn't change behavior; confirm this while making the change.
+
+### R3. Great-circle distance
+
+The `greatCircleDistance` formula function (`src/models/formula/functions/other-functions.ts`)
+implements haversine inline (km, R = 6371). Extract it to a new
+`src/utilities/geo-utils.ts`:
+
+```ts
+export const kEarthMeanRadiusMeters = 6371000
+export function greatCircleDistance(lat1: number, long1: number, lat2: number, long2: number): number // meters
+```
+
+The formula function calls it and divides by 1000, so its results are unchanged. The default
+bandwidth calculation (§4) uses it directly. `geo-utils.ts` is also the home for the
+mean-center (3D unit-vector average) helper.
+
+Radius note: haversine distances use the mean radius (`kEarthMeanRadiusMeters`); converting
+meters to Web Mercator units (§1) uses the EPSG:3857 sphere radius (`kWebMercatorRadiusMeters =
+6378137`) because that is the sphere Leaflet's projection uses. The ~0.1% difference has no
+visible effect, but each constant should be used only for its own purpose.
+
+### R4. Color interpolation
+
+`interpolateColors` (`src/utilities/color-utils.ts`) interpolates two colors with colord but
+returns a hex string. The hot spot color table needs numeric RGBA. Split out:
+
+```ts
+export function interpolateRgba(color1: string, color2: string, t: number): { r, g, b, a }
+```
+
+`interpolateColors` becomes `colord(interpolateRgba(...)).toHex()`. The hot spot color table (§7)
+uses `interpolateRgba`, so there is one interpolation implementation and no d3 color code is needed.
+
+### R5. Shared point-data change signal
+
+`MapPointLayer` keeps several separate subscriptions that all mean "the set of plotted points or
+their coordinates changed":
+
+- `mstReaction` on `dataConfiguration.caseDataHash`
+- `onAnyAction` on the dataset for case-value changes and `addCases`/`removeCases`
+- `mstReaction` on the lat/long attribute types (which also calls `dataConfiguration.invalidateCases()`)
+
+The hot spot layer needs exactly the same signal, and `MapGridModel` needs it too (it currently
+reacts only to `caseDataHash`, see below). Move these into `MapPointLayerModel`:
+
+- A volatile `pointDataVersion` counter, bumped by the listeners above. They are installed in
+  `afterCreate` and re-installed when the data configuration's dataset changes (dispose the old
+  `onAnyAction` listener).
+- The lat/long type reaction's `invalidateCases()` call moves into the model too, so it runs once
+  regardless of how many components are listening.
+- The point layer's fast path, restyling only selected points while the dataset is caching
+  (`refreshPoints(dataset.isCaching())`), must keep working. The model records whether the latest
+  bump came from a value change made while caching (e.g. a volatile `pointDataChangeWasCaching`
+  flag) so the point layer can still choose the cheap refresh. Selection actions are not point-data
+  changes; the point layer keeps handling them itself.
+
+Consumers:
+
+- `MapPointLayer`: a single reaction on `pointDataVersion` replaces the three subscriptions. Its
+  handler does what they did (`callMatchCirclesToData` when the case set changed, `refreshPoints`,
+  `refreshConnectingLines`, `refreshHeatmap`).
+- `MapHotSpotLayer`: recomputes its data cache (§8) when `pointDataVersion` changes.
+- `MapGridModel`: its reaction watches `pointDataVersion` in addition to `gridMultiplier` and
+  `_gridSize`.
+
+**Suspected existing bug:** `caseDataHash` hashes only *which* cases are included
+(`hashStringSets(filteredCases.map(c => c.caseIds))`), not their values. So editing a lat/long value
+probably doesn't update `MapGridModel`'s cell counts. Before the refactor, write a failing test
+that edits a case's latitude and expects the grid counts to change. If it fails, R5 fixes it; if it
+passes, note why and drop this paragraph.
+
 ## Design
 
 ### 1. Coordinate system and the density function
@@ -90,8 +209,8 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
 })
 ```
 
-- Colors are stored as hex strings and parsed with d3's `color()`/`rgb()` when building the
-  color lookup table.
+- Colors are stored as hex strings and converted to RGBA with `interpolateRgba` (R4) when
+  building the color lookup table.
 - No setters are added yet (nothing changes these values). They'll come with the UI story.
 - `isDefaultHotSpotModel` keeps working: defaults appear in the default snapshot, and an
   unset `bandwidth` is omitted.
@@ -106,7 +225,7 @@ with invalid lat/long values; set-aside cases never reach the data configuration
 effect: "display only selected cases" also restricts the hot spots. This is consistent with
 the points and seems right.)
 
-For each case: read `lat`/`long` via `dataset.getNumeric(caseID, latId/longId)`.
+For each case: read `lat`/`long` via `mapPointLayerModel.getCaseLatLong(caseID)` (R2).
 
 ### 4. Default bandwidth
 
@@ -119,7 +238,8 @@ h = 0.9 · min(SD, √(1/ln 2) · Dₘ) · n^(−0.2)
 
 - **Mean center:** average of the points as 3D unit vectors, converted back to lat/long.
   This avoids the averaging-longitudes bug for data that crosses the antimeridian.
-- **Dᵢ:** great-circle (haversine) distance in meters from point *i* to the mean center.
+- **Dᵢ:** great-circle distance in meters from point *i* to the mean center
+  (`greatCircleDistance`, R3).
 - **SD (standard distance):** `√(Σ Dᵢ² / n)`.
 - **Dₘ:** median of the Dᵢ.
 - **n:** number of visible points.
@@ -130,7 +250,7 @@ Degenerate cases:
 |---|---|
 | `n = 0` | Draw nothing (no canvas content). |
 | `Dₘ = 0` but `SD > 0` (more than half the points coincide) | Use `SD` in place of the min. |
-| `SD = 0` (n = 1 or all points coincide) | Use `kFallbackBandwidthMeters` (see Open Questions). |
+| `SD = 0` (n = 1 or all points coincide) | Use `kFallbackBandwidthMeters` (10 km). |
 
 `effectiveBandwidth = hotSpotModel.bandwidth ?? computeDefaultBandwidth(points)`.
 
@@ -169,10 +289,8 @@ export const kHotSpotCellSize = 2   // px per grid cell side
   side, as in Leaflet's `L.Canvas`), so a pan doesn't immediately expose an undrawn edge.
 - Grid dimensions: `ceil(regionWidth / kHotSpotCellSize) × ceil(regionHeight / kHotSpotCellSize)`;
   densities are sampled at cell centers into a `Float32Array`.
-- Point positions: `leafletMap.latLngToContainerPoint([lat, shiftLongitudeIntoView(long, west, east)])`,
-  the same projection the points use, so the hot spots line up with the displayed points (a single
-  world copy).
-  - A utility function should be defined for this computation, and it should be used here and everywhere the projection is currently being used for points.
+- Point positions: `createLatLongProjector(leafletMap)` (R1), the same projection the points use,
+  so the hot spots line up with the displayed points (a single world copy).
 - Per-point pixel bandwidth: `hpxᵢ = hᵢ · 2^zoom`, equivalently
   `h / metersPerPixel(latᵢ, zoom)`.
 - **Separable accumulation:** `exp(−(dx² + dy²)/2h²) = exp(−dx²/2h²) · exp(−dy²/2h²)`. For each point,
@@ -186,7 +304,7 @@ this is too slow for large `n` × large `hpx` (zoomed far in), add the fallback 
 
 ### 7. Colorizing and drawing
 
-- **Color LUT:** 256 RGBA entries interpolated from `lowColor` to `highColor` (`d3.interpolateRgb`),
+- **Color LUT:** 256 RGBA entries interpolated from `lowColor` to `highColor` (`interpolateRgba`, R4),
   alpha 255. `t = clamp(density / maxDensity, 0, 1)` (the minimum is 0) indexes the LUT.
   - *Future gradients* replace the two-stop interpolation with a multi-stop one.
   - *Future binning* quantizes `t` (or builds a stepped LUT).
@@ -219,11 +337,7 @@ modeled on `L.Canvas`:
 
 - Adds/removes the `HotSpotCanvasLayer` when `show` toggles (replacing the placeholder rectangle).
 - **Data-dependent cache:** the points, effective bandwidth, zoom-0 projections, `hᵢ`, and
-  `maxDensity`. This is recomputed when a `dataVersion` counter changes. The counter is bumped by the same triggers
-  `MapPointLayer` uses for its points/heatmap: `caseDataHash` reaction, case-value-change actions,
-  add/remove cases, and lat/long attribute type changes. During implementation, check whether a MobX
-  computed over `getCaseDataArray(0)` + `getNumeric` already observes value changes; if so, a
-  computed can replace the counter.
+  `maxDensity`. Recomputed when `mapPointLayerModel.pointDataVersion` (R5) changes.
 - **View-dependent redraw:** debounced (~10ms, like the heatmap) on data cache changes, model
   property changes (`bandwidth`, colors, `opacity`), and the layer's map events.
 
@@ -236,10 +350,25 @@ In `src/components/map/utilities/hot-spot-utils.ts`:
 | `kHotSpotCellSize` | `2` | Grid cell side length in CSS px |
 | `kKernelCutoff` | `3` | Kernel truncation radius, in bandwidths |
 | `kHotSpotPadding` | `0.1` | Extra canvas margin around the viewport |
-| `kFallbackBandwidthMeters` | TBD | Bandwidth when the spread is zero |
-| `kEarthRadiusMeters` | `6378137` | Must match Leaflet EPSG:3857 |
+| `kFallbackBandwidthMeters` | `10000` | Bandwidth when the spread is zero |
+| `kWebMercatorRadiusMeters` | `6378137` | Meters → Web Mercator units; must match Leaflet EPSG:3857 |
+
+`kEarthMeanRadiusMeters` (6371000, used for great-circle distances) lives in `geo-utils.ts` (R3).
 
 ## Files
+
+**Phase 0 (refactors)**
+
+- Create `src/utilities/geo-utils.ts` (+ test): `greatCircleDistance`, mean center, `kEarthMeanRadiusMeters` (R3).
+- `src/components/map/utilities/map-utils.ts` (+ test): `createLatLongProjector` (R1), `getCaseLatLong` (R2).
+- `src/utilities/color-utils.ts` (+ test): `interpolateRgba`; `interpolateColors` delegates to it (R4).
+- `src/models/formula/functions/other-functions.ts`: `greatCircleDistance` uses `geo-utils` (R3).
+- `src/components/map/models/map-point-layer-model.ts`: `getCaseLatLong` view (R2); `pointDataVersion`,
+  caching flag, data-change listeners, lat/long type invalidation (R5).
+- `src/components/map/components/map-point-layer.tsx`: use R1/R2; replace its data-change
+  subscriptions with a `pointDataVersion` reaction (R5).
+- `src/components/map/components/map-pin-layer.tsx`: use R1/R2.
+- `src/components/map/models/map-grid-model.ts` (+ test): use R2; react to `pointDataVersion` (R5).
 
 **Create**
 
@@ -258,6 +387,18 @@ In `src/components/map/utilities/hot-spot-utils.ts`:
 - `src/components/map/components/map-hot-spot-layer.tsx` (+ test): real rendering.
 
 ## Testing
+
+**Jest: Phase 0 refactors**
+
+- `greatCircleDistance`: known city-pair distances; formula function results unchanged.
+- Mean center: simple cases; antimeridian-straddling points center near ±180°, not 0°.
+- `createLatLongProjector`: matches the inline computation it replaces, including a dateline-crossing view.
+- `getCaseLatLong`: valid, missing, and non-finite values.
+- `interpolateRgba`: endpoints, midpoint, alpha; `interpolateColors` output unchanged.
+- `pointDataVersion` bumps on case add/remove, value change, hide/filter, and lat/long type change,
+  and not on selection changes.
+- `MapGridModel` counts update after a lat/long value edit (the R5 suspected-bug test, written first).
+- Existing map Jest and Cypress tests pass unchanged.
 
 **Jest: pure functions (TDD)**
 
@@ -290,6 +431,9 @@ In `src/components/map/utilities/hot-spot-utils.ts`:
 
 ## Implementation Phases
 
+0. **Shared-code refactors:** R1–R5, each a behavior-preserving commit (except the R5 grid fix),
+   with existing tests green before moving on. Suggested order: R3, R4 (independent and small),
+   R2, R1, then R5 (largest, touches `MapPointLayer`'s reactions).
 1. **Model:** add properties, V2 types, tests.
 2. **Math utilities (TDD):** bandwidth, projections, max density, grid, colorization.
 3. **Canvas layer:** `HotSpotCanvasLayer` with positioning, zoom animation, and resize handling.
@@ -299,9 +443,8 @@ In `src/components/map/utilities/hot-spot-utils.ts`:
    when `Σ(kernel window area)` exceeds a threshold. Consider throttled redraws during drag if
    the padded edge is noticeable.
 
-## Open Questions
+## Resolved Decisions
 
-1. **`kFallbackBandwidthMeters`:** proposed 10 km for the single-point / all-coincident case. Is
-   there a better choice (e.g., derived from the current map view)?
-2. **Large-n budget:** at what dataset size should we accept slower recomputation of the max (mean-shift)
-   vs. switching to a cheaper approximation?
+1. **`kFallbackBandwidthMeters`:** fixed 10 km for now.
+2. **Large datasets:** performance tuning for large `n` (mean-shift cost, grid fallback) is deferred
+   to a later story.
