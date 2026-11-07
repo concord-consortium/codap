@@ -110,7 +110,10 @@ export class UIState {
     // the modal on the CFM `willOpenFile` event.
     this._hideUserEntryModal = !!sample || booleanParam(dashboard) || !!di ||
       booleanParam(noEntryModal) || !!url || hasInteractiveApiContext()
-    this._suppressWelcome = booleanParam(noEntryModal) || hasInteractiveApiContext()
+    // Suppress the welcome view for launches that go straight into a specific experience
+    // (a data interactive, a sample data set, or the dashboard) as well as embedded contexts.
+    this._suppressWelcome = !!sample || booleanParam(dashboard) || !!di ||
+      booleanParam(noEntryModal) || hasInteractiveApiContext()
 
     // Initialize standalone mode
     this._standaloneMode = booleanParam(standalone)
@@ -247,8 +250,8 @@ export class UIState {
   }
 
   // Whether the About dialog should open on its welcome view when CODAP loads. It still opens when a document
-  // opens automatically, but not in embedded contexts, when startup dialogs are suppressed, or when the user has
-  // asked not to see it again.
+  // opens automatically, but not for di, sample, or dashboard launches, in embedded contexts, when startup dialogs
+  // are suppressed, or when the user has asked not to see it again.
   get shouldShowWelcome() {
     return !persistentState.hideWelcome && !this.minimalChrome && !this.standaloneMode && !this._suppressWelcome
   }

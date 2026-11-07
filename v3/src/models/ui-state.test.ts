@@ -514,16 +514,18 @@ describe("UIState", () => {
       expect(new UIState().shouldShowWelcome).toBe(false)
     })
 
-    it.each(["?componentMode=yes", "?embeddedMode=yes", "?standalone=true", "?interactiveApi", "?noEntryModal"])(
+    it.each([
+      "?componentMode=yes", "?embeddedMode=yes", "?standalone=true", "?interactiveApi", "?noEntryModal",
+      "?di=https://example.com/plugin/index.html", "?sample=mammals", "?dashboard"
+    ])(
       "should be false with %s", params => {
         setUrlParams(params)
         expect(new UIState().shouldShowWelcome).toBe(false)
       })
 
-    it.each(["?url=https://example.com/shared.codap", "?sample=mammals"])(
-      "should be true when a document opens automatically (%s)", params => {
-        setUrlParams(params)
-        expect(new UIState().shouldShowWelcome).toBe(true)
-      })
+    it("should be true when a document opens automatically", () => {
+      setUrlParams("?url=https://example.com/shared.codap")
+      expect(new UIState().shouldShowWelcome).toBe(true)
+    })
   })
 })
