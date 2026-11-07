@@ -252,6 +252,15 @@ Start a drag from inside a plugin, so the user can drop an attribute onto a grap
 }
 ```
 
+Delete an attribute, and with it its value in every case:
+
+```json
+{
+  "action": "delete",
+  "resource": "dataContext[Mammals].attribute[Notes]"
+}
+```
+
 ## Known limitations
 
 **The protection properties come in two spellings that mean opposite things.** `get` reports

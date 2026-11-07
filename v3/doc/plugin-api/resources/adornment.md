@@ -242,6 +242,17 @@ can display them.
 The adornment remains in the graph's store with `isVisible: false`, so a subsequent `get`
 succeeds rather than reporting it missing.
 
+**Show it again.** Because the hidden adornment is still in the store, `update` can turn it back
+on:
+
+```json
+{
+  "action": "update",
+  "resource": "component[Heights].adornment",
+  "values": { "type": "Mean", "isVisible": true }
+}
+```
+
 ## Notifications
 
 Toggling an adornment emits a component notification whose operation is specific to the
