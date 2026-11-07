@@ -60,25 +60,11 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
   const { wrapClickHandler } = useMapClickWithDoubleClickZoom(leafletMap)
 
   const connectingLine = useCallback((caseID: string, west: number, east: number) => {
-    const {latId, longId} = mapLayerModel.pointAttributes || {}
-    if (!dataset || !latId || !longId) return
+    const latLong = mapLayerModel.getCaseLatLong(caseID)
+    if (!dataset || !latLong) return
 
-    const getCoords = (anID: string) => {
-      const long = dataset.getNumeric(anID, longId) || 0,
-        lat = dataset?.getNumeric(anID, latId) || 0
-      const shiftedLong = shiftLongitudeIntoView(long, west, east)
-      return leafletMap.latLngToContainerPoint([lat, shiftedLong])
-    },
-    getScreenX = (anID: string) => {
-      const coords = getCoords(anID)
-      return coords.x
-    },
-    getScreenY = (anID: string) => {
-      const coords = getCoords(anID)
-      return coords.y
-    }
-    const xValue = getScreenX(caseID)
-    const yValue = getScreenY(caseID)
+    const { x: xValue, y: yValue } =
+      leafletMap.latLngToContainerPoint([latLong.lat, shiftLongitudeIntoView(latLong.long, west, east)])
     if (isFinite(xValue) && isFinite(yValue)) {
       const caseData = dataset?.getFirstItemForCase(caseID, { numeric: false })
       if (caseData) {
@@ -212,19 +198,17 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       })
 
       // Add the data to the heatmap
-      const { latId, longId } = mapLayerModel.pointAttributes || {}
-      if (!latId || !longId) return
       const mapBounds = leafletMap.getBounds()
       const west = mapBounds.getWest()
       const east = mapBounds.getEast()
       dataConfiguration.joinedCaseDataArrays.forEach(c => {
         const { caseID } = c
+        const latLong = mapLayerModel.getCaseLatLong(caseID)
+        if (!latLong) return
         const value = dataset.getNumeric(caseID, legendAttributeId) || minValue
         const normalizedValue = (value - minValue) / (maxValue - minValue)
-        const long = dataset.getNumeric(caseID, longId) || 0
-        const lat = dataset.getNumeric(caseID, latId) || 0
-        const shiftedLong = shiftLongitudeIntoView(long, west, east)
-        const point = leafletMap.latLngToContainerPoint([lat, shiftedLong])
+        const shiftedLong = shiftLongitudeIntoView(latLong.long, west, east)
+        const point = leafletMap.latLngToContainerPoint([latLong.lat, shiftedLong])
         simpleheatRef.current?.add([point.x * scaleX, point.y * scaleY, normalizedValue])
       })
     }
@@ -330,21 +314,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     const mapBounds = leafletMap.getBounds()
     const west = mapBounds.getWest()
     const east = mapBounds.getEast()
-    const {pointSizeMultiplier, pointStrokeColor} = pointDescription,
-      getCoords = (anID: string) => {
-        const long = longId ? dataset?.getNumeric(anID, longId) || 0 : 0,
-          lat = latId ? dataset?.getNumeric(anID, latId) || 0 : 0
-        const shiftedLong = shiftLongitudeIntoView(long, west, east)
-        return leafletMap.latLngToContainerPoint([lat, shiftedLong])
-      },
-      getScreenX = (anID: string) => {
-        const coords = getCoords(anID)
-        return coords.x
-      },
-      getScreenY = (anID: string) => {
-        const coords = getCoords(anID)
-        return coords.y
-      }
+    const {pointSizeMultiplier, pointStrokeColor} = pointDescription
     if (!renderer || !dataset) {
       return
     }
@@ -366,7 +336,12 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     prf.measure("Map.refreshPoints[forEachPoint]", () => {
       renderer.forEachPoint((point: IPoint, metadata: IPointMetadata) => {
         const {caseID} = metadata
-        renderer.setPointPosition(point, getScreenX(caseID), getScreenY(caseID))
+        const latLong = mapLayerModel.getCaseLatLong(caseID)
+        if (latLong) {
+          const { x, y } =
+            leafletMap.latLngToContainerPoint([latLong.lat, shiftLongitudeIntoView(latLong.long, west, east)])
+          renderer.setPointPosition(point, x, y)
+        }
         renderer.setPointStyle(point, {
           radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
           fill: lookupLegendColor(metadata),

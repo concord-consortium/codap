@@ -6,6 +6,7 @@ import {MapLayerModel} from "./map-layer-model"
 import {IDataSet} from "../../../models/data/data-set"
 import {getMetadataFromDataSet} from "../../../models/shared/shared-data-utils"
 import {computePointRadius} from "../../data-display/data-display-utils"
+import {getCaseLatLong} from "../utilities/map-utils"
 import {MapGridModel} from "./map-grid-model"
 import {MapHotSpotModel} from "./map-hot-spot-model"
 
@@ -49,6 +50,11 @@ export const MapPointLayerModel = MapLayerModel
       const latId = self.dataConfiguration.attributeID('lat')
       const longId = self.dataConfiguration.attributeID('long')
       return latId && longId ? { latId, longId } : undefined
+    },
+    getCaseLatLong(caseID: string) {
+      const { dataset } = self.dataConfiguration
+      const attrs = this.pointAttributes
+      return dataset && attrs ? getCaseLatLong(dataset, caseID, attrs.latId, attrs.longId) : undefined
     },
     getPointRadius(use: 'normal' | 'hover-drag' | 'select' = 'normal') {
       return computePointRadius(self.dataConfiguration.getCaseDataArray(0).length,
