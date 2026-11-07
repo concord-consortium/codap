@@ -194,4 +194,16 @@ describe("DataInteractive AttributeHandler", () => {
     expect(handler.delete?.({ dataContext, attribute }).success).toEqual(true)
     expect(dataContext.attributes.length).toBe(0)
   })
+
+  it("get includes _categoryMap only once the attribute's categories have been used, as in V2", () => {
+    const { dataset: dataContext, metadata, a1 } = setupTestDataset()
+    const spy = jest.spyOn(SharedDataUtils, "getMetadataFromDataSet").mockReturnValue(metadata)
+    const attrResult = () => (handler.get?.({ dataContext, attribute: a1 })?.values as any)
+    expect(attrResult()._categoryMap).toBeUndefined()
+    // reading the attribute creates no category set
+    expect(metadata.provisionalCategories.size).toBe(0)
+    metadata.getCategorySet(a1.id)
+    expect(attrResult()._categoryMap?.__order).toEqual(["a", "b"])
+    spy.mockRestore()
+  })
 })
