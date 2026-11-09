@@ -841,9 +841,11 @@ export function computeHotSpotSurface(latLongs: ILatLong[], bandwidthMeters?: nu
 ```
 
 `map-point-layer-model.ts`: import `ILatLong` from `"../map-types"` and `computeHotSpotSurface`,
-`IHotSpotSurface` from `"../utilities/hot-spot-utils"`. In the last `.views` block, after `getCaseLatLong`, add:
+`IHotSpotSurface` from `"../utilities/hot-spot-utils"`. After the last `.views` block (the one that defines
+`getCaseLatLong`), add a new `.views` block so the getter can call `self.getCaseLatLong`:
 
 ```ts
+  .views(self => ({
     /**
      * The hot spots' density surface.
      */
@@ -852,11 +854,12 @@ export function computeHotSpotSurface(latLongs: ILatLong[], bandwidthMeters?: nu
       void self.pointDataVersion
       const latLongs: ILatLong[] = []
       self.dataConfiguration.getCaseDataArray(0).forEach(({ caseID }) => {
-        const latLong = this.getCaseLatLong(caseID)
+        const latLong = self.getCaseLatLong(caseID)
         if (latLong) latLongs.push(latLong)
       })
       return computeHotSpotSurface(latLongs, self.hotSpotModel.bandwidth)
-    },
+    }
+  }))
 ```
 
 Run: `npm test -- hot-spot-utils map-point-layer-model`
@@ -1339,6 +1342,7 @@ export class HotSpotCanvasLayer extends Layer {
   private updateTransform(center: LatLng, zoom: number) {
     const map: Maybe<LeafletMap> = this._map
     if (!map || !this.canvas || !this.drawnCenter) return
+
     const scale = map.getZoomScale(zoom, this.drawnZoom)
     const viewHalf = map.getSize().multiplyBy(0.5 + kHotSpotPadding)
     const drawnCenterPoint = map.project(this.drawnCenter, zoom)
@@ -1459,11 +1463,12 @@ export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayer
   const show = isFeatureEnabled("mapHotSpot") && isVisible && hotSpotModel.isVisible
   const { opacity } = hotSpotModel
   const layerRef = useRef<HotSpotCanvasLayer>()
-  // Coalesce bursts of changes (e.g. while dragging a point) into one redraw, as the heatmap does
+  // Coalesce bursts of changes (e.g. while dragging a point) into one redraw
   const redraw = useDebouncedCallback(() => layerRef.current?.redraw(), 10)
 
   useEffect(() => {
     if (!show) return
+
     getHotSpotPane(leafletMap)
     const layer = new HotSpotCanvasLayer({ pane: kHotSpotPaneName })
     layerRef.current = layer
@@ -1478,6 +1483,7 @@ export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayer
     layer.setDrawFunction((context, region) => {
       const surface = mapPointLayerModel.hotSpotSurface
       if (!surface) return
+
       const imageData = context.createImageData(region.cols, region.rows)
       const zoomScale = leafletMap.getZoomScale(leafletMap.getZoom(), 0)
       const lut = buildColorLUT(hotSpotModel.lowColor, hotSpotModel.highColor)
