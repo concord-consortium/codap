@@ -397,7 +397,7 @@ Expected: FAIL. The module doesn't exist.
 import { CRS, latLng, Point } from "leaflet"
 import { interpolateRgba } from "../../../utilities/color-utils"
 import { computeMeanCenter, greatCircleDistance } from "../../../utilities/geo-utils"
-import { degreesToRadians, quantileOfSortedArray } from "../../../utilities/math-utils"
+import { degreesToRadians, mod, quantileOfSortedArray } from "../../../utilities/math-utils"
 import { ILatLong } from "../map-types"
 import { LatLongProjector } from "./map-utils"
 
@@ -544,7 +544,42 @@ Add default hot spot bandwidth from the points' spread (CODAP-1642)
 ## Task 5: Maximum density (mean-shift)
 
 **Files:**
+- Modify: `utilities/math-utils.ts`, `utilities/math-utils.test.ts`
 - Modify: `components/map/utilities/hot-spot-utils.ts`, `hot-spot-utils.test.ts`
+
+**Step 0a: Write the failing `mod` test**
+
+JavaScript's `%` keeps the dividend's sign (`-1 % 256 === -1`), and the spatial index needs a result in
+`[0, m)`. In `math-utils.test.ts`, add `mod` to the import and add:
+
+```ts
+describe("mod", () => {
+  it("returns a result in [0, m), even for negative numbers", () => {
+    expect(mod(5, 3)).toBe(2)
+    expect(mod(-1, 3)).toBe(2)
+    expect(mod(-3, 3)).toBe(0)
+    expect(mod(0, 3)).toBe(0)
+    expect(mod(-0.5, 256)).toBeCloseTo(255.5)
+  })
+})
+```
+
+Run: `npm test -- math-utils`
+Expected: FAIL. `mod` is not a function.
+
+**Step 0b: Implement `mod`**
+
+In `math-utils.ts`:
+
+```ts
+/** Returns n modulo m with the sign of m (so in [0, m) for positive m), unlike %, which keeps the sign of n */
+export function mod(n: number, m: number) {
+  return ((n % m) + m) % m
+}
+```
+
+Run: `npm test -- math-utils`
+Expected: PASS.
 
 **Step 1: Write the failing tests**
 
@@ -652,8 +687,6 @@ export function kernelWeight(dx: number, dy: number, h: number) {
 export function wrapWorldDelta(dx: number) {
   return dx - kWorldSize * Math.round(dx / kWorldSize)
 }
-
-const mod = (n: number, m: number) => ((n % m) + m) % m
 
 /**
  * Buckets world-coordinate kernels so that every kernel whose window contains a location is in that location's
