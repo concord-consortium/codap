@@ -1,5 +1,6 @@
 import { CRS, latLng, Point } from "leaflet"
-import { degreesToRadians } from "../../../utilities/math-utils"
+import { computeMeanCenter, greatCircleDistance } from "../../../utilities/geo-utils"
+import { degreesToRadians, quantileOfSortedArray } from "../../../utilities/math-utils"
 import { ILatLong } from "../map-types"
 
 /** Grid cell side length, in CSS pixels */
@@ -31,4 +32,29 @@ export function bandwidthToWorldUnits(bandwidthMeters: number, lat: number) {
   const metersPerWorldUnit =
     2 * Math.PI * kWebMercatorRadiusMeters * Math.cos(degreesToRadians(clampedLat)) / kWorldSize
   return bandwidthMeters / metersPerWorldUnit
+}
+
+// Spreads smaller than this are floating-point error from coincident points
+const kMinSpreadMeters = 0.001
+
+/**
+ * Returns the default bandwidth in meters, using the default search radius of ArcGIS's Kernel Density tool:
+ * 0.9 · min(SD, √(1/ln 2) · Dm) · n^(−0.2), where SD is the standard distance of the points from their mean center
+ * and Dm is their median distance from it.
+ */
+export function computeDefaultBandwidth(latLongs: ILatLong[]) {
+  const center = computeMeanCenter(latLongs)
+  if (!center) return kFallbackBandwidthMeters
+
+  const distances = latLongs.map(({ lat, long }) => greatCircleDistance(lat, long, center.lat, center.long))
+  const n = distances.length
+  const standardDistance = Math.sqrt(distances.reduce((sum, d) => sum + d * d, 0) / n)
+  if (standardDistance < kMinSpreadMeters) return kFallbackBandwidthMeters
+
+  const medianDistance = quantileOfSortedArray([...distances].sort((a, b) => a - b), 0.5) ?? 0
+  // When more than half of the points are at the mean center, the median is zero, so use SD alone
+  const spread = medianDistance < kMinSpreadMeters
+    ? standardDistance
+    : Math.min(standardDistance, Math.sqrt(1 / Math.LN2) * medianDistance)
+  return 0.9 * spread * n ** -0.2
 }
