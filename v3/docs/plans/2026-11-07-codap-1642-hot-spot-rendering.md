@@ -1280,6 +1280,16 @@ describe("HotSpotCanvasLayer", () => {
     map.remove()
   })
 
+  it("leaves the canvas alone during a zoom animation if Leaflet lacks _getNewPixelOrigin", () => {
+    const { map, canvas } = setup()
+    const transform = canvas.style.transform
+    // shadow the prototype method, as if a Leaflet upgrade had removed it
+    Object.defineProperty(map, "_getNewPixelOrigin", { value: undefined })
+    map.fire("zoomanim", { center: map.getCenter(), zoom: map.getZoom() + 1, noUpdate: false })
+    expect(canvas.style.transform).toBe(transform)
+    map.remove()
+  })
+
   it("sets the canvas opacity", () => {
     const { map, layer, canvas } = setup()
     layer.setOpacity(0.75)
@@ -1313,6 +1323,11 @@ export type HotSpotDrawFunction = (context: CanvasRenderingContext2D, region: ID
 // Leaflet's own renderers use this private method to position themselves during zoom animations
 interface ILeafletMapInternals {
   _getNewPixelOrigin(center: LatLng, zoom: number): Point
+}
+
+// Private methods can disappear in a Leaflet upgrade, so check for it rather than assume it
+function hasGetNewPixelOrigin(map: LeafletMap): map is LeafletMap & ILeafletMapInternals {
+  return "_getNewPixelOrigin" in map && typeof map._getNewPixelOrigin === "function"
 }
 
 /**
@@ -1405,15 +1420,16 @@ export class HotSpotCanvasLayer extends Layer {
   }
 
   // Scales and offsets the canvas drawn for drawnCenter/drawnZoom to where it belongs at the given view.
-  // Same computation as L.Renderer._updateTransform.
+  // Same computation as L.Renderer._updateTransform. Without _getNewPixelOrigin the canvas just stays put during
+  // the zoom and is redrawn correctly on moveend.
   private updateTransform(center: LatLng, zoom: number) {
     const map: Maybe<LeafletMap> = this._map
-    if (!map || !this.canvas || !this.drawnCenter) return
+    if (!map || !hasGetNewPixelOrigin(map) || !this.canvas || !this.drawnCenter) return
 
     const scale = map.getZoomScale(zoom, this.drawnZoom)
     const viewHalf = map.getSize().multiplyBy(0.5 + kHotSpotPadding)
     const drawnCenterPoint = map.project(this.drawnCenter, zoom)
-    const newPixelOrigin = (map as unknown as ILeafletMapInternals)._getNewPixelOrigin(center, zoom)
+    const newPixelOrigin = map._getNewPixelOrigin(center, zoom)
     const topLeftOffset = viewHalf.multiplyBy(-scale).add(drawnCenterPoint).subtract(newPixelOrigin)
     DomUtil.setTransform(this.canvas, topLeftOffset, scale)
   }
