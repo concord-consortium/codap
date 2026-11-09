@@ -164,7 +164,6 @@ export const UndoStore = types
         console.log(`adding to undo history`, (entry as any).toJSON()/*.action*/)
       }
       const existingEntry = self.findHistoryEntry(entry.id)
-      const prevUndoIdx = self.undoIdx
       if (!existingEntry) {
         // This is a new user action, so if they had undone some amount already
         // we delete the part of the history that was past this undone point
@@ -181,8 +180,7 @@ export const UndoStore = types
       // are being added to an existing entry these are still user triggered
       // patches. So this needs to prevent the ability to redo.
       self.undoIdx = self.history.length
-      // a new entry, or more patches for an existing one that discard what could be redone
-      if (!existingEntry || self.undoIdx !== prevUndoIdx) self.historyListener?.("add")
+      self.historyListener?.("add")
     },
 
     // TODO: The MST undo manager that this code is based on, used atomic
@@ -198,6 +196,7 @@ export const UndoStore = types
       }
 
       const entryToUndo = self.history[self.undoIdx -1]
+      let patchesApplied: Promise<unknown> | undefined
 
       if (entryToUndo.customPatches?.length) {
         const manager: Instance<typeof TreeManager> = getParent(self)
@@ -217,11 +216,13 @@ export const UndoStore = types
         //
         // TODO: we aren't actually calling this as an action and we
         // aren't waiting for it to finish before returning
-        applyPatchesToTrees(entryToUndo, HistoryOperation.Undo)
+        patchesApplied = applyPatchesToTrees(entryToUndo, HistoryOperation.Undo)
       }
 
       self.undoIdx--
-      self.historyListener?.("undo")
+      // tell the listener once the patches have been applied, as V2 did after the command's undo
+      if (patchesApplied) patchesApplied.then(() => self.historyListener?.("undo"))
+      else self.historyListener?.("undo")
       return {
         id: entryToUndo.id,
         action: entryToUndo.action
@@ -233,6 +234,7 @@ export const UndoStore = types
       }
 
       const entryToRedo = self.history[self.undoIdx]
+      let patchesApplied: Promise<unknown> | undefined
 
       if (entryToRedo.customPatches?.length) {
         const manager: Instance<typeof TreeManager> = getParent(self)
@@ -253,11 +255,13 @@ export const UndoStore = types
         // TODO: we aren't actually calling this as an action and we
         // aren't waiting for it to finish before returning
         //
-        applyPatchesToTrees(entryToRedo, HistoryOperation.Redo)
+        patchesApplied = applyPatchesToTrees(entryToRedo, HistoryOperation.Redo)
       }
 
       self.undoIdx++
-      self.historyListener?.("redo")
+      // tell the listener once the patches have been applied, as V2 did after the command's redo
+      if (patchesApplied) patchesApplied.then(() => self.historyListener?.("redo"))
+      else self.historyListener?.("redo")
       return {
         id: entryToRedo.id,
         action: entryToRedo.action

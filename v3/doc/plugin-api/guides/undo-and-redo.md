@@ -52,8 +52,7 @@ When your plugin does something the user should be able to undo, it tells CODAP:
 }
 ```
 
-CODAP adds an entry to its history and replies with the state of the history afterwards. Today
-the reply can describe the history before the entry; see [Known limitations](#known-limitations).
+CODAP adds an entry to its history and replies with the state of the history afterwards.
 `logMessage` is optional; it describes the action in CODAP's log.
 
 CODAP does not know what the action was. When the user undoes that entry, CODAP sends your plugin
@@ -182,7 +181,10 @@ CODAP, so CODAP also tells every plugin when it changes:
 
 Both carry `canUndo` and `canRedo` as they are after the change. Set your buttons from those values
 whatever the operation is called. v2 erased the undo history, and sent `clearUndo`, whenever a
-change could not be undone; CODAP keeps the history then, so it does not send it for that.
+change could not be undone and after an `update document`. CODAP keeps the history after a change
+that cannot be undone, so it does not send `clearUndo` for that. It does not yet erase the history
+after an `update document` either, and sends `clearRedo` with `canUndo: true` instead. This is a
+known bug.
 
 Undoing or redoing sends neither. Instead, CODAP sends every plugin a notification on
 [`document`](../resources/document.md) with operation `undo` or `redo`, as v2 did. It also carries

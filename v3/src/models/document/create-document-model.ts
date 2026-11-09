@@ -76,14 +76,7 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
 
   historyService.setDependencies(fullEnvironment)
 
-  // Notify plugins of changes to the undo history, as V2 does (undo_history.js on master):
-  // - each undoable action sends `clearRedo` on `undoChangeNotice`, even when the redo stack was
-  //   already empty, with `canUndo`/`canRedo` after the action is added (:109-111, :366-370). This
-  //   is how a plugin with its own undo/redo buttons learns that undo became possible.
-  // - each undo or redo sends `undo` or `redo` on `document` (:160-167, :215-222). V3 adds
-  //   `canUndo`/`canRedo`, so such a plugin can keep its buttons in step.
-  // V2 also sent `clearUndo` with `clearRedo` when a change that could not be undone erased the
-  // history. V3 never erases the history, so it never sends them for that.
+  // clearRedo on each new entry, and undo or redo on document, as in V2 (undo_history.js)
   document.treeManagerAPI?.undoManager.setHistoryListener(change => {
     const { canUndo, canRedo } = document
     if (change === "add") {

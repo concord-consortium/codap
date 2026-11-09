@@ -35,8 +35,7 @@ function sendUndoRedoMessage(tileId: string, operation: "undoAction" | "redoActi
     // as in V2, only an explicit `success: false` is a failure
     if (response?.success === false) {
       console.warn(`Plugin ${tileId} failed to handle ${operation}:`, response)
-      // as in V2 (data_interactive_phone_handler.js:2308-2312), tell the user. V2 always used the undo
-      // message, even for a redo, and erased the undo history when the alert was dismissed.
+      // as in V2 (data_interactive_phone_handler.js:2308-2312)
       appState.alert(t(operation === "undoAction" ? "DG.Undo.exceptionOccurred" : "DG.Redo.exceptionOccurred"),
         undefined)
     }
@@ -63,9 +62,7 @@ function undoRedoResult(): { canUndo: boolean, canRedo: boolean } {
   return { canUndo: document.canUndo, canRedo: document.canRedo }
 }
 
-// A history entry joins the undo store asynchronously, once the change has been recorded; wait for a
-// new entry to reach the top of the undo store so the reply reports the history after the change, as
-// V2's did. If it hasn't arrived within a second, report the history as it stands.
+// wait for the new entry so the reply describes the history after it; give up after a second
 async function newUndoEntryRecorded(priorUndoEntryId?: string) {
   const undoManager = appState.document.treeManagerAPI?.undoManager
   if (!undoManager) return
