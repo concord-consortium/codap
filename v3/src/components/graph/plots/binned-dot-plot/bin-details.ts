@@ -80,14 +80,12 @@ export class BinDetails {
 
   getMaxBinEdge(): number | undefined {
     if (this.binWidth == null || this.minBinEdge == null) return undefined
-    let maxBinEdge = this.roundToBinEdgePrecision(
-      this.minBinEdge + Math.ceil((this.maxValue - this.minBinEdge) / this.binWidth) * this.binWidth
-    )
-    // if the maxValue is exactly on a bin edge, add another bin to include it
-    if (this.maxValue === maxBinEdge) {
-      maxBinEdge = this.roundToBinEdgePrecision(maxBinEdge + this.binWidth)
+    let numberOfBins = Math.ceil((this.maxValue - this.minBinEdge) / this.binWidth)
+    // if the maxValue is on the last bin edge, add another bin to include it
+    if ((this.getBinForValue(this.maxValue) ?? 0) >= numberOfBins) {
+      ++numberOfBins
     }
-    return maxBinEdge
+    return this.roundToBinEdgePrecision(this.minBinEdge + numberOfBins * this.binWidth)
   }
 
   getTotalNumberOfBins(): number {

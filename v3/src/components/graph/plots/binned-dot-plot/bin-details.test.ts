@@ -79,6 +79,12 @@ describe("BinDetails", () => {
     expect(wideBinDetails.getBinForValue(1.5e9 - 0.001)).toBe(4)
   })
 
+  it("should include a max value within floating-point error of the last bin edge in the last bin", () => {
+    const binDetails = new BinDetails(1e9, 1.5e9 - 1e-6, 1e8, 1e9)
+    expect(binDetails.totalNumberOfBins).toBe(6)
+    expect(binDetails.getBinForValue(1.5e9 - 1e-6)).toBe(5)
+  })
+
   it("should put large values exactly on a narrow bin edge in the upper bin", () => {
     const minDate = Date.UTC(2024, 0, 5) / 1000
     const binDetails = new BinDetails(minDate, minDate + 1, 0.2, minDate)
