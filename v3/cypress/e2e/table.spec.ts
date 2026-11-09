@@ -716,3 +716,128 @@ context("case table ui", () => {
     })
   })
 })
+
+context("edit attribute properties date precision", () => {
+  const precisionSelect = () => cy.get("[data-testid=attr-precision-select]")
+  const enterValues = (values: string[]) => {
+    values.forEach((value, i) => table.typeInCell(2, i + 2, `{selectAll}${value}`))
+  }
+  const openEditDialog = () => {
+    table.openAttributeMenu("a")
+    table.selectMenuItemFromAttributeMenu("Edit Attribute Properties...")
+  }
+  const years = ["1990", "2005", "2024", "2024"]
+
+  beforeEach(() => {
+    cy.visit(`${Cypress.config("index")}?sample=four&suppressUnsavedWarning`)
+    cy.wait(1000)
+  })
+
+  it("infers year precision when an untyped column of years is changed to date", () => {
+    enterValues(years)
+    openEditDialog()
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", "year")
+    table.getApplyButton().click({ force: true })
+    table.getCell(2, 2).should("have.text", "1990")
+
+    cy.log("reopening the dialog shows the stored date type and precision")
+    openEditDialog()
+    cy.get("[data-testid=attr-type-select]").should("have.text", "date")
+    precisionSelect().should("have.text", "year")
+    table.getCancelButton().click({ force: true })
+  })
+
+  it("restores the earlier precision when switching away from date", () => {
+    enterValues(years)
+    openEditDialog()
+    table.selectAttributeType("numeric")
+    table.selectAttributePrecision("3")
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", "year")
+    table.selectAttributeType("numeric")
+    precisionSelect().should("have.text", "3")
+    table.getCancelButton().click({ force: true })
+  })
+
+  it("keeps an explicitly chosen date precision when switching away from date", () => {
+    enterValues(years)
+    openEditDialog()
+    table.selectAttributeType("numeric")
+    table.selectAttributePrecision("3")
+    table.selectAttributeType("date")
+    table.selectAttributePrecision("month")
+    table.selectAttributePrecision("year")
+    // the explicit "year" is kept rather than restoring the numeric precision 3
+    table.selectAttributeType("numeric")
+    precisionSelect().should("have.text", " ")
+
+    cy.log("re-clicking the inferred year also counts as a choice")
+    table.selectAttributePrecision("3")
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", "year")
+    table.selectAttributePrecision("year")
+    table.selectAttributeType("numeric")
+    precisionSelect().should("have.text", " ")
+    table.getCancelButton().click({ force: true })
+  })
+
+  it("leaves the precision blank when the values aren't all years", () => {
+    openEditDialog()
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", " ")
+    table.getCancelButton().click({ force: true })
+  })
+
+  it("leaves the precision blank when only some values are years", () => {
+    enterValues(["1990", "5", "2024", "2024"])
+    openEditDialog()
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", " ")
+    table.getCancelButton().click({ force: true })
+  })
+
+  it("keeps an explicitly chosen blank date precision after switching types", () => {
+    enterValues(years)
+    openEditDialog()
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", "year")
+    precisionSelect().click()
+    cy.get("[data-testid=attr-precision-option-]").click()
+    table.selectAttributeType("numeric")
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", " ")
+    table.getApplyButton().click({ force: true })
+
+    cy.log("reopening the dialog shows the stored blank precision")
+    openEditDialog()
+    cy.get("[data-testid=attr-type-select]").should("have.text", "date")
+    precisionSelect().should("have.text", " ")
+    table.getCancelButton().click({ force: true })
+  })
+
+  it("infers year again after a blank date precision is replaced by a numeric precision", () => {
+    enterValues(years)
+    openEditDialog()
+    table.selectAttributeType("date")
+    precisionSelect().click()
+    cy.get("[data-testid=attr-precision-option-]").click()
+    table.selectAttributeType("numeric")
+    table.selectAttributePrecision("3")
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", "year")
+    table.getCancelButton().click({ force: true })
+  })
+
+  it("doesn't infer year from full dates on a numeric attribute", () => {
+    enterValues(["2024-05-01", "2023-11-15", "2022-01-31", "2021-07-04"])
+    openEditDialog()
+    table.selectAttributeType("numeric")
+    table.getApplyButton().click({ force: true })
+
+    openEditDialog()
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", " ")
+    table.getCancelButton().click({ force: true })
+  })
+})

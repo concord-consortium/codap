@@ -114,8 +114,9 @@ depend on the order among the items it moves.
 With an array, the first matching item moves to the position given by the array's first number,
 the second matching item to the second number, and so on. A position counts the other items,
 starting at `0`. The moves happen one after another, so a later move can shift an item moved
-earlier. A matching item with no number in the array stays where it is. v3 currently counts only
-the items shown; see [Known limitations](#known-limitations).
+earlier. A matching item with no number in the array stays where it is. Positions given as text
+are converted to numbers, so `"3"` is `3`. v3 currently counts only the items shown, and treats
+some positions differently from v2; see [Known limitations](#known-limitations).
 
 `notify` replies `{ "success": true }`, including when no item matched.
 
@@ -211,20 +212,21 @@ positions among the items that are not set aside or hidden by a filter formula. 
 set-aside items too, so the same number can name a different place. This is a known bug. Until it
 is fixed, use array positions only when no item is set aside or hidden.
 
-**An `itemOrder` position of `0` is ignored.** When `itemOrder` is an array, a matching item
-whose position is `0` is not moved, and the reply is still `{ "success": true }`. v2 moved it to
-the start. This is a known bug. Until it is fixed, move a single item to the start with
-`"first"`.
-
-**Deleting and moving items send no notification.** v2 told the other plugins about a `delete`
-with `deleteCases` and about a `notify` with `moveCases`. v3 sends neither. This is a known bug;
-see [the catalog's known limitations](../notifications.md#known-limitations).
+**An `itemOrder` position that is not a whole number in range is treated differently from v2.**
+v3 moves an item whose position is a fraction such as `1.5`, is negative, or is past the end to
+the end, and leaves one whose position is text that is not a number, such as `"abc"` or
+`"first"`, where it is. v2 dropped the fraction (`1.5` is `1`), counted a negative position from
+the end, put an item whose position was text that is not a number at the start, and moved one
+whose position was `"first"` to the start. This is a known bug. Until it is fixed, send whole
+numbers from `0` to one less than the number of items.
 
 ## Notifications
 
-`get` sends none. `delete` and `notify` are intended to send `deleteCases` and `moveCases` on
-`dataContextChangeNotice[<context>]` to the other plugins, but currently send nothing; see
-[Known limitations](#known-limitations) and
+`get` sends none. `delete` sends `deleteCases`, then `deleteItems` with the deleted items' ids
+(new in v3), and `notify` sends `moveCases`, on `dataContextChangeNotice[<context>]` to the other
+plugins. `moveCases` is sent only when the order
+changes, and does not list the moved cases, as in v2; read the cases again if you need their new
+order. See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext).
 
 ## Errors

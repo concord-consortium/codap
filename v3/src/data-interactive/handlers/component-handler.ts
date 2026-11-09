@@ -1,6 +1,6 @@
 import { isCaseTableModel } from "../../components/case-table/case-table-model"
 import {
-  openCaseTableNotification, resizeColumnsNotification
+  closeCaseTableNotification, openCaseTableNotification, resizeColumnsNotification
 } from "../../components/case-table/case-table-notifications"
 import { resizeAllColumns } from "../../components/case-table/case-table-utils"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
@@ -80,7 +80,10 @@ export const diComponentHandler: DIHandler = {
       let tile: Maybe<ITileModel>
       return document.applyModelChange(() => {
         const title = _title ?? name
-        const newTileOptions = { cannotClose, content, ...dimensions, position, x, y, name, title, ..._options }
+        const _cannotClose = cannotClose != null ? !!cannotClose : undefined
+        const newTileOptions = {
+          cannotClose: _cannotClose, content, ...dimensions, position, x, y, name, title, ..._options
+        }
         tile = _createOrShow(kComponentTypeV2ToV3Map[type], newTileOptions)
         if (!tile) return errorResult(t("V3.DI.Error.componentNotCreated"))
 
@@ -117,7 +120,7 @@ export const diComponentHandler: DIHandler = {
     document.applyModelChange(() => {
       document.content?.deleteOrHideTile(component.id)
     }, {
-      notify: deleteTileNotification(component),
+      notify: closeCaseTableNotification(component) ?? deleteTileNotification(component),
       excludeTileId: resources.interactiveFrame?.id
     })
 
@@ -230,11 +233,13 @@ export const diComponentHandler: DIHandler = {
       // Support currentGameName as V2 alias for name (used by game/plugin components)
       const currentGameName = "currentGameName" in values && typeof values.currentGameName === "string"
         ? values.currentGameName : undefined
-      if (cannotClose != null) component.setCannotClose(cannotClose)
+      if (cannotClose != null) component.setCannotClose(!!cannotClose)
       if (isResizable != null) component.setIsResizable(isResizable)
       if (name != null) component.setName(name)
       else if (currentGameName != null) component.setName(currentGameName)
-      if (title) component.setTitle(title)
+      // An empty title clears it, so the tile falls back to its name or default title. As in V2, a number is used
+      // as the title; other values are ignored.
+      if (typeof title === "string" || typeof title === "number") component.setTitle(String(title) || undefined)
       // TODO Handle string positions?
       const _position = position && typeof position !== "string" ? position : undefined
       if (dimensions || _position || isVisible != null) {
