@@ -543,6 +543,10 @@ export interface ICodapV2MapLayerBaseStorage {
 // Keys are MST property names, so renaming a model property requires an import migration.
 export interface ICodapV2MapHotSpotStorage {
   isVisible?: boolean
+  bandwidth?: number
+  opacity?: number
+  lowColor?: string
+  highColor?: string
 }
 
 export interface ICodapV2MapPointLayerStorageV3Extensions extends ICodapV2MapLayerBaseStorageV3Extensions {

@@ -1,4 +1,5 @@
 import { isObject, transform } from "lodash"
+import { getSnapshot } from "mobx-state-tree"
 import { DocumentContentModel } from "../../models/document/document-content"
 import { FreeTileRow } from "../../models/document/free-tile-row"
 import { SharedModelDocumentManager } from "../../models/document/shared-model-document-manager"
@@ -8,6 +9,7 @@ import { CodapV2DataSetImporter, getCaseDataFromV2ContextGuid } from "../../v2/c
 import { CodapV2Document } from "../../v2/codap-v2-document"
 import { ICodapV2DocumentJson, ICodapV2MapComponent } from "../../v2/codap-v2-types"
 import { isMapContentModel } from "./models/map-content-model"
+import { kDefaultHotSpotSnapshot } from "./models/map-hot-spot-model"
 import { v2MapExporter } from "./v2-map-exporter"
 import { v2MapImporter } from "./v2-map-importer"
 
@@ -254,7 +256,7 @@ describe("V2 map hot spot round-trip", () => {
     const out = v2MapExporter({ tile: tile! })
     const layerModels = (out!.componentStorage as any).mapModelStorage.layerModels
     const exportedLayer = layerModels.find((l: any) => l.v3?.hotSpot)
-    expect(exportedLayer?.v3?.hotSpot).toEqual({ isVisible: true })
+    expect(exportedLayer?.v3?.hotSpot).toEqual({ ...kDefaultHotSpotSnapshot, isVisible: true })
   })
 
   it("imports a point layer's v3 hot spot", () => {
@@ -268,5 +270,23 @@ describe("V2 map hot spot round-trip", () => {
     const content = isMapContentModel(tile?.content) ? tile.content : undefined
     const layer = content!.layers.find((l: any) => l.type === "mapPointLayer")! as any
     expect(layer.hotSpotModel.isVisible).toBe(true)
+  })
+
+  it("round-trips non-default display properties", () => {
+    const { v2Document } = loadCodapDocument("roller-coasters-map-layer-formats.codap")
+    const v2MapTile = v2Document.components.find(c => c.type === "DG.MapView")!
+    const layerModels = (v2MapTile.componentStorage as any).mapModelStorage.layerModels
+    const v2PointLayer = layerModels.find((l: any) => l.pointColor != null)
+    const hotSpot = { isVisible: true, bandwidth: 5000, opacity: 0.5, lowColor: "#0000ff", highColor: "#ff0000" }
+    v2PointLayer.v3 = { ...v2PointLayer.v3, hotSpot }
+
+    const tile = v2MapImporter({ v2Component: v2MapTile, v2Document, ...mockImporterArgs })
+    const content = isMapContentModel(tile?.content) ? tile.content : undefined
+    const layer = content!.layers.find((l: any) => l.type === "mapPointLayer")! as any
+    expect(getSnapshot(layer.hotSpotModel)).toEqual(hotSpot)
+
+    const out = v2MapExporter({ tile: tile! })
+    const exportedLayers = (out!.componentStorage as any).mapModelStorage.layerModels
+    expect(exportedLayers.find((l: any) => l.v3?.hotSpot)?.v3?.hotSpot).toEqual(hotSpot)
   })
 })
