@@ -65,6 +65,8 @@ Task 0 updates the design doc to match items 1–3.
 
 - §1: change "(terms with `|x − pᵢ| > kKernelCutoff · hᵢ` are dropped)" to say terms are dropped outside the
   square window `|dx|, |dy| ≤ kKernelCutoff · hᵢ`, and give the reason (it matches the separable grid exactly).
+- §2: replace "No setters are added yet" with: setters exist for every property (`setBandwidth`, `setOpacity`,
+  `setLowColor`, `setHighColor`), though the UI doesn't call them yet.
 - §8 "Data-dependent cache": say it is the `MapPointLayerModel.hotSpotSurface` computed view, observed by
   `MapHotSpotLayer` while shown.
 - Testing, `computeDefaultBandwidth`: replace the outlier bullet with "the median term is used when it is
@@ -107,6 +109,18 @@ Add `isDefaultHotSpotModel` to the import in `map-hot-spot-model.test.ts`, then 
     expect(isDefaultHotSpotModel(MapHotSpotModel.create({ bandwidth: 5000 }))).toBe(false)
     expect(isDefaultHotSpotModel(MapHotSpotModel.create({ highColor: "#ff0000" }))).toBe(false)
   })
+
+  it("can set the display properties", () => {
+    const hotSpot = MapHotSpotModel.create()
+    hotSpot.setBandwidth(5000)
+    hotSpot.setOpacity(0.5)
+    hotSpot.setLowColor("#0000ff")
+    hotSpot.setHighColor("#ff0000")
+    expect(getSnapshot(hotSpot)).toEqual(
+      { isVisible: false, bandwidth: 5000, opacity: 0.5, lowColor: "#0000ff", highColor: "#ff0000" })
+    hotSpot.setBandwidth(undefined)
+    expect(hotSpot.bandwidth).toBeUndefined()
+  })
 ```
 
 In `v2-map-importer.test.ts`, in the `"V2 map hot spot round-trip"` describe, add:
@@ -134,7 +148,7 @@ In `v2-map-importer.test.ts`, in the `"V2 map hot spot round-trip"` describe, ad
 Add `import { getSnapshot } from "mobx-state-tree"` if the file doesn't already have it.
 
 Run: `npm test -- map-hot-spot-model v2-map-importer`
-Expected: FAIL. The new properties don't exist.
+Expected: FAIL. The new properties and setters don't exist.
 
 **Step 2: Implement**
 
@@ -149,9 +163,28 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
   lowColor: "#000000",
   highColor: "#ffffff"
 })
+  .actions(self => ({
+    setIsVisible(isVisible: boolean) {
+      self.isVisible = isVisible
+    },
+    // undefined restores the default bandwidth computed from the data
+    setBandwidth(bandwidth: Maybe<number>) {
+      self.bandwidth = bandwidth
+    },
+    setOpacity(opacity: number) {
+      self.opacity = opacity
+    },
+    setLowColor(color: string) {
+      self.lowColor = color
+    },
+    setHighColor(color: string) {
+      self.highColor = color
+    }
+  }))
+  .actions(applyModelChange)
 ```
 
-No setters yet. They come with the UI story.
+Nothing in the UI calls the new setters yet. The UI story will.
 
 `codap-v2-types.ts`, `ICodapV2MapHotSpotStorage`:
 
@@ -759,8 +792,7 @@ describe("computeHotSpotSurface", () => {
 })
 ```
 
-`map-point-layer-model.test.ts` (add imports: `applySnapshot`, `getSnapshot` from `"mobx-state-tree"`,
-`reaction` from `"mobx"`, `IHotSpotSurface` and `kFallbackBandwidthMeters` from
+`map-point-layer-model.test.ts` (add imports: `reaction` from `"mobx"`, `IHotSpotSurface` and `kFallbackBandwidthMeters` from
 `"../utilities/hot-spot-utils"`):
 
 ```ts
@@ -787,8 +819,7 @@ describe("MapPointLayerModel.hotSpotSurface", () => {
 
   it("uses the hot spot model's bandwidth when it is set", () => {
     const tree = createPointLayerTree()
-    const { hotSpotModel } = tree.layer
-    applySnapshot(hotSpotModel, { ...getSnapshot(hotSpotModel), bandwidth: 5000 })
+    tree.layer.hotSpotModel.setBandwidth(5000)
     expect(tree.layer.hotSpotSurface!.bandwidthMeters).toBe(5000)
   })
 
