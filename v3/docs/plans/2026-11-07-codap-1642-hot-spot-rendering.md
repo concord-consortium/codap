@@ -31,10 +31,11 @@ canvas and its positioning. `MapHotSpotLayer` connects the two.
 ## Deviations from the design doc
 
 1. **Where the data cache lives (§8).** The design puts the zoom-independent cache (points, bandwidth, maximum
-   density) in the `MapHotSpotLayer` component. This plan makes it a computed view, `MapPointLayerModel.
-   hotSpotSurface`, instead. MobX caches it while something observes it, recomputes it when `pointDataVersion` or
-   `bandwidth` changes, and it can be tested without React or Leaflet. The component observes it only while hot
-   spots are shown, so nothing is computed when they are off.
+   density) in the `MapHotSpotLayer` component. This plan makes it a computed view, `MapHotSpotModel.
+   hotSpotSurface`, instead. The point layer supplies the coordinates through a general `plottedLatLongs` view,
+   injected the way it already injects point data into `MapGridModel`. MobX caches the surface while something
+   observes it, recomputes it when the plotted points or `bandwidth` change, and it can be tested without React or
+   Leaflet. The component observes it only while hot spots are shown, so nothing is computed when they are off.
 2. **Kernel truncation shape (§1, §6).** The design drops terms with `|x − p| > 3h`, a circle. The separable grid
    accumulation naturally covers a square window, `|dx| ≤ 3h` and `|dy| ≤ 3h`. To keep the grid and the max
    computation exactly consistent, both use the square window, via a shared `kernelWeight`. The corners add at
@@ -67,8 +68,8 @@ Task 0 updates the design doc to match items 1–3.
   square window `|dx|, |dy| ≤ kKernelCutoff · hᵢ`, and give the reason (it matches the separable grid exactly).
 - §2: replace "No setters are added yet" with: setters exist for every property (`setBandwidth`, `setOpacity`,
   `setLowColor`, `setHighColor`), though the UI doesn't call them yet.
-- §8 "Data-dependent cache": say it is the `MapPointLayerModel.hotSpotSurface` computed view, observed by
-  `MapHotSpotLayer` while shown.
+- §8 "Data-dependent cache": say it is the `MapHotSpotModel.hotSpotSurface` computed view, built from the point
+  source (`MapPointLayerModel.plottedLatLongs`) and observed by `MapHotSpotLayer` while shown.
 - Testing, `computeDefaultBandwidth`: replace the outlier bullet with "the median term is used when it is
   smaller than SD". Add a sentence noting that a far outlier moves the mean center and so does inflate the
   bandwidth.
@@ -787,12 +788,16 @@ Expected: PASS.
 Add mean-shift maximum density for hot spots (CODAP-1642)
 ```
 
-## Task 6: The hot spot surface and `MapPointLayerModel.hotSpotSurface`
+## Task 6: The hot spot surface and `MapHotSpotModel.hotSpotSurface`
 
 **Files:**
 - Modify: `components/map/utilities/hot-spot-utils.ts`, `hot-spot-utils.test.ts`
-- Modify: `components/map/models/map-point-layer-model.ts`
-- Modify: `components/map/models/map-point-layer-model.test.ts`
+- Modify: `components/map/models/map-hot-spot-model.ts`, `map-hot-spot-model.test.ts`
+- Modify: `components/map/models/map-point-layer-model.ts`, `map-point-layer-model.test.ts`
+
+The surface lives on `MapHotSpotModel`, which knows only "a list of coordinates", not data configurations or case
+IDs. The point layer supplies the list through a general `plottedLatLongs` view, injected the same way it injects
+its point data into `MapGridModel` (`setPointDataSource`).
 
 **Step 1: Write the failing tests**
 
@@ -825,42 +830,83 @@ describe("computeHotSpotSurface", () => {
 })
 ```
 
-`map-point-layer-model.test.ts` (add imports: `reaction` from `"mobx"`, `IHotSpotSurface` and `kFallbackBandwidthMeters` from
-`"../utilities/hot-spot-utils"`):
+`map-point-layer-model.test.ts` (add `reaction` from `"mobx"` and `ILatLong` from `"../map-types"` to the
+imports):
 
 ```ts
-describe("MapPointLayerModel.hotSpotSurface", () => {
-  it("is undefined without plotted points", () => {
-    expect(MapPointLayerModel.create().hotSpotSurface).toBeUndefined()
+describe("MapPointLayerModel.plottedLatLongs", () => {
+  it("is empty without plotted points", () => {
+    expect(MapPointLayerModel.create().plottedLatLongs).toEqual([])
   })
 
-  it("uses the plotted cases", () => {
+  it("lists the plotted cases with valid coordinates", () => {
     const tree = createPointLayerTree()
-    const surface = tree.layer.hotSpotSurface!
-    // c3 has no latitude; c1 and c2 coincide, so there's no spread and the fallback bandwidth applies
-    expect(surface.points.map(p => p.latLong)).toEqual([{ lat: 42, long: -71 }, { lat: 42, long: -71 }])
-    expect(surface.bandwidthMeters).toBe(kFallbackBandwidthMeters)
-    expect(surface.maxDensity).toBeCloseTo(2)
+    // c3 has no latitude
+    expect(tree.layer.plottedLatLongs).toEqual([{ lat: 42, long: -71 }, { lat: 42, long: -71 }])
   })
 
   it("excludes hidden cases", () => {
     const tree = createPointLayerTree()
     const { caseID } = tree.layer.dataConfiguration.getCaseDataArray(0)[0]
     tree.layer.dataConfiguration.addNewHiddenCases([caseID])
-    expect(tree.layer.hotSpotSurface!.points).toHaveLength(1)
+    expect(tree.layer.plottedLatLongs).toHaveLength(1)
   })
 
-  it("uses the hot spot model's bandwidth when it is set", () => {
+  it("updates when a coordinate changes", () => {
     const tree = createPointLayerTree()
-    tree.layer.hotSpotModel.setBandwidth(5000)
-    expect(tree.layer.hotSpotSurface!.bandwidthMeters).toBe(5000)
-  })
-
-  it("recomputes when a coordinate changes", () => {
-    const tree = createPointLayerTree()
-    const surfaces: Array<Maybe<IHotSpotSurface>> = []
-    const dispose = reaction(() => tree.layer.hotSpotSurface, surface => surfaces.push(surface))
+    const updates: ILatLong[][] = []
+    const dispose = reaction(() => tree.layer.plottedLatLongs, latLongs => updates.push(latLongs))
     tree.data.setCaseValues([{ __id__: "c2", latId: -30, longId: 120 }])
+    expect(updates).toEqual([[{ lat: 42, long: -71 }, { lat: -30, long: 120 }]])
+    dispose()
+  })
+
+  it("is the point source for the layer's hot spot model", () => {
+    const tree = createPointLayerTree()
+    const surface = tree.layer.hotSpotModel.hotSpotSurface!
+    expect(surface.points.map(p => p.latLong)).toEqual(tree.layer.plottedLatLongs)
+  })
+})
+```
+
+`map-hot-spot-model.test.ts` (add `observable` and `reaction` from `"mobx"`, and `IHotSpotSurface` and
+`kFallbackBandwidthMeters` from `"../utilities/hot-spot-utils"` to the imports):
+
+```ts
+describe("MapHotSpotModel.hotSpotSurface", () => {
+  const latLongs = [{ lat: 42, long: -71 }, { lat: 42, long: -71 }]
+
+  it("is undefined without a point source or points", () => {
+    const hotSpot = MapHotSpotModel.create()
+    expect(hotSpot.hotSpotSurface).toBeUndefined()
+    hotSpot.setPointSource({ plottedLatLongs: [] })
+    expect(hotSpot.hotSpotSurface).toBeUndefined()
+  })
+
+  it("uses the source's points", () => {
+    const hotSpot = MapHotSpotModel.create()
+    hotSpot.setPointSource({ plottedLatLongs: latLongs })
+    const surface = hotSpot.hotSpotSurface!
+    expect(surface.points.map(p => p.latLong)).toEqual(latLongs)
+    // the points coincide, so there's no spread and the fallback bandwidth applies
+    expect(surface.bandwidthMeters).toBe(kFallbackBandwidthMeters)
+    expect(surface.maxDensity).toBeCloseTo(2)
+  })
+
+  it("uses the model's bandwidth when it is set", () => {
+    const hotSpot = MapHotSpotModel.create()
+    hotSpot.setPointSource({ plottedLatLongs: latLongs })
+    hotSpot.setBandwidth(5000)
+    expect(hotSpot.hotSpotSurface!.bandwidthMeters).toBe(5000)
+  })
+
+  it("recomputes when the source's points change", () => {
+    const hotSpot = MapHotSpotModel.create()
+    const source = observable({ plottedLatLongs: latLongs })
+    hotSpot.setPointSource(source)
+    const surfaces: Array<Maybe<IHotSpotSurface>> = []
+    const dispose = reaction(() => hotSpot.hotSpotSurface, surface => surfaces.push(surface))
+    source.plottedLatLongs = [{ lat: 42, long: -71 }, { lat: -30, long: 120 }]
     expect(surfaces).toHaveLength(1)
     // the two points are now far apart
     expect(surfaces[0]!.maxDensity).toBeCloseTo(1)
@@ -869,7 +915,7 @@ describe("MapPointLayerModel.hotSpotSurface", () => {
 })
 ```
 
-Run: `npm test -- hot-spot-utils map-point-layer-model`
+Run: `npm test -- hot-spot-utils map-hot-spot-model map-point-layer-model`
 Expected: FAIL.
 
 **Step 2: Implement**
@@ -904,16 +950,48 @@ export function computeHotSpotSurface(latLongs: ILatLong[], bandwidthMeters?: nu
 }
 ```
 
-`map-point-layer-model.ts`: import `ILatLong` from `"../map-types"` and `computeHotSpotSurface`,
-`IHotSpotSurface` from `"../utilities/hot-spot-utils"`. After the last `.views` block (the one that defines
-`getCaseLatLong`), add a new `.views` block so the getter can call `self.getCaseLatLong`:
+`map-hot-spot-model.ts` (import `ILatLong` from `"../map-types"` and `computeHotSpotSurface`, `IHotSpotSurface`
+from `"../utilities/hot-spot-utils"`). Add a volatile and a view after the props, and the setter to the actions
+block:
 
 ```ts
+/** Supplies the points to plot (see MapPointLayerModel.plottedLatLongs) */
+export interface IHotSpotPointSource {
+  plottedLatLongs: ILatLong[]
+}
+
+export const MapHotSpotModel = types.model("MapHotSpotModel", {
+  // ...props unchanged...
+})
+  .volatile(() => ({
+    pointSource: undefined as Maybe<IHotSpotPointSource>
+  }))
   .views(self => ({
     /**
      * The hot spots' density surface.
      */
     get hotSpotSurface(): Maybe<IHotSpotSurface> {
+      return computeHotSpotSurface(self.pointSource?.plottedLatLongs ?? [], self.bandwidth)
+    }
+  }))
+  .actions(self => ({
+    // ...existing setters...
+    setPointSource(pointSource: IHotSpotPointSource) {
+      self.pointSource = pointSource
+    }
+  }))
+```
+
+`map-point-layer-model.ts` (import `ILatLong` from `"../map-types"`). After the last `.views` block (the one
+that defines `getCaseLatLong`), add a new `.views` block so the getter can call `self.getCaseLatLong`. Then add
+a second `afterCreate` that hands the layer to its hot spot model. It has to come after `plottedLatLongs` so that
+`self` has the view's type. MST runs every `afterCreate` defined across `.actions` blocks, in order, so the
+existing one is unaffected.
+
+```ts
+  .views(self => ({
+    /** The coordinates of the plotted cases that have valid lat/long values */
+    get plottedLatLongs(): ILatLong[] {
       // pointDataVersion signals coordinate changes that the reads below may not observe
       void self.pointDataVersion
       const latLongs: ILatLong[] = []
@@ -921,18 +999,23 @@ export function computeHotSpotSurface(latLongs: ILatLong[], bandwidthMeters?: nu
         const latLong = self.getCaseLatLong(caseID)
         if (latLong) latLongs.push(latLong)
       })
-      return computeHotSpotSurface(latLongs, self.hotSpotModel.bandwidth)
+      return latLongs
+    }
+  }))
+  .actions(self => ({
+    afterCreate() {
+      self.hotSpotModel.setPointSource(self)
     }
   }))
 ```
 
-Run: `npm test -- hot-spot-utils map-point-layer-model`
+Run: `npm test -- hot-spot-utils map-hot-spot-model map-point-layer-model`
 Expected: PASS.
 
 **Step 3: Commit**
 
 ```
-Add the hot spot density surface as a MapPointLayerModel view (CODAP-1642)
+Add the hot spot density surface to MapHotSpotModel (CODAP-1642)
 ```
 
 ## Task 7: The density grid
@@ -1560,12 +1643,12 @@ export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayer
     // Observing the surface keeps MobX's cached copy alive while the hot spots are shown.
     // Install this before the first draw so that draw reads the cached surface.
     const disposeReaction = mstReaction(
-      () => [mapPointLayerModel.hotSpotSurface, hotSpotModel.lowColor, hotSpotModel.highColor],
+      () => [hotSpotModel.hotSpotSurface, hotSpotModel.lowColor, hotSpotModel.highColor],
       () => redraw(),
       { name: "MapHotSpotLayer.redraw" }, mapPointLayerModel)
 
     layer.setDrawFunction((context, region) => {
-      const surface = mapPointLayerModel.hotSpotSurface
+      const surface = hotSpotModel.hotSpotSurface
       if (!surface) return
 
       const imageData = context.createImageData(region.cols, region.rows)
