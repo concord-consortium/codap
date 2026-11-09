@@ -1304,7 +1304,7 @@ Expected: FAIL. The module doesn't exist.
 
 ```ts
 import {
-  DomUtil, LatLng, Layer, LayerOptions, LeafletEventHandlerFn, Map as LeafletMap, Point, setOptions, ZoomAnimEvent
+  DomUtil, LatLng, Layer, LayerOptions, Map as LeafletMap, Point, setOptions, ZoomAnimEvent
 } from "leaflet"
 import { IDensityGridRegion, kHotSpotCellSize, kHotSpotPadding } from "./hot-spot-utils"
 
@@ -1334,15 +1334,19 @@ export class HotSpotCanvasLayer extends Layer {
     setOptions(this, options)
   }
 
-  onAdd() {
+  onAdd(map: LeafletMap) {
     this.canvas = DomUtil.create("canvas", "codap-hot-spot-canvas leaflet-zoom-animated")
     this.canvas.style.opacity = String(this.opacity)
     this.getPane()?.appendChild(this.canvas)
+    // Registered here rather than in getEvents, whose handler map is typed for plain LeafletEvents and would
+    // need a cast. map.on has a typed overload for zoomanim.
+    map.on("zoomanim", this.onAnimZoom, this)
     this.redraw()
     return this
   }
 
-  onRemove() {
+  onRemove(map: LeafletMap) {
+    map.off("zoomanim", this.onAnimZoom, this)
     this.canvas && DomUtil.remove(this.canvas)
     this.canvas = undefined
     return this
@@ -1352,8 +1356,7 @@ export class HotSpotCanvasLayer extends Layer {
     return {
       viewreset: this.redraw,
       moveend: this.redraw,
-      zoom: this.onZoom,
-      zoomanim: this.onAnimZoom as LeafletEventHandlerFn
+      zoom: this.onZoom
     }
   }
 
@@ -1420,7 +1423,8 @@ export class HotSpotCanvasLayer extends Layer {
 Notes:
 - `L.Renderer` falls back to `setPosition` when `Browser.any3d` is false. jsdom reports false, and every browser
   CODAP supports has CSS 3D transforms, so this always uses `setTransform`. That keeps the zoom test meaningful.
-- `zoomanim` only fires when the map animates zooms, so registering it unconditionally is harmless.
+- `zoomanim` only fires when the map animates zooms, so registering it unconditionally is harmless. Passing
+  `this` as the context lets `map.off` find the same listener without keeping a bound copy of the handler.
 - Map resizes (`invalidateSize`, which CODAP triggers with `trackResize`) fire `moveend`, so there's no separate
   `resize` handler.
 - `leaflet.css` already positions `.leaflet-pane > canvas` absolutely, and `.leaflet-zoom-animated` sets
