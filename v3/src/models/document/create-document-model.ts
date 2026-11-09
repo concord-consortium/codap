@@ -76,14 +76,21 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
 
   historyService.setDependencies(fullEnvironment)
 
-  // clearRedo on each new entry, and undo or redo on document, as in V2 (undo_history.js)
+  // clearRedo on each new entry, clearUndo and clearRedo when the history is erased, and undo or redo
+  // on document, as in V2 (undo_history.js)
   document.treeManagerAPI?.undoManager.setHistoryListener(change => {
     const { canUndo, canRedo } = document
-    if (change === "add") {
+    if (change === "add" || change === "clearRedo") {
       document.content?.broadcastMessage({
         action: "notify",
         resource: "undoChangeNotice",
         values: { operation: "clearRedo", canUndo, canRedo }
+      }, () => {})
+    } else if (change === "clearUndo") {
+      document.content?.broadcastMessage({
+        action: "notify",
+        resource: "undoChangeNotice",
+        values: { operation: "clearUndo", canUndo, canRedo }
       }, () => {})
     } else if (change === "undo") {
       document.content?.broadcastMessage({

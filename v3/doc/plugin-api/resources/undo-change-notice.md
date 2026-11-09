@@ -80,16 +80,15 @@ CODAP sends `notify` on `undoChangeNotice` with one of these operations:
 | `clearRedo` | every plugin | `canUndo`, `canRedo` | anything; CODAP does not read the reply |
 
 `clearRedo` is sent each time an action is added to the history, even when there was nothing to
-redo, so a plugin learns that undo has become possible. `clearUndo` is sent, with `clearRedo`,
-when the undo history is erased. v2 erased it whenever a change could not be undone and after an
-`update document`. CODAP keeps the history after a change that cannot be undone, so it does not
-send them for that. It does not yet erase the history after an `update document` either, and
-sends `clearRedo` with `canUndo: true` instead; this is a known bug. `clearUndo` and `clearRedo`
-are sent to plugins only. v3 currently also sends them to the host page when CODAP is embedded in
-one; see [Known limitations](#known-limitations). Undoing or redoing sends neither: CODAP sends
-`undo` or `redo` on [`document`](document.md) to every plugin instead, also with `canUndo` and
-`canRedo`. Set your buttons from those values whatever the operation is called. See
-[Keeping your buttons in step](../guides/undo-and-redo.md#keeping-your-buttons-in-step).
+redo, so a plugin learns that undo has become possible. `clearUndo` is sent, with `clearRedo`, when
+the undo history is erased. v2 erased it whenever a change could not be undone and after an
+`update document`. CODAP erases it after an `update document`, just before `updateDocumentEnded`, as v2 did.
+It keeps the history after a change that cannot be undone, so it does not send them for that.
+`clearUndo` and `clearRedo` are sent to plugins only. v3 currently also sends them to the host page
+when CODAP is embedded in one; see [Known limitations](#known-limitations). Undoing or redoing sends
+neither: CODAP sends `undo` or `redo` on [`document`](document.md) to every plugin instead, also
+with `canUndo` and `canRedo`. Set your buttons from those values whatever the operation is called.
+See [Keeping your buttons in step](../guides/undo-and-redo.md#keeping-your-buttons-in-step).
 
 ## Examples
 

@@ -191,8 +191,9 @@ function updateIncomingSnapshotIds(incomingSnapshot: ISerializedV3Document) {
   return JSON.parse(updatedSnapshotString) as ISerializedV3Document
 }
 
-// Begun and Ended go to every plugin and the host page, as in V2 (document_helper.js:666-685);
-// unlike V2, Ended is also sent on failure and carries success
+// Begun and Ended go to every plugin and the host page, as in V2 (document_helper.js:666-684);
+// unlike V2, Ended is also sent on failure and carries success. As in V2, the undo and redo history
+// is erased just before Ended, once the document has had time to settle.
 async function updateDocument(values?: DIValues): Promise<DIHandlerFnResult> {
   if (!values) return valuesRequiredResult
   const { document } = appState
@@ -213,7 +214,10 @@ async function updateDocument(values?: DIValues): Promise<DIHandlerFnResult> {
     notifyDocumentChange('updateDocumentEnded', false)
     return errorResult(t("V3.DI.Error.exceptionProcessingRequest"))
   }
-  setTimeout(() => notifyDocumentChange('updateDocumentEnded', true), 500)
+  setTimeout(() => {
+    document.treeManagerAPI?.undoManager.clearHistory()
+    notifyDocumentChange('updateDocumentEnded', true)
+  }, 500)
   return { success: true }
 }
 

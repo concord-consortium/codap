@@ -182,10 +182,9 @@ CODAP, so CODAP also tells every plugin when it changes:
 
 Both carry `canUndo` and `canRedo` as they are after the change. Set your buttons from those values
 whatever the operation is called. v2 erased the undo history, and sent `clearUndo`, whenever a
-change could not be undone and after an `update document`. CODAP keeps the history after a change
-that cannot be undone, so it does not send `clearUndo` for that. It does not yet erase the history
-after an `update document` either, and sends `clearRedo` with `canUndo: true` instead. This is a
-known bug.
+change could not be undone and after an `update document`. CODAP erases it after an
+`update document`, just before `updateDocumentEnded`, as v2 did. It keeps the history after a change
+that cannot be undone, so it does not send `clearUndo` for that.
 
 Undoing or redoing sends neither. Instead, CODAP sends every plugin a notification on
 [`document`](../resources/document.md) with operation `undo` or `redo`, as v2 did. It also carries

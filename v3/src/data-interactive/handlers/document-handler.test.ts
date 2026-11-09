@@ -1,7 +1,12 @@
 import fs from "fs"
+import { Instance } from "mobx-state-tree"
+import { when } from "mobx"
 import path from "path"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import { appState } from "../../models/app-state"
+import { GlobalValue } from "../../models/global/global-value"
+import { GlobalValueManager } from "../../models/global/global-value-manager"
+import { TreeManager } from "../../models/history/tree-manager"
 import "../../register-tile-types"
 import { processAction, ProcessActionOptions } from "../data-interactive-request-processor"
 
@@ -52,7 +57,8 @@ describe("update document", () => {
       { values: { operation: "updateDocumentBegun" }, targetTileId: undefined },
       { values: { operation: "updateDocumentEnded", success: true }, targetTileId: undefined }
     ])
-    expect(requesterSpy.mock.calls.map(([message]) => message.values)).toEqual([
+    expect(requesterSpy.mock.calls.map(([message]) => message)
+      .filter(({ resource }) => resource === "documentChangeNotice").map(({ values }) => values)).toEqual([
       { operation: "updateDocumentBegun" }, { operation: "updateDocumentEnded", success: true }
     ])
     requesterSpy.mockRestore()
@@ -102,6 +108,57 @@ describe("update document", () => {
     expect(await updateNotices(sliderDocument(5))).toEqual([
       { resource: "documentChangeNotice", values: { operation: "updateDocumentBegun" } },
       { resource: "documentChangeNotice", values: { operation: "updateDocumentEnded", success: true } }
+    ])
+  })
+})
+
+describe("update document and the undo history", () => {
+  const { document } = appState
+  let broadcastSpy: jest.SpyInstance
+
+  beforeEach(() => {
+    document.treeMonitor!.enableMonitoring()
+    broadcastSpy = jest.spyOn(document.content!, "broadcastMessage")
+  })
+
+  afterEach(() => {
+    broadcastSpy.mockRestore()
+    document.treeMonitor!.disableMonitoring()
+  })
+
+  const historySettled = () => {
+    const manager = document.treeManagerAPI as Instance<typeof TreeManager>
+    return when(() => manager.activeHistoryEntries.length === 0, { timeout: 2000 })
+  }
+
+  it("erases the history, sending clearUndo then clearRedo, just before updateDocumentEnded, as in V2", async () => {
+    const manager = document.content!.getFirstSharedModelByType(GlobalValueManager)!
+    const global = GlobalValue.create({ name: "historyTest", value: 1 })
+    manager.addValue(global)
+    const undoableChange = async (value: number) => {
+      document.content!.applyModelChange(() => global.setValue(value),
+        { undoStringKey: "DG.Undo.slider.change", redoStringKey: "DG.Redo.slider.change" })
+      await historySettled()
+    }
+    await undoableChange(2)
+    await undoableChange(3)
+    document.undoLastAction()
+    await historySettled()
+    expect([document.canUndo, document.canRedo]).toEqual([true, true])
+    broadcastSpy.mockClear()
+
+    const v2Document = JSON.parse(fs.readFileSync(path.join(__dirname, "../../test/v2/mammals.codap"), "utf8"))
+    expect((await processAction({ action: "update", resource: "document", values: v2Document })).success).toBe(true)
+    await new Promise(resolve => setTimeout(resolve, 600))
+
+    expect([document.canUndo, document.canRedo]).toEqual([false, false])
+    const notices = broadcastSpy.mock.calls.map(([message]) => message)
+      .filter(({ resource }) => resource === "undoChangeNotice" || resource === "documentChangeNotice")
+      .map(({ values }) => values)
+    expect(notices.slice(-3)).toEqual([
+      { operation: "clearUndo", canUndo: false, canRedo: false },
+      { operation: "clearRedo", canUndo: false, canRedo: false },
+      { operation: "updateDocumentEnded", success: true }
     ])
   })
 })

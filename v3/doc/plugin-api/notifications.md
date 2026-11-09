@@ -344,9 +344,9 @@ Sent while a user drags an attribute, so a plugin can offer a drop target or rea
 
 `clearUndo` is also part of the contract, carrying `canUndo` and `canRedo`: v2 sent it, with
 `clearRedo`, when the undo history was erased, which happened whenever a change could not be
-undone and after an `update document`. CODAP keeps the history after a change that cannot be
-undone, so it does not send `clearUndo` for that. It does not yet erase the history after an
-`update document` either, and sends `clearRedo` with `canUndo: true` instead. This is a known bug.
+undone and after an `update document`. CODAP erases it after an `update document`, just before
+`updateDocumentEnded`, as v2 did. It keeps the history after a change that cannot be undone, so it
+does not send `clearUndo` for that.
 
 **`undoAction` and `redoAction` answer your own reports.** CODAP cannot undo a change inside your
 plugin, so it does not tell you about undo in general. Instead, when your plugin makes a change
