@@ -68,6 +68,10 @@ Task 0 updates the design doc to match items 1–3.
   square window `|dx|, |dy| ≤ kKernelCutoff · hᵢ`, and give the reason (it matches the separable grid exactly).
 - §2: replace "No setters are added yet" with: setters exist for every property (`setBandwidth`, `setOpacity`,
   `setLowColor`, `setHighColor`), though the UI doesn't call them yet.
+- §7 "Color LUT": say the 256 entries come from `getChoroplethColors(lowColor, highColor, 256, { format: "rgba" })`,
+  the sampler the legends use (it interpolates with `interpolateRgba`, R4), so hot spot gradients match legend
+  gradients and future binning can use the same function with the bin count. Note that `interpolateColors` and
+  `getChoroplethColors` gain a `format` option (hex by default, or RGBA).
 - §8 "Data-dependent cache": say it is the `MapHotSpotModel.hotSpotSurface` computed view, built from the point
   source (`MapPointLayerModel.plottedLatLongs`) and observed by `MapHotSpotLayer` while shown.
 - Testing, `computeDefaultBandwidth`: replace the outlier bullet with "the median term is used when it is
@@ -396,7 +400,7 @@ Expected: FAIL. The module doesn't exist.
 
 ```ts
 import { CRS, latLng, Point } from "leaflet"
-import { interpolateRgba } from "../../../utilities/color-utils"
+import { getChoroplethColors } from "../../../utilities/color-utils"
 import { computeMeanCenter, greatCircleDistance } from "../../../utilities/geo-utils"
 import { degreesToRadians, mod, quantileOfSortedArray } from "../../../utilities/math-utils"
 import { ILatLong } from "../map-types"
@@ -1146,7 +1150,99 @@ Add separable density grid for hot spots (CODAP-1642)
 ## Task 8: Colors and rendering a surface
 
 **Files:**
+- Modify: `utilities/color-utils.ts`, `utilities/color-utils.test.ts`
 - Modify: `components/map/utilities/hot-spot-utils.ts`, `hot-spot-utils.test.ts`
+
+**Step 0a: Write failing tests for an RGBA option on the color gradient functions**
+
+The color table needs numeric RGBA. `getChoroplethColors` (the sampler the legends use) and `interpolateColors`
+only return hex strings, so give them an option to return RGBA objects, with hex as the default. Existing callers
+don't change.
+
+In `color-utils.test.ts`, add to the `interpolateColors` test:
+
+```ts
+    // { format: "rgba" } returns the unrounded channels
+    expect(interpolateColors("#000000", "#ffffff", 0.5, { format: "rgba" }))
+      .toEqual({ r: 127.5, g: 127.5, b: 127.5, a: 1 })
+    expect(interpolateColors("#ff0000ff", "#ff000000", 0.25, { format: "rgba" }))
+      .toEqual({ r: 255, g: 0, b: 0, a: 0.75 })
+```
+
+and to the `getChoroplethColors` describe:
+
+```ts
+  it("returns RGBA objects when asked", () => {
+    expect(getChoroplethColors("#000000", "#ffffff", 3, { format: "rgba" })).toEqual([
+      { r: 0, g: 0, b: 0, a: 1 },
+      { r: 127.5, g: 127.5, b: 127.5, a: 1 },
+      { r: 255, g: 255, b: 255, a: 1 }
+    ])
+    expect(getChoroplethColors("#ff000000", "#ffffff", 1, { format: "rgba" }))
+      .toEqual([{ r: 255, g: 0, b: 0, a: 0 }])
+  })
+```
+
+Run: `npm test -- color-utils`
+Expected: FAIL. The functions ignore the option and return hex strings.
+
+**Step 0b: Implement the option**
+
+In `color-utils.ts`, overloads give each format its return type:
+
+```ts
+export type ColorFormat = "hex" | "rgba"
+
+function formatRgba(rgba: RgbaColor, format?: ColorFormat) {
+  return format === "rgba" ? rgba : colord(rgba).toHex()
+}
+function formatColorString(hex: string, format?: ColorFormat) {
+  return format === "rgba" ? colord(hex).toRgb() : hex
+}
+
+export function interpolateColors(
+  color1: string, color2: string, percentage: number, options?: { format?: "hex" }
+): string
+export function interpolateColors(
+  color1: string, color2: string, percentage: number, options: { format: "rgba" }
+): RgbaColor
+export function interpolateColors(
+  color1: string, color2: string, percentage: number, options?: { format?: ColorFormat }
+) {
+  const rgba = interpolateRgba(color1, color2, percentage)
+  return formatRgba(rgba, options?.format)
+}
+
+// Returns `count` colors evenly interpolated between color1 and color2 (endpoints included), as hex strings
+// (the default) or, with { format: "rgba" }, as unrounded RGBA objects.
+// Defaults to five colors, preserving the original behavior for callers that don't pass a count.
+export function getChoroplethColors(
+  color1: string, color2: string, count?: number, options?: { format?: "hex" }
+): string[]
+export function getChoroplethColors(
+  color1: string, color2: string, count: Maybe<number>, options: { format: "rgba" }
+): RgbaColor[]
+export function getChoroplethColors(
+  color1: string, color2: string, count = 5, options?: { format?: ColorFormat }
+) {
+  const format = options?.format
+  if (count <= 1) return [formatColorString(color1, format)]
+
+  return Array.from({ length: count }, (_, i) =>
+    i === 0 ? formatColorString(color1, format)
+      : i === count - 1 ? formatColorString(color2, format)
+      : formatRgba(interpolateRgba(color1, color2, i / (count - 1)), format)
+  )
+}
+```
+
+Both forms use the given colors for the endpoints. The hex form returns the endpoint strings unchanged, as it does
+today (they may not be hex, e.g. color names); the RGBA form parses them. The middle stops are the same in both
+forms; hex output for them is exactly what `interpolateColors` returns.
+
+Run: `npm test -- color-utils`
+Expected: PASS, including the existing hex tests unchanged. Run `npm run build:tsc` too, since every existing
+caller now resolves through the hex overload.
 
 **Step 1: Write the failing tests**
 
@@ -1244,15 +1340,16 @@ Expected: FAIL.
 const kColorLUTSize = 256
 
 /**
- * Returns a lookup table of kColorLUTSize RGBA colors (4 bytes each) running from lowColor to highColor.
- * Future multi-stop gradients, binning, and density-based opacity all plug in here.
+ * Returns a lookup table of kColorLUTSize RGBA colors (4 bytes each) running from lowColor to highColor, sampled
+ * with getChoroplethColors so the gradient matches CODAP's legend gradients. Future multi-stop gradients,
+ * binning (getChoroplethColors with the bin count), and density-based opacity all plug in here.
  */
 export function buildColorLUT(lowColor: string, highColor: string) {
   const lut = new Uint8ClampedArray(kColorLUTSize * 4)
-  for (let i = 0; i < kColorLUTSize; i++) {
-    const { r, g, b, a } = interpolateRgba(lowColor, highColor, i / (kColorLUTSize - 1))
+  getChoroplethColors(lowColor, highColor, kColorLUTSize, { format: "rgba" }).forEach(({ r, g, b, a }, i) => {
+    // Uint8ClampedArray rounds the unrounded channels
     lut.set([r, g, b, a * 255], i * 4)
-  }
+  })
   return lut
 }
 
