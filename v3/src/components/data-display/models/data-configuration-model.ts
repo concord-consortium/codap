@@ -867,7 +867,12 @@ export const DataConfigurationModel = types
         const [seconds] = stringValuesToDateSeconds([value])
         // The same range check as for numbers. (A date <= 0 is just a date before 1970, so the
         // logarithmic rule for numbers does not apply.)
-        if (self.isOutsideLegendRange(seconds)) return missingColor
+        // TODO: CODAP-1675. When the attribute itself is not a date (for example, a numeric attribute
+        // from a V2 document whose legend is saved as a date), the legend's range uses the numbers
+        // as they are, but these values are date seconds. Every value would then be out of range, so
+        // skip the check there until the range also uses date seconds.
+        const legendAttrType = self.dataset?.attrFromID(self.attributeID("legend"))?.type
+        if (legendAttrType === "date" && self.isOutsideLegendRange(seconds)) return missingColor
         return self.legendNumericColorScale(seconds)
       },
 
