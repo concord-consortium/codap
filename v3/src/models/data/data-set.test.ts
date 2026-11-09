@@ -662,6 +662,44 @@ test("DataSet case hiding/showing (set aside)", () => {
   expect(data.itemIds).toEqual(["item3", "item4", "item5", "item0", "item1", "item2"])
 })
 
+test("moveItems moves the right items when some items are set aside", () => {
+  const data = DataSet.create({ name: "data" })
+  const letter = data.addAttribute({ id: "Letter", name: "Letter" })
+  const letters = ["a", "b", "c", "d", "e", "f"]
+  data.addCases(letters.map(value => ({ __id__: value, [letter.id]: value })))
+  data.validateCases()
+  data.hideCasesOrItems(["b"])
+  data.validateCases()
+  const letterValues = () => data.items.map(({ __id__ }) => data.getStrValue(__id__, letter.id))
+
+  data.moveItems(["e"], { before: "a" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["e", "a", "c", "d", "f"])
+  expect(letterValues()).toEqual(["e", "a", "c", "d", "f"])
+
+  // the last item, whose index is past the end of the items shown
+  data.moveItems(["f"], { before: "e" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["f", "e", "a", "c", "d"])
+  expect(letterValues()).toEqual(["f", "e", "a", "c", "d"])
+
+  data.moveItems(["e", "c"])
+  data.validateCases()
+  expect(data.itemIds).toEqual(["f", "a", "d", "e", "c"])
+  expect(letterValues()).toEqual(["f", "a", "d", "e", "c"])
+
+  // an id passed more than once moves only that item
+  data.moveItems(["d", "d"], { before: "f" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["d", "f", "a", "e", "c"])
+  expect(letterValues()).toEqual(["d", "f", "a", "e", "c"])
+
+  data.showHiddenCasesAndItems()
+  data.validateCases()
+  expect(data._itemIds).toEqual(["d", "f", "a", "b", "e", "c"])
+  expect(letterValues()).toEqual(["d", "f", "a", "b", "e", "c"])
+})
+
 test("sortByAttribute with a flat DataSet", () => {
   const data = DataSet.create({ name: "data" })
   const a = data.addAttribute({ id: "AttrA", name: "A" })

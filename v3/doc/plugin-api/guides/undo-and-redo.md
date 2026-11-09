@@ -23,15 +23,16 @@ and the user's own earlier actions stay undoable. A few requests are exceptions,
 match a single action in CODAP's interface and undo the same way it does:
 
 - `update` on `dataContext` with a `sort`
-- `notify` on a case table `component` with `autoScale`
+- `notify` on a case table or graph `component` with `autoScale`
 - `update` on `attributeLocation`, which moves an attribute as dragging its column does
 - `create` on `component`, which adds a component as the toolbar does
 - `delete` on `component`, which closes a component as its close button does
 
 v3 does not yet add entries for the last three; see [Known limitations](#known-limitations).
 
-If your plugin needs the user to be able to undo something it did through the API, it reports
-the action itself, as described next, and reverses the API changes itself when asked.
+A plugin should not depend on whether CODAP's undo reverses a request it made. If your plugin
+needs the user to be able to undo something it did through the API, it reports the action itself,
+as described next, and reverses the API changes itself when asked.
 
 ## Making your plugin's actions undoable
 
@@ -52,8 +53,7 @@ When your plugin does something the user should be able to undo, it tells CODAP:
 }
 ```
 
-CODAP adds an entry to its history and replies with the state of the history afterwards. Today
-the reply can describe the history before the entry; see [Known limitations](#known-limitations).
+CODAP adds an entry to its history and replies with the state of the history afterwards.
 `logMessage` is optional; it describes the action in CODAP's log.
 
 CODAP does not know what the action was. When the user undoes that entry, CODAP sends your plugin
@@ -68,7 +68,9 @@ alone:
 ```
 
 and on redo, the same with `"redoAction"`. Your plugin reverses or reapplies the action, then
-replies `{ "success": true }`, or `{ "success": false }` if it could not.
+replies `{ "success": true }`, or `{ "success": false }` if it could not. CODAP then tells the user
+that the undo or redo failed; the history has already moved past the step. v2 also erased the
+whole undo and redo history after showing that message; CODAP keeps it.
 
 **Reversing an action includes reversing its API changes.** If adding three samples created three
 cases, undoing it must delete them: CODAP did not record the cases, so it will not remove them.
@@ -171,41 +173,29 @@ and the messages are the same in both modes.
 
 CODAP's replies to `undoableActionPerformed`, `undoButtonPress` and `redoButtonPress` carry
 `canUndo` and `canRedo`. Between your own requests, the history changes when the user acts in
-CODAP, so CODAP also tells every plugin when it changes (but see
-[Known limitations](#known-limitations)):
+CODAP, so CODAP also tells every plugin when it changes:
 
 | Operation | Sent when |
 |---|---|
-| `clearRedo` | an action is added to the history, which empties the redo history |
-| `clearUndo` | the undo history is emptied, for example by a change that cannot be undone |
+| `clearRedo` | an action is added to the history, even when there was nothing to redo |
+| `clearUndo` | the undo history is erased; sent with `clearRedo` |
 
-Both carry the current `canUndo` and `canRedo`. Set your buttons from those values whatever the
-operation is called.
+Both carry `canUndo` and `canRedo` as they are after the change. Set your buttons from those values
+whatever the operation is called. v2 erased the undo history, and sent `clearUndo`, whenever a
+change could not be undone and after an `update document`. CODAP keeps the history after a change
+that cannot be undone, so it does not send `clearUndo` for that. It does not yet erase the history
+after an `update document` either, and sends `clearRedo` with `canUndo: true` instead. This is a
+known bug.
+
+Undoing or redoing sends neither. Instead, CODAP sends every plugin a notification on
+[`document`](../resources/document.md) with operation `undo` or `redo`, as v2 did. It also carries
+`canUndo` and `canRedo`, which v2's did not, so set your buttons from it too.
 
 ## Known limitations
-
-**The reply to `undoableActionPerformed` describes the history before the action.** The entry
-joins the history just after CODAP replies, so `canUndo` can read `false` when it should be
-`true`, and `canRedo` can read `true` although the new entry empties the redo history. v2
-replied with the state afterwards. This is a known bug. Until it is fixed, treat a successful
-`undoableActionPerformed` as making undo available.
-
-**`clearUndo` and `clearRedo` are sent at different moments from v2.** v3 sends them only when
-`canUndo` or `canRedo` changes from `true` to `false`, including when the user undoes or redoes
-the last entry. It sends nothing when an action is added to an empty redo history, so a plugin
-does not hear that undo has become possible. This is a known bug; the intended behavior is v2's,
-described above.
 
 **`?standalone=true` also removes other title bars.** v3 removes the title bar of every web
 page shown in a component, guides included, not only plugins'. v2 removed only plugins' title
 bars. This is a known bug.
-
-**`logMessage` is not logged.** v2 recorded it in CODAP's log; v3 ignores it. This is a known
-bug.
-
-**A failed `undoAction` or `redoAction` is not shown to the user.** When your plugin replies
-`{ "success": false }`, v2 showed an error and then cleared the whole undo and redo history. v3
-does neither, and the history moves on as if the step had succeeded. This is a known bug.
 
 **Undoing an entry from a closed plugin does nothing visible.** When the user closes a plugin, the
 close is itself an entry, so undoing it brings the plugin back before its own entries are
@@ -213,22 +203,10 @@ reached. But if the plugin was closed without leaving an entry, for example by a
 `delete` on `component`, undoing one of its entries sends nothing and changes nothing, but still
 uses an undo step.
 
-**Undo and redo are not announced on `document`.** v2 also sent every plugin a notification on
-`document`, with operation `undo` or `redo`, whenever the user undid or redid an action that had
-no notification of its own. v3 does not. This is a known bug.
-
 **A plugin's attribute moves, and the components it creates or closes, cannot be undone.** v2
 added `update` on `attributeLocation`, and `create` and `delete` on `component`, to the history,
 as it did the same changes made in CODAP's interface, so the user could undo them. v3 does not.
 This is a known bug.
-
-**Some other API requests add entries to the history.** Besides the exceptions listed under
-[What the history holds](#what-the-history-holds), these currently add entries too: `create`,
-`update` and `delete` on `adornment` (sometimes several entries for one request), `create` on
-`global`, `create` on `dataContextFromURL`, and `notify` on a graph `component` with
-`autoScale`. The intended behavior is that they do not. v2 also
-reset the user's history after many data requests. A plugin should not depend on whether CODAP's
-undo reverses a request it made.
 
 ## See also
 

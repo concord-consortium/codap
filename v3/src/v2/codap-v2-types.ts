@@ -516,6 +516,10 @@ export function isV2MapLegacyStorage(obj: unknown): obj is ICodapV2MapCurrentSto
   return !!obj && typeof obj === "object" && "legendRole" in obj && obj.legendRole != null
 }
 
+export interface ICodapV2MapLayerBaseStorageV3Extensions extends ICodapV2LegendQuantileV3Extensions {
+  filterFormula?: string
+}
+
 export interface ICodapV2MapLayerBaseStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
@@ -532,10 +536,17 @@ export interface ICodapV2MapLayerBaseStorage {
   isVisible: boolean
   strokeSameAsFill?: boolean
 
-  // v3 extensions
-  v3?: {
-    filterFormula?: string
-  } & ICodapV2LegendQuantileV3Extensions
+  v3?: ICodapV2MapLayerBaseStorageV3Extensions
+}
+
+// The MapHotSpotModel snapshot, written whole when any property differs from its default.
+// Keys are MST property names, so renaming a model property requires an import migration.
+export interface ICodapV2MapHotSpotStorage {
+  isVisible?: boolean
+}
+
+export interface ICodapV2MapPointLayerStorageV3Extensions extends ICodapV2MapLayerBaseStorageV3Extensions {
+  hotSpot?: ICodapV2MapHotSpotStorage
 }
 
 export interface ICodapV2MapPointLayerStorage extends ICodapV2MapLayerBaseStorage {
@@ -557,6 +568,8 @@ export interface ICodapV2MapPointLayerStorage extends ICodapV2MapLayerBaseStorag
   }
   // v2 saves/restores this value, but never uses it
   linesShouldBeVisible?: boolean
+
+  v3?: ICodapV2MapPointLayerStorageV3Extensions
 }
 export function isV2MapPointLayerStorage(obj: unknown): obj is ICodapV2MapPointLayerStorage {
   return !!obj && typeof obj === "object" && "pointColor" in obj && obj.pointColor != null

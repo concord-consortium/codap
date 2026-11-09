@@ -6,6 +6,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {isFiniteNumber} from "../../../utilities/math-utils"
 import {translate} from "../../../utilities/translation/translate"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
+import {kPinColors} from "../map-types"
 
 export const isBoundaryAttribute = (attribute: IAttribute) => {
   return attribute.type === "boundary" ||
@@ -94,6 +95,28 @@ export const shiftLongitudeIntoView = (lng: number, west: number, east: number) 
   if (lng >= west && lng <= east) return lng
   const center = (west + east) / 2
   return lng + Math.round((center - lng) / 360) * 360
+}
+
+/**
+ * Returns the index into kPinColors of the color to use for a newly added pin: the first
+ * color not used by an existing pin, so deleting a pin frees its color for reuse. Falls back
+ * to cycling by pin count when every color is in use.
+ */
+export const getNextPinColorIndex = (usedColors: Array<string | undefined>) => {
+  const used = new Set(usedColors.map(color => color?.toLowerCase()))
+  const index = kPinColors.findIndex(color => !used.has(color.toLowerCase()))
+  return index >= 0 ? index : usedColors.length % kPinColors.length
+}
+
+/**
+ * Returns the kPinColors index for a new pin in a pin dataset. With a color attribute, the colors of all
+ * items count as used, including hidden and filtered-out ones, which keep their colors when shown again.
+ * Without one, pins are colored by position, so the next pin's color is positional too.
+ */
+export const getNextPinColorIndexForDataSet = (dataset: IDataSet, colorId?: string) => {
+  return colorId
+    ? getNextPinColorIndex(dataset._itemIds.map(itemId => dataset.getStrValue(itemId, colorId)))
+    : dataset.items.length % kPinColors.length
 }
 
 /**

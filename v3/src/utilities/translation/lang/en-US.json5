@@ -1376,6 +1376,7 @@
     "V3.graph.Inspector.Config": "Config",
     "V3.graph.Inspector.Format": "Format",
     "V3.graph.Inspector.Image": "Image",
+    "V3.Inspector.map.hotSpot": "Hot spot",
     "V3.Inspector.graph.legendBins": "Legend Bins",
     "V3.Inspector.graph.legendBins.quantize": "Linear",
     "V3.Inspector.graph.legendBins.quantile": "Quantile",
@@ -1441,6 +1442,10 @@
     "V3.Redo.map.showLayer": "Redo showing map layer",
     "V3.Undo.map.hideLayer": "Undo hiding map layer",
     "V3.Redo.map.hideLayer": "Redo hiding map layer",
+    "V3.Undo.map.showHotSpot": "Undo showing hot spot on map",
+    "V3.Redo.map.showHotSpot": "Redo showing hot spot on map",
+    "V3.Undo.map.hideHotSpot": "Undo hiding hot spot on map",
+    "V3.Redo.map.hideHotSpot": "Redo hiding hot spot on map",
 
     "V3.Undo.calculator.calculate": "Undo calculation",
     "V3.Redo.calculator.calculate": "Redo calculation",
