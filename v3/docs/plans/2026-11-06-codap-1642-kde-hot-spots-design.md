@@ -184,7 +184,8 @@ zoom or pan. We therefore define the density in **Web Mercator "world" coordinat
 (Leaflet's `map.project(latLng, 0)`, a 256 × 256 world), not in screen pixels:
 
 ```
-f(x) = Σᵢ exp(−|x − pᵢ|² / 2hᵢ²)        (terms with |x − pᵢ| > kKernelCutoff · hᵢ are dropped)
+f(x) = Σᵢ exp(−|x − pᵢ|² / 2hᵢ²)        (terms are dropped outside the square window
+                                         |dx|, |dy| ≤ kKernelCutoff · hᵢ around pᵢ)
 ```
 
 - `pᵢ` is point *i* projected to zoom-0 world coordinates.
@@ -194,7 +195,10 @@ f(x) = Σᵢ exp(−|x − pᵢ|² / 2hᵢ²)        (terms with |x − pᵢ| > 
   factor is the Mercator scale; it makes each kernel approximately a circle of radius `h` on
   the ground.
 - `kKernelCutoff = 3` (≥ 99.7% of a Gaussian's mass). Truncation is applied identically in
-  the max computation and the grid so normalization is consistent.
+  the max computation and the grid so normalization is consistent. The window is a square rather
+  than a circle because the separable grid accumulation (§6) naturally covers a square, and using
+  the same shape in both places keeps them exactly consistent. The corners add at most
+  `exp(−4.5) ≈ 0.011` per point.
 
 At zoom `z`, container pixels are zoom-0 world units × `2^z` plus a translation, so evaluating
 `f` on the screen grid is just evaluating the same function with distances and bandwidths both
@@ -213,9 +217,9 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
 })
 ```
 
-- Colors are stored as hex strings and converted to RGBA with `interpolateRgba` (R4) when
-  building the color lookup table.
-- No setters are added yet (nothing changes these values). They'll come with the UI story.
+- Colors are stored as hex strings and converted to RGBA when building the color lookup table (§7).
+- Every property has a setter (`setBandwidth`, `setOpacity`, `setLowColor`, `setHighColor`), though
+  the UI doesn't call them yet. `setBandwidth(undefined)` restores the computed default.
 - `isDefaultHotSpotModel` keeps working: defaults appear in the default snapshot, and an
   unset `bandwidth` is omitted.
 - `ICodapV2MapHotSpotStorage` (`src/v2/codap-v2-types.ts`) gains the four optional fields so
@@ -308,10 +312,13 @@ this is too slow for large `n` × large `hpx` (zoomed far in), add the fallback 
 
 ### 7. Colorizing and drawing
 
-- **Color LUT:** 256 RGBA entries interpolated from `lowColor` to `highColor` (`interpolateRgba`, R4),
-  alpha 255. `t = clamp(density / maxDensity, 0, 1)` (the minimum is 0) indexes the LUT.
+- **Color LUT:** 256 RGBA entries from `getChoroplethColors(lowColor, highColor, 256, { format: "rgba" })`,
+  the same sampler the legends use (it interpolates with `interpolateRgba`, R4), so hot spot gradients
+  match legend gradients. `interpolateColors` and `getChoroplethColors` gain a `format` option (hex by
+  default, or RGBA) for this. `t = clamp(density / maxDensity, 0, 1)` (the minimum is 0) indexes the LUT.
   - *Future gradients* replace the two-stop interpolation with a multi-stop one.
-  - *Future binning* quantizes `t` (or builds a stepped LUT).
+  - *Future binning* builds a stepped LUT from `getChoroplethColors` with the bin count, so hot spot
+    bands match the colors of a legend with that many bins.
   - *Future density-based opacity* sets the LUT's alpha channel. The LUT is the single place where
     these extensions plug in.
 - **Drawing:** write the colors into an `ImageData` the size of the grid, `putImageData` it onto a
@@ -328,11 +335,15 @@ A small `L.Layer` subclass, `HotSpotCanvasLayer` (`src/components/map/utilities/
 modeled on `L.Canvas`:
 
 - `onAdd`: create the canvas in `codapHotSpotPane`. `onRemove`: remove it.
-- `getEvents()`:
-  - `moveend`, `zoomend`, and `resize`: reposition the canvas
-    (`L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint(−padding))`) and request a redraw.
-  - `zoomanim`: CSS-transform the existing canvas with `L.DomUtil.setTransform(canvas, offset, scale)`,
-    as `L.Renderer._updateTransform` does, so it scales smoothly during the zoom animation.
+- Events:
+  - `moveend` and `viewreset`: reposition the canvas
+    (`L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint(−padding))`) and redraw. Map resizes
+    fire `moveend`, so there's no separate `resize` handler.
+  - `zoom` and `zoomanim`: CSS-transform the existing canvas with `L.DomUtil.setTransform(canvas, offset,
+    scale)`, as `L.Renderer._updateTransform` does, so it scales smoothly during the zoom animation. This
+    uses Leaflet's private `_getNewPixelOrigin`; if a Leaflet upgrade removes it, the canvas stays put
+    during the zoom and is redrawn on `moveend`. `zoomanim` is registered with `map.on` in `onAdd`, not
+    in `getEvents()`, because `map.on` has a typed overload for it.
   - During a drag the pane's own translation moves the canvas with the map; no redraw until `moveend`.
 - `setDrawFunction(fn)` / `redraw()`: the layer owns the DOM and positioning, while the React component
   supplies the drawing callback (§6–7). This keeps the Leaflet layer free of CODAP model knowledge.
@@ -341,7 +352,11 @@ modeled on `L.Canvas`:
 
 - Adds/removes the `HotSpotCanvasLayer` when `show` toggles (replacing the placeholder rectangle).
 - **Data-dependent cache:** the points, effective bandwidth, zoom-0 projections, `hᵢ`, and
-  `maxDensity`. Recomputed when `mapPointLayerModel.pointDataVersion` (R5) changes.
+  `maxDensity`. This is the `MapHotSpotModel.hotSpotSurface` computed view, not component state. It is
+  built from a point source that the point layer injects (`MapPointLayerModel.plottedLatLongs`, which
+  tracks `pointDataVersion`, R5), the same way the point layer injects point data into `MapGridModel`.
+  MobX caches it while `MapHotSpotLayer` observes it (only while hot spots are shown) and recomputes it
+  when the plotted points or `bandwidth` change.
 - **View-dependent redraw:** debounced (~10ms, like the heatmap) on data cache changes, model
   property changes (`bandwidth`, colors, `opacity`), and the layer's map events.
 
@@ -406,10 +421,13 @@ In `src/components/map/utilities/hot-spot-utils.ts`:
 
 **Jest: pure functions (TDD)**
 
-- `computeDefaultBandwidth`: a known small configuration against a hand-computed value; an outlier
-  point barely changes the result (the median term wins); coincident points → fallback;
-  `Dₘ = 0, SD > 0` → SD path; antimeridian-straddling cluster gives the same result as the same
-  cluster shifted away from the dateline.
+- `computeDefaultBandwidth`: a known small configuration against a hand-computed value; the median
+  term is used when it is smaller than SD; coincident points → fallback; `Dₘ = 0, SD > 0` → SD path;
+  antimeridian-straddling cluster gives the same result as the same cluster shifted away from the
+  dateline. (Despite the median term, a far outlier *does* inflate the bandwidth: it moves the mean
+  center, which increases every point's distance, including the median. A 3 × 3 cluster plus one point
+  on another continent gives a bandwidth 27× larger. A median center would fix this, but was judged not
+  worth the extra code and computation.)
 - `bandwidthToWorldUnits`: equator vs. 60° (2× larger); latitude clamping near the poles.
 - `computeMaxDensity`: single point → 1; two points 2h apart → `2e^(−½)` within tolerance (mode
   between points); far-apart points → 1; cluster across the antimeridian is found.

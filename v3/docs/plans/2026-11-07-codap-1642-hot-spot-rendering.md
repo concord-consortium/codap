@@ -10,7 +10,7 @@ point layer's visible points, drawn as a continuous low-color → high-color can
 refer to it). Builds on the Phase 0 refactors
 ([2026-11-07-codap-1642-phase-0-refactors.md](2026-11-07-codap-1642-phase-0-refactors.md)). The math is pure
 functions in a new `hot-spot-utils.ts`, all tested first. The zoom-independent part (points, bandwidth, maximum
-density) is a cached MobX view on `MapPointLayerModel`. A small Leaflet layer, `HotSpotCanvasLayer`, owns the
+density) is a cached MobX view on `MapHotSpotModel`, fed by the point layer. A small Leaflet layer, `HotSpotCanvasLayer`, owns the
 canvas and its positioning. `MapHotSpotLayer` connects the two.
 
 **Tech Stack:** TypeScript, MobX / MobX-State-Tree, Leaflet, colord, Jest (with `jest-canvas-mock`), Cypress.
