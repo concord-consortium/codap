@@ -209,9 +209,10 @@ and attributes — and has no cases:
 }
 ```
 
-Keys whose value is `undefined`, such as each attribute's `formula` and the collection's `parent`,
-are left out above; a plugin receives them, as described under
-[What `get` returns](#what-get-returns).
+Keys whose value is `undefined`, such as each attribute's `formula`, `description`, `unit` and
+`deletedFormula` and the collection's `parent`, are left out above; a plugin receives them, as
+described under [What `get` returns](#what-get-returns). An attribute's `_categoryMap` is present
+only once something in CODAP has used its categories, such as a case table or graph showing it.
 
 Sort a data context by one attribute, descending:
 

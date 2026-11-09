@@ -163,6 +163,12 @@ const output = JSON.stringify({
   templates
 }, null, 2) + "\n"
 
+// The output goes into a clone of codap-data-interactives beside this repo
+if (!existsSync(dirname(outPath))) {
+  console.error(`${dirname(outPath)} not found; clone codap-data-interactives beside the codap repo, or pass --out`)
+  process.exit(1)
+}
+
 if (check) {
   const current = existsSync(outPath) ? readFileSync(outPath, "utf8") : ""
   if (current !== output) {
