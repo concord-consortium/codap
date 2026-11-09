@@ -8,6 +8,11 @@ export function radiansToDegrees(radians: number) {
   return radians * 180 / Math.PI
 }
 
+/** Returns n modulo m with the sign of m (so in [0, m) for positive m), unlike %, which keeps the sign of n */
+export function mod(n: number, m: number) {
+  return ((n % m) + m) % m
+}
+
 export function between(num: number, min: number, max: number) {
   return min < max ? (min <= num && num <= max) : (max <= num && num <= min)
 }

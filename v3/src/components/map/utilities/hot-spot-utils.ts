@@ -1,6 +1,6 @@
 import { CRS, latLng, Point } from "leaflet"
 import { computeMeanCenter, greatCircleDistance } from "../../../utilities/geo-utils"
-import { degreesToRadians, quantileOfSortedArray } from "../../../utilities/math-utils"
+import { degreesToRadians, mod, quantileOfSortedArray } from "../../../utilities/math-utils"
 import { ILatLong } from "../map-types"
 
 /** Grid cell side length, in CSS pixels */
@@ -57,4 +57,112 @@ export function computeDefaultBandwidth(latLongs: ILatLong[]) {
     ? standardDistance
     : Math.min(standardDistance, Math.sqrt(1 / Math.LN2) * medianDistance)
   return 0.9 * spread * n ** -0.2
+}
+
+/** A Gaussian kernel centered at (x, y) with bandwidth h, all in the same units */
+export interface IKernel {
+  x: number
+  y: number
+  h: number
+}
+
+/** Unnormalized Gaussian kernel, truncated outside a square window of half-width kKernelCutoff · h */
+export function kernelWeight(dx: number, dy: number, h: number) {
+  const r = kKernelCutoff * h
+  if (Math.abs(dx) > r || Math.abs(dy) > r) return 0
+  return Math.exp(-(dx * dx + dy * dy) / (2 * h * h))
+}
+
+/** Wraps a horizontal world-coordinate difference into [−128, 128], the short way across the antimeridian */
+export function wrapWorldDelta(dx: number) {
+  return dx - kWorldSize * Math.round(dx / kWorldSize)
+}
+
+/**
+ * Buckets world-coordinate kernels so that every kernel whose window contains a location is in that location's
+ * bucket or one of its eight neighbors. Buckets are at least kKernelCutoff · (largest h) wide. Columns wrap
+ * around the antimeridian.
+ */
+class WorldKernelIndex {
+  private size: number
+  private buckets = new Map<number, IKernel[]>()
+
+  constructor(kernels: IKernel[]) {
+    const maxH = kernels.reduce((max, { h }) => Math.max(max, h), 0)
+    this.size = Math.max(1, Math.floor(kWorldSize / (kKernelCutoff * maxH)))
+    kernels.forEach(kernel => {
+      const key = this.key(this.col(kernel.x), this.row(kernel.y))
+      const bucket = this.buckets.get(key)
+      if (bucket) {
+        bucket.push(kernel)
+      } else {
+        this.buckets.set(key, [kernel])
+      }
+    })
+  }
+
+  private col(x: number) {
+    return Math.floor(mod(x, kWorldSize) / kWorldSize * this.size) % this.size
+  }
+
+  private row(y: number) {
+    return Math.min(this.size - 1, Math.max(0, Math.floor(y / kWorldSize * this.size)))
+  }
+
+  private key(col: number, row: number) {
+    return row * this.size + col
+  }
+
+  /** Calls fn with each kernel that may be within kKernelCutoff bandwidths of (x, y), and its offset from it */
+  forEachNear(x: number, y: number, fn: (kernel: IKernel, dx: number, dy: number) => void) {
+    const col = this.col(x), row = this.row(y)
+    const cols = new Set([col - 1, col, col + 1].map(c => mod(c, this.size)))
+    for (let r = Math.max(0, row - 1); r <= Math.min(this.size - 1, row + 1); r++) {
+      cols.forEach(c => {
+        this.buckets.get(this.key(c, r))?.forEach(kernel => fn(kernel, wrapWorldDelta(kernel.x - x), kernel.y - y))
+      })
+    }
+  }
+
+  densityAt(x: number, y: number) {
+    let density = 0
+    this.forEachNear(x, y, (kernel, dx, dy) => { density += kernelWeight(dx, dy, kernel.h) })
+    return density
+  }
+}
+
+const kMaxMeanShiftIterations = 50
+// Mean-shift stops when a step is smaller than this fraction of the starting point's bandwidth
+const kMeanShiftTolerance = 1e-6
+
+/**
+ * Returns the maximum of the density surface of world-coordinate kernels. The maximum usually lies between
+ * points, so this climbs from each point to its local maximum with mean-shift, which always moves uphill on a
+ * sum of Gaussians. The density at each starting point is included too, so the result is never less than
+ * evaluating at the points alone.
+ */
+export function computeMaxDensity(kernels: IKernel[]) {
+  const index = new WorldKernelIndex(kernels)
+  let maxDensity = 0
+  kernels.forEach(start => {
+    let { x, y } = start
+    maxDensity = Math.max(maxDensity, index.densityAt(x, y))
+    for (let i = 0; i < kMaxMeanShiftIterations; i++) {
+      let sumWeights = 0, sumDx = 0, sumDy = 0
+      index.forEachNear(x, y, (kernel, dx, dy) => {
+        // the gradient of the density is Σ kernelWeight · (offset) / h², so this step always goes uphill
+        const weight = kernelWeight(dx, dy, kernel.h) / (kernel.h * kernel.h)
+        sumWeights += weight
+        sumDx += weight * dx
+        sumDy += weight * dy
+      })
+      if (sumWeights === 0) break
+      const stepX = sumDx / sumWeights, stepY = sumDy / sumWeights
+      x += stepX
+      y += stepY
+      if (Math.hypot(stepX, stepY) < kMeanShiftTolerance * start.h) break
+    }
+    maxDensity = Math.max(maxDensity, index.densityAt(x, y))
+  })
+  return maxDensity
 }

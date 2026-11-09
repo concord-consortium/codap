@@ -11,7 +11,7 @@ import {
   fitGaussianLM,
   isFiniteNumber,
   isNumber,
-  isValueNonEmpty, normal,
+  isValueNonEmpty, mod, normal,
   radiansToDegrees
 } from "./math-utils"
 
@@ -34,6 +34,16 @@ describe("math-utils", () => {
       expect(radiansToDegrees(0)).toBe(0)
       expect(radiansToDegrees(Math.PI)).toBeCloseTo(180)
       expect(radiansToDegrees(-Math.PI / 2)).toBeCloseTo(-90)
+    })
+  })
+
+  describe("mod", () => {
+    it("returns a result in [0, m), even for negative numbers", () => {
+      expect(mod(5, 3)).toBe(2)
+      expect(mod(-1, 3)).toBe(2)
+      expect(mod(-3, 3)).toBe(0)
+      expect(mod(0, 3)).toBe(0)
+      expect(mod(-0.5, 256)).toBeCloseTo(255.5)
     })
   })
 

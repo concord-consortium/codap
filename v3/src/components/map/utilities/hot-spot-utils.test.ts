@@ -1,8 +1,8 @@
 import { Point, Projection } from "leaflet"
 import { greatCircleDistance } from "../../../utilities/geo-utils"
 import {
-  bandwidthToWorldUnits, computeDefaultBandwidth, kFallbackBandwidthMeters, kMaxMercatorLatitude,
-  kWebMercatorRadiusMeters, kWorldSize, latLongToWorldPoint
+  bandwidthToWorldUnits, computeDefaultBandwidth, computeMaxDensity, IKernel, kernelWeight, kFallbackBandwidthMeters,
+  kMaxMercatorLatitude, kWebMercatorRadiusMeters, kWorldSize, latLongToWorldPoint, wrapWorldDelta
 } from "./hot-spot-utils"
 
 describe("hot spot constants", () => {
@@ -88,5 +88,78 @@ describe("computeDefaultBandwidth", () => {
     const acrossDateline = [{ lat: 10, long: 179 }, { lat: 10.5, long: 179.5 }, { lat: 9.5, long: -179.5 }]
     const nearGreenwich = [{ lat: 10, long: -1 }, { lat: 10.5, long: -0.5 }, { lat: 9.5, long: 0.5 }]
     expect(computeDefaultBandwidth(acrossDateline)).toBeCloseTo(computeDefaultBandwidth(nearGreenwich), 3)
+  })
+})
+
+describe("kernelWeight", () => {
+  it("is a Gaussian of distance in bandwidths", () => {
+    expect(kernelWeight(0, 0, 2)).toBe(1)
+    expect(kernelWeight(2, 0, 2)).toBeCloseTo(Math.exp(-0.5))
+    expect(kernelWeight(3, 4, 5)).toBeCloseTo(Math.exp(-0.5))
+  })
+
+  it("is zero outside a square window of kKernelCutoff bandwidths", () => {
+    expect(kernelWeight(3.01, 0, 1)).toBe(0)
+    expect(kernelWeight(0, -3.01, 1)).toBe(0)
+    // corners of the square are inside the window
+    expect(kernelWeight(2.9, 2.9, 1)).toBeGreaterThan(0)
+  })
+})
+
+describe("wrapWorldDelta", () => {
+  it("takes the short way around the world", () => {
+    expect(wrapWorldDelta(10)).toBe(10)
+    expect(wrapWorldDelta(-255)).toBe(1)
+    expect(wrapWorldDelta(250)).toBe(-6)
+  })
+})
+
+describe("computeMaxDensity", () => {
+  // Brute-force maximum over a fine grid covering [95, 110] × [95, 108]
+  function bruteForceMax(kernels: IKernel[]) {
+    let max = 0
+    for (let x = 95; x <= 110; x += 0.05) {
+      for (let y = 95; y <= 108; y += 0.05) {
+        max = Math.max(max, kernels.reduce((sum, k) => sum + kernelWeight(k.x - x, k.y - y, k.h), 0))
+      }
+    }
+    return max
+  }
+  const cluster: Array<[number, number]> =
+    [[100, 100], [101.2, 100.5], [100.4, 101.6], [103, 102], [99, 103.1], [102.2, 99.1], [105, 100]]
+
+  it("returns 0 for no points and 1 for one point", () => {
+    expect(computeMaxDensity([])).toBe(0)
+    expect(computeMaxDensity([{ x: 100, y: 100, h: 1 }])).toBe(1)
+  })
+
+  it("finds a maximum between two points", () => {
+    // f = 1 + e⁻² ≈ 1.135 at each point, but 2e^(−½) ≈ 1.213 at the midpoint
+    const kernels = [{ x: 100, y: 100, h: 1 }, { x: 102, y: 100, h: 1 }]
+    expect(computeMaxDensity(kernels)).toBeCloseTo(2 * Math.exp(-0.5), 3)
+  })
+
+  it("returns 1 for points farther apart than the cutoff", () => {
+    expect(computeMaxDensity([{ x: 100, y: 100, h: 1 }, { x: 110, y: 100, h: 1 }])).toBe(1)
+  })
+
+  it("measures points across the antimeridian as neighbors", () => {
+    // 1 world unit apart across the wrap, not 255; the midpoint density is 2e^(−⅛)
+    const kernels = [{ x: 255.5, y: 100, h: 1 }, { x: 0.5, y: 100, h: 1 }]
+    expect(computeMaxDensity(kernels)).toBeCloseTo(2 * Math.exp(-0.125), 3)
+  })
+
+  it("matches a brute-force search, which beats evaluating only at the points", () => {
+    const kernels = cluster.map(([x, y]) => ({ x, y, h: 1 }))
+    const maxAtPoints = Math.max(...kernels.map(p =>
+      kernels.reduce((sum, k) => sum + kernelWeight(k.x - p.x, k.y - p.y, k.h), 0)))
+    const max = computeMaxDensity(kernels)
+    expect(max).toBeCloseTo(bruteForceMax(kernels), 2)
+    expect(max).toBeGreaterThan(maxAtPoints + 0.1)   // ≈ 2.254 vs. 2.121
+  })
+
+  it("matches a brute-force search with varying bandwidths", () => {
+    const kernels = cluster.map(([x, y], i) => ({ x, y, h: i % 2 ? 1.5 : 1 }))
+    expect(computeMaxDensity(kernels)).toBeCloseTo(bruteForceMax(kernels), 2)
   })
 })
