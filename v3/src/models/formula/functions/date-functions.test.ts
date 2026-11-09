@@ -223,3 +223,90 @@ describe("today", () => {
     expect(fn.evaluate()).toEqual(new Date(now.getFullYear(), now.getMonth(), now.getDate()))
   })
 })
+
+describe("dateToEpoch", () => {
+  it("returns epoch seconds for a date object or date string", () => {
+    const fn = math.compile("dateToEpoch(x)")
+    expect(fn.evaluate({ x: new Date(Date.UTC(2023, 10, 14, 22, 13, 20)) })).toBe(1700000000)
+    expect(fn.evaluate({ x: "2023-11-14T22:13:20+00:00" })).toBe(1700000000)
+    expect(fn.evaluate({ x: "11/14/2023 17:13:20" })).toBe(new Date(2023, 10, 14, 17, 13, 20).getTime() / 1000)
+    expect(math.compile("dateToEpoch(date(2020, 1, 1))").evaluate()).toBe(new Date(2020, 0, 1).getTime() / 1000)
+  })
+
+  it("reads a date string ending in a bare 'Z' as local time", () => {
+    const fn = math.compile("dateToEpoch(x)")
+    expect(fn.evaluate({ x: "2023-11-14T22:13:20Z" })).toBe(new Date(2023, 10, 14, 22, 13, 20).getTime() / 1000)
+  })
+
+  it("keeps fractional seconds", () => {
+    const fn = math.compile("dateToEpoch(x)")
+    expect(fn.evaluate({ x: new Date(1700000000500) })).toBe(1700000000.5)
+  })
+
+  it("returns numbers and numeric strings unchanged, without treating small values as years", () => {
+    const fn = math.compile("dateToEpoch(x)")
+    expect(fn.evaluate({ x: 0 })).toBe(0)
+    expect(fn.evaluate({ x: 2000 })).toBe(2000)
+    expect(fn.evaluate({ x: -86400 })).toBe(-86400)
+    expect(fn.evaluate({ x: 1.5 })).toBe(1.5)
+    expect(fn.evaluate({ x: 1700000000 })).toBe(1700000000)
+    expect(fn.evaluate({ x: "0" })).toBe(0)
+    expect(fn.evaluate({ x: "1700000000" })).toBe(1700000000)
+  })
+
+  it("returns UNDEF_RESULT for values that aren't dates", () => {
+    const fn = math.compile("dateToEpoch(x)")
+    expect(fn.evaluate({ x: "not a date" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: "" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: "   " })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: true })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: false })).toBe(UNDEF_RESULT)
+  })
+})
+
+describe("epochToDate", () => {
+  it("converts epoch seconds to a date", () => {
+    const fn = math.compile("epochToDate(x)")
+    expect(fn.evaluate({ x: 1700000000 })).toEqual(new Date(1700000000 * 1000))
+    expect(fn.evaluate({ x: "1700000000" })).toEqual(new Date(1700000000 * 1000))
+    expect(fn.evaluate({ x: -86400 })).toEqual(new Date(-86400 * 1000))
+  })
+
+  it("treats small values as epoch seconds rather than years", () => {
+    const fn = math.compile("epochToDate(x)")
+    expect(fn.evaluate({ x: 0 })).toEqual(new Date(0))
+    expect(fn.evaluate({ x: 2000 })).toEqual(new Date(2000 * 1000))
+  })
+
+  it("keeps fractional seconds", () => {
+    const fn = math.compile("epochToDate(x)")
+    expect(fn.evaluate({ x: 1.5 })).toEqual(new Date(1500))
+  })
+
+  it("supports an optional unit argument", () => {
+    const fn = math.compile("epochToDate(x, unit)")
+    const expected = new Date(1700000000123)
+    expect(fn.evaluate({ x: 1700000000123, unit: "milliseconds" })).toEqual(expected)
+    expect(fn.evaluate({ x: 1700000000123, unit: "ms" })).toEqual(expected)
+    expect(fn.evaluate({ x: 1700000000123, unit: " Milliseconds " })).toEqual(expected)
+    expect(fn.evaluate({ x: 1700000000, unit: "seconds" })).toEqual(new Date(1700000000000))
+    expect(fn.evaluate({ x: 1700000000, unit: "s" })).toEqual(new Date(1700000000000))
+    expect(fn.evaluate({ x: 1700000000, unit: "minutes" })).toBe(UNDEF_RESULT)
+  })
+
+  it("returns UNDEF_RESULT for values that aren't numbers or are out of range", () => {
+    const fn = math.compile("epochToDate(x)")
+    expect(fn.evaluate({ x: "hello" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: "" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: true })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: new Date() })).toBe(UNDEF_RESULT)
+    // JS dates span ±8.64e15 ms, i.e. ±8.64e12 seconds
+    expect(fn.evaluate({ x: 8.64e12 + 1 })).toBe(UNDEF_RESULT)
+  })
+
+  it("round-trips with dateToEpoch", () => {
+    expect(math.compile("dateToEpoch(epochToDate(1700000000))").evaluate()).toBe(1700000000)
+    expect(math.compile("epochToDate(dateToEpoch(x))").evaluate({ x: new Date(2020, 5, 15, 8, 30) }))
+      .toEqual(new Date(2020, 5, 15, 8, 30))
+  })
+})

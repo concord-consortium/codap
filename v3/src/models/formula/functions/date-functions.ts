@@ -1,7 +1,14 @@
 import { FValue } from "../formula-types"
 import { UNDEF_RESULT } from "./function-utils"
 import { convertToDate, createDate } from "../../../utilities/date-utils"
+import { checkNumber } from "../../../utilities/math-utils"
 import { t } from "../../../utilities/translation/translate"
+
+// Units accepted by epochToDate's optional second argument, as milliseconds per unit
+const kEpochUnitMilliseconds: Record<string, number> = {
+  seconds: 1000, s: 1000,
+  milliseconds: 1, ms: 1
+}
 
 export const dateFunctions = {
   date: {
@@ -108,5 +115,37 @@ export const dateFunctions = {
   now: {
     numOfRequiredArguments: 0,
     evaluate: () => new Date()
+  },
+
+  dateToEpoch: {
+    numOfRequiredArguments: 1,
+    evaluate: (date: FValue) => {
+      // convertToDate reads a whitespace-only string as the number 0, i.e. the year 2000
+      if (typeof date === "boolean" || (typeof date === "string" && date.trim() === "")) return UNDEF_RESULT
+      // A number (or numeric string) is already epoch seconds. Passing it to convertToDate would apply
+      // date()'s rule that values under 5000 are years, so dateToEpoch(0) would be the year 2000.
+      if (typeof date === "number" || typeof date === "string") {
+        const [isNumeric, seconds] = checkNumber(date)
+        if (isNumeric) return seconds
+      }
+      const dateObject = convertToDate(date)
+      // CODAP stores dates as epoch seconds; Date.getTime() returns milliseconds
+      return dateObject ? dateObject.getTime() / 1000 : UNDEF_RESULT
+    }
+  },
+
+  epochToDate: {
+    numOfRequiredArguments: 1,
+    evaluate: (epochTime: FValue, unit: FValue = "seconds") => {
+      // Unlike date(), small values aren't treated as years, so epochToDate(0) is January 1, 1970 UTC.
+      // Only numbers and numeric strings are accepted. Booleans and Date objects are rejected because
+      // Number(true) is 1 and Number(new Date()) is milliseconds, which would give misleading dates.
+      if (typeof epochTime !== "number" && typeof epochTime !== "string") return UNDEF_RESULT
+      const msPerUnit = kEpochUnitMilliseconds[String(unit).trim().toLowerCase()]
+      const [isValid, value] = checkNumber(epochTime)
+      if (!isValid || msPerUnit == null) return UNDEF_RESULT
+      const date = new Date(value * msPerUnit)
+      return isFinite(date.valueOf()) ? date : UNDEF_RESULT
+    }
   }
 }
