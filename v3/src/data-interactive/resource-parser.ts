@@ -14,7 +14,7 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { toV3CaseId, toV3GlobalId, toV3ItemId } from "../utilities/codap-utils"
 import { resolveAdornmentType } from "./data-interactive-adornment-base-types"
 import { ActionName, DIResources, DIResourceSelector, DIParsedOperand } from "./data-interactive-types"
-import { getAttribute, getCollection } from "./data-interactive-utils"
+import { getAttribute, getCollection, toPluginValue } from "./data-interactive-utils"
 import { evaluateCaseFormula, findTileFromNameOrId, parseSearchQuery } from "./resource-parser-utils"
 
 /**
@@ -228,7 +228,7 @@ export function resolveResources(
   }
 
   const getOperandValue = (itemIndex?: number, operand?: DIParsedOperand) => {
-    if (operand?.attr && itemIndex != null) return operand.attr.value(itemIndex)
+    if (operand?.attr && itemIndex != null) return toPluginValue(operand.attr.value(itemIndex))
 
     return operand?.value
   }
