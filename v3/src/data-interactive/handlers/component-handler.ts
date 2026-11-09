@@ -173,16 +173,21 @@ export const diComponentHandler: DIHandler = {
       case "autoScale": {
         const { content } = component
         if (isGraphContentModel(content)) {
-          content.rescale()
+          // as in V2 (graph_controller.js:500-508) and the inspector's rescale button: a labeled,
+          // logged undo entry that sends rescaleGraph
+          content.applyModelChange(() => content.rescale(), {
+            notify: () => updateTileNotification("rescaleGraph", {}, component),
+            excludeTileId: resources.interactiveFrame?.id,
+            undoStringKey: "DG.Undo.axisDilate",
+            redoStringKey: "DG.Redo.axisDilate",
+            log: { message: "Rescale axes from data", args: {}, category: "plot" }
+          })
         } else if (isMapContentModel(content)) {
           content.rescale()
         } else if (isCaseTableModel(content)) {
           // V2's resize-all path (case_table_controller.js:1136) is undoable and emits
           // `resize columns`. Mirror that here so plugin-initiated rescales are also
-          // undoable and visible to V2 plugins (CODAP-1353). The graph rescale above is undoable
-          // too, as in V2: it changes the axes outside applyModelChange, so a rescale that moves
-          // them adds an (unlabeled) undo entry. Labeling it, and the map rescale, are
-          // CODAP-1351 / CODAP-1352.
+          // undoable and visible to V2 plugins (CODAP-1353).
           //
           // Don't echo the notification back to the requesting plugin — Story Builder
           // otherwise treats notifications about its own DI-API actions as document edits

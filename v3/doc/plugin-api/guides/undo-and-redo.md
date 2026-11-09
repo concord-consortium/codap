@@ -30,8 +30,9 @@ match a single action in CODAP's interface and undo the same way it does:
 
 v3 does not yet add entries for the last three; see [Known limitations](#known-limitations).
 
-If your plugin needs the user to be able to undo something it did through the API, it reports
-the action itself, as described next, and reverses the API changes itself when asked.
+A plugin should not depend on whether CODAP's undo reverses a request it made. If your plugin
+needs the user to be able to undo something it did through the API, it reports the action itself,
+as described next, and reverses the API changes itself when asked.
 
 ## Making your plugin's actions undoable
 
@@ -221,9 +222,6 @@ no notification of its own. v3 does not. This is a known bug.
 added `update` on `attributeLocation`, and `create` and `delete` on `component`, to the history,
 as it did the same changes made in CODAP's interface, so the user could undo them. v3 does not.
 This is a known bug.
-
-**v2 reset the user's history after many data requests.** CODAP keeps it. A plugin should not
-depend on whether CODAP's undo reverses a request it made.
 
 ## See also
 
