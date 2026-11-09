@@ -1,4 +1,35 @@
-import { greatCircleDistance, kEarthMeanRadiusMeters } from "./geo-utils"
+import { computeMeanCenter, greatCircleDistance, kEarthMeanRadiusMeters } from "./geo-utils"
+
+describe("computeMeanCenter", () => {
+  it("returns undefined for no points", () => {
+    expect(computeMeanCenter([])).toBeUndefined()
+  })
+
+  it("returns a single point unchanged", () => {
+    const center = computeMeanCenter([{ lat: 42, long: -71 }])!
+    expect(center.lat).toBeCloseTo(42)
+    expect(center.long).toBeCloseTo(-71)
+  })
+
+  it("averages points on the sphere", () => {
+    const center = computeMeanCenter([{ lat: 0, long: 0 }, { lat: 0, long: 90 }])!
+    expect(center.lat).toBeCloseTo(0)
+    expect(center.long).toBeCloseTo(45)
+    const center2 = computeMeanCenter([{ lat: 10, long: 0 }, { lat: -10, long: 0 }])!
+    expect(center2.lat).toBeCloseTo(0)
+    expect(center2.long).toBeCloseTo(0)
+  })
+
+  it("centers points that straddle the antimeridian near ±180°, not 0°", () => {
+    const center = computeMeanCenter([{ lat: 0, long: 179 }, { lat: 0, long: -179 }])!
+    expect(center.lat).toBeCloseTo(0)
+    expect(Math.abs(center.long)).toBeCloseTo(180)
+  })
+
+  it("returns undefined when the points cancel out", () => {
+    expect(computeMeanCenter([{ lat: 0, long: 0 }, { lat: 0, long: 180 }])).toBeUndefined()
+  })
+})
 
 describe("greatCircleDistance", () => {
   it("returns 0 for identical points", () => {

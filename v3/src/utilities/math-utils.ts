@@ -4,6 +4,10 @@ export function degreesToRadians(degrees: number) {
   return degrees * Math.PI / 180
 }
 
+export function radiansToDegrees(radians: number) {
+  return radians * 180 / Math.PI
+}
+
 export function between(num: number, min: number, max: number) {
   return min < max ? (min <= num && num <= max) : (max <= num && num <= min)
 }

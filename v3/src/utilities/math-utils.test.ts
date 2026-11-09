@@ -11,7 +11,8 @@ import {
   fitGaussianLM,
   isFiniteNumber,
   isNumber,
-  isValueNonEmpty, normal
+  isValueNonEmpty, normal,
+  radiansToDegrees
 } from "./math-utils"
 
 // default formatting except uses ASCII minus sign
@@ -25,6 +26,14 @@ describe("math-utils", () => {
       expect(degreesToRadians(180)).toBeCloseTo(Math.PI)
       expect(degreesToRadians(-90)).toBeCloseTo(-Math.PI / 2)
       expect(degreesToRadians(360)).toBeCloseTo(2 * Math.PI)
+    })
+  })
+
+  describe("radiansToDegrees", () => {
+    it("converts radians to degrees", () => {
+      expect(radiansToDegrees(0)).toBe(0)
+      expect(radiansToDegrees(Math.PI)).toBeCloseTo(180)
+      expect(radiansToDegrees(-Math.PI / 2)).toBeCloseTo(-90)
     })
   })
 
