@@ -84,6 +84,7 @@ v3.
 | Property | Type | |
 |---|---|---|
 | `cannotClose` | `boolean` | optional |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional |
 | `dimensions` | `{ width: number; height: number }` | optional |
 | `id` | `number` | optional |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional |
@@ -96,6 +97,13 @@ v3.
 
 `type` is required when creating. On `create`, `title` falls back to `name` when only `name` is
 given.
+
+On `create`, `dimensions` is the size of the component's content, as in v2: CODAP adds its title
+bar, so a component created with a height of 300 is 334 pixels tall. `contentDimensions` means the
+same on `create`, and wins for a side both give. On `get` and `update`, `dimensions` is the size of the
+whole component, title bar included, also as in v2; `update` ignores `contentDimensions`. A plugin
+sizing its own tile should use [`interactiveFrame`](interactive-frame.md#sizing-the-plugin), which
+takes either size.
 
 Two of these behave differently from the table:
 
@@ -122,6 +130,7 @@ only — a `create` carrying it, and no `URL`, makes a blank web view.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -220,6 +229,7 @@ properties, or set them with a following `update`.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -246,6 +256,7 @@ properties, or set them with a following `update`.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -286,6 +297,7 @@ in `name` — a v2 compatibility shim that does not apply to `caseCard`.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -308,6 +320,7 @@ exists.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -325,6 +338,7 @@ exists.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -341,6 +355,7 @@ exists.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -358,6 +373,7 @@ exists.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -375,6 +391,7 @@ exists.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -394,6 +411,7 @@ exists.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -450,7 +468,7 @@ Read a graph back, to see how the user has reconfigured it:
 {
   "success": true,
   "values": {
-    "dimensions": { "width": 400, "height": 300 },
+    "dimensions": { "width": 400, "height": 334 },
     "id": 12,
     "name": "Height by Weight",
     "position": { "left": 100, "top": 100 },

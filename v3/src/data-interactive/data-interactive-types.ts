@@ -65,6 +65,10 @@ export interface DIInteractiveFrame {
   blockAPIRequestsWhileEditing?: boolean
   cannotClose?: boolean
   codapVersion?: string
+  contentDimensions?: {
+    height?: number
+    width?: number
+  }
   dimensions?: {
     height?: number
     width?: number

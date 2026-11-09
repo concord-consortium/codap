@@ -86,6 +86,10 @@ for (const key in kComponentTypeV3ToV2Map) {
 
 export interface V2Component {
   cannotClose?: boolean
+  contentDimensions?: {
+    width?: number
+    height?: number
+  }
   dimensions?: {
     width: number
     height: number

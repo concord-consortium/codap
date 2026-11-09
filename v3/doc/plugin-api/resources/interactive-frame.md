@@ -50,6 +50,7 @@ apply. Naming a `dataContext` in the selector has no effect.
 | `blockAPIRequestsWhileEditing` | `boolean` | optional |
 | `cannotClose` | `boolean` | optional |
 | `codapVersion` | `string` | optional |
+| `contentDimensions` | `{ height?: number; width?: number }` | optional |
 | `dimensions` | `{ height?: number; width?: number }` | optional |
 | `externalUndoAvailable` | `boolean` | optional |
 | `id` | `string \| number` | optional |
@@ -71,8 +72,8 @@ apply. Naming a `dataContext` in the selector has no effect.
 
 ### Which properties each action uses
 
-Not every property above travels in both directions. `get` returns nineteen of them; `update`
-honors fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAvailable`, `lang`,
+Not every property above travels in both directions. `get` returns twenty of them; `update`
+honors fifteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAvailable`, `lang`,
 `locale` and `savedState` are reported by CODAP and cannot be set.
 
 | Property | `get` returns | `update` honors |
@@ -86,6 +87,7 @@ honors fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAva
 | `respectEditableItemAttribute` | yes | yes |
 | `subscribeToDocuments` | yes | yes |
 | `dimensions` | yes | yes |
+| `contentDimensions` | yes | yes |
 | `name` | yes | yes, unless the user renamed the tile |
 | `title` | yes | yes, unless the user renamed the tile |
 | `version` | yes | yes |
@@ -101,6 +103,19 @@ honors fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAva
 
 A number given as `name` or `title` is used as text, as in v2. `cannotClose` may be any value;
 CODAP stores whether it is truthy.
+
+### Sizing the plugin
+
+`dimensions` is the size of the whole tile, its title bar included, as in v2. `contentDimensions`
+is the size of the plugin's own area: CODAP adds its title bar, so a plugin asking for
+`{ "width": 680, "height": 300 }` gets that much room, whatever the size of CODAP's title bar. Send
+either one; if both give a width or a height, `contentDimensions` wins for that side. A width or
+height left out, or one that is not a positive number, keeps its current value. `get` returns both. When the plugin runs standalone (`?standalone=true`) it
+fills the window, and neither size has a visible effect.
+
+v2's frame also had a border, so for the same `dimensions` a plugin gets 16 pixels more width and 3
+pixels more height in v3 than it did in v2. This is a deliberate difference; a plugin that needs an
+exact size should send `contentDimensions`.
 
 ### Holding requests while the user edits
 
@@ -146,6 +161,7 @@ Read the frame at startup:
     "allowEmptyAttributeDeletion": true,
     "blockAPIRequestsWhileEditing": false,
     "codapVersion": "3.x.y",
+    "contentDimensions": { "width": 600, "height": 366 },
     "dimensions": { "width": 600, "height": 400 },
     "externalUndoAvailable": true,
     "id": 7,

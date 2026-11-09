@@ -26,6 +26,7 @@ import { registerDIHandler } from "../data-interactive-handler"
 import {
   DIErrorResult, DIHandler, DIHandlerFnResult, DINotification, DIResources, DIValues, isErrorResult
 } from "../data-interactive-types"
+import { tileDimensionsFromContent, validDimensions } from "../data-interactive-utils"
 import {
   componentNotFoundResult, errorResult, valuesRequiredResult
 } from "./di-results"
@@ -59,7 +60,7 @@ export const diComponentHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
     if (!values) return valuesRequiredResult
 
-    const { type, cannotClose, dimensions, position, name, title: _title } = values as V2Component
+    const { type, cannotClose, contentDimensions, dimensions, position, name, title: _title } = values as V2Component
     const { document } = appState
 
     // check if there's a registered handler for this type
@@ -81,8 +82,11 @@ export const diComponentHandler: DIHandler = {
       return document.applyModelChange(() => {
         const title = _title ?? name
         const _cannotClose = cannotClose != null ? !!cannotClose : undefined
+        // as in V2 (component_view.js:865-867), create's dimensions are the content size, to which CODAP adds
+        // its title bar; contentDimensions is the same, and wins side by side
+        const tileSize = tileDimensionsFromContent({ ...validDimensions(dimensions), ...validDimensions(contentDimensions) })
         const newTileOptions = {
-          cannotClose: _cannotClose, content, ...dimensions, position, x, y, name, title, ..._options
+          cannotClose: _cannotClose, content, ...tileSize, position, x, y, name, title, ..._options
         }
         tile = _createOrShow(kComponentTypeV2ToV3Map[type], newTileOptions)
         if (!tile) return errorResult(t("V3.DI.Error.componentNotCreated"))
