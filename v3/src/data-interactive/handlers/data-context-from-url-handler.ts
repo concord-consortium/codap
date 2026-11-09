@@ -34,7 +34,9 @@ export const diDataContextFromURLHandler: DIAsyncHandler = {
             if (ds) {
               if (values.title && typeof values.title === "string") ds.setTitle(values.title)
               const createDefaultTile = values.showCaseTable !== false
-              appState.document.content?.importDataSet(ds, { createDefaultTile })
+              appState.document.applyModelChange(() => {
+                appState.document.content?.importDataSet(ds, { createDefaultTile })
+              })
               resolve({
                 success: true,
                 values: basicDataSetInfo(ds)

@@ -121,10 +121,6 @@ v3 sends nothing. This is a known bug. Until it is fixed, a plugin that needs to
 data contexts cannot rely on the notification for data imported this way, and should read
 [`dataContextList`](data-context-list.md) again when it needs the current list.
 
-**The import adds an entry to the undo history.** The intended behavior is that a request
-through the API does not; see
-[Undo and redo](../guides/undo-and-redo.md#known-limitations).
-
 **A second import with the same name is not renamed.** v2 gave the new data context a unique
 name, such as `pets_1`. v3 gives it the same name as the existing one, so selecting by name finds
 only one of them. This is a known bug.
