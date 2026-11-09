@@ -223,16 +223,13 @@ and replies `{ "success": false }` when no object has `values`. This is a known 
 item, changes that item, and lists the id in `caseIDs`. v2 skipped it. This is a known bug. Use
 the ids of cases, and use [`itemByID`](item-by-id.md) to change an item.
 
-**The requesting plugin hears its own change.** `create` and `update` send their notifications to
-the plugin that made the change as well as to the others. The intended behavior is that the
-requesting plugin is skipped. This is a known bug; see
-[the catalog's known limitations](../notifications.md#known-limitations).
-
 ## Notifications
 
 `create` notifies the plugins listening to the data context with `createCases`, and `update` with
-`updateCases`, both on `dataContextChangeNotice[<context>]`. One current deviation is listed under
-[Known limitations](#known-limitations). See
+`updateCases`, both on `dataContextChangeNotice[<context>]`, as the same changes made in a case
+table do. An `update` that moves cases to a different parent case also sends `createCases` for the
+cases it creates; v2 sent a second `updateCases` listing them instead. An `update` that names no
+known attribute sends nothing; v2 failed the request. See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext) for
 what each carries.
 

@@ -14,10 +14,8 @@ finished its work before the next one starts, so you can send a `create` and the
 waiting for the first response.
 
 The queue guarantees order, not completion. A few requests reply at once and finish their work
-afterwards: `update` on [`document`](../resources/document.md#update--replacing-the-document)
-replies `success` before the new document is in place, so a request sent after it, even in the
-same array, can still see the old document. Wait for the `updateDocumentEnded` notification before
-sending anything that depends on the replacement.
+afterwards: `get` on [`document`](../resources/document.md) replies `success` at once, and the
+document itself arrives later, in a `newDocumentState` notification.
 
 Each plugin has its own queue. CODAP makes no promise about the order of requests from two
 different plugins.
@@ -97,8 +95,8 @@ not combined. A plugin sees three effects:
   `An error occurred while processing the request.`, and some of the batch's cases may already
   have been added.
 - **Notifications are combined.** A batch sends one `createCases` notification per collection
-  for all its requests, before any of their responses. Do not count `createCases` notifications
-  to count requests or cases; read the case ids they carry.
+  for all its requests, then one `createItems`, before any of their responses. Do not count these
+  notifications to count requests or cases; read the ids they carry.
 
 Only consecutive item creates with the same resource are combined. Anything else between them —
 a `get`, a selection change, a create on another data context — ends the run, so the order of
@@ -146,9 +144,9 @@ error in that envelope's place and went on with the rest, which is the intended 
 a known bug. Until it is fixed, check whether the reply is an array before reading it.
 
 **Data notifications are not combined as v2 combined them.** v2 sent one data-change notification
-per request, whose `values` was an array of every change the request made. v3 sends one
-notification per change, with `values` a single object. This is a known bug; see
-[the notification catalog](../notifications.md#known-limitations).
+per request, whose `values` was an array of every change the request made. CODAP sends one
+notification per change, each with a `values` array of one. This is a known bug; the intended
+behavior is v2's. See [the notification catalog](../notifications.md#known-limitations).
 
 **`blockAPIRequestsWhileEditing` holds back every plugin.** Only the plugin that manages the data
 context needs to wait while its data is being edited, but requests from all plugins wait.

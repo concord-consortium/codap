@@ -151,18 +151,12 @@ Clear the data context before loading new data:
 `parent === null` treats every top-level case as a child; test for a missing parent instead, such
 as `parent == null`. This is a known bug.
 
-**`delete` notifies no other plugin.** v2 sent `deleteCases` on
-`dataContextChangeNotice[<context>]` to the other plugins. v3 sends nothing, so other plugins do
-not learn that the data set was emptied. This is a known bug; see
-[the notification catalog](../notifications.md#known-limitations).
-
 ## Notifications
 
 This resource takes no `notify` requests.
 
-`delete` should notify other plugins on `dataContextChangeNotice[<context>]` with `deleteCases`,
-as deleting cases in a case table does. It does not yet; see
-[Known limitations](#known-limitations).
+`delete` notifies other plugins on `dataContextChangeNotice[<context>]` with `deleteCases`, as
+deleting cases in a case table does.
 
 ## Errors
 

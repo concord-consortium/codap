@@ -254,15 +254,6 @@ Start a drag from inside a plugin, so the user can drop an attribute onto a grap
 
 ## Known limitations
 
-**`delete` sends no notification.** Other plugins are not told that the attribute is gone. v2
-sent `deleteAttributes`, or `deleteCollection` when the attribute was the last in its collection.
-This is a known bug; the intended behavior is v2's.
-
-**The requesting plugin hears its own change.** `create` and `update` send their notifications to
-the plugin that made the change as well as to the others. The intended behavior is that the
-requesting plugin is skipped. This is a known bug; see
-[the catalog's known limitations](../notifications.md#known-limitations).
-
 **The protection properties come in two spellings that mean opposite things.** `get` reports
 `deleteable`, `renameable` and `editable` — whether the attribute *can* be deleted, renamed or
 edited. `update` accepts those, and also `deleteProtected` and `renameProtected`, which are their
@@ -298,9 +289,9 @@ the plugin's own iframe, so a request that arrives without one falls through to
 
 `create`, `update` and `delete` notify the other plugins listening to the data context, with
 `createAttributes`, `updateAttributes` and `deleteAttributes` on
-`dataContextChangeNotice[<context>]`. Moving an attribute is done through
-`attributeLocation`, which sends `moveAttribute`. Two current deviations are listed under
-[Known limitations](#known-limitations). See
+`dataContextChangeNotice[<context>]`. When `delete` removes the last attribute of a collection,
+`deleteCollection` comes first, as in CODAP's interface; v2 sent `deleteCollection` alone. Moving
+an attribute is done through `attributeLocation`, which sends `moveAttribute`. See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext) for
 what each carries.
 
