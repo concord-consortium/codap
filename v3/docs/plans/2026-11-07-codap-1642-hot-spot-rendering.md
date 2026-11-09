@@ -792,6 +792,7 @@ Add mean-shift maximum density for hot spots (CODAP-1642)
 
 **Files:**
 - Modify: `components/map/utilities/hot-spot-utils.ts`, `hot-spot-utils.test.ts`
+- Modify: `components/map/map-types.ts`
 - Modify: `components/map/models/map-hot-spot-model.ts`, `map-hot-spot-model.test.ts`
 - Modify: `components/map/models/map-point-layer-model.ts`, `map-point-layer-model.test.ts`
 
@@ -950,21 +951,25 @@ export function computeHotSpotSurface(latLongs: ILatLong[], bandwidthMeters?: nu
 }
 ```
 
-`map-hot-spot-model.ts` (import `ILatLong` from `"../map-types"` and `computeHotSpotSurface`, `IHotSpotSurface`
-from `"../utilities/hot-spot-utils"`). Add a volatile and a view after the props, and the setter to the actions
-block:
+`map-types.ts`, after `ILatLong`:
 
 ```ts
-/** Supplies the points to plot (see MapPointLayerModel.plottedLatLongs) */
-export interface IHotSpotPointSource {
+/** Supplies the coordinates of plotted points (see MapPointLayerModel.plottedLatLongs) */
+export interface IPointSource {
   plottedLatLongs: ILatLong[]
 }
+```
 
+`map-hot-spot-model.ts` (import `IPointSource` from `"../map-types"` and `computeHotSpotSurface`,
+`IHotSpotSurface` from `"../utilities/hot-spot-utils"`). Add a volatile and a view after the props, and the setter
+to the actions block:
+
+```ts
 export const MapHotSpotModel = types.model("MapHotSpotModel", {
   // ...props unchanged...
 })
   .volatile(() => ({
-    pointSource: undefined as Maybe<IHotSpotPointSource>
+    pointSource: undefined as Maybe<IPointSource>
   }))
   .views(self => ({
     /**
@@ -976,7 +981,7 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
   }))
   .actions(self => ({
     // ...existing setters...
-    setPointSource(pointSource: IHotSpotPointSource) {
+    setPointSource(pointSource: IPointSource) {
       self.pointSource = pointSource
     }
   }))
