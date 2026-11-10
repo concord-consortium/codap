@@ -53,13 +53,13 @@ describe("MapHotSpotModel.hotSpotSurface", () => {
   it("is undefined without a point source or points", () => {
     const hotSpot = MapHotSpotModel.create()
     expect(hotSpot.hotSpotSurface).toBeUndefined()
-    hotSpot.setPointSource({ plottedLatLongs: [] })
+    hotSpot.setLatLongSource({ plottedLatLongs: [] })
     expect(hotSpot.hotSpotSurface).toBeUndefined()
   })
 
   it("uses the source's points", () => {
     const hotSpot = MapHotSpotModel.create()
-    hotSpot.setPointSource({ plottedLatLongs: latLongs })
+    hotSpot.setLatLongSource({ plottedLatLongs: latLongs })
     const surface = hotSpot.hotSpotSurface!
     expect(surface.points.map(p => p.latLong)).toEqual(latLongs)
     // the points coincide, so there's no spread and the fallback bandwidth applies
@@ -69,7 +69,7 @@ describe("MapHotSpotModel.hotSpotSurface", () => {
 
   it("uses the model's bandwidth when it is set", () => {
     const hotSpot = MapHotSpotModel.create()
-    hotSpot.setPointSource({ plottedLatLongs: latLongs })
+    hotSpot.setLatLongSource({ plottedLatLongs: latLongs })
     hotSpot.setBandwidth(5000)
     expect(hotSpot.hotSpotSurface!.bandwidthMeters).toBe(5000)
   })
@@ -77,7 +77,7 @@ describe("MapHotSpotModel.hotSpotSurface", () => {
   it("recomputes when the source's points change", () => {
     const hotSpot = MapHotSpotModel.create()
     const source = observable({ plottedLatLongs: latLongs })
-    hotSpot.setPointSource(source)
+    hotSpot.setLatLongSource(source)
     // a fixed bandwidth, so "far apart" doesn't depend on the default computed from the points
     hotSpot.setBandwidth(5000)
     const surfaces: Array<Maybe<IHotSpotSurface>> = []

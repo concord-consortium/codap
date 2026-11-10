@@ -44,8 +44,12 @@ export interface ILatLong {
 }
 
 /** Supplies the coordinates of plotted points (see MapPointLayerModel.plottedLatLongs) */
-export interface IPointSource {
+export interface ILatLongSource {
   plottedLatLongs: ILatLong[]
+}
+
+export interface IPointDataSource {
+  pointDataVersion: number
 }
 
 export type GeoJsonObject = GeoJSON.GeoJsonObject

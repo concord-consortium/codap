@@ -1,9 +1,10 @@
-import {reaction} from "mobx"
+import { reaction } from "mobx"
 import { addDisposer, Instance, types } from "mobx-state-tree"
-import {applyModelChange} from "../../../models/history/apply-model-change"
-import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
-import {LatLngGrid} from "../utilities/lat-lng-grid"
-import {getCaseLatLong, getLatLongBounds} from "../utilities/map-utils"
+import { applyModelChange } from "../../../models/history/apply-model-change"
+import { IDataConfigurationModel } from "../../data-display/models/data-configuration-model"
+import { IPointDataSource } from "../map-types"
+import { LatLngGrid } from "../utilities/lat-lng-grid"
+import { getCaseLatLong, getLatLongBounds } from "../utilities/map-utils"
 
 export const MapGridModel = types.model("MapGridModel", {
   isVisible: false,
@@ -11,8 +12,7 @@ export const MapGridModel = types.model("MapGridModel", {
 })
   .volatile(() => ({
     dataConfiguration: undefined as IDataConfigurationModel | undefined,
-    // Signals changes to the plotted cases or their coordinates (see MapPointLayerModel.pointDataVersion)
-    pointDataSource: undefined as Maybe<{ pointDataVersion: number }>,
+    pointDataSource: undefined as Maybe<IPointDataSource>,
     _latLngGrid: new LatLngGrid(),
     _gridSize: 0,  // degrees
     _dynamicGridMultiplier: undefined as number | undefined,  // Used during slider drag
@@ -36,7 +36,7 @@ export const MapGridModel = types.model("MapGridModel", {
     setDataConfiguration(dataConfiguration: IDataConfigurationModel) {
       self.dataConfiguration = dataConfiguration
     },
-    setPointDataSource(pointDataSource: { pointDataVersion: number }) {
+    setPointDataSource(pointDataSource: IPointDataSource) {
       self.pointDataSource = pointDataSource
     },
     setDynamicGridMultiplier(multiplier: number) {

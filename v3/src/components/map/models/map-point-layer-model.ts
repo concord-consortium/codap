@@ -55,46 +55,6 @@ export const MapPointLayerModel = MapLayerModel
     }
   }))
   .actions(self => ({
-    afterCreate() {
-      self.gridModel.setDataConfiguration(self.dataConfiguration)
-      self.gridModel.setPointDataSource(self)
-      const { dataConfiguration } = self
-
-      // The set of plotted cases changed (added, removed, hidden, filtered, set aside)
-      addDisposer(self, reaction(
-        () => dataConfiguration.caseDataHash,
-        () => self.bumpPointCasesVersion(),
-        { name: "MapPointLayerModel.pointCasesVersion" }
-      ))
-
-      // Changing a lat/long attribute's type changes its numeric values and which cases are valid
-      addDisposer(self, reaction(
-        () => [dataConfiguration.attributeType("lat"), dataConfiguration.attributeType("long")],
-        () => {
-          dataConfiguration.invalidateCases()
-          self.bumpPointValuesVersion()
-        },
-        { name: "MapPointLayerModel.latLongTypeChange", equals: comparer.structural }
-      ))
-
-      // Value changes and case additions/removals in whichever dataset the layer is showing
-      let disposeActionListener: Maybe<() => void>
-      addDisposer(self, reaction(
-        () => dataConfiguration.dataset,
-        dataset => {
-          disposeActionListener?.()
-          disposeActionListener = dataset && onAnyAction(dataset, action => {
-            if (isCaseValueChangeAction(action)) {
-              self.bumpPointValuesVersion(dataset.isCaching())
-            } else if (["addCases", "removeCases"].includes(action.name)) {
-              self.bumpPointValuesVersion()
-            }
-          })
-        },
-        { name: "MapPointLayerModel.datasetActions", fireImmediately: true }
-      ))
-      addDisposer(self, () => disposeActionListener?.())
-    },
     setPointAttributes(dataSet: IDataSet, latAttrId: string, longAttrId: string) {
       self.dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
       self.dataConfiguration.setAttribute('lat', {attributeID: latAttrId})
@@ -136,9 +96,9 @@ export const MapPointLayerModel = MapLayerModel
   .views(self => ({
     /** The coordinates of the plotted cases that have valid lat/long values */
     get plottedLatLongs(): ILatLong[] {
-      // pointDataVersion is the only dependency: it's bumped for every change to the plotted cases or their
-      // coordinates, and tracking the reads below too would invalidate this more than once per change
+      // Update when pointDataVersion changes.
       void self.pointDataVersion
+      // Don't track anything else. Doing so causes multiple invalidations per change.
       return untracked(() => {
         const latLongs: ILatLong[] = []
         self.dataConfiguration.getCaseDataArray(0).forEach(({ caseID }) => {
@@ -150,9 +110,46 @@ export const MapPointLayerModel = MapLayerModel
     }
   }))
   .actions(self => ({
-    // MST runs this after the afterCreate above. It's defined here so that self includes plottedLatLongs.
     afterCreate() {
-      self.hotSpotModel.setPointSource(self)
+      self.gridModel.setDataConfiguration(self.dataConfiguration)
+      self.gridModel.setPointDataSource(self)
+      self.hotSpotModel.setLatLongSource(self)
+      const { dataConfiguration } = self
+
+      // The set of plotted cases changed (added, removed, hidden, filtered, set aside)
+      addDisposer(self, reaction(
+        () => dataConfiguration.caseDataHash,
+        () => self.bumpPointCasesVersion(),
+        { name: "MapPointLayerModel.pointCasesVersion" }
+      ))
+
+      // Changing a lat/long attribute's type changes its numeric values and which cases are valid
+      addDisposer(self, reaction(
+        () => [dataConfiguration.attributeType("lat"), dataConfiguration.attributeType("long")],
+        () => {
+          dataConfiguration.invalidateCases()
+          self.bumpPointValuesVersion()
+        },
+        { name: "MapPointLayerModel.latLongTypeChange", equals: comparer.structural }
+      ))
+
+      // Value changes and case additions/removals in whichever dataset the layer is showing
+      let disposeActionListener: Maybe<() => void>
+      addDisposer(self, reaction(
+        () => dataConfiguration.dataset,
+        dataset => {
+          disposeActionListener?.()
+          disposeActionListener = dataset && onAnyAction(dataset, action => {
+            if (isCaseValueChangeAction(action)) {
+              self.bumpPointValuesVersion(dataset.isCaching())
+            } else if (["addCases", "removeCases"].includes(action.name)) {
+              self.bumpPointValuesVersion()
+            }
+          })
+        },
+        { name: "MapPointLayerModel.datasetActions", fireImmediately: true }
+      ))
+      addDisposer(self, () => disposeActionListener?.())
     }
   }))
 

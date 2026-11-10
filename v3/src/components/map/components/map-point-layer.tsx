@@ -306,10 +306,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
   const displayPoints = (displayType === "points" || !canDrawHeatmap) && pointsAreVisible && layerIsVisible
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
     const project = createLatLongProjector(leafletMap)
-    const {pointSizeMultiplier, pointStrokeColor} = pointDescription
-    if (!renderer || !dataset) {
-      return
-    }
+    const { pointSizeMultiplier, pointStrokeColor } = pointDescription
+    if (!renderer || !dataset) return
+
     if (!(displayPoints && renderer.isVisible)) {
       renderer?.setVisibility(false)
       return
@@ -348,8 +347,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     refreshPointSelection()
   }, 10)
 
-  // Selection actions in the dataset require restyling points. Changes to the plotted cases and their
-  // values are tracked by the layer model (see setupResponseToChangeInCases/Values below).
+  // Selection actions in the dataset require restyling points.
   useEffect(function setupResponsesToSelectionActions() {
     if (dataset) {
       const disposer = onAnyAction(dataset, action => {
@@ -389,7 +387,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         refreshPoints(false)
         refreshHeatmap()
       },
-      {name: "MapPointLayer [legendColorChange]", fireImmediately: true}, dataConfiguration)
+      {name: "MapPointLayer [legendColorChange]", fireImmediately: true},
+      dataConfiguration
+    )
   }, [dataConfiguration, refreshHeatmap, refreshPoints])
 
   // A shape change alters only how each point is drawn, so the points are restyled without touching
@@ -400,7 +400,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       () => {
         refreshPointSelection()
       },
-      {name: "MapPointLayer [shapeChange]", equals: comparer.structural}, dataConfiguration)
+      {name: "MapPointLayer [shapeChange]", equals: comparer.structural},
+      dataConfiguration
+    )
   }, [dataConfiguration, mapLayerModel, refreshPointSelection])
 
   // Changes in layout or map pan/zoom require repositioning points
@@ -415,7 +417,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         refreshPoints(false)
         refreshConnectingLines()
         refreshHeatmap()
-      }, {name: "MapPointLayer.respondToLayoutChanges", equals: comparer.structural}
+      },
+      { name: "MapPointLayer.respondToLayoutChanges", equals: comparer.structural }
     )
   }, [layout, mapModel.leafletMapState, refreshConnectingLines, refreshHeatmap, refreshPoints])
 
@@ -427,7 +430,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         refreshPoints(false)
         refreshHeatmap()
       },
-      {name: "MapPointLayer.respondToLegendAttributeChange", equals: comparer.structural}, dataConfiguration
+      { name: "MapPointLayer.respondToLegendAttributeChange", equals: comparer.structural },
+      dataConfiguration
     )
     return () => disposer()
   }, [refreshHeatmap, refreshPoints, dataConfiguration])
@@ -440,20 +444,22 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         callMatchCirclesToData()
         refreshPoints(false)
         refreshHeatmap()
-      }, {name: "MapPointLayer.setupResponseToChangeInCases", fireImmediately: true}, mapLayerModel
+      }, { name: "MapPointLayer.setupResponseToChangeInCases", fireImmediately: true },
+      mapLayerModel
     )
   }, [callMatchCirclesToData, mapLayerModel, refreshHeatmap, refreshPoints])
 
   // Plotted values changed (value edits, cases added or removed, lat/long attribute type changes).
-  // While the dataset is caching only selected cases change, so only they are restyled.
   useEffect(function setupResponseToChangeInValues() {
     return mstReaction(
       () => mapLayerModel.pointValuesVersion,
       () => {
+        // While the dataset is caching only selected cases change, so only they are restyled.
         refreshPoints(mapLayerModel.pointValuesChangedWhileCaching)
         refreshConnectingLines()
         refreshHeatmap()
-      }, {name: "MapPointLayer.setupResponseToChangeInValues"}, mapLayerModel
+      }, {name: "MapPointLayer.setupResponseToChangeInValues"},
+      mapLayerModel
     )
   }, [mapLayerModel, refreshConnectingLines, refreshHeatmap, refreshPoints])
 
