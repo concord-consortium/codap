@@ -4,7 +4,7 @@ import {ICollectionModel} from "../../../models/data/collection"
 import {isCaseValueChangeAction} from "../../../models/data/data-set-actions"
 import {onAnyAction} from "../../../utilities/mst-utils"
 import {IDataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
-import {kMapPointLayerType} from "../map-types"
+import {ILatLong, kMapPointLayerType} from "../map-types"
 import {MapLayerModel} from "./map-layer-model"
 import {IDataSet} from "../../../models/data/data-set"
 import {getMetadataFromDataSet} from "../../../models/shared/shared-data-utils"
@@ -131,6 +131,25 @@ export const MapPointLayerModel = MapLayerModel
     get titleCollection(): Maybe<ICollectionModel> {
       const latId = self.dataConfiguration.attributeID('lat')
       return latId ? self.dataConfiguration.dataset?.getCollectionForAttribute(latId) : undefined
+    }
+  }))
+  .views(self => ({
+    /** The coordinates of the plotted cases that have valid lat/long values */
+    get plottedLatLongs(): ILatLong[] {
+      // pointDataVersion signals coordinate changes that the reads below may not observe
+      void self.pointDataVersion
+      const latLongs: ILatLong[] = []
+      self.dataConfiguration.getCaseDataArray(0).forEach(({ caseID }) => {
+        const latLong = self.getCaseLatLong(caseID)
+        if (latLong) latLongs.push(latLong)
+      })
+      return latLongs
+    }
+  }))
+  .actions(self => ({
+    // MST runs this after the afterCreate above. It's defined here so that self includes plottedLatLongs.
+    afterCreate() {
+      self.hotSpotModel.setPointSource(self)
     }
   }))
 

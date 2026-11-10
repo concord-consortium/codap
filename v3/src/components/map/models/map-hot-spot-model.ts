@@ -1,6 +1,8 @@
 import { isEqual } from "lodash"
 import { getSnapshot, Instance, types } from "mobx-state-tree"
 import { applyModelChange } from "../../../models/history/apply-model-change"
+import { IPointSource } from "../map-types"
+import { computeHotSpotSurface, IHotSpotSurface } from "../utilities/hot-spot-utils"
 
 export const MapHotSpotModel = types.model("MapHotSpotModel", {
   isVisible: false,
@@ -10,6 +12,14 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
   lowColor: "#000000",
   highColor: "#ffffff"
 })
+  .volatile(() => ({
+    pointSource: undefined as Maybe<IPointSource>
+  }))
+  .views(self => ({
+    get hotSpotSurface(): Maybe<IHotSpotSurface> {
+      return computeHotSpotSurface(self.pointSource?.plottedLatLongs ?? [], self.bandwidth)
+    }
+  }))
   .actions(self => ({
     setIsVisible(isVisible: boolean) {
       self.isVisible = isVisible
@@ -25,6 +35,9 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
     },
     setHighColor(color: string) {
       self.highColor = color
+    },
+    setPointSource(pointSource: IPointSource) {
+      self.pointSource = pointSource
     }
   }))
   .actions(applyModelChange)

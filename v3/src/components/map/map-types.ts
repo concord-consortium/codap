@@ -43,6 +43,11 @@ export interface ILatLong {
   long: number
 }
 
+/** Supplies the coordinates of plotted points (see MapPointLayerModel.plottedLatLongs) */
+export interface IPointSource {
+  plottedLatLongs: ILatLong[]
+}
+
 export type GeoJsonObject = GeoJSON.GeoJsonObject
 export interface PolygonLayerOptions extends GeoJSONOptions<any, GeoJSON.Geometry> {
   caseID: string

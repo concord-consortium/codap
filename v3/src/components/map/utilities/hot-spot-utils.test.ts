@@ -1,7 +1,7 @@
 import { Point, Projection } from "leaflet"
 import { greatCircleDistance } from "../../../utilities/geo-utils"
 import {
-  bandwidthToWorldUnits, computeDefaultBandwidth, computeMaxDensity, IKernel, kernelWeight, kFallbackBandwidthMeters,
+  bandwidthToWorldUnits, computeDefaultBandwidth, computeHotSpotSurface, computeMaxDensity, IKernel, kernelWeight, kFallbackBandwidthMeters,
   kMaxMercatorLatitude, kWebMercatorRadiusMeters, kWorldSize, latLongToWorldPoint, wrapWorldDelta
 } from "./hot-spot-utils"
 
@@ -161,5 +161,30 @@ describe("computeMaxDensity", () => {
   it("matches a brute-force search with varying bandwidths", () => {
     const kernels = cluster.map(([x, y], i) => ({ x, y, h: i % 2 ? 1.5 : 1 }))
     expect(computeMaxDensity(kernels)).toBeCloseTo(bruteForceMax(kernels), 2)
+  })
+})
+
+describe("computeHotSpotSurface", () => {
+  const latLongs = [{ lat: 40, long: -100 }, { lat: 41, long: -101 }, { lat: 39, long: -99 }]
+
+  it("is undefined without points", () => {
+    expect(computeHotSpotSurface([])).toBeUndefined()
+  })
+
+  it("projects each point to world coordinates with its own bandwidth", () => {
+    const surface = computeHotSpotSurface(latLongs, 20000)!
+    expect(surface.bandwidthMeters).toBe(20000)
+    surface.points.forEach((point, i) => {
+      expect(point.latLong).toEqual(latLongs[i])
+      expect(point.x).toBeCloseTo(latLongToWorldPoint(latLongs[i]).x)
+      expect(point.y).toBeCloseTo(latLongToWorldPoint(latLongs[i]).y)
+      expect(point.h).toBeCloseTo(bandwidthToWorldUnits(20000, latLongs[i].lat))
+    })
+    expect(surface.maxDensity).toBe(computeMaxDensity(surface.points))
+  })
+
+  it("computes a default bandwidth when none is given or it isn't positive", () => {
+    expect(computeHotSpotSurface(latLongs)!.bandwidthMeters).toBe(computeDefaultBandwidth(latLongs))
+    expect(computeHotSpotSurface(latLongs, 0)!.bandwidthMeters).toBe(computeDefaultBandwidth(latLongs))
   })
 })

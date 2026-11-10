@@ -1,4 +1,6 @@
+import { reaction } from "mobx"
 import { toCanonical } from "../../../models/data/data-set"
+import { ILatLong } from "../map-types"
 import { MapPointLayerModel } from "./map-point-layer-model"
 import { createPointLayerTree } from "./map-point-layer-model-test-utils"
 
@@ -88,5 +90,39 @@ describe("MapPointLayerModel point-data versions", () => {
     const afterSwitch = tree.layer.pointValuesVersion
     tree.data.setCaseValues([{ __id__: "c1", latId: 10 }])
     expect(tree.layer.pointValuesVersion).toBe(afterSwitch)
+  })
+})
+
+describe("MapPointLayerModel.plottedLatLongs", () => {
+  it("is empty without plotted points", () => {
+    expect(MapPointLayerModel.create().plottedLatLongs).toEqual([])
+  })
+
+  it("lists the plotted cases with valid coordinates", () => {
+    const tree = createPointLayerTree()
+    // c3 has no latitude
+    expect(tree.layer.plottedLatLongs).toEqual([{ lat: 42, long: -71 }, { lat: 42, long: -71 }])
+  })
+
+  it("excludes hidden cases", () => {
+    const tree = createPointLayerTree()
+    const { caseID } = tree.layer.dataConfiguration.getCaseDataArray(0)[0]
+    tree.layer.dataConfiguration.addNewHiddenCases([caseID])
+    expect(tree.layer.plottedLatLongs).toHaveLength(1)
+  })
+
+  it("updates when a coordinate changes", () => {
+    const tree = createPointLayerTree()
+    const updates: ILatLong[][] = []
+    const dispose = reaction(() => tree.layer.plottedLatLongs, latLongs => updates.push(latLongs))
+    tree.data.setCaseValues([{ __id__: "c2", latId: -30, longId: 120 }])
+    expect(updates).toEqual([[{ lat: 42, long: -71 }, { lat: -30, long: 120 }]])
+    dispose()
+  })
+
+  it("is the point source for the layer's hot spot model", () => {
+    const tree = createPointLayerTree()
+    const surface = tree.layer.hotSpotModel.hotSpotSurface!
+    expect(surface.points.map(p => p.latLong)).toEqual(tree.layer.plottedLatLongs)
   })
 })

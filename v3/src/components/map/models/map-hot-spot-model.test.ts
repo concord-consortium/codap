@@ -1,4 +1,6 @@
+import { observable, reaction, runInAction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
+import { IHotSpotSurface, kFallbackBandwidthMeters } from "../utilities/hot-spot-utils"
 import { isDefaultHotSpotModel, MapHotSpotModel } from "./map-hot-spot-model"
 import { MapPointLayerModel } from "./map-point-layer-model"
 
@@ -42,5 +44,48 @@ describe("MapHotSpotModel", () => {
       { isVisible: false, bandwidth: 5000, opacity: 0.5, lowColor: "#0000ff", highColor: "#ff0000" })
     hotSpot.setBandwidth(undefined)
     expect(hotSpot.bandwidth).toBeUndefined()
+  })
+})
+
+describe("MapHotSpotModel.hotSpotSurface", () => {
+  const latLongs = [{ lat: 42, long: -71 }, { lat: 42, long: -71 }]
+
+  it("is undefined without a point source or points", () => {
+    const hotSpot = MapHotSpotModel.create()
+    expect(hotSpot.hotSpotSurface).toBeUndefined()
+    hotSpot.setPointSource({ plottedLatLongs: [] })
+    expect(hotSpot.hotSpotSurface).toBeUndefined()
+  })
+
+  it("uses the source's points", () => {
+    const hotSpot = MapHotSpotModel.create()
+    hotSpot.setPointSource({ plottedLatLongs: latLongs })
+    const surface = hotSpot.hotSpotSurface!
+    expect(surface.points.map(p => p.latLong)).toEqual(latLongs)
+    // the points coincide, so there's no spread and the fallback bandwidth applies
+    expect(surface.bandwidthMeters).toBe(kFallbackBandwidthMeters)
+    expect(surface.maxDensity).toBeCloseTo(2)
+  })
+
+  it("uses the model's bandwidth when it is set", () => {
+    const hotSpot = MapHotSpotModel.create()
+    hotSpot.setPointSource({ plottedLatLongs: latLongs })
+    hotSpot.setBandwidth(5000)
+    expect(hotSpot.hotSpotSurface!.bandwidthMeters).toBe(5000)
+  })
+
+  it("recomputes when the source's points change", () => {
+    const hotSpot = MapHotSpotModel.create()
+    const source = observable({ plottedLatLongs: latLongs })
+    hotSpot.setPointSource(source)
+    // a fixed bandwidth, so "far apart" doesn't depend on the default computed from the points
+    hotSpot.setBandwidth(5000)
+    const surfaces: Array<Maybe<IHotSpotSurface>> = []
+    const dispose = reaction(() => hotSpot.hotSpotSurface, surface => surfaces.push(surface))
+    runInAction(() => { source.plottedLatLongs = [{ lat: 42, long: -71 }, { lat: -30, long: 120 }] })
+    expect(surfaces).toHaveLength(1)
+    // the two points are now far apart
+    expect(surfaces[0]!.maxDensity).toBeCloseTo(1)
+    dispose()
   })
 })

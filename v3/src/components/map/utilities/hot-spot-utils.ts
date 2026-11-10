@@ -166,3 +166,30 @@ export function computeMaxDensity(kernels: IKernel[]) {
   })
   return maxDensity
 }
+
+/** A point to plot, with its position and bandwidth in zoom-0 world units */
+export interface IHotSpotPoint extends IKernel {
+  latLong: ILatLong
+}
+
+/** Everything about a density surface that doesn't depend on the map's view */
+export interface IHotSpotSurface {
+  points: IHotSpotPoint[]
+  bandwidthMeters: number
+  maxDensity: number
+}
+
+/**
+ * Returns the density surface of the points, or undefined if there are none. If bandwidthMeters isn't a positive
+ * number, a default is computed from the points' spread.
+ */
+export function computeHotSpotSurface(latLongs: ILatLong[], bandwidthMeters?: number): Maybe<IHotSpotSurface> {
+  if (!latLongs.length) return
+
+  const bandwidth = bandwidthMeters && bandwidthMeters > 0 ? bandwidthMeters : computeDefaultBandwidth(latLongs)
+  const points = latLongs.map(latLong => {
+    const { x, y } = latLongToWorldPoint(latLong)
+    return { latLong, x, y, h: bandwidthToWorldUnits(bandwidth, latLong.lat) }
+  })
+  return { points, bandwidthMeters: bandwidth, maxDensity: computeMaxDensity(points) }
+}
