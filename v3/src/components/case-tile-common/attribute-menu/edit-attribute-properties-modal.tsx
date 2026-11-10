@@ -8,6 +8,7 @@ import { useDataSet } from "../../../hooks/use-data-set"
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { attributeTypes } from "../../../models/data/attribute-types"
 import { updateAttributesNotification } from "../../../models/data/data-set-notifications"
+import { inferDatePrecision } from "../../../utilities/date-parser"
 import { DatePrecision, datePrecisions, kDatePrecisionNone } from "../../../utilities/date-utils"
 import { uniqueName } from "../../../utilities/js-utils"
 import { t } from "../../../utilities/translation/translate"
@@ -39,7 +40,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
   const [precision, setPrecision] = useState(attribute?.effectivePrecision)
   const [userType, setUserType] = useState<SelectableAttributeType>("none")
   const [editable, setEditable] = useState<YesNoValue>("yes")
-  // the precision in effect before "year" was inferred, so it can be restored if the user switches away from date;
+  // the precision in effect before a date precision was inferred, so it can be restored on switching away from date;
   // null when nothing was inferred or the user has since chosen a date precision
   const preInferencePrecision = useRef<{ precision: typeof precision } | null>(null)
   // true when the latest precision choice was a blank date precision, so later type changes don't infer over it
@@ -101,10 +102,13 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
       // isInferredYearType reads numValues, which for a numeric attribute extract a leading number
       // (e.g. 2024 from "2024-05-01"), so also require that every value is a plain number
       const isEveryValuePlainNumber = attribute?.strValues.every(value => value === "" || isFinite(Number(value)))
-      const isEveryValueAYear = isEveryValuePlainNumber && attribute?.isInferredYearType()
-      if (!isDatePrecisionChosen && isEveryValueAYear) {
+      // plain numbers can only be years; other values get the finest unit any of them specifies
+      const inferredPrecision = isEveryValuePlainNumber
+        ? attribute?.isInferredYearType() ? "year" : undefined
+        : attribute && inferDatePrecision(attribute.strValues)
+      if (!isDatePrecisionChosen && inferredPrecision) {
         preInferencePrecision.current = { precision }
-        setPrecision("year")
+        setPrecision(inferredPrecision)
       }
     } else if (preInferencePrecision.current) {
       setPrecision(preInferencePrecision.current.precision)
@@ -112,7 +116,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
     }
   }
 
-  // any click counts as a choice, including re-clicking the inferred "year" (which doesn't fire onChange)
+  // any click counts as a choice, including re-clicking the inferred precision (which doesn't fire onChange)
   const handleDatePrecisionClick = (clicked: DatePrecision) => {
     preInferencePrecision.current = null
     hasChosenBlankDatePrecision.current = clicked === kDatePrecisionNone

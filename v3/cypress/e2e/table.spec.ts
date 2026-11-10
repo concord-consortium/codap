@@ -829,7 +829,7 @@ context("edit attribute properties date precision", () => {
     table.getCancelButton().click({ force: true })
   })
 
-  it("doesn't infer year from full dates on a numeric attribute", () => {
+  it("infers day, not year, from full dates on a numeric attribute", () => {
     enterValues(["2024-05-01", "2023-11-15", "2022-01-31", "2021-07-04"])
     openEditDialog()
     table.selectAttributeType("numeric")
@@ -837,7 +837,16 @@ context("edit attribute properties date precision", () => {
 
     openEditDialog()
     table.selectAttributeType("date")
-    precisionSelect().should("have.text", " ")
+    precisionSelect().should("have.text", "day")
     table.getCancelButton().click({ force: true })
+  })
+
+  it("infers month precision from month/year values", () => {
+    enterValues(["5/2024", "6/2024", "12/2023", "1/2024"])
+    openEditDialog()
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", "month")
+    table.getApplyButton().click({ force: true })
+    table.getCell(2, 2).should("have.text", "5/2024")
   })
 })

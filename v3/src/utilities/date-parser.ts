@@ -173,6 +173,44 @@ const formatSpecs = [
   { strict: false, regex: dateVar4, groupMap: dateVar4GroupMap }
 ]
 
+// format groups and the date units they specify, finest first
+const kGroupUnits = [
+  ["subsec", "millisecond"], ["sec", "second"], ["min", "minute"], ["hour", "hour"],
+  ["day", "day"], ["month", "month"], ["year", "year"]
+] as const
+const kInferredUnits = ["year", "month", "day", "hour", "minute", "second", "millisecond"] as const
+type InferredDateUnit = typeof kInferredUnits[number]
+
+// returns the finest unit specified by a date string, e.g. "month" for "5/2024"
+function getDateStringUnit(value: string): InferredDateUnit | undefined {
+  // CODAP's own ISO format always includes every part, so it says nothing about the intended precision
+  if (isStdISODateString(value) || !parseDate(value, true)) return
+  for (const { regex, groupMap } of formatSpecs) {
+    const match = value.match(regex)
+    if (match) {
+      const map: Partial<Record<string, number>> = groupMap
+      return kGroupUnits.find(([group]) => map[group] != null && match[map[group]] != null)?.[1]
+    }
+  }
+  // month/year, which only the loose parser recognizes
+  if (/^\d{1,2}\/\d{4}$/.test(value)) return "month"
+}
+
+/**
+ * Returns the finest unit specified by any of the values, e.g. "day" for ["5/2024", "5/1/2024"].
+ * Returns undefined if there are no non-empty values or any of them isn't a date string whose parts can be identified.
+ */
+export function inferDatePrecision(values: readonly string[]): InferredDateUnit | undefined {
+  let finest = -1
+  for (const value of values) {
+    if (value === "") continue
+    const unit = getDateStringUnit(value)
+    if (!unit) return
+    finest = Math.max(finest, kInferredUnits.indexOf(unit))
+  }
+  return finest >= 0 ? kInferredUnits[finest] : undefined
+}
+
 // dividing line between 20xx and 19xx years: [0, 50) -> 20xx, [50, 99] -> 19xx
 const CUTOFF_YEAR = 50
 
