@@ -10,7 +10,7 @@ export const kHotSpotCellSize = 2
 /** Kernels are truncated outside a square window of this many bandwidths in each direction */
 export const kKernelCutoff = 3
 /** Extra canvas margin around the viewport, as a fraction of each dimension, on each side */
-export const kHotSpotPadding = 0.1
+export const kHotSpotPadding = 0.5
 /** Bandwidth used when the points have no spread */
 export const kFallbackBandwidthMeters = 10000
 /** Radius of the sphere used by Leaflet's Web Mercator projection (EPSG:3857) */
