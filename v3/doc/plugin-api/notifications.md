@@ -411,10 +411,6 @@ notification per change, each with a `values` array of one. A plugin that iterat
 sees the same changes, but across several notifications rather than one. This is a known bug; the
 intended behavior is v2's.
 
-**`create` on `dataContextFromURL` sends no notification.** v2 reported the new data context as
-`dataContextCountChanged` on `documentChangeNotice`. CODAP sends nothing, so other plugins do not
-learn of the new data context. This is a known bug; the intended behavior is v2's.
-
 **Formula recalculation rarely sends `dependentCases`.** v2 sent `dependentCases` for formula
 attributes whose values had to be recalculated:
 
