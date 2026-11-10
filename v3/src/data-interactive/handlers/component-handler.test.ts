@@ -14,7 +14,7 @@ import { kMapIdPrefix } from "../../components/map/map-defs"
 import { appState } from "../../models/app-state"
 import { getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { uiState } from "../../models/ui-state"
-import { toV3Id } from "../../utilities/codap-utils"
+import { toV2Id, toV3Id } from "../../utilities/codap-utils"
 import { V2CaseCard, V2CaseTable } from "../data-interactive-component-types"
 import { DIComponentInfo } from "../data-interactive-types"
 import { diComponentHandler } from "./component-handler"
@@ -154,6 +154,36 @@ describe("DataInteractive ComponentHandler", () => {
     expect(handler.update?.({ component: graphTile }, { name: "My Graph" }).success).toBe(true)
     expect(graphTile.name).toBe("My Graph")
 
+    // Test updating title; empty text clears it so the tile falls back to its name
+    expect(handler.update?.({ component: graphTile }, { title: "My Title" }).success).toBe(true)
+    expect(graphTile.title).toBe("My Title")
+    // an update without a title leaves it alone
+    expect(handler.update?.({ component: graphTile }, { name: "My Graph" }).success).toBe(true)
+    expect(graphTile.title).toBe("My Title")
+    // a number is used as the title, as in V2; other values are ignored
+    expect(handler.update?.({ component: graphTile }, { title: 0 } as any).success).toBe(true)
+    expect(graphTile.title).toBe("0")
+    expect(handler.update?.({ component: graphTile }, { title: "My Title" }).success).toBe(true)
+    expect(handler.update?.({ component: graphTile }, { title: true } as any).success).toBe(true)
+    expect(graphTile.title).toBe("My Title")
+    expect(handler.update?.({ component: graphTile }, { title: "" }).success).toBe(true)
+    expect(graphTile._title).toBeUndefined()
+    expect(graphTile.title).toBe("My Graph")  // falls back to the name
+
+    // cannotClose is stored as a boolean, as V2 read it
+    expect(handler.update?.({ component: graphTile }, { cannotClose: 1 } as any).success).toBe(true)
+    expect(graphTile.cannotClose).toBe(true)
+    expect(handler.update?.({ component: graphTile }, { name: "My Graph" }).success).toBe(true)
+    expect(graphTile.cannotClose).toBe(true)
+    expect(handler.update?.({ component: graphTile }, { cannotClose: 0 } as any).success).toBe(true)
+    expect(graphTile.cannotClose).toBe(false)
+
+    // create also stores cannotClose as a boolean
+    const result = handler.create?.({}, { type: "graph", cannotClose: 1 })
+    expect(result?.success).toBe(true)
+    const newTile = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, (result?.values as DIComponentInfo).id!))
+    expect(newTile?.cannotClose).toBe(true)
+
     // Test updating isResizable with boolean
     expect(graphTile._isResizable).toBeUndefined()
     expect(graphTile.isResizable).toEqual({ width: true, height: true })
@@ -174,6 +204,7 @@ describe("DataInteractive ComponentHandler", () => {
     const getResult = handler.get?.({ component: graphTile })
     expect(getResult?.success).toBe(true)
     expect((getResult?.values as any)?.name).toBe("My Graph")
+    expect((getResult?.values as any)?.title).toBeUndefined()
     expect((getResult?.values as any)?.isResizable).toEqual({ width: true, height: false })
   })
 
@@ -250,6 +281,23 @@ describe("DataInteractive ComponentHandler", () => {
       msg?.values?.id === newId
     )
     expect(createCall).toBeDefined()
+
+    broadcastSpy.mockRestore()
+  })
+
+  it("delete on a case table hides it and sends V2's `DG.TableView` delete with the dataset's title", () => {
+    const sharedDataSet = getSharedDataSets(documentContent)[0]
+    sharedDataSet.dataSet.setTitle("Mammal Data")
+    const tableTile = createOrShowTableOrCardForDataset(sharedDataSet, kCaseTableTileType)!
+    const broadcastSpy = jest.spyOn(documentContent, "broadcastMessage")
+
+    expect(handler.delete?.({ component: tableTile }).success).toBe(true)
+    expect(documentContent.isTileHidden(tableTile.id)).toBe(true)
+    const deleteCalls = broadcastSpy.mock.calls.filter(([msg]) => msg?.values?.operation === "delete")
+    expect(deleteCalls.map(([msg]) => msg.values)).toEqual([{
+      operation: "delete", type: "DG.TableView", diType: "caseTable", id: toV2Id(tableTile.id),
+      name: tableTile.name, title: "Mammal Data"
+    }])
 
     broadcastSpy.mockRestore()
   })

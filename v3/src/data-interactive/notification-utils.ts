@@ -11,3 +11,10 @@ export const notification = (resource: string, values: any, _callback?: (result:
   const callback = _callback ?? makeCallback(values.operation)
   return { message: { action, resource, values }, callback }
 }
+
+const kDataContextChangeNotice = "dataContextChangeNotice"
+
+export const dataContextChangeNoticeResource = (dataContextName: string) =>
+  `${kDataContextChangeNotice}[${dataContextName}]`
+
+export const isDataContextChangeNotice = (resource: string) => resource.startsWith(`${kDataContextChangeNotice}[`)

@@ -35,8 +35,6 @@ export const diDataContextFromURLHandler: DIAsyncHandler = {
             if (ds) {
               if (values.title && typeof values.title === "string") ds.setTitle(values.title)
               const createDefaultTile = values.showCaseTable !== false
-              // like other plugin API changes, the import stays off the undo history, as in V2. As in V2,
-              // plugins are told the number of data contexts changed, as they are by create dataContext.
               appState.document.applyModelChange(() => {
                 appState.document.content?.importDataSet(ds, { createDefaultTile })
               }, { notify: dataContextCountChangedNotification })

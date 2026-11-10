@@ -401,6 +401,8 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   // AttributeScale.binCount (V3 has no corresponding model field — see codap-v2-type-utils.ts).
   numberOfLegendQuantiles?: number
   legendQuantilesAreLocked?: boolean
+  // The locked bin edges. V2 writes [min, ...inner edges, padded max] (N+1 values for N bins).
+  // Older versions of V3 wrote only the inner edges. See importLegendLockProps.
   legendQuantiles?: number[] | null[] // null occurs in some documents, presumably as a result of a bug
   pointColor?: string
   strokeColor?: string
@@ -465,11 +467,12 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   } & ICodapV2LegendQuantileV3Extensions
 }
 
-// Legend quantile properties that v3 can write into a v3 extension namespace. For graphs these
-// also appear at the native top level; for maps the v3 namespace is the only place they are stored.
+// Legend quantile properties that v3 writes into a map's v3 extension namespace, because V2 does
+// not save them for maps. For graphs, V3 writes them only at the native top level.
 export interface ICodapV2LegendQuantileV3Extensions {
   numberOfLegendQuantiles?: number
   legendQuantilesAreLocked?: boolean
+  // In the same formats as the graph's native legendQuantiles
   legendQuantiles?: number[] | null[] // null occurs in some documents, presumably as a result of a bug
 }
 
@@ -516,6 +519,10 @@ export function isV2MapLegacyStorage(obj: unknown): obj is ICodapV2MapCurrentSto
   return !!obj && typeof obj === "object" && "legendRole" in obj && obj.legendRole != null
 }
 
+export interface ICodapV2MapLayerBaseStorageV3Extensions extends ICodapV2LegendQuantileV3Extensions {
+  filterFormula?: string
+}
+
 export interface ICodapV2MapLayerBaseStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
@@ -532,10 +539,17 @@ export interface ICodapV2MapLayerBaseStorage {
   isVisible: boolean
   strokeSameAsFill?: boolean
 
-  // v3 extensions
-  v3?: {
-    filterFormula?: string
-  } & ICodapV2LegendQuantileV3Extensions
+  v3?: ICodapV2MapLayerBaseStorageV3Extensions
+}
+
+// The MapHotSpotModel snapshot, written whole when any property differs from its default.
+// Keys are MST property names, so renaming a model property requires an import migration.
+export interface ICodapV2MapHotSpotStorage {
+  isVisible?: boolean
+}
+
+export interface ICodapV2MapPointLayerStorageV3Extensions extends ICodapV2MapLayerBaseStorageV3Extensions {
+  hotSpot?: ICodapV2MapHotSpotStorage
 }
 
 export interface ICodapV2MapPointLayerStorage extends ICodapV2MapLayerBaseStorage {
@@ -557,6 +571,8 @@ export interface ICodapV2MapPointLayerStorage extends ICodapV2MapLayerBaseStorag
   }
   // v2 saves/restores this value, but never uses it
   linesShouldBeVisible?: boolean
+
+  v3?: ICodapV2MapPointLayerStorageV3Extensions
 }
 export function isV2MapPointLayerStorage(obj: unknown): obj is ICodapV2MapPointLayerStorage {
   return !!obj && typeof obj === "object" && "pointColor" in obj && obj.pointColor != null

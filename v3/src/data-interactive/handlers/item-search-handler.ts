@@ -1,3 +1,4 @@
+import { moveCasesNotification } from "../../models/data/data-set-notifications"
 import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { getV2ItemResult } from "../data-interactive-type-utils"
@@ -6,6 +7,7 @@ import { DIHandler, DIItemSearchNotify, DIResources, DIValues } from "../data-in
 import {
   couldNotParseQueryResult, dataContextNotFoundResult, fieldRequiredResult, valuesRequiredResult
 } from "./di-results"
+import { deleteItemsNotifications } from "./handler-functions"
 
 export const diItemSearchHandler: DIHandler = {
   delete(resources: DIResources) {
@@ -16,6 +18,8 @@ export const diItemSearchHandler: DIHandler = {
     const itemIds = itemSearch.map(aCase => aCase.__id__)
     dataContext.applyModelChange(() => {
       dataContext.removeCases(itemIds)
+    }, {
+      notify: deleteItemsNotifications(dataContext, itemIds)
     })
 
     return { success: true, values: itemIds.map(itemId => toV2Id(itemId)) }
@@ -39,15 +43,16 @@ export const diItemSearchHandler: DIHandler = {
     const { itemOrder } = values as DIItemSearchNotify
     if (!itemOrder) return fieldRequiredResult("Notify", "itemSearch", "itemOrder")
 
+    const priorItemIds = Array.from(dataContext._itemIds)
     dataContext.applyModelChange(() => {
       const itemIds = itemSearch.map(({ __id__ }) => __id__)
       if (Array.isArray(itemOrder)) {
         // When itemOrder is an array, move each item to the specified index in order
         // Note that this means later items can impact the position of earlier items
         itemIds.forEach((id, index) => {
-          const itemIndex = itemOrder[index]
+          const itemIndex = itemOrder[index] != null ? Number(itemOrder[index]) : NaN
           const item = dataContext.getItem(id) as ICase
-          if (item && itemIndex && isFinite(itemIndex)) {
+          if (item && isFinite(itemIndex)) {
             dataContext.removeCases([id])
             const before = dataContext.itemIds[itemIndex]
             dataContext.addCases([item], { before })
@@ -64,6 +69,13 @@ export const diItemSearchHandler: DIHandler = {
         dataContext.moveItems(itemIds, { before })
       }
       dataContext.validateCases()
+    }, {
+      // as in v2, moveCases is sent only when the order changed
+      notify: () => {
+        const itemIds = dataContext._itemIds
+        const moved = itemIds.length !== priorItemIds.length || itemIds.some((id, i) => id !== priorItemIds[i])
+        if (moved) return moveCasesNotification(dataContext)
+      }
     })
 
     return { success: true }

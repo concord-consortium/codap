@@ -64,6 +64,19 @@ describe("DataInteractive ItemSearchHandler", () => {
 
     expect(notify({ dataContext, itemSearch }, { itemOrder: [1] }).success).toBe(true)
     expect(dataContext.itemIds[1]).toBe(item.__id__)
+
+    expect(notify({ dataContext, itemSearch }, { itemOrder: [2] }).success).toBe(true)
+    expect(notify({ dataContext, itemSearch }, { itemOrder: [0] }).success).toBe(true)
+    expect(dataContext.itemIds[0]).toBe(item.__id__)
+    // positions are converted to numbers
+    expect(notify({ dataContext, itemSearch }, { itemOrder: ["3"] } as any).success).toBe(true)
+    expect(dataContext.itemIds[3]).toBe(item.__id__)
+    expect(notify({ dataContext, itemSearch }, { itemOrder: [""] } as any).success).toBe(true)
+    expect(dataContext.itemIds[0]).toBe(item.__id__)
+    // an item with no position stays where it is, as in v2
+    expect(notify({ dataContext, itemSearch }, { itemOrder: [2] }).success).toBe(true)
+    expect(notify({ dataContext, itemSearch }, { itemOrder: [null] } as any).success).toBe(true)
+    expect(dataContext.itemIds[2]).toBe(item.__id__)
   })
 
   it("notify moves the matching items when an item is set aside", () => {
