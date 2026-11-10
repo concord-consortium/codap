@@ -45,4 +45,16 @@ describe("a locked legend in the base configuration", () => {
     tree.config.setAttributeType("legend", "date")
     expect(tree.config.legendDisplayRange).toEqual({ min: 0, max: 90 })
   })
+
+  it("keeps the locked values when the same legend attribute is set again", () => {
+    tree.config.setHiddenCases([caseIdOf("c10")])
+    tree.config.setAttribute("legend", { attributeID: "legId" })
+    expect(tree.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+  })
+
+  it("keeps the locked values when the legend is set to the type it already has", () => {
+    tree.config.setHiddenCases([caseIdOf("c10")])
+    tree.config.setAttributeType("legend", "numeric")
+    expect(tree.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+  })
 })

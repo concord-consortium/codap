@@ -2195,6 +2195,28 @@ describe("DataConfigurationModel locked legend", () => {
       expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
     })
 
+    it("keeps the locked values when the same legend attribute is set again", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      const thresholds = thresholdsOf(t)
+      t.config.setHiddenCases([caseIdOf(t, "c10"), caseIdOf(t, "c9")])
+
+      t.config.setAttribute("legend", { attributeID: "legId" })
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+      expect(thresholdsOf(t)).toEqual(thresholds)
+    })
+
+    it("keeps the locked values when the legend is set to the type it already has", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      const thresholds = thresholdsOf(t)
+      t.config.setHiddenCases([caseIdOf(t, "c10"), caseIdOf(t, "c9")])
+
+      t.config.setAttributeType("legend", "numeric")
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+      expect(thresholdsOf(t)).toEqual(thresholds)
+    })
+
     it("does not change the locked values when another role's attribute changes", () => {
       const t = makeTree()
       addOtherAttributes(t)

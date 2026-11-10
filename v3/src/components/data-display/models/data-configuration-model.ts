@@ -66,6 +66,11 @@ export const kDataConfigurationType = "dataConfigurationType"
 // a provisional dataset and metadata. In this case, the provisional dataset or metadata will be retrieved
 // instead of the DataConfiguration's own. This allows the DI system to set up a graph tile snapshot,
 // referencing the dataset and metadata as necessary, outside the main MST tree.
+interface ILegendAttributeAndType {
+  attributeID?: string
+  type?: AttributeType
+}
+
 interface IProvisionalEnvironment {
   provisionalDataSet?: IDataSet
   provisionalMetadata?: IDataSetMetadata
@@ -203,6 +208,10 @@ export const DataConfigurationModel = types
       const attrID = this.attributeID(role)
       const attr = attrID ? self.dataset?.attrFromID(attrID) : undefined
       return attr?.type
+    },
+    // The legend's attribute and type, so a change can tell whether it gives the legend a new one
+    get legendAttributeAndType(): ILegendAttributeAndType {
+      return { attributeID: this.attributeID("legend"), type: this.attributeType("legend") }
     },
     get places() {
       const places = new Set<string>(Object.keys(this.attributeDescriptions))
@@ -1253,10 +1262,15 @@ export const DataConfigurationModel = types
       self.legendLockedMax = max
     },
     // When the legend attribute or its type changes while locked, lock the new attribute's values.
-    // The old values would not fit the new attribute. Callers run this in the same action as the
-    // change, after the case caches are reset, so one undo reverses both.
-    recomputeLockedLegend() {
-      if (self.legendQuantilesAreLocked) this.saveLockedLegend()
+    // The old values would not fit the new attribute. Setting the same attribute or type again
+    // keeps the locked values. Callers pass the legend's attribute and type from before the change,
+    // and run this in the same action as the change, after the case caches are reset, so one undo
+    // reverses both.
+    recomputeLockedLegend(previous: ILegendAttributeAndType) {
+      if (!self.legendQuantilesAreLocked) return
+      const current = self.legendAttributeAndType
+      if (current.attributeID === previous.attributeID && current.type === previous.type) return
+      this.saveLockedLegend()
     },
     setLegendQuantilesAreLocked(areLocked: boolean | undefined) {
       if (areLocked === self.legendQuantilesAreLocked) {
@@ -1434,17 +1448,19 @@ export const DataConfigurationModel = types
       self._attributeDescriptions.clear()
     },
     setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
+      const previousLegend = self.legendAttributeAndType
       self._setAttributeDescription(role, desc)
       self.setPointsNeedUpdating(true)
       self.invalidateCases()
       // No harm in invalidating even if not numeric
       self.numericValuesForAttribute.invalidate(role, self.attributeType(role))
-      if (role === "legend") self.recomputeLockedLegend()
+      if (role === "legend") self.recomputeLockedLegend(previousLegend)
     },
     setAttributeType(role: AttrRole, type: AttributeType, plotNumber = 0) {
+      const previousLegend = self.legendAttributeAndType
       self._attributeDescriptions.get(role)?.setType(type)
       self._setAttributeType(type, plotNumber)
-      if (role === "legend") self.recomputeLockedLegend()
+      if (role === "legend") self.recomputeLockedLegend(previousLegend)
     },
     addNewHiddenCases(hiddenCases: string[]) {
       self.hiddenCases.push(...hiddenCases)
