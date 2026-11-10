@@ -149,8 +149,26 @@ export function interpolateRgba(color1: string, color2: string, t: number): Rgba
   }
 }
 
-export function interpolateColors(color1: string, color2: string, percentage: number) {
-  return colord(interpolateRgba(color1, color2, percentage)).toHex()
+export type ColorFormat = "hex" | "rgba"
+
+function formatRgba(rgba: RgbaColor, format?: ColorFormat) {
+  return format === "rgba" ? rgba : colord(rgba).toHex()
+}
+function formatColorString(hex: string, format?: ColorFormat) {
+  return format === "rgba" ? colord(hex).toRgb() : hex
+}
+
+export function interpolateColors(
+  color1: string, color2: string, percentage: number, options?: { format?: "hex" }
+): string
+export function interpolateColors(
+  color1: string, color2: string, percentage: number, options: { format: "rgba" }
+): RgbaColor
+export function interpolateColors(
+  color1: string, color2: string, percentage: number, options?: { format?: ColorFormat }
+) {
+  const rgba = interpolateRgba(color1, color2, percentage)
+  return formatRgba(rgba, options?.format)
 }
 
 // Create a very light, low-saturation version of a base color. The defaults are used for default color ranges.
@@ -171,10 +189,24 @@ export function lowColorFromBase(baseColor: string, lightness = 0.92, satScale =
   return hex.toLowerCase() === "#ffffff" ? "#f7f9fb" : hex
 }
 
-// Returns `count` colors evenly interpolated between color1 and color2 (endpoints included).
+// Returns `count` colors evenly interpolated between color1 and color2 (endpoints included), as hex strings
+// (the default) or, with { format: "rgba" }, as unrounded RGBA objects.
 // Defaults to five colors, preserving the original behavior for callers that don't pass a count.
-export function getChoroplethColors(color1: string, color2: string, count = 5) {
-  if (count <= 1) return [color1]
+export function getChoroplethColors(
+  color1: string, color2: string, count?: number, options?: { format?: "hex" }
+): string[]
+export function getChoroplethColors(
+  color1: string, color2: string, count: Maybe<number>, options: { format: "rgba" }
+): RgbaColor[]
+export function getChoroplethColors(
+  color1: string, color2: string, count = 5, options?: { format?: ColorFormat }
+) {
+  const format = options?.format
+  if (count <= 1) return [formatColorString(color1, format)]
+
   return Array.from({ length: count }, (_, i) =>
-    i === 0 ? color1 : i === count - 1 ? color2 : interpolateColors(color1, color2, i / (count - 1)))
+    i === 0 ? formatColorString(color1, format)
+      : i === count - 1 ? formatColorString(color2, format)
+      : formatRgba(interpolateRgba(color1, color2, i / (count - 1)), format)
+  )
 }

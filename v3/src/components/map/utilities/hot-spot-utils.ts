@@ -1,7 +1,9 @@
 import { CRS, latLng, Point } from "leaflet"
+import { getChoroplethColors } from "../../../utilities/color-utils"
 import { computeMeanCenter, greatCircleDistance } from "../../../utilities/geo-utils"
 import { degreesToRadians, mod, quantileOfSortedArray } from "../../../utilities/math-utils"
 import { ILatLong } from "../map-types"
+import { LatLongProjector } from "./map-utils"
 
 /** Grid cell side length, in CSS pixels */
 export const kHotSpotCellSize = 2
@@ -240,4 +242,57 @@ export function computeDensityGrid(kernels: IKernel[], region: IDensityGridRegio
     }
   })
   return grid
+}
+
+const kColorLUTSize = 256
+
+/**
+ * Returns a lookup table of kColorLUTSize RGBA colors (4 bytes each) running from lowColor to highColor, sampled
+ * with getChoroplethColors so the gradient matches CODAP's legend gradients. Future multi-stop gradients,
+ * binning (getChoroplethColors with the bin count), and density-based opacity all plug in here.
+ */
+export function buildColorLUT(lowColor: string, highColor: string) {
+  const lut = new Uint8ClampedArray(kColorLUTSize * 4)
+  getChoroplethColors(lowColor, highColor, kColorLUTSize, { format: "rgba" }).forEach(({ r, g, b, a }, i) => {
+    // Uint8ClampedArray rounds the unrounded channels
+    lut.set([r, g, b, a * 255], i * 4)
+  })
+  return lut
+}
+
+/** Writes each grid cell's RGBA color to out, scaling density so 0 → the LUT's first entry and maxDensity → its last */
+export function colorizeDensityGrid(
+  grid: Float32Array, maxDensity: number, lut: Uint8ClampedArray, out: Uint8ClampedArray
+) {
+  const scale = maxDensity > 0 ? (kColorLUTSize - 1) / maxDensity : 0
+  for (let i = 0; i < grid.length; i++) {
+    const lutOffset = Math.min(kColorLUTSize - 1, Math.round(grid[i] * scale)) * 4
+    const outOffset = i * 4
+    out[outOffset] = lut[lutOffset]
+    out[outOffset + 1] = lut[lutOffset + 1]
+    out[outOffset + 2] = lut[lutOffset + 2]
+    out[outOffset + 3] = lut[lutOffset + 3]
+  }
+}
+
+/**
+ * Projects the surface's points to container pixels. zoomScale (2^zoom) converts world-unit bandwidths to pixels,
+ * so the density at a given location is the same at every zoom level.
+ */
+export function projectHotSpotKernels(
+  surface: IHotSpotSurface, project: LatLongProjector, zoomScale: number
+): IKernel[] {
+  return surface.points.map(({ latLong, h }) => {
+    const { x, y } = project(latLong)
+    return { x, y, h: h * zoomScale }
+  })
+}
+
+/** Renders the surface into out, one RGBA pixel per cell of the region */
+export function renderHotSpotSurface(
+  surface: IHotSpotSurface, project: LatLongProjector, zoomScale: number, region: IDensityGridRegion,
+  lut: Uint8ClampedArray, out: Uint8ClampedArray
+) {
+  const grid = computeDensityGrid(projectHotSpotKernels(surface, project, zoomScale), region)
+  colorizeDensityGrid(grid, surface.maxDensity, lut, out)
 }

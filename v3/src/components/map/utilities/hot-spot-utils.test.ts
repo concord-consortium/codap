@@ -1,10 +1,12 @@
-import { Point, Projection } from "leaflet"
+import { Map as LeafletMap, Point, Projection } from "leaflet"
 import { greatCircleDistance } from "../../../utilities/geo-utils"
 import {
-  bandwidthToWorldUnits, computeDefaultBandwidth, computeDensityGrid, computeHotSpotSurface, computeMaxDensity,
-  IDensityGridRegion, IKernel, kernelWeight, kFallbackBandwidthMeters, kMaxMercatorLatitude, kWebMercatorRadiusMeters,
-  kWorldSize, latLongToWorldPoint, wrapWorldDelta
+  bandwidthToWorldUnits, buildColorLUT, colorizeDensityGrid, computeDefaultBandwidth, computeDensityGrid,
+  computeHotSpotSurface, computeMaxDensity, IDensityGridRegion, IKernel, kernelWeight, kFallbackBandwidthMeters,
+  kMaxMercatorLatitude, kWebMercatorRadiusMeters, kWorldSize, latLongToWorldPoint, projectHotSpotKernels,
+  renderHotSpotSurface, wrapWorldDelta
 } from "./hot-spot-utils"
+import { createLatLongProjector } from "./map-utils"
 
 describe("hot spot constants", () => {
   it("match Leaflet's Web Mercator projection", () => {
@@ -232,5 +234,86 @@ describe("computeDensityGrid", () => {
     const shifted = { ...region, originX: -40, originY: -30 }
     const grid = computeDensityGrid([{ x: -29, y: -19, h: 4 }], shifted)
     expect(at(grid, 5, 5)).toBeCloseTo(1)
+  })
+})
+
+describe("buildColorLUT", () => {
+  const rgbaAt = (lut: Uint8ClampedArray, i: number) => Array.from(lut.slice(i * 4, i * 4 + 4))
+
+  it("runs from the low color to the high color", () => {
+    const lut = buildColorLUT("#000000", "#ffffff")
+    expect(lut.length).toBe(256 * 4)
+    expect(rgbaAt(lut, 0)).toEqual([0, 0, 0, 255])
+    expect(rgbaAt(lut, 128)).toEqual([128, 128, 128, 255])
+    expect(rgbaAt(lut, 255)).toEqual([255, 255, 255, 255])
+  })
+
+  it("interpolates alpha", () => {
+    const lut = buildColorLUT("#ff000000", "#ff0000ff")
+    expect(rgbaAt(lut, 0)).toEqual([255, 0, 0, 0])
+    expect(rgbaAt(lut, 255)).toEqual([255, 0, 0, 255])
+  })
+})
+
+describe("colorizeDensityGrid", () => {
+  const lut = buildColorLUT("#000000", "#ffffff")
+
+  it("maps 0 to the low color, the maximum to the high color, and clamps above it", () => {
+    const out = new Uint8ClampedArray(4 * 4)
+    colorizeDensityGrid(Float32Array.of(0, 1, 2, 4), 2, lut, out)
+    expect(Array.from(out)).toEqual([
+      0, 0, 0, 255,
+      128, 128, 128, 255,
+      255, 255, 255, 255,
+      255, 255, 255, 255
+    ])
+  })
+
+  it("uses the low color everywhere when the maximum is 0", () => {
+    const out = new Uint8ClampedArray(4)
+    colorizeDensityGrid(Float32Array.of(0), 0, lut, out)
+    expect(Array.from(out)).toEqual([0, 0, 0, 255])
+  })
+})
+
+describe("rendering a surface", () => {
+  function createMap(center: [number, number], zoom: number) {
+    const container = document.createElement("div")
+    Object.defineProperty(container, "clientWidth", { value: 400 })
+    Object.defineProperty(container, "clientHeight", { value: 300 })
+    document.body.appendChild(container)
+    return new LeafletMap(container, { center, zoom })
+  }
+  const zoomScale = (map: LeafletMap) => map.getZoomScale(map.getZoom(), 0)
+  const surface = computeHotSpotSurface([{ lat: 40, long: -100 }, { lat: 40.3, long: -100.2 }], 50000)!
+
+  it("gives the same density at a location at every zoom level", () => {
+    const target = { lat: 40.2, long: -100.1 }
+    const densities = [6, 8].map(zoom => {
+      const map = createMap([40, -100], zoom)
+      const project = createLatLongProjector(map)
+      const { x, y } = project(target)
+      // a single cell centered on the target
+      const region = { originX: x - 1, originY: y - 1, cols: 1, rows: 1, cellSize: 2 }
+      const density = computeDensityGrid(projectHotSpotKernels(surface, project, zoomScale(map)), region)[0]
+      map.remove()
+      return density
+    })
+    expect(densities[0]).toBeGreaterThan(0)
+    // Leaflet rounds projected points to whole pixels, which shifts each kernel by up to half a pixel
+    expect(densities[0]).toBeCloseTo(densities[1], 2)
+  })
+
+  it("renders one RGBA pixel per cell", () => {
+    const map = createMap([40, -100], 6)
+    const region = { originX: -40, originY: -30, cols: 240, rows: 180, cellSize: 2 }
+    const out = new Uint8ClampedArray(region.cols * region.rows * 4)
+    renderHotSpotSurface(surface, createLatLongProjector(map), zoomScale(map), region,
+      buildColorLUT("#000000", "#ffffff"), out)
+    // far corner: no density, so the low color
+    expect(Array.from(out.slice(0, 4))).toEqual([0, 0, 0, 255])
+    // some cell near the points is bright
+    expect(Math.max(...out.filter((_, i) => i % 4 === 0))).toBeGreaterThan(200)
+    map.remove()
   })
 })

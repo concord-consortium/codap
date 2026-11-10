@@ -136,6 +136,12 @@ describe("Color utilities", () => {
     // alpha-only difference is preserved at the endpoints
     expect(interpolateColors("#ff0000ff", "#ff000000", 0)).toBe("#ff0000")
     expect(interpolateColors("#ff0000ff", "#ff000000", 1)).toBe("#ff000000")
+
+    // { format: "rgba" } returns the unrounded channels
+    expect(interpolateColors("#000000", "#ffffff", 0.5, { format: "rgba" }))
+      .toEqual({ r: 127.5, g: 127.5, b: 127.5, a: 1 })
+    expect(interpolateColors("#ff0000ff", "#ff000000", 0.25, { format: "rgba" }))
+      .toEqual({ r: 255, g: 0, b: 0, a: 0.75 })
   })
 
   it("interpolateRgba returns unrounded numeric RGBA", () => {
@@ -174,5 +180,15 @@ describe("getChoroplethColors", () => {
     expect(three[0]).toBe("#000000")
     expect(three[2]).toBe("#ffffff")
     expect(getChoroplethColors("#000000", "#ffffff", 7)).toHaveLength(7)
+  })
+
+  it("returns RGBA objects when asked", () => {
+    expect(getChoroplethColors("#000000", "#ffffff", 3, { format: "rgba" })).toEqual([
+      { r: 0, g: 0, b: 0, a: 1 },
+      { r: 127.5, g: 127.5, b: 127.5, a: 1 },
+      { r: 255, g: 255, b: 255, a: 1 }
+    ])
+    expect(getChoroplethColors("#ff000000", "#ffffff", 1, { format: "rgba" }))
+      .toEqual([{ r: 255, g: 0, b: 0, a: 0 }])
   })
 })
