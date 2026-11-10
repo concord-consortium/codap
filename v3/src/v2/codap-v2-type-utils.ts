@@ -60,9 +60,9 @@ export function padV2LegendMax(min: number, max: number) {
 
 // The inverse of padV2LegendMax: the largest number that pads to paddedMax or less. V2 padded the
 // true max with the same arithmetic, so the result is never below it. (A result below it would make
-// the max case "missing".) When the min is much larger in size than the max, the padding is much
-// larger than the max, and many numbers pad to the same value. Then the result can be a little above
-// the true max, because the saved value does not hold the exact max. A paddedMax below min was not
+// the max case "missing".) When the min is much larger in magnitude than the max, the padding is
+// much larger than the max, and many numbers pad to the same value. Then the result can be above the
+// true max, because the saved value does not hold the exact max. A paddedMax below min was not
 // padded this way; keep it.
 export function unpadV2LegendMax(min: number, paddedMax: number) {
   if (!(paddedMax >= min) || !Number.isFinite(paddedMax) || !Number.isFinite(min)) return paddedMax
@@ -89,13 +89,9 @@ export function unpadV2LegendMax(min: number, paddedMax: number) {
   return low
 }
 
-// The locked bin edges in V2 format: [min, ...inner edges, padded max]. An older V3 document may
-// have no saved min and max; then the live range is used. The data may have changed since it was
-// locked, so the live range is widened to include the saved edges, to keep the values in order.
-// When the widened range ends at a saved edge, the end bin has zero width (for example
-// [10, 10, 20, ...]). V2 shows it as an empty bin. The true min and max of an older document are
-// not known, so this cannot be avoided. With no range at all, only the inner edges can be written,
-// as before.
+// The locked bin edges in V2 format. Without a saved min and max (see legendQuantiles in the data
+// configuration), the live range is used, widened to include the saved edges so the values stay in
+// order (an end bin can then have zero width). With no range at all, only the inner edges are written.
 function exportLockedLegendEdges(dataConfig: ILegendQuantileSource) {
   const inner = [...dataConfig.legendQuantiles]
   let min = dataConfig.legendLockedMin ?? dataConfig.liveLegendDisplayRange?.min
@@ -115,7 +111,8 @@ interface IExportLegendQuantileStorageOptions {
   v2Native?: boolean
 }
 // Derives the V2 legend-quantile storage from a data configuration. The bin count is
-// displayedLegendBinCount: the locked count while locked, else the per-attribute bin count (clamped).
+// displayedLegendBinCount: the locked count while locked (so it matches the exported edges even
+// after hiding cases has lowered the live count), else the per-attribute bin count (clamped).
 // A numeric or date legend has bins, as in V2; for any other or absent legend it falls back to V2's
 // default of 5 (the bin count collapses to 1 there). For the v3 extension namespace (and maps) the
 // block is emitted only when the count differs from V2's default of 5 or the quantiles are locked;
@@ -129,8 +126,6 @@ export function exportLegendQuantileStorage(
   const legendType = dataConfig.attributeType("legend")
   const isBinnedLegend = legendType === "numeric" || legendType === "date"
   const locked = dataConfig.legendQuantilesAreLocked ?? false
-  // displayedLegendBinCount is the locked bin count while locked, so it matches the exported edges
-  // even after hiding cases has lowered the live bin count.
   const count = isBinnedLegend ? dataConfig.displayedLegendBinCount : 5
   if (!options?.v2Native && count === 5 && !locked) return {}
   return {

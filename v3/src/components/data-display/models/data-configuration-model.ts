@@ -642,13 +642,13 @@ export const DataConfigurationModel = types
       },
       name: "caseIdsForCategory"
     }),
-    // The live numeric-legend display range: the per-attribute Min/Max override where set, else
-    // the live data extent. A reversed/degenerate effective range (e.g. an orphaned override after
-    // the other bound was cleared) falls back to the data extent. This drives the quantize color
-    // scale's domain and, while the legend is not locked, the legend's displayed endpoint labels, so
-    // the legend matches the Min/Max the user set -- including in quantile mode, whose trained domain
-    // is the data quantiles rather than the override (CODAP-1292). While locked, the locked range is
-    // shown instead (see legendDisplayRange).
+    // The linear or quantile legend's range, ignoring the lock: the per-attribute Min/Max override
+    // where set, else the live data extent. A reversed/degenerate range (e.g. an orphaned override
+    // after the other bound was cleared) falls back to the data extent. This drives the quantize
+    // color scale's domain and, while the legend is not locked, the legend's displayed endpoint
+    // labels, so the legend matches the Min/Max the user set -- including in quantile mode, whose
+    // trained domain is the data quantiles rather than the override. While locked, the locked range
+    // is shown instead (see legendDisplayRange).
     get legendNumericRange(): { min?: number, max?: number } {
       const values = self.numericValuesForAttrRole("legend") ?? []
       const [dataMin, dataMax] = extent(values)
@@ -704,9 +704,9 @@ export const DataConfigurationModel = types
     get liveLegendDisplayRange(): { min?: number, max?: number } {
       return this.legendIsLogarithmic ? this.legendLogDomain : this.legendNumericRange
     },
-    // True when the legend is locked and has saved values to build the locked scale from. New
-    // documents save the min and max (legendQuantiles can be empty for a one-bin legend). Older
-    // documents only saved the inner edges.
+    // True when the legend is locked and has saved values to build the locked scale from: the min
+    // and max (legendQuantiles can be empty for a one-bin legend), or, for older documents, only the
+    // inner edges (see legendQuantiles).
     get hasLockedLegendScale(): boolean {
       if (!self.legendQuantilesAreLocked) return false
       return (self.legendLockedMin != null && self.legendLockedMax != null) || self.legendQuantiles.length > 0
@@ -840,13 +840,15 @@ export const DataConfigurationModel = types
       if (binningType != null && binningType !== "quantile") return undefined
       return this.legendQuantileScaleAndExtents.extents
     },
-    // When the effective range is defined, values outside it are "missing" rather than clamped
-    // into an end bin. legendDisplayRange is the same range used for the endpoint labels, so
-    // colors and labels stay in lockstep (and, while locked, a value added later beyond the locked
-    // range is missing). A degenerate domain yields no min/max but still produces a valid
-    // single-bin scale, so there is no check there and the scale colors the value.
+  }))
+  .views(self => ({
+    // When legendDisplayRange is defined, values outside it are "missing" rather than clamped
+    // into an end bin. It is the same range used for the endpoint labels, so colors and labels
+    // stay in lockstep (and, while locked, a value added later beyond the locked range is
+    // missing). A degenerate domain yields no min/max but still produces a valid single-bin
+    // scale, so there is no check there and the scale colors the value.
     isOutsideLegendRange(value: number): boolean {
-      const { min, max } = this.legendDisplayRange
+      const { min, max } = self.legendDisplayRange
       return min != null && max != null && (value < min || value > max)
     },
   }))

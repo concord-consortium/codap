@@ -1922,7 +1922,7 @@ describe("DataConfigurationModel legend range overrides", () => {
   })
 })
 
-describe("DataConfigurationModel locked legend", () => {
+describe("GraphDataConfigurationModel locked legend", () => {
   // Adds a "leg" attribute with one case per value (ids c0, c1, ...) and connects the data.
   function addLegendData(t: Instance<typeof TreeModel>, values: Array<number | string>) {
     t.data.addAttribute({ id: "legId", name: "leg" })
@@ -2086,7 +2086,7 @@ describe("DataConfigurationModel locked legend", () => {
         data: {}, metadata: {},
         config: { _attributeDescriptions: { legend: { attributeID: "legId" } }, ...lockProps }
       })
-      // no setAttribute here: it would recompute the locked values from the snapshot
+      // the snapshot already sets the legend attribute, so no setAttribute here
       addLegendData(t, [15, 25])
       return t
     }

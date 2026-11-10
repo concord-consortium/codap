@@ -228,7 +228,7 @@ describe("locked legend round trips", () => {
     expect(below).toBe(0)
   })
 
-  it("never gives a max below the true max when the min is much larger in size than the max", () => {
+  it("never gives a max below the true max when the min is much larger in magnitude than the max", () => {
     // The padding is much larger than the max here, so many numbers pad to the same value.
     const max = 0.000001
     const result = unpadV2LegendMax(-1000000, padV2LegendMax(-1000000, max))

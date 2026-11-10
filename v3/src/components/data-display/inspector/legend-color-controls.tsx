@@ -510,7 +510,8 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
   // While the quantiles are locked the legend scale is frozen, so edits here have no
   // effect; disable the inputs to reflect that.
   const isLocked = !!dataConfiguration.legendQuantilesAreLocked
-  // While locked, show the legend's (locked) range rather than the live one, so the inputs match it.
+  // While locked, show the legend's range (legendDisplayRange) rather than the live one, so the
+  // inputs match the legend.
   const shownRange = isLocked ? dataConfiguration.legendDisplayRange : { min: effectiveMin, max: effectiveMax }
   const decimals = legendBoundaryDecimals(dataConfiguration)
   const displayMin = formatLegendBound(shownRange.min, decimals)

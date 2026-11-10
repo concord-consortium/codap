@@ -44,10 +44,10 @@ export const NumericLegend =
       // attributes — years are typed numeric (not date), so isDate won't catch them. This mirrors
       // getNumFormatterForAttribute, which suppresses grouping for inferred year types.
       const legendAttr = dataConfiguration.dataset?.attrFromID(legendAttrID)
-      // Display the effective legend range as the endpoint labels so the legend matches the user-set
+      // Display legendDisplayRange as the endpoint labels so the legend matches the user-set
       // Min/Max even in quantile mode (whose trained domain is the data quantiles, not the override
       // range); in logarithmic mode this is the positive log domain (floored to the smallest positive
-      // value), not the raw override/data extent. While locked, this is the locked min and max.
+      // value), not the raw override/data extent. It also handles a locked legend.
       const { min: legendMin, max: legendMax } = dataConfiguration.legendDisplayRange
       choroplethLegend(dataConfiguration.legendNumericColorScale, choroplethElt,
         {
