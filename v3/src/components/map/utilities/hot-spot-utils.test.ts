@@ -1,8 +1,9 @@
 import { Point, Projection } from "leaflet"
 import { greatCircleDistance } from "../../../utilities/geo-utils"
 import {
-  bandwidthToWorldUnits, computeDefaultBandwidth, computeHotSpotSurface, computeMaxDensity, IKernel, kernelWeight, kFallbackBandwidthMeters,
-  kMaxMercatorLatitude, kWebMercatorRadiusMeters, kWorldSize, latLongToWorldPoint, wrapWorldDelta
+  bandwidthToWorldUnits, computeDefaultBandwidth, computeHotSpotSurface, computeMaxDensity, IKernel, kernelWeight,
+  kFallbackBandwidthMeters, kMaxMercatorLatitude, kWebMercatorRadiusMeters, kWorldSize, latLongToWorldPoint,
+  wrapWorldDelta
 } from "./hot-spot-utils"
 
 describe("hot spot constants", () => {

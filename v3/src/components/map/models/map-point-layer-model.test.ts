@@ -120,6 +120,19 @@ describe("MapPointLayerModel.plottedLatLongs", () => {
     dispose()
   })
 
+  it("updates when the lat attribute is reassigned", () => {
+    const tree = createPointLayerTree()
+    tree.data.addAttribute({ id: "lat2Id", name: "lat2" })
+    tree.data.setCaseValues(
+      [{ __id__: "c1", lat2Id: 10 }, { __id__: "c2", lat2Id: 11 }, { __id__: "c3", lat2Id: 12 }])
+    const updates: ILatLong[][] = []
+    const dispose = reaction(() => tree.layer.plottedLatLongs, latLongs => updates.push(latLongs))
+    tree.layer.dataConfiguration.setAttribute("lat", { attributeID: "lat2Id" })
+    // c3 has a value for the new attribute
+    expect(updates).toEqual([[{ lat: 10, long: -71 }, { lat: 11, long: -71 }, { lat: 12, long: -71 }]])
+    dispose()
+  })
+
   it("is the point source for the layer's hot spot model", () => {
     const tree = createPointLayerTree()
     const surface = tree.layer.hotSpotModel.hotSpotSurface!

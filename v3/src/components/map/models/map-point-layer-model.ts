@@ -1,4 +1,4 @@
-import {comparer, reaction} from "mobx"
+import {comparer, reaction, untracked} from "mobx"
 import {addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {ICollectionModel} from "../../../models/data/collection"
 import {isCaseValueChangeAction} from "../../../models/data/data-set-actions"
@@ -136,14 +136,17 @@ export const MapPointLayerModel = MapLayerModel
   .views(self => ({
     /** The coordinates of the plotted cases that have valid lat/long values */
     get plottedLatLongs(): ILatLong[] {
-      // pointDataVersion signals coordinate changes that the reads below may not observe
+      // pointDataVersion is the only dependency: it's bumped for every change to the plotted cases or their
+      // coordinates, and tracking the reads below too would invalidate this more than once per change
       void self.pointDataVersion
-      const latLongs: ILatLong[] = []
-      self.dataConfiguration.getCaseDataArray(0).forEach(({ caseID }) => {
-        const latLong = self.getCaseLatLong(caseID)
-        if (latLong) latLongs.push(latLong)
+      return untracked(() => {
+        const latLongs: ILatLong[] = []
+        self.dataConfiguration.getCaseDataArray(0).forEach(({ caseID }) => {
+          const latLong = self.getCaseLatLong(caseID)
+          if (latLong) latLongs.push(latLong)
+        })
+        return latLongs
       })
-      return latLongs
     }
   }))
   .actions(self => ({
