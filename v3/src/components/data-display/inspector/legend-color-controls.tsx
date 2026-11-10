@@ -218,6 +218,16 @@ export const LegendColorControls = observer(function LegendColorControls(
     )
   }
 
+  const lockCheckbox = (
+    <PaletteCheckbox
+      data-testid="lock-legend-quantiles-checkbox"
+      isSelected={dataConfiguration.legendQuantilesAreLocked}
+      onChange={handleLockQuantilesChange}
+    >
+      {t("DG.Inspector.lockLegendQuantiles")}
+    </PaletteCheckbox>
+  )
+
   if (attrType === "numeric") {
     return (
       <>
@@ -237,23 +247,17 @@ export const LegendColorControls = observer(function LegendColorControls(
             />
           </div>
         </div>
-        <PaletteCheckbox
-          data-testid="lock-legend-quantiles-checkbox"
-          isSelected={dataConfiguration.legendQuantilesAreLocked}
-          onChange={handleLockQuantilesChange}
-        >
-          {t("DG.Inspector.lockLegendQuantiles")}
-        </PaletteCheckbox>
+        {lockCheckbox}
       </>
     )
   }
 
   if (attrType === "color") return displayShapeRow
 
-  // With no legend attribute there are no categories to list, so the same two controls apply to
-  // every point and sit in a single row.
+  // With no legend attribute (or a date legend) there are no categories to list, so the same two
+  // controls apply to every point and sit in a single row.
   const singleRowLabel = showShape ? t("V3.Inspector.points") : t("DG.Inspector.color")
-  return (
+  const singleRow = (
     // shape-row marks a row carrying both controls, so it aligns them the way the category rows do
     <div className={clsx("palette-row", "color-picker-row", { "shape-row": showShape })}>
       <label className="form-label color-picker">{singleRowLabel}</label>
@@ -268,6 +272,8 @@ export const LegendColorControls = observer(function LegendColorControls(
                         swatchBackgroundColor={displayItemDescription.pointColor}/>
     </div>
   )
+  // A date legend has bins, as a numeric one does, so it can be locked too.
+  return attrType === "date" ? <>{singleRow}{lockCheckbox}</> : singleRow
 })
 
 interface ICategoricalColorControlsProps {

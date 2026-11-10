@@ -190,6 +190,34 @@ describe("LegendColorControls", () => {
     })
   })
 
+  describe("date legend", () => {
+    it("renders the single color row and the lock quantiles checkbox", () => {
+      const desc = createMockDescription()
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "date")
+      })
+      render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      expect(screen.getByTestId("color-swatch-DG.Inspector.color")).toBeInTheDocument()
+      expect(screen.getByTestId("lock-legend-quantiles-checkbox")).toBeInTheDocument()
+    })
+
+    it("unlocks a locked date legend", async () => {
+      const user = userEvent.setup()
+      const desc = createMockDescription()
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "date"),
+        legendQuantilesAreLocked: true
+      })
+      render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      const checkbox = screen.getByTestId("lock-legend-quantiles-checkbox")
+      expect(checkbox).toHaveAttribute("data-selected", "true")
+      await user.click(checkbox)
+      expect(config.setLegendQuantilesAreLocked).toHaveBeenCalledWith(false)
+    })
+  })
+
   describe("color legend", () => {
     it("returns null for color-type legend attribute", () => {
       const desc = createMockDescription()
