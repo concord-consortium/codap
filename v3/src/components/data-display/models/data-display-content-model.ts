@@ -5,6 +5,7 @@
 import {comparer, reaction} from "mobx"
 import {addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
 import { format } from "d3"
+import { parseDate } from "../../../utilities/date-parser"
 import { formatDate } from "../../../utilities/date-utils"
 import { IValueType } from "../../../models/data/attribute-types"
 import { IAttribute } from "../../../models/data/attribute"
@@ -112,7 +113,9 @@ export const DataDisplayContentModel = TileContentModel
           }
           case 'date': {
             const datePrecision = attribute.datePrecision
-            return value && datePrecision ? formatDate(String(value), datePrecision) : value
+            // parse the way the case table does, so tips match the table's display
+            const date = value && datePrecision ? parseDate(String(value), true) : null
+            return date ? formatDate(date, datePrecision) ?? value : value
           }
           default:
             return value

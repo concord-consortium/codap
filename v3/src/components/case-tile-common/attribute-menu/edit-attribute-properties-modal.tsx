@@ -102,7 +102,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
       // isInferredYearType reads numValues, which for a numeric attribute extract a leading number
       // (e.g. 2024 from "2024-05-01"), so also require that every value is a plain number
       const isEveryValuePlainNumber = attribute?.strValues.every(value => value === "" || isFinite(Number(value)))
-      // plain numbers can only be years; other values get the finest unit any of them specifies
+      // plain numbers can only be years
       const inferredPrecision = isEveryValuePlainNumber
         ? attribute?.isInferredYearType() ? "year" : undefined
         : attribute && inferDatePrecision(attribute.strValues)

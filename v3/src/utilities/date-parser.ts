@@ -192,13 +192,14 @@ function getDateStringUnit(value: string): InferredDateUnit | undefined {
       return kGroupUnits.find(([group]) => map[group] != null && match[map[group]] != null)?.[1]
     }
   }
-  // month/year, which only the loose parser recognizes
+  // month/year, which no format spec matches (parseDateV3 handles it)
   if (/^\d{1,2}\/\d{4}$/.test(value)) return "month"
 }
 
 /**
  * Returns the finest unit specified by any of the values, e.g. "day" for ["5/2024", "5/1/2024"].
- * Returns undefined if there are no non-empty values or any of them isn't a date string whose parts can be identified.
+ * Returns undefined if there are no non-empty values or any of them isn't a date string whose parts can be identified,
+ * which includes CODAP's own ISO date strings.
  */
 export function inferDatePrecision(values: readonly string[]): InferredDateUnit | undefined {
   let finest = -1

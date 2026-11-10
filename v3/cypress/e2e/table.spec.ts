@@ -849,4 +849,16 @@ context("edit attribute properties date precision", () => {
     table.getApplyButton().click({ force: true })
     table.getCell(2, 2).should("have.text", "5/2024")
   })
+
+  it("restores the earlier precision when switching away from an inferred month", () => {
+    enterValues(["5/2024", "6/2024", "12/2023", "1/2024"])
+    openEditDialog()
+    table.selectAttributeType("numeric")
+    table.selectAttributePrecision("3")
+    table.selectAttributeType("date")
+    precisionSelect().should("have.text", "month")
+    table.selectAttributeType("numeric")
+    precisionSelect().should("have.text", "3")
+    table.getCancelButton().click({ force: true })
+  })
 })

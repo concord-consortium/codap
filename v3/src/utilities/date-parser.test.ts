@@ -350,7 +350,6 @@ describe('inferDatePrecision', () => {
     expect(inferDatePrecision(['', ''])).toBeUndefined()
     expect(inferDatePrecision(['5/2024', 'abc'])).toBeUndefined()
     expect(inferDatePrecision(['13/2024'])).toBeUndefined()
-    // CODAP's own ISO format always includes every part
     expect(inferDatePrecision(['2024-05-01T00:00:00.000Z'])).toBeUndefined()
   })
 })
