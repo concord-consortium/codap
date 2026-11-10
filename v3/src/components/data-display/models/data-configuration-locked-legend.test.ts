@@ -46,6 +46,17 @@ describe("a locked legend in the base configuration", () => {
     expect(tree.config.legendDisplayRange).toEqual({ min: 0, max: 90 })
   })
 
+  it("unlocks when the legend attribute is removed", () => {
+    tree.config.removeAttributeFromRole("legend", "legId")
+    expect(tree.config.legendQuantilesAreLocked).toBe(false)
+    expect(tree.config.legendLockedMax).toBeUndefined()
+  })
+
+  it("unlocks when the legend is treated as categorical", () => {
+    tree.config.setAttributeType("legend", "categorical")
+    expect(tree.config.legendQuantilesAreLocked).toBe(false)
+  })
+
   it("keeps the locked values when the same legend attribute is set again", () => {
     tree.config.setHiddenCases([caseIdOf("c10")])
     tree.config.setAttribute("legend", { attributeID: "legId" })

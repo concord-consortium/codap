@@ -2146,30 +2146,63 @@ describe("GraphDataConfigurationModel locked legend", () => {
       expectLockedToMatchLive(t)
     })
 
-    it("recomputes after a change to a categorical attribute and back to a numeric one", () => {
+    // The lock and its saved values, to compare with the cleared state
+    const lockState = (t: Instance<typeof TreeModel>) => ({
+      locked: t.config.legendQuantilesAreLocked,
+      quantiles: t.config.legendQuantiles.slice(),
+      min: t.config.legendLockedMin,
+      max: t.config.legendLockedMax
+    })
+    const kUnlocked = { locked: false, quantiles: [], min: undefined, max: undefined }
+
+    it("unlocks when the legend changes to a categorical attribute, and stays unlocked after", () => {
       const t = makeTree()
       addOtherAttributes(t)
       t.config.setLegendQuantilesAreLocked(true)
 
       t.config.setAttribute("legend", { attributeID: "catId" })
-      expect(t.config.legendQuantilesAreLocked).toBe(true)
-      expect(t.config.legendQuantiles.length).toBe(0)
-      expect(t.config.legendLockedMin).toBeUndefined()
-      expect(t.config.legendLockedMax).toBeUndefined()
+      expect(lockState(t)).toEqual(kUnlocked)
 
       t.config.setAttribute("legend", { attributeID: "bigId" })
-      expect(t.config.legendDisplayRange).toEqual({ min: 1000, max: 2000 })
-      expectLockedToMatchLive(t)
+      expect(lockState(t)).toEqual(kUnlocked)
     })
 
-    it("clears the locked values when the legend attribute is removed", () => {
+    it("unlocks when the legend is treated as categorical", () => {
       const t = makeTree()
       t.config.setLegendQuantilesAreLocked(true)
-      t.config.setAttribute("legend", { attributeID: "" })
+      t.config.setAttributeType("legend", "categorical")
+      expect(lockState(t)).toEqual(kUnlocked)
+    })
+
+    it("unlocks when the legend attribute is removed", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      t.config.removeAttributeFromRole("legend", "legId")
+      expect(lockState(t)).toEqual(kUnlocked)
+    })
+
+    it("unlocks when the attributes are cleared", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      t.config.clearAttributes()
+      expect(lockState(t)).toEqual(kUnlocked)
+    })
+
+    it("restores the lock when the removal is undone", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      const thresholds = thresholdsOf(t)
+
+      const recorder = recordPatches(t.config)
+      t.config.removeAttributeFromRole("legend", "legId")
+      recorder.stop()
+      expect(lockState(t)).toEqual(kUnlocked)
+      recorder.undo()
+
+      expect(t.config.attributeID("legend")).toBe("legId")
       expect(t.config.legendQuantilesAreLocked).toBe(true)
-      expect(t.config.legendQuantiles.length).toBe(0)
-      expect(t.config.legendLockedMin).toBeUndefined()
-      expect(t.config.legendLockedMax).toBeUndefined()
+      expect(thresholdsOf(t)).toEqual(thresholds)
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
     })
 
     it("recomputes when the legend is treated as a date", () => {

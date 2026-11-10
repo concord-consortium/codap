@@ -1264,15 +1264,19 @@ export const DataConfigurationModel = types
       self.legendLockedMax = max
     },
     // When the legend attribute or its type changes while locked, lock the new attribute's values.
-    // The old values would not fit the new attribute. Setting the same attribute or type again
-    // keeps the locked values. Callers pass the legend's attribute and type from before the change,
-    // and run this in the same action as the change, after the case caches are reset, so one undo
+    // The old values would not fit the new attribute. The lock checkbox shows only for a numeric or
+    // date legend, so with no legend attribute or any other type, clear the lock instead. Then it
+    // cannot stay on where the user cannot see it. Setting the same attribute or type again keeps
+    // the locked values. Callers pass the legend's attribute and type from before the change, and
+    // run this in the same action as the change, after the case caches are reset, so one undo
     // reverses both.
     recomputeLockedLegend(previous: ILegendAttributeAndType) {
       if (!self.legendQuantilesAreLocked) return
       const current = self.legendAttributeAndType
       if (current.attributeID === previous.attributeID && current.type === previous.type) return
-      this.saveLockedLegend()
+      const isBinnedLegend = current.type === "numeric" || current.type === "date"
+      if (current.attributeID && isBinnedLegend) this.saveLockedLegend()
+      else this.setLegendQuantilesAreLocked(false)
     },
     setLegendQuantilesAreLocked(areLocked: boolean | undefined) {
       if (areLocked === self.legendQuantilesAreLocked) {
@@ -1448,6 +1452,8 @@ export const DataConfigurationModel = types
     },
     clearAttributes() {
       self._attributeDescriptions.clear()
+      // There is no legend attribute now, so clear the lock (see recomputeLockedLegend)
+      self.setLegendQuantilesAreLocked(false)
     },
     setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
       const previousLegend = self.legendAttributeAndType
