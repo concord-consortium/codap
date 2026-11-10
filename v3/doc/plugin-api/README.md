@@ -70,7 +70,7 @@ The wiki page used these interchangeably. This reference does not — use the ca
 | **plugin** | data interactive, DI, interactive | The iframe'd application talking to CODAP. "Data interactive" is the older term and survives in API names like `interactiveFrame`. |
 | **data context** | data set, dataContext | The container for a set of related cases. `dataContext` is the API spelling; "data set" is the UI term for the same thing. |
 | **collection** | — | A level in a data context's hierarchy. A data context has one or more. |
-| **attribute** | column, field | A property of a case. May carry an explicit `type`; if it does not, CODAP infers one — numeric, date, color, boundary or categorical — from the attribute's current values, and the inferred type can change as those values change. |
+| **attribute** | column, field | A property of a case. May carry an explicit `type`; if it does not, CODAP infers one — numeric, date, color, boundary or categorical — from the attribute's current values, and the inferred type can change as those values change. See [Data types](guides/data-types.md). |
 | **case** | row | A grouping of items at one collection level. Each case is *in* exactly one collection. |
 | **item** | — | A flat row of values, and the source of truth — cases are constructed by grouping items. A case in the child-most collection corresponds one-to-one with an item, **but the two still have different ids**, so `caseByID` and `itemByID` are not interchangeable. See [`../hierarchical-data.md`](../hierarchical-data.md). |
 | **component** | tile | A thing in the CODAP workspace — a graph, table, map, slider, or a plugin itself. |
@@ -329,7 +329,7 @@ All 38 resources CODAP v3 registers, alphabetically. `tourElements` is not yet d
 ## Guides
 
 Narrative chapters covering behavior that spans resources — how CODAP processes requests, undo
-and redo, language and locale, and embedding CODAP in a page — live in
+and redo, data types, language and locale, and embedding CODAP in a page — live in
 **[`guides/`](guides/README.md)**.
 
 The notifications CODAP sends to plugins are cataloged in **[`notifications.md`](notifications.md)**.
