@@ -26,15 +26,19 @@ match a single action in CODAP's interface and undo the same way it does:
 - `notify` on a case table or graph `component` with `autoScale`
 - `update` on `attributeLocation`, which moves an attribute as dragging its column does
 - `create` on `component`, which adds a component as the toolbar does. Creating a case table or
-  case card for a data context, or a `guideView`, adds no entry, as in v2. Creating a calculator
-  that is already showing hides it, and its entry undoes the hide, also as in v2
+  case card for a data context adds no entry, as in v2, and neither does a `guideView`: CODAP
+  creates every `guideView` new, as v2 did its first guide, which added no entry. Creating a
+  calculator that is already showing hides it, and its entry undoes the hide, also as in v2
 - `delete` on `component`, which closes a component as its close button does
 
 Entries use v2's labels, so the user sees, for example, "Undo adding a graph".
 
-A plugin should not depend on whether CODAP's undo reverses a request it made. If your plugin
-needs the user to be able to undo something it did through the API, it reports the action itself,
-as described next, and reverses the API changes itself when asked.
+The requests listed above that add an entry are undone by CODAP itself. Don't report those
+yourself, which adds a second entry, and don't make one of them while handling `undoAction` or
+`redoAction`, which adds a new entry and so clears redo. For anything else, a plugin should not
+depend on whether CODAP's undo reverses a request it made: if your plugin needs the user to be
+able to undo it, it reports the action itself, as described next, and reverses the API changes
+itself when asked.
 
 ## Making your plugin's actions undoable
 
@@ -198,12 +202,6 @@ Undoing or redoing sends neither. Instead, CODAP sends every plugin a notificati
 **`?standalone=true` also removes other title bars.** v3 removes the title bar of every web
 page shown in a component, guides included, not only plugins'. v2 removed only plugins' title
 bars. This is a known bug.
-
-**Undoing an entry from a closed plugin does nothing visible.** When the user closes a plugin, the
-close is itself an entry, so undoing it brings the plugin back before its own entries are
-reached. But if the plugin was closed without leaving an entry, for example by another plugin's
-`delete` on `component`, undoing one of its entries sends nothing and changes nothing, but still
-uses an undo step.
 
 ## See also
 

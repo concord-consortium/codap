@@ -35,9 +35,7 @@ export const diAttributeLocationHandler: DIHandler = {
       dataset: dataContext,
       includeNotifications: true,
       sourceCollection,
-      targetCollection,
-      // as in V2, moving an attribute is undoable, as it is when the user drags it
-      undoable: true
+      targetCollection
     })
 
     return { success: true }

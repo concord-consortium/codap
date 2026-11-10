@@ -4,9 +4,11 @@ import "../../components/calculator/calculator-registration"
 import "../../components/case-card/case-card-registration"
 import "../../components/case-table/case-table-registration"
 import "../../components/graph/graph-registration"
+import "../../components/map/map-registration"
 import "../../components/slider/slider-registration"
 import "../../components/text/text-registration"
 import "../../components/web-view/web-view-registration"
+import { Logger } from "../../lib/logger"
 import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { IDataSet } from "../../models/data/data-set"
@@ -32,6 +34,19 @@ describe("plugin API requests that change the document", () => {
   async function historySettled() {
     const manager = document.treeManagerAPI as Instance<typeof TreeManager>
     await when(() => manager.activeHistoryEntries.length === 0, { timeout: 2000 })
+  }
+
+  const undoManager = () => document.treeManagerAPI!.undoManager
+  const tileId = (resource: string) => resource.replace(/^component\[|\]$/g, "")
+
+  async function undo() {
+    undoManager().undo()
+    await historySettled()
+  }
+
+  async function redo() {
+    undoManager().redo()
+    await historySettled()
   }
 
   // the number of undo entries a request adds; the request must change the document
@@ -104,28 +119,15 @@ describe("plugin API requests that change the document", () => {
 
   it("a graph autoScale that moves the axes adds one labeled undo entry and sends rescaleGraph, as in V2",
     async () => {
-    const tile = document.content!.getTile(scatterPlot.replace(/^component\[|\]$/g, ""))
+    const tile = document.content!.getTile(tileId(scatterPlot))
     const graphContent: any = tile?.content
     graphContent.applyModelChange(() => graphContent.getAxis("bottom")?.setDomain(-1000, 1000))
     const broadcastSpy = jest.spyOn(document.content!, "broadcastMessage")
     expect(await undoEntriesAdded("notify", scatterPlot, { request: "autoScale" })).toBe(1)
-    expect(document.treeManagerAPI!.undoManager.undoEntry?.clientData?.undoStringKey).toBe("DG.Undo.axisDilate")
+    expect(getUndoStringKey(undoManager())).toBe("DG.Undo.axisDilate")
     expect(broadcastSpy.mock.calls.map(([message]) => message.values?.operation)).toContain("rescaleGraph")
     broadcastSpy.mockRestore()
   })
-
-  const undoManager = () => document.treeManagerAPI!.undoManager
-  const tileId = (resource: string) => resource.replace(/^component\[|\]$/g, "")
-
-  async function undo() {
-    undoManager().undo()
-    await historySettled()
-  }
-
-  async function redo() {
-    undoManager().redo()
-    await historySettled()
-  }
 
   it("update attributeLocation adds an undo entry, as in V2", async () => {
     const collection = dataset.getCollectionForAttribute(dataset.attrIDFromName("a4")!)!
@@ -139,10 +141,28 @@ describe("plugin API requests that change the document", () => {
     expect(attrNames()).toEqual(before)
   })
 
+  it("update attributeLocation into another collection adds an undo entry, as in V2, and undo restores the collections",
+    async () => {
+    const collectionNames = () => dataset.collections.map(collection => collection.name)
+    const collectionAttrs = () => dataset.collections.map(collection => collection.attributes.map(attr => attr?.name))
+    const childCaseCount = () => dataset.getCollectionByName("collection2")?.caseIds.length
+    const namesBefore = collectionNames()
+    const attrsBefore = collectionAttrs()
+    expect(childCaseCount()).toBe(4)
+    expect(await undoEntriesAdded("update", `dataContext[${dataset.name}].attributeLocation[a2]`,
+      { collection: "collection1" })).toBe(1)
+    expect(getUndoStringKey(undoManager())).toBe("DG.Undo.dataContext.moveAttribute")
+    expect(collectionNames()).not.toContain("collection2")
+    await undo()
+    expect(collectionNames()).toEqual(namesBefore)
+    expect(collectionAttrs()).toEqual(attrsBefore)
+    expect(childCaseCount()).toBe(4)
+  })
+
   it.each([
     ["graph", "graphComponent.create"], ["text", "textComponent.create"], ["slider", "sliderComponent.create"],
     ["calculator", "toggleComponent.add.calcView"], ["webView", "webView.show"], ["game", "game.add"],
-    ["imageComponentView", "imageComponent.show"]
+    ["imageComponentView", "imageComponent.show"], ["map", "map.create"]
   ])("create component %s adds an undo entry, as in V2, and undo removes it", async (type, undoKey) => {
     const tileCount = () => document.content!.tileMap.size
     const countBefore = tileCount()
@@ -168,6 +188,20 @@ describe("plugin API requests that change the document", () => {
     expect(content.isTileHidden(calculator().id)).toBe(true)
     await undo()
     expect(content.isTileHidden(calculator().id)).toBe(false)
+  })
+
+  it("create and delete component are logged, as from the toolbar and close box", async () => {
+    const loggerSpy = jest.spyOn(Logger, "log").mockImplementation(() => null)
+    try {
+      const result = await processAction({ action: "create", resource: "component", values: { type: "text" } })
+      const text = `component[${(result.values as any).id}]`
+      await processAction({ action: "delete", resource: text })
+      await historySettled()
+      const messages = loggerSpy.mock.calls.map(([message]) => message)
+      expect(messages).toEqual(expect.arrayContaining(["Create component: CodapText", "Close component: CodapText"]))
+    } finally {
+      loggerSpy.mockRestore()
+    }
   })
 
   it.each(["caseTable", "caseCard", "guideView"])("create component %s adds no undo entry, as in V2", async type => {

@@ -158,4 +158,4 @@ context needs to wait while its data is being edited, but requests from all plug
 - [`dataContext`](../resources/data-context.md) for `managingController`
 - [The notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext)
   for `createCases` and the other data notifications
-- [Undo and redo](undo-and-redo.md): requests your plugin makes are not on CODAP's undo history
+- [Undo and redo](undo-and-redo.md): most requests your plugin makes are not on CODAP's undo history
