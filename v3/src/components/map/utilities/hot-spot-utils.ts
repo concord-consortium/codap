@@ -193,3 +193,51 @@ export function computeHotSpotSurface(latLongs: ILatLong[], bandwidthMeters?: nu
   })
   return { points, bandwidthMeters: bandwidth, maxDensity: computeMaxDensity(points) }
 }
+
+/** A grid of square cells, positioned in container pixels */
+export interface IDensityGridRegion {
+  originX: number   // container x of the grid's left edge
+  originY: number   // container y of the grid's top edge
+  cols: number
+  rows: number
+  cellSize: number  // cell side length, in pixels
+}
+
+/**
+ * Returns the density of pixel-coordinate kernels sampled at each cell's center, in row-major order. A Gaussian is
+ * separable, exp(−(dx² + dy²)/2h²) = exp(−dx²/2h²) · exp(−dy²/2h²), so each kernel adds
+ * rowWeight · colWeight[col] to each cell in its window and the inner loop needs no exp.
+ */
+export function computeDensityGrid(kernels: IKernel[], region: IDensityGridRegion) {
+  const { originX, originY, cols, rows, cellSize } = region
+  const grid = new Float32Array(cols * rows)
+  const colWeights = new Float64Array(cols)
+
+  // The first and last cells whose centers, origin + (i + 0.5) · cellSize, are within r of p
+  const cellRange = (p: number, r: number, origin: number, count: number) => [
+    Math.max(0, Math.ceil((p - r - origin) / cellSize - 0.5)),
+    Math.min(count - 1, Math.floor((p + r - origin) / cellSize - 0.5))
+  ]
+
+  kernels.forEach(({ x, y, h }) => {
+    const r = kKernelCutoff * h
+    const [colMin, colMax] = cellRange(x, r, originX, cols)
+    const [rowMin, rowMax] = cellRange(y, r, originY, rows)
+    if (colMin > colMax || rowMin > rowMax) return
+
+    const denominator = 2 * h * h
+    for (let col = colMin; col <= colMax; col++) {
+      const dx = originX + (col + 0.5) * cellSize - x
+      colWeights[col] = Math.exp(-dx * dx / denominator)
+    }
+    for (let row = rowMin; row <= rowMax; row++) {
+      const dy = originY + (row + 0.5) * cellSize - y
+      const rowWeight = Math.exp(-dy * dy / denominator)
+      const rowStart = row * cols
+      for (let col = colMin; col <= colMax; col++) {
+        grid[rowStart + col] += rowWeight * colWeights[col]
+      }
+    }
+  })
+  return grid
+}

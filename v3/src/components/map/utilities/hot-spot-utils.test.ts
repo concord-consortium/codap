@@ -1,9 +1,9 @@
 import { Point, Projection } from "leaflet"
 import { greatCircleDistance } from "../../../utilities/geo-utils"
 import {
-  bandwidthToWorldUnits, computeDefaultBandwidth, computeHotSpotSurface, computeMaxDensity, IKernel, kernelWeight,
-  kFallbackBandwidthMeters, kMaxMercatorLatitude, kWebMercatorRadiusMeters, kWorldSize, latLongToWorldPoint,
-  wrapWorldDelta
+  bandwidthToWorldUnits, computeDefaultBandwidth, computeDensityGrid, computeHotSpotSurface, computeMaxDensity,
+  IDensityGridRegion, IKernel, kernelWeight, kFallbackBandwidthMeters, kMaxMercatorLatitude, kWebMercatorRadiusMeters,
+  kWorldSize, latLongToWorldPoint, wrapWorldDelta
 } from "./hot-spot-utils"
 
 describe("hot spot constants", () => {
@@ -187,5 +187,50 @@ describe("computeHotSpotSurface", () => {
   it("computes a default bandwidth when none is given or it isn't positive", () => {
     expect(computeHotSpotSurface(latLongs)!.bandwidthMeters).toBe(computeDefaultBandwidth(latLongs))
     expect(computeHotSpotSurface(latLongs, 0)!.bandwidthMeters).toBe(computeDefaultBandwidth(latLongs))
+  })
+})
+
+describe("computeDensityGrid", () => {
+  // 20 × 20 cells of 2px starting at the container origin; cell (c, r) is centered at (2c + 1, 2r + 1)
+  const region: IDensityGridRegion = { originX: 0, originY: 0, cols: 20, rows: 20, cellSize: 2 }
+  const at = (grid: Float32Array, col: number, row: number) => grid[row * region.cols + col]
+
+  it("peaks at 1 on a single point and falls off symmetrically", () => {
+    const grid = computeDensityGrid([{ x: 11, y: 11, h: 4 }], region)
+    expect(at(grid, 5, 5)).toBeCloseTo(1)
+    // one cell = 2px away: exp(−4 / (2·16))
+    expect(at(grid, 6, 5)).toBeCloseTo(Math.exp(-4 / 32))
+    expect(at(grid, 4, 5)).toBeCloseTo(at(grid, 6, 5))
+    expect(at(grid, 5, 6)).toBeCloseTo(at(grid, 6, 5))
+  })
+
+  it("is zero outside the cutoff window", () => {
+    const grid = computeDensityGrid([{ x: 11, y: 11, h: 1 }], region)
+    expect(at(grid, 6, 5)).toBeGreaterThan(0)   // 2px away, within 3px
+    expect(at(grid, 7, 5)).toBe(0)              // 4px away
+  })
+
+  it("matches brute-force evaluation at the cell centers", () => {
+    const kernels = [{ x: 11, y: 11, h: 4 }, { x: 15.3, y: 9.7, h: 2.5 }, { x: 30, y: 31, h: 6 }]
+    const grid = computeDensityGrid(kernels, region)
+    for (let row = 0; row < region.rows; row++) {
+      for (let col = 0; col < region.cols; col++) {
+        const cx = 2 * col + 1, cy = 2 * row + 1
+        const expected = kernels.reduce((sum, k) => sum + kernelWeight(cx - k.x, cy - k.y, k.h), 0)
+        expect(at(grid, col, row)).toBeCloseTo(expected, 5)
+      }
+    }
+  })
+
+  it("includes points just outside the region", () => {
+    const grid = computeDensityGrid([{ x: -3, y: 11, h: 4 }], region)
+    // cell (0, 5) is centered 4px from the point
+    expect(at(grid, 0, 5)).toBeCloseTo(Math.exp(-16 / 32))
+  })
+
+  it("respects the region's origin", () => {
+    const shifted = { ...region, originX: -40, originY: -30 }
+    const grid = computeDensityGrid([{ x: -29, y: -19, h: 4 }], shifted)
+    expect(at(grid, 5, 5)).toBeCloseTo(1)
   })
 })
