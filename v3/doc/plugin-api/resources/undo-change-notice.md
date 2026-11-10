@@ -144,12 +144,6 @@ function requestHandler(command, callback) {
 
 ## Known limitations
 
-The first of these is described in full in
-[the guide's known limitations](../guides/undo-and-redo.md#known-limitations).
-
-- **Undoing an entry from a closed plugin can do nothing visible.** When the plugin was closed by
-  another plugin's `delete` on `component`, which leaves no entry, undoing one of its entries
-  does nothing visible but still uses an undo step.
 - **The host page cannot use this resource.** When CODAP is embedded in a page, every operation
   from the host page fails with `Interactive Frame not found`; v2 accepted them. See
   [Embedding CODAP in your page](../guides/embedded-server.md#known-limitations).
