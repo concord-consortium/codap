@@ -22,6 +22,11 @@ export interface DIAdornmentHandler {
 
 const diAdornmentHandlers = new Map<string, DIAdornmentHandler>()
 
+// plugin API changes stay off the undo history: applyModelChange with no undo strings records none
+function withoutHistoryEntry<T>(graphContent: IGraphContentModel, fn: () => T): T {
+  return graphContent.applyModelChange(fn)
+}
+
 export const registerAdornmentHandler = (type: string, handler: DIAdornmentHandler, alias?: string) => {
   diAdornmentHandlers.set(type, handler)
   if (alias) registerAdornmentTypeAlias(alias, type)
@@ -46,7 +51,7 @@ export const diAdornmentHandler: DIHandler = {
       const handler = diAdornmentHandlers.get(resolvedType)
 
       if (handler?.create) {
-        return handler.create({graphContent, values})
+        return withoutHistoryEntry(graphContent, () => handler.create!({graphContent, values}))
       }
 
       return errorResult(t("V3.DI.Error.adornmentRequestNotSupported", { vars: [type, "create"] }))
@@ -73,11 +78,11 @@ export const diAdornmentHandler: DIHandler = {
     const handler = diAdornmentHandlers.get(resolvedType)
 
     if (handler?.delete) {
-      return handler.delete({ graphContent, values })
+      return withoutHistoryEntry(graphContent, () => handler.delete!({ graphContent, values }))
     }
 
     // If the adornment doesn't have a delete handler, we just hide the adornment.
-    adornmentsStore.hideAdornment(resolvedType)
+    withoutHistoryEntry(graphContent, () => adornmentsStore.hideAdornment(resolvedType))
     return { success: true }
   },
 
@@ -129,7 +134,7 @@ export const diAdornmentHandler: DIHandler = {
 
       const handler = diAdornmentHandlers.get(resolvedType)
       if (handler?.update) {
-        return handler.update({graphContent, values})
+        return withoutHistoryEntry(graphContent, () => handler.update!({graphContent, values}))
       } else {
         return errorResult(t("V3.DI.Error.adornmentRequestNotSupported", { vars: [type, "update"] }))
       }
