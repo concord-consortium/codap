@@ -12,7 +12,6 @@ describe("HotSpotCanvasLayer", () => {
     const layer = new HotSpotCanvasLayer({ pane: "overlayPane" })
     layer.setDrawFunction(draw)
     layer.addTo(map)
-    // eslint-disable-next-line testing-library/no-node-access -- the canvas is created by Leaflet, not React
     const canvas = map.getPane("overlayPane")!.querySelector("canvas")!
     return { map, draw, layer, canvas }
   }
@@ -65,7 +64,6 @@ describe("HotSpotCanvasLayer", () => {
   it("removes its canvas", () => {
     const { map, layer } = setup()
     layer.remove()
-    // eslint-disable-next-line testing-library/no-node-access -- the canvas is created by Leaflet, not React
     expect(map.getPane("overlayPane")!.querySelector("canvas")).toBeNull()
     map.remove()
   })
