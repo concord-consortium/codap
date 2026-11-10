@@ -1,7 +1,7 @@
 import type { MathNode } from "mathjs"
 import { CODAPMathjsFunctionRegistry, CurrentScope, FValue } from "../formula-types"
 import { aggregateFnWithFilterFactory, cachedAggregateFnFactory } from "./aggregate-functions"
-import { UNDEF_RESULT, evaluateNode, getRootScope, isValueTruthy } from "./function-utils"
+import { UNDEF_RESULT, evaluateNode, getRootScope, passesFilter } from "./function-utils"
 
 export const localLookupFunctions: CODAPMathjsFunctionRegistry = {
   // first(expression, filterExpression)
@@ -65,7 +65,7 @@ export const localLookupFunctions: CODAPMathjsFunctionRegistry = {
           let expressionValue, filterValue
           let currentGroup = caseGroupId
           // Keep looking for truthy filter value as long as cases are in the same group and we didn't reach the end.
-          while (!isValueTruthy(filterValue) && casePointer < numOfCases && currentGroup === caseGroupId) {
+          while (!passesFilter(filterValue) && casePointer < numOfCases && currentGroup === caseGroupId) {
             casePointer += 1
             scope.withCustomCasePointer(() => {
               currentGroup = scope.getCaseGroupId()
@@ -81,7 +81,7 @@ export const localLookupFunctions: CODAPMathjsFunctionRegistry = {
               }
             }, casePointer)
           }
-          result = isValueTruthy(filterValue) ? expressionValue : undefined
+          result = passesFilter(filterValue) ? expressionValue : undefined
           scope.setCached(cacheKey, {
             result, resultCasePointer: casePointer, cacheSetAtCasePointer: originalCasePointer
           })
@@ -136,7 +136,7 @@ export const localLookupFunctions: CODAPMathjsFunctionRegistry = {
         }
       }, scope.getCasePointer() - 1)
       // If there's no filter or filter value is truthy, prev() result is updated to the previous case value.
-      const result = !filter || isValueTruthy(newFilterValue) ? newExpressionValue : cachedResult
+      const result = !filter || passesFilter(newFilterValue) ? newExpressionValue : cachedResult
 
       scope.setCached(cacheKey, result)
       return result ?? (defaultValue ? evaluateNode(defaultValue, scope) : UNDEF_RESULT)

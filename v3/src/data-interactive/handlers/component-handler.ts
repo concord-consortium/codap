@@ -1,6 +1,6 @@
 import { isCaseTableModel } from "../../components/case-table/case-table-model"
 import {
-  openCaseTableNotification, resizeColumnsNotification
+  closeCaseTableNotification, openCaseTableNotification, resizeColumnsNotification
 } from "../../components/case-table/case-table-notifications"
 import { resizeAllColumns } from "../../components/case-table/case-table-utils"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
@@ -98,7 +98,10 @@ export const diComponentHandler: DIHandler = {
       const undoStrings = hidesCalculator ? "toggleComponent.delete.calcView" : kCreateUndoStrings[type]
       return document.applyModelChange(() => {
         const title = _title ?? name
-        const newTileOptions = { cannotClose, content, ...dimensions, position, x, y, name, title, ..._options }
+        const _cannotClose = cannotClose != null ? !!cannotClose : undefined
+        const newTileOptions = {
+          cannotClose: _cannotClose, content, ...dimensions, position, x, y, name, title, ..._options
+        }
         tile = _createOrShow(kComponentTypeV2ToV3Map[type], newTileOptions)
         if (!tile) return errorResult(t("V3.DI.Error.componentNotCreated"))
 
@@ -139,7 +142,7 @@ export const diComponentHandler: DIHandler = {
     document.applyModelChange(() => {
       document.content?.deleteOrHideTile(component.id)
     }, {
-      notify: deleteTileNotification(component),
+      notify: closeCaseTableNotification(component) ?? deleteTileNotification(component),
       // as in V2, closing a component is undoable, as it is from its close box
       undoStringKey: "DG.Undo.component.close",
       redoStringKey: "DG.Redo.component.close",
@@ -195,16 +198,21 @@ export const diComponentHandler: DIHandler = {
       case "autoScale": {
         const { content } = component
         if (isGraphContentModel(content)) {
-          content.rescale()
+          // as in V2 (graph_controller.js:500-508) and the inspector's rescale button: a labeled,
+          // logged undo entry that sends rescaleGraph
+          content.applyModelChange(() => content.rescale(), {
+            notify: () => updateTileNotification("rescaleGraph", {}, component),
+            excludeTileId: resources.interactiveFrame?.id,
+            undoStringKey: "DG.Undo.axisDilate",
+            redoStringKey: "DG.Redo.axisDilate",
+            log: { message: "Rescale axes from data", args: {}, category: "plot" }
+          })
         } else if (isMapContentModel(content)) {
           content.rescale()
         } else if (isCaseTableModel(content)) {
           // V2's resize-all path (case_table_controller.js:1136) is undoable and emits
           // `resize columns`. Mirror that here so plugin-initiated rescales are also
-          // undoable and visible to V2 plugins (CODAP-1353). The graph rescale above is undoable
-          // too, as in V2: it changes the axes outside applyModelChange, so a rescale that moves
-          // them adds an (unlabeled) undo entry. Labeling it, and the map rescale, are
-          // CODAP-1351 / CODAP-1352.
+          // undoable and visible to V2 plugins (CODAP-1353).
           //
           // Don't echo the notification back to the requesting plugin — Story Builder
           // otherwise treats notifications about its own DI-API actions as document edits
@@ -255,11 +263,13 @@ export const diComponentHandler: DIHandler = {
       // Support currentGameName as V2 alias for name (used by game/plugin components)
       const currentGameName = "currentGameName" in values && typeof values.currentGameName === "string"
         ? values.currentGameName : undefined
-      if (cannotClose != null) component.setCannotClose(cannotClose)
+      if (cannotClose != null) component.setCannotClose(!!cannotClose)
       if (isResizable != null) component.setIsResizable(isResizable)
       if (name != null) component.setName(name)
       else if (currentGameName != null) component.setName(currentGameName)
-      if (title) component.setTitle(title)
+      // An empty title clears it, so the tile falls back to its name or default title. As in V2, a number is used
+      // as the title; other values are ignored.
+      if (typeof title === "string" || typeof title === "number") component.setTitle(String(title) || undefined)
       // TODO Handle string positions?
       const _position = position && typeof position !== "string" ? position : undefined
       if (dimensions || _position || isVisible != null) {

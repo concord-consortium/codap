@@ -204,7 +204,8 @@ export function selectAndDeselectCases(
 // Set aside helper functions
 
 // For case ids, returns the grouped case. For item ids, returns the childmost grouped case containing that item.
-function getGroupedCases(data: IDataSet, caseOrItemIds: string[]) {
+export function getGroupedCases(data: IDataSet, caseOrItemIds: string[]) {
+  data.validateCases()
   return caseOrItemIds.map(caseId => data.caseInfoMap.get(caseId) ?? data.itemIdChildCaseMap.get(caseId))
     .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
 }

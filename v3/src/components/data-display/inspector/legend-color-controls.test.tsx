@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { scaleQuantize } from "d3"
+import { extent, scaleQuantile, scaleQuantize, scaleThreshold } from "d3"
 import { featureFlagManager } from "../../../models/feature-flags/feature-flag-manager"
 import { missingColor } from "../../../utilities/color-utils"
 import {
@@ -64,6 +64,13 @@ const createMockDataConfig = (overrides?: Record<string, unknown>) => ({
   legendQuantilesAreLocked: false,
   // 4 distinct values in numericValuesForAttrRole -> cap 4, so the default of 5 clamps to 4
   legendBinCount: 4,
+  // Derived as on the real (unlocked) model. A test can override either with a plain value.
+  get displayedLegendBinCount(): number { return this.legendBinCount },
+  get legendDisplayRange(): { min?: number, max?: number } {
+    const { min, max } = this.metadata.getAttributeLegendRange()
+    const [dataMin, dataMax] = extent(this.numericValuesForAttrRole())
+    return { min: min ?? dataMin, max: max ?? dataMax }
+  },
   setLegendQuantilesAreLocked: jest.fn(),
   applyModelChange: jest.fn((fn: () => void) => fn()),
   ...overrides
@@ -180,6 +187,34 @@ describe("LegendColorControls", () => {
 
       const checkbox = screen.getByTestId("lock-legend-quantiles-checkbox")
       expect(checkbox).toHaveAttribute("data-selected", "true")
+    })
+  })
+
+  describe("date legend", () => {
+    it("renders the single color row and the lock quantiles checkbox", () => {
+      const desc = createMockDescription()
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "date")
+      })
+      render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      expect(screen.getByTestId("color-swatch-DG.Inspector.color")).toBeInTheDocument()
+      expect(screen.getByTestId("lock-legend-quantiles-checkbox")).toBeInTheDocument()
+    })
+
+    it("unlocks a locked date legend", async () => {
+      const user = userEvent.setup()
+      const desc = createMockDescription()
+      const config = createMockDataConfig({
+        attributeType: jest.fn(() => "date"),
+        legendQuantilesAreLocked: true
+      })
+      render(<LegendColorControls dataConfiguration={config as any} displayItemDescription={desc as any} />)
+
+      const checkbox = screen.getByTestId("lock-legend-quantiles-checkbox")
+      expect(checkbox).toHaveAttribute("data-selected", "true")
+      await user.click(checkbox)
+      expect(config.setLegendQuantilesAreLocked).toHaveBeenCalledWith(false)
     })
   })
 
@@ -472,6 +507,75 @@ describe("LegendRangeInputs", () => {
     expect(screen.getByTestId("legend-range-min-input")).toBeDisabled()
     expect(screen.getByTestId("legend-range-max-input")).toBeDisabled()
   })
+
+  it("takes its decimal places from the legend's range, not the quantile scale's data", () => {
+    // A quantile scale's domain is its data (2.2..10), but the legend shows the override range 0..10.
+    // With the override, the edges 0, 2.3, 4, 6, 8, 10 need no decimal places. With the data, the
+    // first two edges (2.2 and 2.3) would need one, and the inputs would show "0.0" and "10.0".
+    const values = [2.2, 2.3, 4, 6, 8, 10]
+    const config = createMockDataConfig({
+      numericValuesForAttrRole: jest.fn(() => values),
+      legendNumericColorScale: scaleQuantile(values, kColors)
+    })
+    config.metadata.getAttributeLegendRange = jest.fn(() => ({ min: 0, max: 10 }))
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("0")
+    expect(screen.getByTestId("legend-range-max-input")).toHaveValue("10")
+  })
+
+  it("takes its decimal places from the legend's range for a logarithmic scale", () => {
+    // A log scale's domain holds only the inner edges (1.4, 1.96, 2.744, 3.8416). The legend's range
+    // is 1..5.37824, and 1 and 1.4 need one decimal place to differ. With only the inner edges, no
+    // decimal places would be needed, and the inputs would show "1" and "5".
+    const config = createMockDataConfig({
+      numericValuesForAttrRole: jest.fn(() => [1, 5.37824]),
+      legendNumericColorScale: scaleThreshold<number, string>().domain([1.4, 1.96, 2.744, 3.8416]).range(kColors)
+    })
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("1.0")
+    expect(screen.getByTestId("legend-range-max-input")).toHaveValue("5.4")
+  })
+
+  it("shows the data extent while unlocked, even when the legend's display range differs", () => {
+    // In logarithmic mode the display range is the positive part of the data (10..40)
+    const config = createMockDataConfig({ legendDisplayRange: { min: 10, max: 40 } })
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("0")
+    expect(screen.getByTestId("legend-range-max-input")).toHaveValue("40")
+  })
+
+  it("shows the locked min and max while locked, not the live data range", () => {
+    // live data now spans 0..20, but the legend was locked at 0..100
+    const config = createMockDataConfig({
+      legendQuantilesAreLocked: true,
+      numericValuesForAttrRole: jest.fn(() => [0, 10, 20]),
+      legendDisplayRange: { min: 0, max: 100 },
+      legendNumericColorScale: scaleThreshold<number, string>().domain([20, 40, 60, 80]).range(kColors)
+    })
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("0")
+    expect(screen.getByTestId("legend-range-max-input")).toHaveValue("100")
+  })
+
+  it("uses the legend's decimal places for a locked one-bin legend", () => {
+    // A locked one-bin scale has an empty domain, so the decimals must come from the locked range.
+    // Without them the inputs would fall back to ~10 significant digits ("0.5488135039").
+    const lo = 0.5488135039273248, hi = 0.7151893663724195
+    const config = createMockDataConfig({
+      legendQuantilesAreLocked: true,
+      numericValuesForAttrRole: jest.fn(() => [lo, hi]),
+      legendDisplayRange: { min: lo, max: hi },
+      legendNumericColorScale: scaleThreshold<number, string>().domain([]).range(["#a"])
+    })
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("0.5")
+    expect(screen.getByTestId("legend-range-max-input")).toHaveValue("0.7")
+  })
 })
 
 describe("LegendBinCountInput", () => {
@@ -513,6 +617,18 @@ describe("LegendBinCountInput", () => {
     const config = fiveBinConfig({ legendQuantilesAreLocked: true })
     render(<LegendBinCountInput dataConfiguration={config as any} />)
     expect(screen.getByTestId("legend-bin-count-input")).toBeDisabled()
+  })
+
+  it("shows the locked bin count after cases are hidden", () => {
+    // locked with 5 bins; hiding cases left only 2 distinct values, so the live count dropped to 2
+    const config = fiveBinConfig({
+      legendQuantilesAreLocked: true,
+      numericValuesForAttrRole: jest.fn(() => [0, 10]),
+      legendBinCount: 2,
+      displayedLegendBinCount: 5
+    })
+    render(<LegendBinCountInput dataConfiguration={config as any} />)
+    expect(screen.getByTestId("legend-bin-count-input")).toHaveValue("5")
   })
 
   it("clears the override (stores undefined) when set back to the default", async () => {

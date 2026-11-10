@@ -22,9 +22,7 @@ export interface DIAdornmentHandler {
 
 const diAdornmentHandlers = new Map<string, DIAdornmentHandler>()
 
-// Plugin API changes stay off the undo history, as in V2. The adornment handlers call model actions
-// directly, each of which would otherwise add its own (unlabeled) entry, so run them as one change
-// with no undo strings.
+// plugin API changes stay off the undo history: applyModelChange with no undo strings records none
 function withoutHistoryEntry<T>(graphContent: IGraphContentModel, fn: () => T): T {
   return graphContent.applyModelChange(fn)
 }

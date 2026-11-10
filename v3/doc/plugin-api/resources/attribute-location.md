@@ -61,7 +61,7 @@ own data context — see [the index](../README.md#the-default-data-context).
 | Property | Type | Notes |
 |---|---|---|
 | `collection` | String or number | The collection to move the attribute into, by name or by id. Omit it to move the attribute within its own collection. The text `"parent"` names the parent of the attribute's current collection |
-| `position` | number | The attribute's new position among the destination collection's attributes, counted from `0` on the left. Omit it to place the attribute on the right |
+| `position` | number | The attribute's new position among the destination collection's attributes, counted from `0` on the left. Omit it, or send `null`, to place the attribute on the right |
 
 **`position` counts the destination's attributes as they are before the move.** The attribute
 goes just before the attribute now at that position, or at the end. So moving the first of three
@@ -148,14 +148,11 @@ still finds the attribute and carries out the move. v2 failed with an error sayi
 could not be resolved. This is a known bug; the intended behavior is v2's. A segment naming a
 collection that does not exist was ignored in v2 too.
 
-**A `position` of `null` moves the attribute to the left.** v3 reads `null` as `0`. v2 treated it
-as missing and placed the attribute on the right. This is a known bug; omit `position` instead.
-
 ## Notifications
 
-A move sends `moveAttribute` on `dataContextChangeNotice[<context>]`, to every plugin listening
-to the data context, including the one that asked, as in v2. When the move leaves a collection
-with no attributes, `deleteCollection` is sent as well. In v3, a move to the attribute's own
+A move sends `moveAttribute` on `dataContextChangeNotice[<context>]` to every other plugin
+listening to the data context. v2 also sent it to the plugin that asked. When the move leaves a
+collection with no attributes, `deleteCollection` is sent as well. In v3, a move to the attribute's own
 position plus one, or to position `0` when it is already first, sends nothing; other moves that
 leave the attribute where it was still send `moveAttribute`. v2 sent `moveAttribute` for every
 move. See

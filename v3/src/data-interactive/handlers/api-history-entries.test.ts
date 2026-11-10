@@ -23,8 +23,6 @@ jest.mock("../../utilities/csv-import", () => {
 })
 const mockedDownloadCsvFile = downloadCsvFile as jest.MockedFunction<typeof downloadCsvFile>
 
-// Plugin API changes are meant to stay off the undo history, as in V2 (CODAP-1594 item 5), except those V2 made
-// undoable: sort, autoScale, moving an attribute, and creating and deleting components (CODAP-1617 #13-14)
 describe("plugin API requests that change the document", () => {
   const { document } = appState
   let dataset: IDataSet
@@ -36,13 +34,15 @@ describe("plugin API requests that change the document", () => {
     await when(() => manager.activeHistoryEntries.length === 0, { timeout: 2000 })
   }
 
-  // the number of undo entries a request adds
+  // the number of undo entries a request adds; the request must change the document
   async function undoEntriesAdded(action: string, resource: string, values?: any) {
     await historySettled()
     const before = document.treeManagerAPI!.undoManager.undoLevels
+    const snapshotBefore = JSON.stringify(getSnapshot(document))
     const result = await processAction({ action, resource, values } as any)
     expect(result.success).toBe(true)
     await historySettled()
+    expect(JSON.stringify(getSnapshot(document))).not.toBe(snapshotBefore)
     return document.treeManagerAPI!.undoManager.undoLevels - before
   }
 
@@ -64,13 +64,14 @@ describe("plugin API requests that change the document", () => {
     document.treeMonitor!.disableMonitoring()
   })
 
+  // update shows the deleted adornment again and changes a setting
   it.each([
-    ["Count", { percentType: "row" }], ["Mean", { isVisible: false }], ["Median", {}],
-    ["Standard Deviation", {}], ["Plotted Value", {}], ["Region of Interest", { primary: { position: 1, extent: 2 } }]
-  ])("create, update and delete adornment %s add no undo entries", async (type, updateValues) => {
+    ["Count", { percentType: "cell" }], ["Mean", {}], ["Median", {}], ["Standard Deviation", {}],
+    ["Plotted Value", {}], ["Region of Interest", { primary: { position: 1, extent: 2 } }]
+  ])("create, delete and update adornment %s add no undo entries", async (type, updateValues) => {
     expect(await undoEntriesAdded("create", `${graph}.adornment`, { type })).toBe(0)
-    expect(await undoEntriesAdded("update", `${graph}.adornment`, { type, ...updateValues })).toBe(0)
     expect(await undoEntriesAdded("delete", `${graph}.adornment`, { type })).toBe(0)
+    expect(await undoEntriesAdded("update", `${graph}.adornment`, { type, isVisible: true, ...updateValues })).toBe(0)
   })
 
   it("create, update and delete adornment LSRL and Movable Value add no undo entries", async () => {
@@ -79,6 +80,8 @@ describe("plugin API requests that change the document", () => {
       { type: "LSRL", showR: true, showRSquared: true })).toBe(0)
     expect(await undoEntriesAdded("delete", `${scatterPlot}.adornment`, { type: "LSRL" })).toBe(0)
     expect(await undoEntriesAdded("create", `${graph}.adornment`, { type: "Movable Value" })).toBe(0)
+    expect(await undoEntriesAdded("update", `${graph}.adornment`,
+      { type: "Movable Value", values: [["{}", 2.5]] })).toBe(0)
     expect(await undoEntriesAdded("delete", `${graph}.adornment`, { type: "Movable Value" })).toBe(0)
   })
 
@@ -99,11 +102,16 @@ describe("plugin API requests that change the document", () => {
     expect(await undoEntriesAdded("create", "dataContextFromURL", { URL: "https://example.com/data.csv" })).toBe(0)
   })
 
-  it("a graph autoScale that moves the axes stays undoable, as in V2", async () => {
+  it("a graph autoScale that moves the axes adds one labeled undo entry and sends rescaleGraph, as in V2",
+    async () => {
     const tile = document.content!.getTile(scatterPlot.replace(/^component\[|\]$/g, ""))
     const graphContent: any = tile?.content
     graphContent.applyModelChange(() => graphContent.getAxis("bottom")?.setDomain(-1000, 1000))
+    const broadcastSpy = jest.spyOn(document.content!, "broadcastMessage")
     expect(await undoEntriesAdded("notify", scatterPlot, { request: "autoScale" })).toBe(1)
+    expect(document.treeManagerAPI!.undoManager.undoEntry?.clientData?.undoStringKey).toBe("DG.Undo.axisDilate")
+    expect(broadcastSpy.mock.calls.map(([message]) => message.values?.operation)).toContain("rescaleGraph")
+    broadcastSpy.mockRestore()
   })
 
   const undoManager = () => document.treeManagerAPI!.undoManager
