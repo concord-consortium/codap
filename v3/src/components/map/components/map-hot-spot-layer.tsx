@@ -54,7 +54,9 @@ export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayer
     const disposeReaction = mstReaction(
       () => [hotSpotModel.hotSpotSurface, hotSpotModel.lowColor, hotSpotModel.highColor],
       () => redraw(),
-      { name: "MapHotSpotLayer.redraw" }, mapPointLayerModel)
+      { name: "MapHotSpotLayer.redraw" },
+      mapPointLayerModel
+    )
 
     layer.setDrawFunction((context, region) => {
       const surface = hotSpotModel.hotSpotSurface

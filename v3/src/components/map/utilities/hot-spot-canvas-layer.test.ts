@@ -18,14 +18,14 @@ describe("HotSpotCanvasLayer", () => {
 
   it("adds a padded canvas with one backing pixel per cell, and draws it", () => {
     const { map, draw, canvas } = setup()
-    // 400 × 300 plus 10% padding on each side is 480 × 360 CSS px, or 240 × 180 cells of 2px
-    expect(canvas.width).toBe(240)
-    expect(canvas.height).toBe(180)
-    expect(canvas.style.width).toBe("480px")
-    expect(canvas.style.height).toBe("360px")
+    // 400 × 300 plus 50% padding on each side is 800 × 600 CSS px, or 400 × 300 cells of 2px
+    expect(canvas.width).toBe(400)
+    expect(canvas.height).toBe(300)
+    expect(canvas.style.width).toBe("800px")
+    expect(canvas.style.height).toBe("600px")
     expect(draw).toHaveBeenCalledTimes(1)
     expect(draw).toHaveBeenCalledWith(expect.anything(),
-      { originX: -40, originY: -30, cols: 240, rows: 180, cellSize: 2 })
+      { originX: -200, originY: -150, cols: 400, rows: 300, cellSize: 2 })
     map.remove()
   })
 
