@@ -142,22 +142,23 @@ export function exportLegendQuantileStorage(
 
 // Lock props for the DataConfiguration snapshot. The bin count is handled separately
 // (applyImportedLegendBinCount) because it lives in per-attribute metadata, not the config.
-// The V2 edges [min, ...inner edges, padded max] are split into V3's legendLockedMin, inner
-// legendQuantiles, and legendLockedMax, with the padding removed from the max.
-// Older versions of V3 wrote only the inner edges (N-1 values for N bins), always with the bin
-// count. A list of exactly N-1 values is read that way and kept as inner edges. Every other list is
-// read as V2's format. V2 can save a count that does not match its edges (it keeps the locked edges
-// when the count changes), and it always writes the count, so a missing count also means V2.
+// V2's edges (see kV2LegendMaxPaddingFactor) are split into legendLockedMin, the inner
+// legendQuantiles, and legendLockedMax.
+// V2 always writes exactly count + 1 edges. Older versions of V3 wrote only the inner edges, with a
+// count that did not reliably match them (the locked count, the live count, or the number of inner
+// edges). So a list is read as V2's format only when it has count + 1 values or there is no count,
+// and as inner edges otherwise.
 export function importLegendLockProps(props?: IImportLegendQuantileProps) {
   if (!props?.legendQuantilesAreLocked) return {}
   const validQuantiles = !!props.legendQuantiles?.length &&
     props.legendQuantiles.every((q: number | null) => q != null)
   if (!validQuantiles) return { legendQuantilesAreLocked: true }
   const edges = props.legendQuantiles as number[]
-  const isOlderV3InnerEdges = props.numberOfLegendQuantiles != null &&
-    edges.length === props.numberOfLegendQuantiles - 1
-  // V2 always writes at least 2 values (N+1 for N >= 1 bins), so keep a shorter list as it is too.
-  if (isOlderV3InnerEdges || edges.length < 2) return { legendQuantilesAreLocked: true, legendQuantiles: edges }
+  const count = props.numberOfLegendQuantiles
+  const isV2Edges = count == null || edges.length === count + 1
+  // A V2 list always has at least 2 values: the min and the padded max. So a list of 1 value
+  // (possible only without a count) is kept as an inner edge.
+  if (!isV2Edges || edges.length < 2) return { legendQuantilesAreLocked: true, legendQuantiles: edges }
   const min = edges[0]
   return {
     legendQuantilesAreLocked: true,

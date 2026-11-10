@@ -120,10 +120,9 @@ describe("importLegendLockProps", () => {
       legendQuantilesAreLocked: true, legendQuantiles: [], legendLockedMin: 5, legendLockedMax: 5
     })
   })
-  it("splits V2's edges when the bin count does not match them", () => {
-    // V2 keeps the locked edges when the bin count changes, so the count can differ
+  it("splits V2's count + 1 edges when the count is given", () => {
     const props = {
-      numberOfLegendQuantiles: 3, legendQuantilesAreLocked: true, legendQuantiles: [0, 2, 4, 6, padV2LegendMax(0, 8)]
+      numberOfLegendQuantiles: 4, legendQuantilesAreLocked: true, legendQuantiles: [0, 2, 4, 6, padV2LegendMax(0, 8)]
     }
     expect(importLegendLockProps(props)).toEqual({
       legendQuantilesAreLocked: true, legendQuantiles: [2, 4, 6], legendLockedMin: 0, legendLockedMax: 8
@@ -131,6 +130,15 @@ describe("importLegendLockProps", () => {
   })
   it("keeps an older V3 export's N-1 inner edges as they are", () => {
     const props = { numberOfLegendQuantiles: 5, legendQuantilesAreLocked: true, legendQuantiles: [20, 40, 60, 80] }
+    expect(importLegendLockProps(props)).toEqual({ legendQuantilesAreLocked: true, legendQuantiles: [20, 40, 60, 80] })
+  })
+  it("keeps a 3.0.x export's inner edges as they are (its count is the number of inner edges)", () => {
+    const props = { numberOfLegendQuantiles: 4, legendQuantilesAreLocked: true, legendQuantiles: [10, 20, 30, 40] }
+    expect(importLegendLockProps(props)).toEqual({ legendQuantilesAreLocked: true, legendQuantiles: [10, 20, 30, 40] })
+  })
+  it("keeps an older V3 export's inner edges as they are when its count is the live count", () => {
+    // Locked with 5 bins, then the bin count was changed to 2
+    const props = { numberOfLegendQuantiles: 2, legendQuantilesAreLocked: true, legendQuantiles: [20, 40, 60, 80] }
     expect(importLegendLockProps(props)).toEqual({ legendQuantilesAreLocked: true, legendQuantiles: [20, 40, 60, 80] })
   })
   it("keeps an older V3 map's N-1 inner edges from the v3: extension as they are", () => {
