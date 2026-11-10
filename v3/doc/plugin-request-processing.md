@@ -111,10 +111,10 @@ Two adaptive signals:
 A coalesced run executes via `createItemsInSegments(dataContext, segments)`
 (`src/data-interactive/handlers/item-handler.ts`), where each segment is one original
 request's values. All segments' items are added in a single `applyModelChange` — one
-`addCases`, one `validateCases`, one round of `createCases` notifications — which is the
-entire point: one cascade of tile reactivity per batch instead of per request. The item
-handler's own `create` is simply the single-segment case, so the un-coalesced path shares the
-same code.
+`addCases`, one `validateCases`, one round of `createCases` notifications and one
+`createItems` — which is the entire point: one cascade of tile reactivity per batch instead of
+per request. The item handler's own `create` is simply the single-segment case, so the
+un-coalesced path shares the same code.
 
 Each original request still receives *its own* response, equivalent to what sequential
 processing would have returned:
@@ -151,9 +151,9 @@ per-request error response.
 - **Acks arrive in clumps**: a batch's responses are delivered together at its drain tick.
   At scale every ack arrives *earlier* than it would have unbatched.
 - **Latency**: every request gains one macrotask (~0–4 ms) from the deferred drain.
-- **Notifications**: plugins observing the dataContext receive fewer, larger `createCases`
-  notifications (one per collection per batch; the notification format already carries
-  arrays).
+- **Notifications**: plugins observing the dataContext receive fewer, larger notifications
+  (one `createCases` per collection per batch, then one `createItems` for the batch; the
+  notification format already carries arrays).
 - **Animation**: graphs/maps animate ordinary case additions (a user-entered row, a paced
   plugin create, a single bulk create of many items) but snap for coalesced batches — the
   batch is the "high-speed stream" discriminator. See the `suppressAnimation` option on

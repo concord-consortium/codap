@@ -1,33 +1,56 @@
 import { parse } from "mathjs/number"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
 import { CurrentScope } from "../formula-types"
-import { isValueTruthy, toBoolean, equal, evaluateNode, isPartitionedMap, isMap, getRootScope } from "./function-utils"
+import {
+  isValueCountable, passesFilter, toBoolean, equal, evaluateNode, isPartitionedMap, isMap, getRootScope
+} from "./function-utils"
 
-describe("isValueTruthy", () => {
-  it("should return true for truthy values", () => {
-    expect(isValueTruthy(1)).toBe(true)
-    expect(isValueTruthy("non-empty")).toBe(true)
+describe("isValueCountable", () => {
+  it("should count non-empty values, including 0 and \"false\" strings (V2 parity)", () => {
+    expect(isValueCountable(1)).toBe(true)
+    expect(isValueCountable(0)).toBe(true)
+    expect(isValueCountable(true)).toBe(true)
+    expect(isValueCountable("non-empty")).toBe(true)
+    expect(isValueCountable("false")).toBe(true)
   })
 
-  it("should return false for falsy values", () => {
-    expect(isValueTruthy("")).toBe(false)
-    expect(isValueTruthy(null)).toBe(false)
-    expect(isValueTruthy(undefined)).toBe(false)
-    expect(isValueTruthy(false)).toBe(false)
+  it("should not count empty values or boolean false", () => {
+    expect(isValueCountable("")).toBe(false)
+    expect(isValueCountable(null)).toBe(false)
+    expect(isValueCountable(undefined)).toBe(false)
+    expect(isValueCountable(false)).toBe(false)
   })
 
-  it("should treat NaN as falsy (V2 parity)", () => {
-    // NaN propagates through relational operators (CODAP-1286), so a filter expression like
-    // `count(x, y < z)` may produce NaN entries when y or z are empty. Those entries should
-    // be excluded from the aggregation, matching V2's `!!NaN === false` semantics.
-    expect(isValueTruthy(NaN)).toBe(false)
+  it("should not count NaN", () => {
+    // NaN propagates through relational operators (CODAP-1286), so an expression like
+    // `count(y < z)` may produce NaN entries when y or z are empty. Those entries shouldn't be counted.
+    expect(isValueCountable(NaN)).toBe(false)
   })
 
-  it("should keep non-numeric strings truthy (Number.isNaN does not coerce)", () => {
-    // Strings like "abc" coerce to NaN via Number(), but isValueTruthy uses the strict
-    // Number.isNaN check so they remain truthy as non-empty values.
-    expect(isValueTruthy("abc")).toBe(true)
-    expect(isValueTruthy("NaN")).toBe(true)
+  it("should count non-numeric strings (Number.isNaN does not coerce)", () => {
+    // Strings like "abc" coerce to NaN via Number(), but isValueCountable uses the strict
+    // Number.isNaN check so they are counted as non-empty values.
+    expect(isValueCountable("abc")).toBe(true)
+    expect(isValueCountable("NaN")).toBe(true)
+  })
+})
+
+describe("passesFilter", () => {
+  it("should pass true values", () => {
+    expect(passesFilter(true)).toBe(true)
+    expect(passesFilter(1)).toBe(true)
+    expect(passesFilter("true")).toBe(true)
+    expect(passesFilter("abc")).toBe(true)
+  })
+
+  it("should not pass false, zero, NaN or empty values", () => {
+    expect(passesFilter(false)).toBe(false)
+    expect(passesFilter(0)).toBe(false)
+    expect(passesFilter("0")).toBe(false)
+    expect(passesFilter("false")).toBe(false)
+    expect(passesFilter(NaN)).toBe(false)
+    expect(passesFilter("")).toBe(false)
+    expect(passesFilter(undefined)).toBe(false)
   })
 })
 
