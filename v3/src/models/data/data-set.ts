@@ -1193,7 +1193,6 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         const index = self.getItemIndexForCaseOrItem(caseID)
         return index != null ? this.getValueAtFullItemIndex(index, attributeID) : undefined
       },
-      // `index` is a full index (see getItemIndex), so the cache is looked up in _itemIds, not `items`
       getValueAtFullItemIndex(index: number, attributeID: string) {
         if (self.isCaching()) {
           const itemId = self._itemIds[index]

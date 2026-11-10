@@ -1,3 +1,4 @@
+import { IDataSet } from "../../data/data-set"
 import { evaluate } from "../test-utils/formula-test-utils"
 import { stringFunctions } from "./string-functions"
 
@@ -173,6 +174,19 @@ describe("stringFunctions", () => {
       // The final "3" in Age has a Weight of 11, and all other weights are ignored.
       expect(evaluate("wordListMatches(Sleep, 'Cats', 'Age', 'Weight')", 0)).toBe(110)
       expect(evaluate("wordListMatches(Sleep, 'Cats', 'Age', 'Weight')", 2)).toBe(0)
+    })
+
+    it("skips set-aside and filtered-out words", () => {
+      const ageIs3 = (Cats: IDataSet) =>
+        Cats.itemIds.filter(itemId => Cats.getStrValue(itemId, Cats.attrIDFromName("Age")!) === "3")
+      expect(evaluate("wordListMatches(Sleep, 'Cats', 'Age')", 0, undefined, ({ dataSetsByName: { Cats } }) => {
+        Cats.hideCasesOrItems(ageIs3(Cats).slice(0, 2))
+        Cats.validateCases()
+      })).toBe(8)
+      expect(evaluate("wordListMatches(Sleep, 'Cats', 'Age')", 0, undefined, ({ dataSetsByName: { Cats } }) => {
+        Cats.updateFilterFormulaResults([{ itemId: ageIs3(Cats)[0], result: false }], {})
+        Cats.validateCases()
+      })).toBe(9)
     })
   })
 

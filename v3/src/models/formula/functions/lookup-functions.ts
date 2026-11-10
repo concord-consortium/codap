@@ -120,8 +120,8 @@ export const lookupFunctions = {
         throw new Error(t("DG.Formula.LookupAttrError.description", { vars: [ attrId, dataSet.title || "" ] }))
       }
       // lookupByIndex can be executed in aggregate context, so we need to handle array arguments.
-      // The index counts only the items shown: set-aside items are skipped, as in V2, and so are items a
-      // filter formula hides (V2 had no filter formula)
+      // The index counts only the items shown: set-aside and filtered-out items are skipped. For a flat data set
+      // this matches V2, which counted the shown cases of the attribute's collection, in the case table's order
       const fn = (index: number) => {
         const itemId = dataSet.itemIds[index - 1]
         return (itemId && dataSet.getValue(itemId, attrId)) || UNDEF_RESULT
