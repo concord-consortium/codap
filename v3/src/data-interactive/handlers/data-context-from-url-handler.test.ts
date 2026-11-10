@@ -44,9 +44,15 @@ describe("DataInteractive DataContextHandler", () => {
         }, "")
       })
 
-      const result = await handler.create!({}, {URL: "https://example.com"})
-      expect(mockedDownloadCsvFile).toHaveBeenCalled()
-      expect(result.success).toBe(false)
+      const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+      try {
+        const result = await handler.create!({}, {URL: "https://example.com"})
+        expect(mockedDownloadCsvFile).toHaveBeenCalled()
+        expect(result.success).toBe(false)
+        expect(broadcastSpy).not.toHaveBeenCalled()
+      } finally {
+        broadcastSpy.mockRestore()
+      }
     })
 
     it("creates a dataset", async () => {
@@ -68,19 +74,23 @@ describe("DataInteractive DataContextHandler", () => {
       })
 
       const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
-      expect(gDataBroker.length).toBe(0)
-      const result = await handler.create!({}, {URL: "https://example.com/"})
-      expect(gDataBroker.length).toBe(1)
-      // as in V2, plugins are told the number of data contexts changed
-      expect(broadcastSpy.mock.calls.some(([msg]) => msg?.resource === "documentChangeNotice" &&
-        msg?.values?.operation === "dataContextCountChanged")).toBe(true)
-      broadcastSpy.mockRestore()
-      expect(mockedDownloadCsvFile).toHaveBeenCalled()
-      expect(result.success).toBe(true)
-      // There is also an id field, but that is harder to test.
-      expect(result.values).toMatchObject({
-        name: "https://example.com/"
-      })
+      try {
+        expect(gDataBroker.length).toBe(0)
+        const result = await handler.create!({}, {URL: "https://example.com/"})
+        expect(gDataBroker.length).toBe(1)
+        expect(broadcastSpy.mock.calls).toEqual([[
+          { action: "notify", resource: "documentChangeNotice", values: { operation: "dataContextCountChanged" } },
+          expect.any(Function), undefined, undefined
+        ]])
+        expect(mockedDownloadCsvFile).toHaveBeenCalled()
+        expect(result.success).toBe(true)
+        // There is also an id field, but that is harder to test.
+        expect(result.values).toMatchObject({
+          name: "https://example.com/"
+        })
+      } finally {
+        broadcastSpy.mockRestore()
+      }
     })
 
     it("opens a case table for the imported dataset by default", async () => {
