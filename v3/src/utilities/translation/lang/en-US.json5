@@ -1343,6 +1343,8 @@
     // V3 case table strings that are not present in V2 and will eventually require translation.
     "V3.general.yes": "Yes",
     "V3.general.no": "No",
+    "V3.general.back": "Back",
+    "V3.general.close": "Close",
     "V3.general.unsavedChangesWarning": "Changes you made may not be saved.",
 
     // V3 application level strings
@@ -1702,5 +1704,39 @@
     "V3.AppController.optionMenuItems.positionToolShelfLeft": "Toolbar Position: Move to the top",
     "V3.AppController.optionMenuItems.positionToolShelfTop": "Toolbar Position: Move to the left",
     "V3.AppController.optionMenuItems.graphicsAccelerationOn": "Graphics Acceleration: Turn off",
-    "V3.AppController.optionMenuItems.graphicsAccelerationOff": "Graphics Acceleration: Turn on"
+    "V3.AppController.optionMenuItems.graphicsAccelerationOff": "Graphics Acceleration: Turn on",
+
+    "V3.ExternalLink.opensInNewTab": "(opens in a new tab)",
+
+    "V3.AboutDialog.logoAlt": "CODAP, a product of The Concord Consortium",
+    "V3.AboutDialog.version": "Version %{version} · build %{build}",
+    "V3.AboutDialog.copyright": "© 1996–%{year} The Concord Consortium, Inc.",
+    "V3.AboutDialog.termsOfUse": "Terms of Use",
+    "V3.AboutDialog.license.heading": "License & Terms of Use",
+    "V3.AboutDialog.license.p1": "%{freeOpenSource} The CODAP source code is released under the %{mitLicense}, so you’re welcome to use, modify, and build on it.",
+    "V3.AboutDialog.license.freeOpenSource": "CODAP is free, open-source software.",
+    "V3.AboutDialog.license.mitLicense": "MIT License",
+    "V3.AboutDialog.license.p2": "%{yourUse} is governed by our %{termsOfUse}. The hosted version is free for non-commercial use; commercial use requires a separate written agreement. For more information, visit %{licensingPage} or contact %{licensingEmail}.",
+    "V3.AboutDialog.license.yourUse": "Your use of CODAP at codap.concord.org",
+    "V3.AboutDialog.license.licensingPage": "concord.org/licensing",
+    "V3.AboutDialog.links.licensingDetails": "Licensing details",
+    "V3.AboutDialog.links.sourceCode": "Source on GitHub",
+    "V3.AboutDialog.acknowledgementsButton": "Open-source libraries & acknowledgements",
+    "V3.AboutDialog.projectCount": "1 project",
+    "V3.AboutDialog.projectCountPlural": "%{count} projects",
+    "V3.AboutDialog.libraries.title": "Open-source libraries",
+    "V3.AboutDialog.libraries.intro": "CODAP is built with these open-source projects. Our thanks to their authors and maintainers.",
+    "V3.AboutDialog.libraries.footer": "This list is generated at build time from CODAP’s dependencies. Full license texts: %{noticesLink}",
+    "V3.AboutDialog.libraries.noticesLink": "THIRD-PARTY-NOTICES",
+    "V3.AboutDialog.libraries.searchLabel": "Search libraries…",
+    "V3.AboutDialog.libraries.resultCount": "1 library",
+    "V3.AboutDialog.libraries.resultCountPlural": "%{count} libraries",
+    "V3.AboutDialog.libraries.loading": "Loading libraries…",
+    "V3.AboutDialog.libraries.noMatches": "No libraries match “%{query}”.",
+    "V3.AboutDialog.libraries.loadError": "The library list couldn't be loaded.",
+    "V3.AboutDialog.welcome.title": "Welcome to CODAP",
+    "V3.AboutDialog.welcome.intro": "Explore, analyze, and visualize data right in your browser.",
+    "V3.AboutDialog.welcome.dontShowAgain": "Don’t show this again",
+    "V3.AboutDialog.welcome.aboutButton": "About & licensing",
+    "V3.AboutDialog.welcome.getStarted": "Get started"
 }
