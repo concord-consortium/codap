@@ -1,4 +1,5 @@
 import { AxisHelper as ah } from "../support/helpers/axis-helper"
+import { GraphCanvasHelper as gch } from "../support/helpers/graph-canvas-helper"
 import { GraphLegendHelper as glh } from "../support/helpers/graph-legend-helper"
 import { GraphLegendElements as gle } from "../support/elements/graph-legend-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
@@ -867,8 +868,16 @@ context("Test locking the legend", () => {
       cy.log("Select the top bin's cases and hide them")
       glh.selectNumericLegendCategory(4)
       glh.verifyLegendQuintileSelected(4)
-      graph.getHideShowButton().click()
-      cy.get("[data-testid=hide-selected-cases]").click()
+      gch.getGraphTileId().then(tileId => {
+        const pointsCount = (win: any) => win.rendererArrayMap[tileId][0].pointsCount
+        cy.window().then(win => {
+          const countBefore = pointsCount(win)
+          graph.getHideShowButton().click()
+          cy.get("[data-testid=hide-selected-cases]").click()
+          // Wait until the hidden points are gone, so the checks below see the graph after the hide
+          cy.window().should(winAfter => expect(pointsCount(winAfter)).to.be.lessThan(countBefore))
+        })
+      })
 
       cy.log("The end labels and the number of bins do not change")
       gle.getNumericLegendEndLabels().eq(0).should("have.text", lockedMin)

@@ -2107,6 +2107,14 @@ describe("DataConfigurationModel locked legend", () => {
       expect(t.config.legendNumericColorScale.range().length).toBe(5)
       expect(t.config.legendDisplayRange).toEqual({ min: 15, max: 25 })
     })
+
+    it("uses the live legend for a locked snapshot with no saved values", () => {
+      const t = makeTreeFromConfigSnapshot({ legendQuantilesAreLocked: true })
+      expect(t.config.hasLockedLegendScale).toBe(false)
+      expect(t.config.displayedLegendBinCount).toBe(2)
+      expect(thresholdsOf(t)).toEqual(getScaleThresholds(t.config.liveLegendNumericColorScale))
+      expect(t.config.legendDisplayRange).toEqual({ min: 15, max: 25 })
+    })
   })
 
   describe("recomputes the locked values when the legend attribute changes", () => {

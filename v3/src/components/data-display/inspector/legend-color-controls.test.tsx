@@ -538,6 +538,15 @@ describe("LegendRangeInputs", () => {
     expect(screen.getByTestId("legend-range-max-input")).toHaveValue("5.4")
   })
 
+  it("shows the data extent while unlocked, even when the legend's display range differs", () => {
+    // In logarithmic mode the display range is the positive part of the data (10..40)
+    const config = createMockDataConfig({ legendDisplayRange: { min: 10, max: 40 } })
+    render(<LegendRangeInputs dataConfiguration={config as any} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("0")
+    expect(screen.getByTestId("legend-range-max-input")).toHaveValue("40")
+  })
+
   it("shows the locked min and max while locked, not the live data range", () => {
     // live data now spans 0..20, but the legend was locked at 0..100
     const config = createMockDataConfig({
