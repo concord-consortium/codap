@@ -1,33 +1,34 @@
+import { IClipboardContent, readClipboard } from "../lib/clipboard/clipboard-utils"
 import { IDataSet } from "../models/data/data-set"
 import { initiateImportFromCsv } from "./csv-import"
 import { initiateImportFromHTML } from "./html-import"
 
-async function readHtmlFromClipboard(): Promise<string | undefined> {
-  // clipboard.read() returns multiple MIME types (including text/html) but isn't
-  // supported in all browsers (e.g. Firefox < 127). Fall back to readText() below.
-  if (typeof navigator.clipboard.read !== "function") return undefined
-  try {
-    const items = await navigator.clipboard.read()
-    for (const item of items) {
-      if (item.types.includes("text/html")) {
-        const blob = await item.getType("text/html")
-        return await blob.text()
-      }
-    }
-  } catch {
-    // clipboard.read() can throw (e.g. permission denied, document not focused).
-    // Fall back to readText() below.
-  }
-  return undefined
+export type ClipboardImportFormat = "html" | "csv"
+
+const kHtmlTableRegex = /<table[\s>]/i
+
+// Returns the format clipboard content would be imported as, or undefined if there's nothing to import.
+export function getClipboardImportFormat(content: IClipboardContent): ClipboardImportFormat | undefined {
+  if (content.html && kHtmlTableRegex.test(content.html)) return "html"
+  if (content.text?.trim()) return "csv"
 }
 
-export async function initiateImportFromClipboard(data?: IDataSet) {
-  const datasetName = data ? undefined : "clipboard data"
-  const html = await readHtmlFromClipboard()
-  if (html && /<table[\s>]/i.test(html)) {
-    initiateImportFromHTML(html, data)
-  } else {
-    const text = await navigator.clipboard.readText()
-    initiateImportFromCsv({ text, data, datasetName })
+// Imports clipboard content into `dataSet`, or into a new "clipboard data" dataset if none is given.
+// Returns the format used, or undefined if the content was empty and nothing was imported.
+export function importClipboardContent(content: IClipboardContent, dataSet?: IDataSet) {
+  const format = getClipboardImportFormat(content)
+  if (format === "html" && content.html) {
+    initiateImportFromHTML(content.html, dataSet)
+  } else if (format === "csv" && content.text) {
+    initiateImportFromCsv({ text: content.text, data: dataSet, datasetName: dataSet ? undefined : "clipboard data" })
   }
+  return format
+}
+
+/**
+ * @deprecated Temporary until the menu call sites switch to `useClipboard()`.
+ */
+export async function initiateImportFromClipboard(data?: IDataSet) {
+  const { content } = await readClipboard()
+  importClipboardContent(content, data)
 }
