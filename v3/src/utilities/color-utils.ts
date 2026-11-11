@@ -132,8 +132,6 @@ export function tinycolor(color: string) {
   return new TinyColor(color)
 }
 
-// Returns a color that is between color1 and color2. Alpha is interpolated alongside RGB so
-// numeric legend gradients fade smoothly when an endpoint has transparency (CODAP-1385).
 /**
  * Linearly interpolates each RGBA channel between two colors. Channels are not rounded, so callers
  * that need exact values (e.g. filling a Uint8ClampedArray) control the rounding.
@@ -191,7 +189,6 @@ export function lowColorFromBase(baseColor: string, lightness = 0.92, satScale =
 
 // Returns `count` colors evenly interpolated between color1 and color2 (endpoints included), as hex strings
 // (the default) or, with { format: "rgba" }, as unrounded RGBA objects.
-// Defaults to five colors, preserving the original behavior for callers that don't pass a count.
 export function getChoroplethColors(
   color1: string, color2: string, count?: number, options?: { format?: "hex" }
 ): string[]

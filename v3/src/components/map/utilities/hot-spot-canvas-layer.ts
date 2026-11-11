@@ -10,7 +10,6 @@ interface ILeafletMapInternals {
   _getNewPixelOrigin(center: LatLng, zoom: number): Point
 }
 
-// Private methods can disappear in a Leaflet upgrade, so check for it rather than assume it
 function hasGetNewPixelOrigin(map: LeafletMap): map is LeafletMap & ILeafletMapInternals {
   return "_getNewPixelOrigin" in map && typeof map._getNewPixelOrigin === "function"
 }
@@ -38,8 +37,8 @@ export class HotSpotCanvasLayer extends Layer {
     this.canvas = DomUtil.create("canvas", "codap-hot-spot-canvas leaflet-zoom-animated")
     this.canvas.style.opacity = String(this.opacity)
     this.getPane()?.appendChild(this.canvas)
-    // Registered here rather than in getEvents, whose handler map is typed for plain LeafletEvents and would
-    // need a cast. map.on has a typed overload for zoomanim.
+    // zoomanim is registered here rather than in getEvents, whose handler map is typed for plain LeafletEvents
+    // and would need a cast. map.on has a typed overload for zoomanim.
     map.on("zoomanim", this.onAnimZoom, this)
     this.redraw()
     return this
@@ -75,6 +74,7 @@ export class HotSpotCanvasLayer extends Layer {
     const map: Maybe<LeafletMap> = this._map
     const { canvas } = this
     if (!map || !canvas) return this
+
     const size = map.getSize()
     const topLeft = size.multiplyBy(-kHotSpotPadding).round()
     const cols = Math.ceil(size.x * (1 + 2 * kHotSpotPadding) / kHotSpotCellSize)
