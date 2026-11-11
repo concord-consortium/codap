@@ -49,7 +49,8 @@ iframe-phone's two-second timeout for you; see
 **This reference replaces the
 [wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).**
 Every resource now has a complete, self-contained page in this folder, except `tourElements`,
-which is not yet documented anywhere. The wiki page is frozen as the **CODAP v2** reference;
+which is not yet documented anywhere, and `uiNotificationMonitor`, which has only an
+[interim guide](../plugin-ui-notifications.md). The wiki page is frozen as the **CODAP v2** reference;
 [Where the wiki page's sections went](wiki-section-map.md) maps each of its sections to the page
 that now covers it.
 
@@ -267,7 +268,7 @@ Two more things to know:
 - Defaulting does **not** apply to these, which are not scoped to a data context:
   `component`, `componentList`, `dataContextList`, `dataDisplay`, `document`, `formulaEngine`,
   `global`, `globalList`, `interactiveApi`, `interactiveFrame`, `logMessage`,
-  `logMessageMonitor`, `undoableActionPerformed`, `undoChangeNotice`. Note that
+  `logMessageMonitor`, `uiNotificationMonitor`, `undoableActionPerformed`, `undoChangeNotice`. Note that
   `undoableActionPerformed` is an *operation* of the `undoChangeNotice` resource rather than a
   resource of its own; it appears in CODAP's exemption list all the same. v2's list differed
   slightly: it also exempted `configuration` and `configurationList`, and did not have
@@ -281,7 +282,7 @@ Naming the data context explicitly avoids depending on which data context is you
 
 ## Resources
 
-All 38 resources CODAP v3 registers, alphabetically. `tourElements` is not yet documented.
+All 39 resources CODAP v3 registers, alphabetically. `tourElements` is not yet documented.
 
 | Resource | What it is for |
 |---|---|
