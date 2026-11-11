@@ -84,7 +84,7 @@ export function AboutDialog({ isOpen, initialView, returnFocusRef, onClose }: IP
       returnFocusOnClose={true}
     >
       {/* The row uses the same classes as other v3 modal headers so it gets the same styling. */}
-      <div className="chakra-modal__header codap-modal-header-v3">
+      <div className="chakra-modal__header codap-modal-header-v3" data-testid="codap-modal-header">
         {view === "libraries" &&
           <Button
             className="text-button"
@@ -186,25 +186,38 @@ function AboutView({ acknowledgementsButtonRef, librariesState, onShowLibraries 
       <p className="about-dialog-text">
         {translateToElements("V3.AboutDialog.license.p1", {
           freeOpenSource: <strong>{t("V3.AboutDialog.license.freeOpenSource")}</strong>,
-          mitLicense: <ExternalLink href={kMitLicenseUrl}>{t("V3.AboutDialog.license.mitLicense")}</ExternalLink>
+          mitLicense:
+            <ExternalLink href={kMitLicenseUrl} data-testid="about-dialog-license-mit">
+              {t("V3.AboutDialog.license.mitLicense")}
+            </ExternalLink>
         })}
       </p>
       <p className="about-dialog-text">
         {translateToElements("V3.AboutDialog.license.p2", {
           yourUse: <strong>{t("V3.AboutDialog.license.yourUse")}</strong>,
-          termsOfUse: <ExternalLink href={kTermsOfUseUrl}>{t("V3.AboutDialog.termsOfUse")}</ExternalLink>,
+          termsOfUse:
+            <ExternalLink href={kTermsOfUseUrl} data-testid="about-dialog-license-terms-of-use">
+              {t("V3.AboutDialog.termsOfUse")}
+            </ExternalLink>,
           licensingPage:
-            <ExternalLink href={kLicensingUrl}>{t("V3.AboutDialog.license.licensingPage")}</ExternalLink>,
-          licensingEmail: <a href={`mailto:${kLicensingEmail}`}>{kLicensingEmail}</a>
+            <ExternalLink href={kLicensingUrl} data-testid="about-dialog-license-licensing-page">
+              {t("V3.AboutDialog.license.licensingPage")}
+            </ExternalLink>,
+          licensingEmail:
+            <a href={`mailto:${kLicensingEmail}`} data-testid="about-dialog-license-email">{kLicensingEmail}</a>
         })}
       </p>
       <hr className="about-dialog-divider"/>
       <div className="about-dialog-links">
-        <ExternalLink href={kTermsOfUseUrl} showArrow={true}>{t("V3.AboutDialog.termsOfUse")}</ExternalLink>
-        <ExternalLink href={kLicensingUrl} showArrow={true}>
+        <ExternalLink href={kTermsOfUseUrl} showArrow={true} data-testid="about-dialog-links-terms-of-use">
+          {t("V3.AboutDialog.termsOfUse")}
+        </ExternalLink>
+        <ExternalLink href={kLicensingUrl} showArrow={true} data-testid="about-dialog-links-licensing">
           {t("V3.AboutDialog.links.licensingDetails")}
         </ExternalLink>
-        <ExternalLink href={kSourceCodeUrl} showArrow={true}>{t("V3.AboutDialog.links.sourceCode")}</ExternalLink>
+        <ExternalLink href={kSourceCodeUrl} showArrow={true} data-testid="about-dialog-links-source-code">
+          {t("V3.AboutDialog.links.sourceCode")}
+        </ExternalLink>
       </div>
       <Button ref={acknowledgementsButtonRef} variant="v3Clear" size="sm" width="100%" mt="3"
           justifyContent="space-between" onClick={onShowLibraries} data-testid="about-dialog-acknowledgements">
@@ -330,7 +343,8 @@ function LibrariesView({ librariesState }: ILibrariesViewProps) {
       <p className="about-dialog-libraries-footer">
         {translateToElements("V3.AboutDialog.libraries.footer", {
           noticesLink:
-            <ExternalLink href={getBuildAssetUrl(kThirdPartyNoticesFile)} showArrow={true}>
+            <ExternalLink href={getBuildAssetUrl(kThirdPartyNoticesFile)} showArrow={true}
+              data-testid="about-dialog-libraries-notices">
               {t("V3.AboutDialog.libraries.noticesLink")}
             </ExternalLink>
         })}
