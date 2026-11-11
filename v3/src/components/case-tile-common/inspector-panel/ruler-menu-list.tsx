@@ -127,7 +127,7 @@ export const RulerMenuList = observer(function RulerMenuList() {
         onComplete={copyDataToClipboard}
       />
       <CopiedCasesAlert
-        copiedCasesString={copiedCasesString}
+        message={t("DG.Inspector.caseTable.exportCaseDialog.copiedData", { vars: [copiedCasesString] })}
         isOpen={isCopiedAlertOpen}
         onClose={onCloseCopiedAlert}
       />

@@ -1368,6 +1368,8 @@
     "V3.clipboard.pasteDialog.prompt": "Reading from the clipboard failed. Paste your data here:",
     "V3.clipboard.pasteDialog.permissionDenied": "Your browser is blocking clipboard access. You may be able to allow it in site settings.",
     "V3.clipboard.pasteDialog.importButton": "Import",
+    "V3.clipboard.copyUnavailable": "Copying to the clipboard failed. You can use Export Case Data... instead.",
+    "V3.clipboard.emptyClipboard": "The clipboard doesn't contain any data to import.",
     "V3.app.documentDisplayError.title": "Display Error",
     "V3.app.documentDisplayError.suggestion": "Try reloading the page.",
     "V3.app.documentDisplayError.suggestionWithSave": "Try saving a copy of the document and reloading the page.",
