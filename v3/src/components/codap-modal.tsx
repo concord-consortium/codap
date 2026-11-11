@@ -9,6 +9,8 @@ interface IProps {
   "data-testid": string
   finalFocusRef?: React.RefObject<HTMLElement>
   initialRef?: any
+  isCentered?: boolean
+  isDraggable?: boolean
   isOpen: boolean
   returnFocusOnClose?: boolean
   onClick?: () => void
@@ -19,14 +21,15 @@ interface IProps {
 }
 
 export const CodapModal = forwardRef(({
-  children, "data-testid": dataTestId, finalFocusRef, initialRef, isOpen, returnFocusOnClose, closeOnOverlayClick,
-  onClick, onClose, onKeyDown, modalWidth, modalHeight
+  children, "data-testid": dataTestId, finalFocusRef, initialRef, isCentered, isDraggable = true, isOpen,
+  returnFocusOnClose, closeOnOverlayClick, onClick, onClose, onKeyDown, modalWidth, modalHeight
 }: IProps, ref: React.Ref<HTMLElement> | undefined) => {
 
   return (
     <Modal
       finalFocusRef={finalFocusRef}
       initialFocusRef={initialRef}
+      isCentered={isCentered}
       isOpen={isOpen}
       returnFocusOnClose={returnFocusOnClose}
       closeOnOverlayClick={closeOnOverlayClick}
@@ -34,17 +37,31 @@ export const CodapModal = forwardRef(({
       size="xs"
     >
       <ModalOverlay />
-      <DraggableModalContent
-        data-testid={dataTestId}
-        fRef={ref}
-        modalWidth={modalWidth}
-        modalHeight={modalHeight}
-        onClick={onClick}
-        onKeyDown={onKeyDown}
-        isOpen={isOpen}
-      >
-        {children}
-      </DraggableModalContent>
+      {isDraggable
+        ? <DraggableModalContent
+            data-testid={dataTestId}
+            fRef={ref}
+            modalWidth={modalWidth}
+            modalHeight={modalHeight}
+            onClick={onClick}
+            onKeyDown={onKeyDown}
+            isOpen={isOpen}
+          >
+            {children}
+          </DraggableModalContent>
+        : <ModalContent
+            data-testid={dataTestId}
+            ref={ref}
+            w={modalWidth}
+            // maxW overrides the width limit from size="xs".
+            maxW={modalWidth}
+            h={modalHeight}
+            onClick={onClick}
+            onKeyDownCapture={onKeyDown}
+          >
+            {children}
+          </ModalContent>
+      }
     </Modal>
   )
 })

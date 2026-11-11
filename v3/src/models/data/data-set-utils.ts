@@ -89,10 +89,9 @@ interface IMoveAttributeParameters {
   includeNotifications?: boolean
   sourceCollection?: ICollectionModel
   targetCollection: ICollectionModel
-  undoable?: boolean
 }
 export function moveAttribute({
-  afterAttrId, attrId, dataset, includeNotifications, sourceCollection, targetCollection, undoable
+  afterAttrId, attrId, dataset, includeNotifications, sourceCollection, targetCollection
 }: IMoveAttributeParameters) {
   const firstAttr: IAttribute | undefined = getCollectionAttrs(targetCollection, dataset)[0]
   const options: IMoveAttributeOptions =
@@ -102,8 +101,8 @@ export function moveAttribute({
   if (attrId === options.after || attrId === options.before) return
 
   const notifications = includeNotifications ? moveAttributeNotification(dataset) : undefined
-  const undoStringKey = undoable ? "DG.Undo.dataContext.moveAttribute" : undefined
-  const redoStringKey = undoable ? "DG.Redo.dataContext.moveAttribute" : undefined
+  const undoStringKey = "DG.Undo.dataContext.moveAttribute"
+  const redoStringKey = "DG.Redo.dataContext.moveAttribute"
   const logMessage = logMessageWithReplacement("Moved attribute %@ to %@ collection",
                         { attrId, collection: targetCollection.name ?? "new" })
   const modelChangeOptions = { notify: notifications, undoStringKey, redoStringKey, log: logMessage }
@@ -204,7 +203,8 @@ export function selectAndDeselectCases(
 // Set aside helper functions
 
 // For case ids, returns the grouped case. For item ids, returns the childmost grouped case containing that item.
-function getGroupedCases(data: IDataSet, caseOrItemIds: string[]) {
+export function getGroupedCases(data: IDataSet, caseOrItemIds: string[]) {
+  data.validateCases()
   return caseOrItemIds.map(caseId => data.caseInfoMap.get(caseId) ?? data.itemIdChildCaseMap.get(caseId))
     .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
 }

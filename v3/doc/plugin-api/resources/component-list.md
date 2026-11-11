@@ -99,11 +99,6 @@ in [the notification catalog](../notifications.md#component-changes--component).
 
 ## Errors
 
-<!-- BEGIN GENERATED: errors -->
-| Error |
-|---|
-<!-- END GENERATED: errors -->
-
 This resource reports no errors of its own. A `get` on an empty document returns an empty array.
 
 ## See also

@@ -6,7 +6,9 @@
 A component is a tile in the CODAP workspace — a graph, a case table, a map, a slider, a web
 view. Plugins use this resource to put components on screen, move and resize them, read how a
 user has configured one, and close them again. Closing is not always deletion — see
-[Known limitations](#known-limitations).
+[Known limitations](#known-limitations). Creating most components and closing one go on CODAP's
+undo history, as they do from CODAP's interface; see
+[Undo and redo](../guides/undo-and-redo.md#what-the-history-holds).
 
 Every component shares a common set of properties. Each **component type** adds its own on top,
 and those type-specific properties are where most of the detail lives.
@@ -97,15 +99,20 @@ v3.
 `type` is required when creating. On `create`, `title` falls back to `name` when only `name` is
 given.
 
-Three of these behave differently from the table:
+Two of these behave differently from the table:
 
 - **`isVisible` is never returned by `get`**, and `create` ignores it — a component created with
   `isVisible: false` is visible. Only `update` honors it. To read whether a component is on
   screen, use [`componentList`](component-list.md), whose `hidden` is the inverse.
 - **`position` accepts a string or an object on `create`, but only an object on `update`.** A
   string position sent to `update` is dropped silently.
-- **`title: ""` does not clear a title on `update`.** An empty string is treated as "no value
-  given" and the existing title is kept.
+
+`title: ""` on `update` clears the title. The component then shows its `name` if it has one, and
+otherwise its default title, and `get` returns no `title`. A case table or case card shows its data
+context's title whatever its own title is, so for those the change has no visible effect.
+
+A number given as `title` is used as text, as in v2, so `title: 0` sets the title `0`.
+`cannotClose` may be any value; CODAP stores whether it is truthy, as v2 read it.
 
 `update` additionally accepts `currentGameName` as an alias for `name`, for v2 compatibility.
 Neither it nor `currentGameUrl` is ever returned by `get`, and `currentGameUrl` works on `update`
@@ -441,6 +448,45 @@ Read a graph back, to see how the user has reconfigured it:
 }
 ```
 
+```json
+{
+  "success": true,
+  "values": {
+    "dimensions": { "width": 400, "height": 300 },
+    "id": 12,
+    "name": "Height by Weight",
+    "position": { "left": 100, "top": 100 },
+    "title": "Height by Weight",
+    "type": "graph",
+    "backgroundColor": "#ffffff",
+    "dataContext": "Mammals",
+    "enableNumberToggle": false,
+    "filterFormula": "",
+    "hiddenCases": [],
+    "plotType": "scatterPlot",
+    "pointColor": "#e6805b",
+    "pointSize": 1,
+    "primaryAxis": "x",
+    "showConnectingLines": false,
+    "strokeColor": "#ffffff",
+    "strokeSameAsFill": false,
+    "transparent": false,
+    "xAttributeID": 34,
+    "xAttributeName": "Weight",
+    "xAttributeType": "numeric",
+    "xLowerBound": -10,
+    "xUpperBound": 210,
+    "yAttributeID": 33,
+    "yAttributeIDs": [ 33 ],
+    "yAttributeName": "Height",
+    "yAttributeNames": [ "Height" ],
+    "yLowerBound": -0.1,
+    "yUpperBound": 1.3,
+    "pointsAreFusedIntoBars": false
+  }
+}
+```
+
 Move and resize a component:
 
 ```json
@@ -504,9 +550,6 @@ v3 registers only `imageComponentView` and returns `Unsupported component type <
 `image`. A v2 plugin carrying that spelling breaks. This is a known bug — unlike `guide`, this
 spelling really worked in v2.
 
-**`update` with `title: ""` does not clear a title.** An empty string is read as "no value given".
-v2 wrote it. This is a known bug.
-
 **`create` does not always create.** Three types reuse a component that already exists:
 
 - **`caseTable` and `caseCard`.** If one of that type already exists for the data context, CODAP
@@ -556,26 +599,6 @@ notification for a change it made itself. And an `update` to the plugin's **own*
 notifies nobody at all, not just the sender.
 
 ## Errors
-
-<!-- BEGIN GENERATED: errors -->
-| Error |
-|---|
-| `Component not found` |
-| `A values object is required for this request.` |
-| `Unsupported component type <value>` |
-| `Unsupported component type` |
-| `Could not create component` |
-| `Component does not support rescale` |
-| `<action> <type>: dataContext required` |
-| `DataSetMetadata not found for <value>` |
-| `Cannot assign <value1> to <value2>` |
-| `Current plot type does not support fusing points into bars` |
-| `Invalid bar chart scale: <value>` |
-| `Global not found: <value>` |
-| `Cannot create multiple sliders for <value>` |
-| `Unsupported scaleType <value>`, `Unsupported dateUnit <value>` |
-| `Unsupported animationDirection <value>`, `Unsupported animationMode <value>` |
-<!-- END GENERATED: errors -->
 
 | Error | Condition |
 |---|---|

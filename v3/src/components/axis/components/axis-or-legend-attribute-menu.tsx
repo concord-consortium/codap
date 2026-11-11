@@ -21,6 +21,7 @@ import { t } from "../../../utilities/translation/translate"
 import { If } from "../../common/if"
 import { GraphPlace } from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
+import { removeAttributeLabel } from "../../data-display/remove-attribute-label"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 import { placeTestId as axisPlaceTestId, isAxisPlace } from "../axis-types"
 
@@ -138,15 +139,6 @@ const CollectionMenu = observer(function CollectionMenu({
   )
 })
 
-const removeAttrItemLabelKeys: Record<string, string> = {
-  "x": "DG.DataDisplayMenu.removeAttribute_x",
-  "y": "DG.DataDisplayMenu.removeAttribute_y",
-  "rightNumeric": "DG.DataDisplayMenu.removeAttribute_y2",
-  "legend": "DG.DataDisplayMenu.removeAttribute_legend",
-  "topSplit": "DG.DataDisplayMenu.removeAttribute_top",
-  "rightSplit": "DG.DataDisplayMenu.removeAttribute_right"
-}
-
 // The full menu
 interface IProps {
   place: GraphPlace,
@@ -194,7 +186,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const instanceId = useInstanceIdContext()
   const attribute = attrId ? dataSet?.attrFromID(attrId) : null
   const nativeType = attribute?.type || ''
-  const removeAttrItemLabel = t(removeAttrItemLabelKeys[role], {vars: [attribute?.name]})
+  const removeAttrItemLabel = removeAttributeLabel(role, attribute?.name)
   const attrType = dataConfiguration?.attributeType(role) || ''
   const treatAs = (nativeType === 'date' && attrType === 'categorical') ? 'date'
     : ['numeric', 'date'].includes(attrType) ? "categorical" : "numeric"

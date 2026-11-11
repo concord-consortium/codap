@@ -24,7 +24,6 @@ import { isSliderModel } from "./slider-model"
 import { changeSliderValueNotification } from "./slider-notifications"
 import { CodapSliderThumb } from "./slider-thumb"
 import { kSliderClass } from "./slider-types"
-import { valueChangeNotification } from "./slider-utils"
 
 import "./slider.scss"
 
@@ -70,7 +69,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     if (!sliderModel) return
     sliderModel.applyModelChange(
       () => sliderModel.setDynamicValue(values[0]),
-      { noDirty: true, notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+      // the global value's observer sends `global[<name>]`
+      { noDirty: true }
     )
   }, [sliderModel])
 
@@ -80,9 +80,9 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       () => sliderModel.setValue(values[0]),
       {
         // V2 emits `change slider value` on mouseUp after drag (slider_view.js:330).
-        // Mirror that here. The during-drag handleChange above continues to fire the
-        // `global[<name>]` notification per tick, which V2 also does via the model
-        // observer; the component-resource notification fires only on drag completion.
+        // Mirror that here. The global value's observer (global-value-notifications.ts) sends
+        // `global[<name>]` on each change during the drag, as V2's model observer does; the
+        // component-resource notification fires only on drag completion.
         notify: () => changeSliderValueNotification(tile, values[0]),
         undoStringKey: "DG.Undo.slider.change",
         redoStringKey: "DG.Redo.slider.change",

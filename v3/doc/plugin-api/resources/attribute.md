@@ -46,8 +46,8 @@ wrote them, then again after canonicalization — so a name containing spaces or
 usually resolves even when the stored name differs in those characters.
 
 <!-- BEGIN GENERATED: scope -->
-This resource is scoped to a data context. Omitting one selects `#default`, the first data
-context in the document — see [the index](../README.md#the-default-data-context).
+This resource is scoped to a data context. Omitting one selects `#default`, your plugin's
+own data context — see [the index](../README.md#the-default-data-context).
 <!-- END GENERATED: scope -->
 
 ## Values
@@ -64,29 +64,6 @@ deleted or renamed, while `update` also accepts the negated spellings. See
 reach a plugin by structured clone rather than JSON, so a key with no value survives the trip.
 `formula`, `deletedFormula`, `description`, `unit`, `type` and `precision` are all commonly
 `undefined`.
-
-<!-- BEGIN GENERATED: values -->
-| Property |
-|---|
-| `name` |
-| `type` |
-| `title` |
-| `cid` |
-| `description` |
-| `editable` |
-| `hidden` |
-| `renameable` |
-| `deleteable` |
-| `formula` |
-| `deletedFormula` |
-| `guid` |
-| `id` |
-| `precision` |
-| `unit` |
-| `defaultMin`, `defaultMax` |
-| `_categoryMap` |
-| `v3.categoryShapes` |
-<!-- END GENERATED: values -->
 
 | Property | Always present | Notes |
 |---|---|---|
@@ -106,7 +83,7 @@ reach a plugin by structured clone rather than JSON, so a key with no value surv
 | `precision` | yes | |
 | `unit` | yes | |
 | `defaultMin`, `defaultMax` | no | only when a default range is set |
-| `_categoryMap` | no | only when the attribute has a category set |
+| `_categoryMap` | in v3, yes | v3 returns it for every attribute, with `__order` listing the attribute's categories. v2 returned it only once something in CODAP had used the attribute's categories, such as a graph legend, so do not depend on it being there |
 | `v3.categoryShapes` | no | only when some category carries a point shape |
 
 ### What `create` and `update` accept
@@ -174,10 +151,34 @@ the read shape above, even when you created or updated exactly one.
 **`type` is accepted differently by the two actions.** `create` understands the v2 spellings —
 `"nominal"` for categorical, `"number"` for numeric, `"none"` — and passes anything else through
 unchecked. `update` accepts only v3 type names and silently ignores the v2 spellings and `null`,
-so a type set on `create` cannot be cleared back to inferred by `update`.
+so a type set on `create` cannot be cleared back to inferred by `update`. What each type means,
+and how CODAP infers one when none is set, is in [Data types](../guides/data-types.md).
 
 **Date precisions are dropped on write.** `get` can return a precision such as `"month"`, but
 neither `create` nor `update` applies one.
+
+### Formulas in requests
+
+`formula` is a string holding a CODAP formula, written just as the user would type it in the
+formula editor. Inside that string:
+
+- Refer to an attribute by its bare name, whichever collection it is in: `mean(LifeSpan)`, not
+  `Diets.LifeSpan` and not `'LifeSpan'`. A name that contains anything other than letters, digits
+  and underscores, or starts with a digit, goes in backticks: ``mean(`Life Span`)``.
+- Put text values in quotes. Single quotes are easiest inside JSON: `Diet = 'meat'`, or with
+  escaped double quotes, `Diet = \"meat\"`. Numbers are not quoted: `LifeSpan > 30`, not
+  `LifeSpan > '30'`.
+
+```json
+{
+  "action": "create",
+  "resource": "dataContext[Mammals].collection[Diets].attribute",
+  "values": [
+    { "name": "MeanLifeSpan", "formula": "mean(LifeSpan)" },
+    { "name": "IsMeat", "formula": "Diet = 'meat'" }
+  ]
+}
+```
 
 ## Examples
 
@@ -187,6 +188,35 @@ Read one attribute, letting CODAP find it by name across collections:
 {
   "action": "get",
   "resource": "dataContext[Mammals].attribute[Height]"
+}
+```
+
+```json
+{
+  "success": true,
+  "values": {
+    "name": "Height",
+    "type": "numeric",
+    "title": "Height",
+    "cid": "ATTR33",
+    "_categoryMap": {
+      "0.08": "#ff6800",
+      "0.5": "#803e75",
+      "0.8": "#a6bdd7",
+      "1.2": "#ffb300",
+      "__order": [ "0.08", "0.5", "0.8", "1.2" ],
+      "attribute-color": "#803e75",
+      "low-attribute-color": "#eee7ed",
+      "high-attribute-color": "#803e75"
+    },
+    "editable": true,
+    "hidden": false,
+    "renameable": true,
+    "deleteable": true,
+    "guid": 33,
+    "id": 33,
+    "precision": 2
+  }
 }
 ```
 
@@ -225,27 +255,12 @@ Start a drag from inside a plugin, so the user can drop an attribute onto a grap
 
 ## Known limitations
 
-**`delete` sends no notification.** Other plugins are not told that the attribute is gone. v2
-sent `deleteAttributes`, or `deleteCollection` when the attribute was the last in its collection.
-This is a known bug; the intended behavior is v2's.
-
-**The requesting plugin hears its own change.** `create` and `update` send their notifications to
-the plugin that made the change as well as to the others. The intended behavior is that the
-requesting plugin is skipped. This is a known bug; see
-[the catalog's known limitations](../notifications.md#known-limitations).
-
 **The protection properties come in two spellings that mean opposite things.** `get` reports
 `deleteable`, `renameable` and `editable` — whether the attribute *can* be deleted, renamed or
 edited. `update` accepts those, and also `deleteProtected` and `renameProtected`, which are their
 negations. Setting `deleteProtected: true` is the same as setting `deleteable: false`, and a
 following `get` returns `deleteable: false`. There is no `deleteProtected` or `renameProtected` in
 a `get` response.
-
-**`editable` currently does the opposite of what it says.** Sending `editable: true` should leave
-the attribute editable, and today it makes the attribute read-only; a following `get` returns
-`editable: false`. This is a known bug — the value is not negated on the way in, unlike the two
-properties handled beside it. Write what you mean; the behavior will be corrected, and a plugin
-written against the inverted behavior will break when it is.
 
 **`create` does not apply the protection properties to a new attribute.** `deleteable`,
 `renameable`, `deleteProtected` and `renameProtected` are honored by `update` and dropped by
@@ -275,9 +290,9 @@ the plugin's own iframe, so a request that arrives without one falls through to
 
 `create`, `update` and `delete` notify the other plugins listening to the data context, with
 `createAttributes`, `updateAttributes` and `deleteAttributes` on
-`dataContextChangeNotice[<context>]`. Moving an attribute is done through
-`attributeLocation`, which sends `moveAttribute`. Two current deviations are listed under
-[Known limitations](#known-limitations). See
+`dataContextChangeNotice[<context>]`. When `delete` removes the last attribute of a collection,
+`deleteCollection` comes first, as in CODAP's interface; v2 sent `deleteCollection` alone. Moving
+an attribute is done through `attributeLocation`, which sends `moveAttribute`. See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext) for
 what each carries.
 
@@ -294,17 +309,6 @@ something. It requires a `request` naming the operation:
 Any other `request` value returns an error.
 
 ## Errors
-
-<!-- BEGIN GENERATED: errors -->
-| Error |
-|---|
-| `DataContext not found` |
-| `Collection not found` |
-| `Attribute not found` |
-| `<action> <resource>: <field> required` |
-| `Internal error prevented color map access` |
-| `unknown request: <value>` |
-<!-- END GENERATED: errors -->
 
 | Error | Condition |
 |---|---|

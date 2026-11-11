@@ -76,7 +76,8 @@ reports a resource only if it is undocumented *and* absent from the baseline, so
 meaningful while resources still lack pages instead of permanently red.
 
 When a page lands, delete its line. The check reports stale entries, so the file cannot quietly
-rot.
+rot. Also give the resource a row in the index's resource table and a line in `llms.txt`; the
+lint fails until `llms.txt` lists the page.
 
 ## What the extractor deliberately does not know
 

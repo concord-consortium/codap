@@ -17,6 +17,10 @@ export const GraphLegendElements = {
   getNumericLegendCategories() {
     return this.getLegend().find("[data-testid=legend-categories]>svg rect")
   },
+  // The min and max labels at the two ends of a numeric legend
+  getNumericLegendEndLabels() {
+    return this.getLegend().find(".legend-axis-label text")
+  },
   getLegendAttributeMenu() {
     return this.getGraphTile().find("[data-testid=attribute-label-menu-legend]")
   },

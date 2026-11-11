@@ -37,6 +37,63 @@ Then ask the user what they want to do, or proceed with the task if it was alrea
 | `example-documents/` | CODAP example documents | `public-read` | default |
 | `plugins/` | Built CODAP plugins (folders) | `public-read` | default |
 
+## Notifications (banners)
+
+`notifications/` holds banner content that CODAP loads at runtime. It lives on S3 rather
+than in the app so that it can be changed without a release.
+
+| File | Loaded by |
+|---|---|
+| `v3-announcement-banner.json` | CODAP V3, via its own `AnnouncementBanner` component (`v3/src/components/announcement-banner/`) |
+| `announcing-v3-banner.json` | CODAP V2, via the CFM banner mechanism |
+
+Other files in the folder are backups or parked content. `s3://codap-resources/notifications/README.md`
+lists them and documents the JSON schema.
+
+V3 fetches its banner from `https://codap-resources.concord.org/notifications/...` directly,
+not through the relative `/codap-resources` path that other V3 assets use, so the
+app-distribution caveats under [CloudFront Invalidation](#cloudfront-invalidation) don't
+apply. With the no-cache upload, no invalidation is needed.
+
+**What the V3 banner supports** (`announcement-banner-utils.ts`):
+- `message` and `id` are required; `buttonText`, `buttonUrl`, `buttonTarget`, `enabled`,
+  `startDate` and `endDate` are optional. The dates are epoch milliseconds.
+- The message supports `[label](https://...)` links only. Other Markdown, such as `**bold**`,
+  shows up literally, and non-`https` links show as plain text.
+- The button appears only if `buttonUrl` is `https://`. "Don't show again" and the close
+  button are always there.
+- The styling fields in the README (`backgroundColor`, padding and so on) are read only by
+  V2/CFM. V3 ignores them.
+- A field with the wrong type, such as `"enabled": "false"`, makes V3 drop the whole banner.
+
+**Replacing the V3 banner:**
+1. Give the new content a **new `id`**. "Don't show again" is remembered per `id` in
+   localStorage (`announcement-banner-dismissed-<id>`), so reusing an `id` hides the new
+   banner from everyone who dismissed the old one.
+2. Back up the live file first, under a name that identifies the old banner:
+
+   ```bash
+   aws s3 cp s3://codap-resources/notifications/v3-announcement-banner.json \
+     s3://codap-resources/notifications/<old-banner-name>.json \
+     --acl public-read --cache-control "no-cache, no-store, must-revalidate" \
+     --metadata-directive REPLACE --content-type application/json
+   ```
+
+   Restoring it is then a single copy.
+3. Upload with the no-cache command under [Copy a single file](#copy-a-single-file), adding
+   `--content-type application/json`.
+4. Verify with `curl -s -D -` on the live URL: check for `Cache-Control: no-cache, no-store, must-revalidate`,
+   and that the body has the new `id`.
+5. Add a row to the banner history table in the bucket README:
+
+   ```bash
+   aws s3 cp s3://codap-resources/notifications/README.md ./README.md
+   # add the new banner's row to "Banner history (V3)"
+   aws s3 cp ./README.md s3://codap-resources/notifications/README.md \
+     --acl public-read --cache-control "no-cache, no-store, must-revalidate" \
+     --content-type "text/markdown; charset=utf-8"
+   ```
+
 ## Common Commands
 
 ### Copy a single file
@@ -372,6 +429,6 @@ Read `~/.codap-build.rc` to get `CODAP_SERVER` (defaults to `codap-server.concor
 ## Related Repositories
 
 Assets are typically built from sibling repos in the `codap-build` directory:
-- `cloud-file-manager` - banner configs, file storage integration
+- `cloud-file-manager` - banner configs (V2 banners), file storage integration
 - `codap-data-interactives` - plugin builds
 - `codap-data` - example documents and boundary files

@@ -45,8 +45,8 @@ write applies to the whole data context. v2 narrowed writes to the named collect
 known bug — see [Known limitations](#known-limitations).
 
 <!-- BEGIN GENERATED: scope -->
-This resource is scoped to a data context. Omitting one selects `#default`, the first data
-context in the document — see [the index](../README.md#the-default-data-context).
+This resource is scoped to a data context. Omitting one selects `#default`, your plugin's
+own data context — see [the index](../README.md#the-default-data-context).
 <!-- END GENERATED: scope -->
 
 ## Values
@@ -54,14 +54,6 @@ context in the document — see [the index](../README.md#the-default-data-contex
 ### What `get` returns
 
 An array, one entry per selected case:
-
-<!-- BEGIN GENERATED: values -->
-| Property |
-|---|
-| `caseID` |
-| `collectionID` |
-| `collectionName` |
-<!-- END GENERATED: values -->
 
 | Property | Notes |
 |---|---|
@@ -91,6 +83,25 @@ The second is a **selection expression**, which selects by formula instead of by
 `collection` defaults to the childmost collection of the data context.
 
 ## Examples
+
+Read the selection. Each selected case is listed with its collection:
+
+```json
+{
+  "action": "get",
+  "resource": "dataContext[Mammals].selectionList"
+}
+```
+
+```json
+{
+  "success": true,
+  "values": [
+    { "caseID": 12, "collectionID": 4, "collectionName": "Cases" },
+    { "caseID": 15, "collectionID": 4, "collectionName": "Cases" }
+  ]
+}
+```
 
 **Selecting a parent case selects its whole group.** A case id that names a parent expands to
 every item beneath it, so selecting three parent cases can select many more cases than three.
@@ -164,21 +175,12 @@ IDs.` — no part of the selection is applied.
 
 Changing the selection causes CODAP to notify plugins that are listening to the data context,
 with the `selectCases` operation on `dataContextChangeNotice[<context>]`. The plugin that changed
-the selection is not meant to receive it, but today it does; see
-[Receiving them](../notifications.md#receiving-them).
+the selection does not receive it; see [Receiving them](../notifications.md#receiving-them).
 
 Selecting a parent case notifies for its whole group. See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext).
 
 ## Errors
-
-<!-- BEGIN GENERATED: errors -->
-| Error |
-|---|
-| `DataContext not found` |
-| `<value1> selectionList requires a list of case IDs.` |
-| `Collection not found` |
-<!-- END GENERATED: errors -->
 
 | Error | Condition |
 |---|---|

@@ -142,6 +142,27 @@ describe("math-utils", () => {
       expect(extractNumeric("aa123bbb")).toBe(123)
       expect(extractNumeric("123aa456")).toBe(123456)
     })
+
+    it("should treat an unambiguous comma as a decimal separator", () => {
+      expect(extractNumeric("38,7223")).toBe(38.7223)
+      expect(extractNumeric("-9,1393")).toBe(-9.1393)
+      expect(extractNumeric("-86,95444")).toBe(-86.95444)
+      expect(extractNumeric("34,45")).toBe(34.45)
+      expect(extractNumeric("0,5")).toBe(0.5)
+      expect(extractNumeric(" 38,7223 ")).toBe(38.7223)
+      expect(extractNumeric("1.234,56")).toBe(1234.56)
+      expect(extractNumeric("-1.234.567,8")).toBe(-1234567.8)
+    })
+
+    it("should treat other commas as thousands separators", () => {
+      expect(extractNumeric("1,234")).toBe(1234)
+      expect(extractNumeric("12,345")).toBe(12345)
+      expect(extractNumeric("1,234,567")).toBe(1234567)
+      expect(extractNumeric("1,234.56")).toBe(1234.56)
+      expect(extractNumeric("$1,234.56")).toBe(1234.56)
+      // a leading 0 isn't a thousands group, so the comma isn't treated as a decimal separator
+      expect(extractNumeric("0.123,4")).toBe(0.1234)
+    })
   })
 
   describe("chooseDecimalPlaces", () => {

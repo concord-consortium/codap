@@ -29,7 +29,7 @@ Both modes hide UI chrome (menu bar, tool shelf, etc.), but they differ in how t
 Enables minimal chrome mode for simple embedding scenarios where parent-child communication is not needed.
 
 ```
-https://codap.concord.org/releases/latest/?componentMode=yes
+https://codap.concord.org/app/?componentMode=yes
 ```
 
 ### `embeddedMode`
@@ -43,7 +43,7 @@ https://codap.concord.org/releases/latest/?componentMode=yes
 Enables full embedded mode for running CODAP inside another application (e.g., SageModeler). Hides UI chrome like component mode, but **keeps components fully interactive** (moveable, resizable, etc.). Also enables iframe-phone communication with the parent window and transparent background styling.
 
 ```
-https://codap.concord.org/releases/latest/?embeddedMode=yes
+https://codap.concord.org/app/?embeddedMode=yes
 ```
 
 ### `embeddedServer`
@@ -59,7 +59,7 @@ Enables iframe-phone communication with the parent window **without** hiding UI 
 **Note:** When `embeddedMode=yes`, the `embeddedServer` parameter is ignored because embedded mode automatically enables the server.
 
 ```
-https://codap.concord.org/releases/latest/?embeddedServer=yes
+https://codap.concord.org/app/?embeddedServer=yes
 ```
 
 ### Related Parameters
@@ -112,8 +112,10 @@ When `embeddedMode=yes`:
 | Transparent background | The background is transparent, allowing parent page content to show through |
 | Text selectable | Text selection is enabled in the background area |
 | iframe-phone enabled | Communication with parent window via iframe-phone is initialized |
-| `codap-present` message | CODAP sends a `codap-present` message to the parent when ready |
-| Notification broadcasts | CODAP broadcasts data change notifications to the parent |
+| `codap-present` message | CODAP sends a `codap-present` message to the parent once the channel is open, before any document loads |
+| Notification broadcasts | CODAP broadcasts data change notifications to the parent after its first request |
+
+The last three behaviors also occur with `embeddedServer=yes` alone.
 
 ### Comparison Table
 
@@ -128,40 +130,45 @@ When `embeddedMode=yes`:
 | **Close/minimize** | ✓ | ✗ | **✓** |
 | Undo/redo in title bar | ✗ | ✓ | ✓ |
 | Transparent background | ✗ | ✗ | ✓ |
-| iframe-phone server | ✗ | ✗ | ✓ |
+| iframe-phone server | ✗ (✓ with `embeddedServer=yes`) | ✗ | ✓ |
 
 ## iframe-phone Communication
 
 When running in embedded mode (or with `embeddedServer=yes`), CODAP establishes an iframe-phone RPC endpoint for communication with the parent window.
 
-**Note:** V3 currently only supports iframe-based communication where CODAP runs in an iframe and communicates with the parent window. V2 also supported same-context communication via a local `IFramePhoneEmulator`, which allowed JavaScript running in the same context as CODAP to use the Data Interactive API without iframes. This feature has not yet been ported to V3.
+**Note:** V3 currently only supports iframe-based communication where CODAP runs in an iframe and communicates with the parent window. V2 also supported same-context communication via a local `IFramePhoneEmulator`, which allowed JavaScript running in the same context as CODAP to use the Data Interactive API without iframes. V3 does not support it.
 
 ### Setup
 
 The parent page should set up an iframe-phone endpoint:
 
 ```html
-<iframe id="codap" src="https://codap.concord.org/releases/latest/?embeddedMode=yes"></iframe>
-<script src="https://unpkg.com/iframe-phone@1.3.1/dist/iframe-phone.js"></script>
+<iframe id="codap" src="https://codap.concord.org/app/?embeddedMode=yes"></iframe>
+<script src="https://unpkg.com/iframe-phone@1.4.0/dist/iframe-phone.js"></script>
 <script>
   const codapFrame = document.getElementById('codap');
+  // iframe-phone drops every message whose origin doesn't match this exactly,
+  // so pass the origin, not the full URL.
+  const codapOrigin = new URL(codapFrame.src).origin;
   const phone = new iframePhone.IframePhoneRpcEndpoint(
     function(command, callback) {
-      // Handle notifications from CODAP
-      console.log('Received from CODAP:', command);
+      if (command.message === 'codap-present') {
+        // CODAP sends this once it is listening; its document may not have loaded yet
+        console.log('CODAP is ready');
+      } else {
+        // Handle notifications from CODAP
+        console.log('Received from CODAP:', command);
+      }
       callback({ success: true });
     },
     'data-interactive',
-    codapFrame.contentWindow,
-    codapFrame.src
+    codapFrame,
+    codapOrigin
   );
-
-  // Wait for CODAP to be ready
-  phone.call({ message: 'codap-present' }, function(reply) {
-    console.log('CODAP is ready');
-  });
 </script>
 ```
+
+CODAP sends `codap-present` to the parent; the parent does not send it. See [Embedding CODAP in your page](plugin-api/guides/embedded-server.md#connecting) for what it does and does not tell you.
 
 ### Sending Commands
 
@@ -221,22 +228,22 @@ When `isPhoneInUse` is true (after the parent has sent at least one command), CO
 
 ### Simple embedding with minimal chrome
 ```
-https://codap.concord.org/releases/latest/?componentMode=yes
+https://codap.concord.org/app/?componentMode=yes
 ```
 
 ### Full embedded mode with a plugin
 ```
-https://codap.concord.org/releases/latest/?embeddedMode=yes&di=https://example.com/plugin.html
+https://codap.concord.org/app/?embeddedMode=yes&di=https://example.com/plugin.html
 ```
 
 ### Embedded mode with hidden undo/redo
 ```
-https://codap.concord.org/releases/latest/?embeddedMode=yes&hideUndoRedoInComponent=yes
+https://codap.concord.org/app/?embeddedMode=yes&hideUndoRedoInComponent=yes
 ```
 
 ### Server mode only (full UI with parent communication)
 ```
-https://codap.concord.org/releases/latest/?embeddedServer=yes
+https://codap.concord.org/app/?embeddedServer=yes
 ```
 
 ## Implementation Details
@@ -290,7 +297,7 @@ The status section shows two indicators:
 
 | Indicator | Description |
 |-----------|-------------|
-| **codap-present** | Turns green when CODAP sends the `codap-present` message indicating it's ready |
+| **codap-present** | Turns green when CODAP sends the `codap-present` message indicating the channel is open |
 | **Phone in use** | Turns green after you send a command, indicating the communication channel is active |
 
 Wait for the "codap-present" indicator to turn green before sending commands.

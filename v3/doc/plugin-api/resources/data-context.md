@@ -7,8 +7,8 @@ A data context is one data set: its collections, its attributes, its cases, and 
 that describes where the data came from. Most plugins that bring data into CODAP start by
 creating one, and most plugins that read a document start by listing them.
 
-This page covers the data context as a whole. Its attributes have their own page; its
-collections, cases and items do not yet.
+This page covers the data context as a whole. Its [collections](collection.md),
+[attributes](attribute.md), [cases](case.md) and [items](item.md) have pages of their own.
 
 ## Supported actions
 
@@ -33,11 +33,12 @@ collections, cases and items do not yet.
 | `dataContext` | create |
 <!-- END GENERATED: selectors -->
 
-`<context>` accepts a data context's name, its title, or its numeric id.
+`<context>` accepts a data context's name, its title, or its numeric id. Accepting a title is new
+in v3; v2 accepted a name or id only.
 
 <!-- BEGIN GENERATED: scope -->
-This resource is scoped to a data context. Omitting one selects `#default`, the first data
-context in the document — see [the index](../README.md#the-default-data-context).
+This resource is scoped to a data context. Omitting one selects `#default`, your plugin's
+own data context — see [the index](../README.md#the-default-data-context).
 <!-- END GENERATED: scope -->
 
 Creating is the exception to the defaulting rule: there is nothing to default to before the
@@ -51,24 +52,6 @@ data context exists, so `create` takes the bare `dataContext` selector.
 attributes. It does **not** return cases: the conversion runs with case export switched off, so
 there is no `cases` key in the response regardless of how much data the set holds. Read cases
 through `allCases`, `caseSearch` or the `item` resources instead.
-
-<!-- BEGIN GENERATED: values -->
-| Property |
-|---|
-| `type` |
-| `document` |
-| `guid` |
-| `id` |
-| `name` |
-| `title` |
-| `collections` |
-| `flexibleGroupingChangeFlag` |
-| `preventReorg` |
-| `setAsideItems` |
-| `contextStorage` |
-| `metadata` |
-| `v3.filterFormula` |
-<!-- END GENERATED: values -->
 
 | Property | Always present | Notes |
 |---|---|---|
@@ -89,16 +72,6 @@ through `allCases`, `caseSearch` or the `item` resources instead.
 ### What `create` accepts
 
 `create` reads only these five properties. Anything else you send is ignored.
-
-<!-- BEGIN GENERATED: values-write -->
-| Property |
-|---|
-| `name` |
-| `title` |
-| `description` |
-| `metadata` |
-| `collections` |
-<!-- END GENERATED: values-write -->
 
 | Property | Type | | Notes |
 |---|---|---|---|
@@ -188,6 +161,10 @@ Set two cases aside, then restore everything that is set aside:
 
 ## Known limitations
 
+**`title` is `undefined` when the data context has no title of its own.** v2 reported the title
+CODAP shows for it instead: its collections' names joined with `/`, or failing that its name.
+This is a known bug.
+
 **`create` on an existing name returns the existing data context.** This is deliberate and
 matches v2. CODAP replies `success: true` with that data set's `name`, `id` and `title`, having
 created nothing, and the response is indistinguishable from a real creation — so a plugin that
@@ -245,16 +222,6 @@ Changes to the data itself — cases, attributes, collections — arrive on
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext).
 
 ## Errors
-
-<!-- BEGIN GENERATED: errors -->
-| Error |
-|---|
-| `DataContext not found` |
-| `Attribute not found` |
-| `<action> <resource>: <field> required` |
-| `unknown request: <value>` |
-| `An error occurred while processing the request.` |
-<!-- END GENERATED: errors -->
 
 | Error | Condition |
 |---|---|

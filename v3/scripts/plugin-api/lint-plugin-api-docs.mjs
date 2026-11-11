@@ -7,7 +7,8 @@
 //
 // Checks:
 //   json          every ```json block parses
-//   links         every relative link resolves
+//   responses     on a resource page, every `get` example is followed by its response
+//   links         every relative link resolves, and so does its #anchor
 //   tables        every markdown table row has its header's column count
 //   markers       BEGIN/END GENERATED markers pair up, and names are unique within a page
 //   scope-drift   pages report no more scope variants than there are scope cases
@@ -15,9 +16,10 @@
 //   citations     no source file:line citations (external pages; conventions.md is exempt)
 //   issue-ids     no internal issue-tracker ids
 //   placeholders  no CODAP-internal %@ i18n notation
-//   notifications every operation CODAP sends has a hand-written row in its family's section
-//   notification sections  each component operation's row sits under the area that raises it
-//   sections      each resource page has the required sections and a provenance header
+//   notifications every operation listed in the catalog has a "Fires when" description
+//   sections      each resource page has the required sections
+//   provenance    every page but conventions.md starts with a title and a provenance header
+//   llms          llms.txt links only pages that exist, and lists every resource and guide page
 //   coverage      which resources in the code have no page (reported; --strict to fail)
 //
 // Undocumented resources are expected while resources still lack pages, so coverage is
@@ -53,6 +55,25 @@ function allMarkdown(dir, out = []) {
 }
 
 const files = allMarkdown(docsDir).sort()
+
+// The anchors GitHub generates for a page's headings: lowercased, punctuation other than hyphens
+// dropped, spaces turned into hyphens, and repeats numbered -1, -2, ...
+const anchorCache = new Map()
+function anchorsOf(path) {
+  if (!anchorCache.has(path)) {
+    const seen = new Map()
+    const anchors = new Set()
+    const text = readFileSync(path, "utf8").replace(/```[\s\S]*?```/g, "")
+    for (const [, heading] of text.matchAll(/^#{1,6} +(.+?) *#*$/gm)) {
+      const base = heading.toLowerCase().replace(/[^\p{L}\p{N}_\- ]/gu, "").replace(/ /g, "-")
+      const n = seen.get(base) ?? 0
+      seen.set(base, n + 1)
+      anchors.add(n ? `${base}-${n}` : base)
+    }
+    anchorCache.set(path, anchors)
+  }
+  return anchorCache.get(path)
+}
 const REQUIRED_SECTIONS = ["## Supported actions", "## Resource selector patterns", "## Values",
                            "## Examples", "## Notifications", "## Errors"]
 const knownErrors = new Set(inventory.errors.map(e => e.message))
@@ -70,11 +91,29 @@ for (const file of files) {
     try { JSON.parse(body[1]) } catch (e) { fail(name, `json block ${i + 1} does not parse: ${e.message}`) }
   }
 
-  // links
-  for (const m of outsideFences.matchAll(/\]\(([^)#][^)]*?)(?:#[^)]*)?\)/g)) {
-    const target = m[1]
-    if (/^https?:/.test(target)) continue
-    if (!existsSync(normalize(join(dirname(file), target)))) fail(name, `broken link: ${target}`)
+  // responses — a `get` example shows what comes back, as the next json block. Only resource
+  // pages: the index shows request shapes on their own before it introduces responses.
+  if (isResourcePage) {
+    const parsed = [...raw.matchAll(/```json\n([\s\S]*?)```/g)].map(m => {
+      try { return JSON.parse(m[1]) } catch { return null }
+    })
+    for (const [i, request] of parsed.entries()) {
+      if (request?.action !== "get") continue
+      if (typeof parsed[i + 1]?.success !== "boolean") {
+        fail(name, `get example for ${request.resource} is not followed by its response`)
+      }
+    }
+  }
+
+  // links and anchors
+  for (const m of outsideFences.matchAll(/\]\(([^)#]*?)(?:#([^)]*))?\)/g)) {
+    const [, target, anchor] = m
+    if (/^[a-z][a-z+.-]*:/i.test(target)) continue
+    const path = target ? normalize(join(dirname(file), target)) : file
+    if (!existsSync(path)) { fail(name, `broken link: ${target}`); continue }
+    if (anchor && path.endsWith(".md") && !anchorsOf(path).has(anchor)) {
+      fail(name, `broken anchor: ${target}#${anchor}`)
+    }
   }
 
   // tables
@@ -131,8 +170,33 @@ for (const file of files) {
   // resource page shape
   if (isResourcePage) {
     for (const s of REQUIRED_SECTIONS) if (!raw.includes(s)) fail(name, `missing required section: ${s}`)
+  }
+  if (!isConventions) {
     if (!/^> \*\*Applies to:\*\*/m.test(raw)) fail(name, "missing provenance header")
     if (!raw.startsWith("# ")) fail(name, "page does not start with a title")
+  }
+}
+
+// llms.txt links pages by their published URL. Each must exist, and every page under resources/
+// and guides/ must be listed, so a new page cannot be left out.
+const llmsPath = join(docsDir, "llms.txt")
+if (!existsSync(llmsPath)) fail("llms.txt", "missing")
+else {
+  const listed = new Set()
+  const prefix = "https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/"
+  for (const [, url] of readFileSync(llmsPath, "utf8").matchAll(/\]\((https:[^)]+)\)/g)) {
+    if (!url.startsWith(prefix)) {
+      if (/^https:\/\/raw\.githubusercontent\.com\//.test(url)) fail("llms.txt", `not under ${prefix}: ${url}`)
+      continue
+    }
+    const target = url.slice(prefix.length)
+    listed.add(target)
+    if (!existsSync(join(docsDir, target))) fail("llms.txt", `broken link: ${target}`)
+  }
+  for (const file of files) {
+    const name = relative(docsDir, file)
+    const mustList = name.startsWith("resources/") || (name.startsWith("guides/") && name !== "guides/README.md")
+    if (mustList && !listed.has(name)) fail("llms.txt", `does not list ${name}`)
   }
 }
 
@@ -142,112 +206,17 @@ if (scopeBlocks.size > 3) {
   problems.push(`scope blocks: ${scopeBlocks.size} distinct variants; expected at most 3 (one per scope case)`)
 }
 
-// notifications — every operation CODAP can send is explained in a hand-written row of its own
-// family's section: its name in the first cell of a table row outside the generated blocks, under
-// the `## ` heading for its resource. A mention anywhere else — another row's description, another
-// family's section — does not count. Each family with operations must also have its generated
-// block, so a deleted block is caught rather than leaving its family unchecked.
-const kNotificationSections = {
-  dataContextChangeNotice: { heading: "Data changes", block: "notifications-data" },
-  component: { heading: "Component changes", block: "notifications-component" },
-  dragDrop: { heading: "Attribute drag", block: "notifications-drag" },
-  undoChangeNotice: { heading: "Undo and redo", block: "notifications-undo" },
-  document: { heading: "Document state", block: "notifications-document" }
-}
-const kOtherNotifications = { heading: "Everything else", block: "notifications-other" }
-
-// Hand-written table rows of notifications.md, each with the `## ` and `### ` headings above it.
-function notificationRows(raw) {
-  const prose = raw.replace(
-    /<!-- BEGIN GENERATED: [\w-]+(?:\s+\w+=\S+)* -->[\s\S]*?<!-- END GENERATED: [\w-]+ -->/g, "")
-  const rows = []
-  let section = null
-  let subsection = null
-  let fenced = false
-  for (const line of prose.split("\n")) {
-    if (line.trimStart().startsWith("```")) { fenced = !fenced; continue }
-    if (fenced) continue
-    if (line.startsWith("## ")) { section = line.slice(3).trim(); subsection = null; continue }
-    if (line.startsWith("### ")) { subsection = line.slice(4).trim(); continue }
-    const st = line.trim()
-    if (!section || !st.startsWith("|") || !st.endsWith("|") || /^\|[-|\s]+\|$/.test(st)) continue
-    const cells = st.replace(/^\||\|$/g, "").split("|").map(c => c.trim())
-    rows.push({ section, subsection, cells })
-  }
-  return rows
-}
-
+// notifications — fail every row the generator marked undescribed (see conventions.md), until
+// someone writes when it fires.
 {
   const page = join(docsDir, "notifications.md")
   if (existsSync(page)) {
-    const raw = readFileSync(page, "utf8")
-    const rows = notificationRows(raw)
-    const families = new Set((inventory.notifications ?? []).map(n => n.resource))
-    for (const family of families) {
-      const { block } = kNotificationSections[family] ?? kOtherNotifications
-      if (!new RegExp(`<!-- BEGIN GENERATED: ${block}(?:\\s+\\w+=\\S+)* -->`).test(raw)) {
-        fail("notifications.md", `no ${block} block, so the \`${family}\` notifications are not listed`)
-      }
-    }
-    const seen = new Set()
-    for (const n of inventory.notifications ?? []) {
-      // A null operation is computed or absent; the page documents those by resource instead.
-      if (n.operation == null) continue
-      const key = `${n.operation}\u0000${n.resource}`
-      if (seen.has(key)) continue
-      seen.add(key)
-      const { heading } = kNotificationSections[n.resource] ?? kOtherNotifications
-      // The other-families table names the resource first and the operation second.
-      const nameCells = heading === kOtherNotifications.heading ? [0, 1] : [0]
-      const explained = rows.some(r => r.section.startsWith(heading) &&
-        nameCells.some(i => (r.cells[i] ?? "").includes(`\`${n.operation}\``)))
-      if (!explained) {
-        fail("notifications.md",
-             `operation \`${n.operation}\` (${n.resource}) has no hand-written row under "${heading}"`)
-      }
-    }
-  }
-}
-
-// notification sections — under "Component changes", each `### ` section covers named areas of
-// CODAP, and an operation's row must sit in the section matching the "Raised by" area the
-// generator reports. A section with no entry here fails rather than going unchecked.
-{
-  const page = join(docsDir, "notifications.md")
-  if (existsSync(page)) {
-    const raw = readFileSync(page, "utf8")
-    const sectionAreas = {
-      "Lifecycle": ["lifecycle", "container", "other"],
-      "Graph": ["graph"],
-      "Axis": ["axis"],
-      "Slider": ["slider"],
-      "Map": ["map"],
-      "Case table and case card": ["case table", "case card"],
-      "Text, calculator, formula": ["text", "calculator", "formula"],
-      "Data display": ["data display"]
-    }
-    const generated = new Map()
-    const block =
-      /<!-- BEGIN GENERATED: notifications-component(?:\s+\w+=\S+)* -->([\s\S]*?)<!-- END GENERATED/.exec(raw)
-    if (!block) fail("notifications.md", "no notifications-component block to check sections against")
-    for (const line of block ? block[1].split("\n") : []) {
-      const cells = line.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim())
-      if (cells.length === 3 && cells[0].startsWith("`")) generated.set(cells[0].replace(/`/g, ""), cells[1])
-    }
-    const unknown = new Set()
-    for (const { section, subsection, cells } of notificationRows(raw)) {
-      if (!section.startsWith("Component changes") || !subsection) continue
-      const allowed = sectionAreas[subsection]
-      if (!allowed) { unknown.add(subsection); continue }
-      for (const m of (cells[0] ?? "").matchAll(/`([^`]+)`/g)) {
-        const area = generated.get(m[1])
-        if (area && !allowed.includes(area)) {
-          fail("notifications.md", `\`${m[1]}\` is documented under "${subsection}" but is raised by ${area}`)
-        }
-      }
-    }
-    for (const sub of unknown) {
-      fail("notifications.md", `section "${sub}" has no area mapping in the lint, so its rows are unchecked`)
+    for (const line of readFileSync(page, "utf8").split("\n")) {
+      if (!line.startsWith("|") || !line.includes("_not yet described_")) continue
+      // The operation is the cell just before "Fires when", whether or not a Resource cell leads
+      const cells = line.replace(/^\|/, "").split("|").map(c => c.trim())
+      const operation = cells[cells.findIndex(c => c.includes("_not yet described_")) - 1]
+      fail("notifications.md", `${operation ?? line} has no "Fires when" description`)
     }
   }
 }

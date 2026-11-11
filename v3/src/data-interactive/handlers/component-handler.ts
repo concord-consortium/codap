@@ -1,10 +1,12 @@
 import { isCaseTableModel } from "../../components/case-table/case-table-model"
 import {
-  openCaseTableNotification, resizeColumnsNotification
+  closeCaseTableNotification, openCaseTableNotification, resizeColumnsNotification
 } from "../../components/case-table/case-table-notifications"
 import { resizeAllColumns } from "../../components/case-table/case-table-utils"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { isMapContentModel } from "../../components/map/models/map-content-model"
+import { getCreateTileHistoryOptions } from "../../components/tool-shelf/tool-shelf-utilities"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { INewTileOptions } from "../../models/codap/create-tile"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
@@ -55,6 +57,17 @@ export function registerComponentHandler(type: string, handler: DIComponentHandl
   diComponentHandlers.set(type, handler)
 }
 
+// V2's undo strings by the component type a plugin sends. As in V2, case tables and case cards for a data
+// context add no entry, and neither do guideViews (always a new web view here, like V2's first guide).
+// The toolbar's strings are V2's for these types
+const kShelfUndoTypes = new Set(["calculator", "graph", "map", "slider", "text"])
+// and these types aren't on the toolbar, or its strings differ from V2's
+const kCreateUndoStrings: Record<string, string> = {
+  game: "game.add",
+  imageComponentView: "imageComponent.show",
+  webView: "webView.show"
+}
+
 export const diComponentHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
     if (!values) return valuesRequiredResult
@@ -78,9 +91,19 @@ export const diComponentHandler: DIHandler = {
       const x = isPositionObject ? position.left : undefined
       const y = isPositionObject ? position.top : undefined
       let tile: Maybe<ITileModel>
+      // As the toolbar does, including the calculator's hide when one is showing, which V2 labeled a hide
+      const { undoStringKey, redoStringKey, log } =
+        getCreateTileHistoryOptions(kComponentTypeV2ToV3Map[type], document.content)
+      const undoStrings = kCreateUndoStrings[type]
+      const undoOptions = kShelfUndoTypes.has(type)
+        ? { undoStringKey, redoStringKey }
+        : undoStrings ? { undoStringKey: `DG.Undo.${undoStrings}`, redoStringKey: `DG.Redo.${undoStrings}` } : {}
       return document.applyModelChange(() => {
         const title = _title ?? name
-        const newTileOptions = { cannotClose, content, ...dimensions, position, x, y, name, title, ..._options }
+        const _cannotClose = cannotClose != null ? !!cannotClose : undefined
+        const newTileOptions = {
+          cannotClose: _cannotClose, content, ...dimensions, position, x, y, name, title, ..._options
+        }
         tile = _createOrShow(kComponentTypeV2ToV3Map[type], newTileOptions)
         if (!tile) return errorResult(t("V3.DI.Error.componentNotCreated"))
 
@@ -99,6 +122,8 @@ export const diComponentHandler: DIHandler = {
         // openCaseTableNotification no-ops for non-case-table tiles, so it's safe to call
         // unconditionally here (V2-plugin compat for the case-table create path, CODAP-1353).
         notify: [() => createTileNotification(tile), () => openCaseTableNotification(tile)],
+        ...undoOptions,
+        log,
         // Don't echo the create back to the requesting plugin — Story Builder otherwise treats
         // notifications about its own DI-API actions as document edits and marks the current
         // moment as unsaved (CODAP-1307).
@@ -117,7 +142,11 @@ export const diComponentHandler: DIHandler = {
     document.applyModelChange(() => {
       document.content?.deleteOrHideTile(component.id)
     }, {
-      notify: deleteTileNotification(component),
+      notify: closeCaseTableNotification(component) ?? deleteTileNotification(component),
+      // as in V2, closing a component is undoable and logged, as it is from its close box
+      log: logMessageWithReplacement("Close component: %@", {tileType: component.content.type}, "component"),
+      undoStringKey: "DG.Undo.component.close",
+      redoStringKey: "DG.Redo.component.close",
       excludeTileId: resources.interactiveFrame?.id
     })
 
@@ -170,14 +199,21 @@ export const diComponentHandler: DIHandler = {
       case "autoScale": {
         const { content } = component
         if (isGraphContentModel(content)) {
-          content.rescale()
+          // as in V2 (graph_controller.js:500-508) and the inspector's rescale button: a labeled,
+          // logged undo entry that sends rescaleGraph
+          content.applyModelChange(() => content.rescale(), {
+            notify: () => updateTileNotification("rescaleGraph", {}, component),
+            excludeTileId: resources.interactiveFrame?.id,
+            undoStringKey: "DG.Undo.axisDilate",
+            redoStringKey: "DG.Redo.axisDilate",
+            log: { message: "Rescale axes from data", args: {}, category: "plot" }
+          })
         } else if (isMapContentModel(content)) {
           content.rescale()
         } else if (isCaseTableModel(content)) {
           // V2's resize-all path (case_table_controller.js:1136) is undoable and emits
           // `resize columns`. Mirror that here so plugin-initiated rescales are also
-          // undoable and visible to V2 plugins (CODAP-1353). Graph/Map rescales above are
-          // not yet wrapped — deferred to CODAP-1351 / CODAP-1352.
+          // undoable and visible to V2 plugins (CODAP-1353).
           //
           // Don't echo the notification back to the requesting plugin — Story Builder
           // otherwise treats notifications about its own DI-API actions as document edits
@@ -228,11 +264,13 @@ export const diComponentHandler: DIHandler = {
       // Support currentGameName as V2 alias for name (used by game/plugin components)
       const currentGameName = "currentGameName" in values && typeof values.currentGameName === "string"
         ? values.currentGameName : undefined
-      if (cannotClose != null) component.setCannotClose(cannotClose)
+      if (cannotClose != null) component.setCannotClose(!!cannotClose)
       if (isResizable != null) component.setIsResizable(isResizable)
       if (name != null) component.setName(name)
       else if (currentGameName != null) component.setName(currentGameName)
-      if (title) component.setTitle(title)
+      // An empty title clears it, so the tile falls back to its name or default title. As in V2, a number is used
+      // as the title; other values are ignored.
+      if (typeof title === "string" || typeof title === "number") component.setTitle(String(title) || undefined)
       // TODO Handle string positions?
       const _position = position && typeof position !== "string" ? position : undefined
       if (dimensions || _position || isVisible != null) {

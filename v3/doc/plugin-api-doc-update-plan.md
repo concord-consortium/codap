@@ -287,8 +287,12 @@ to updating the doc, which is exactly how `adornment`, `document`, `dataDisplay`
 
 ### Phase 7 — Mechanical finish
 
-Re-run doctoc to regenerate the TOC (the page keeps the doctoc markers), and refresh the
-`_Sidebar.md` if Phase 0 chose the split.
+Written when the destination was still the wiki; under Phase 0's choice of the repo, the finish
+became: freeze the wiki page as the v2 reference, removing the v3-only material Phase 1 added;
+map every section of it to the page that now covers it
+([`plugin-api/wiki-section-map.md`](plugin-api/wiki-section-map.md)); add `llms.txt`; and a
+consistency sweep, with the docs lint extended to check heading anchors and provenance headers
+on every page. Re-run doctoc on the frozen page, which keeps its markers.
 
 ---
 
@@ -387,7 +391,7 @@ assumes v3's internal string ids will generate requests that silently fail to re
 
 ### 4.5 Chunking and retrieval hygiene
 
-This reinforces Phase 0 option 2 (split into per-resource pages) for a second, independent
+This reinforces Phase 0's choice B2 (split per resource) for a second, independent
 reason: retrieval. A 4177-line page retrieves as arbitrary fragments, and the fragment that
 matches "adornment" may not carry the selector rules needed to use it.
 

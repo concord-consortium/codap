@@ -6,7 +6,9 @@ import { CurrentScope, FValue, IFormulaMathjsFunction } from "../formula-types"
 import {
   aggregateFnWithFilterFactory, aggregateNumericFnWithFilterFactory, cachedAggregateFnFactory
 } from "./aggregate-functions"
-import { evaluateNode, getRootScope, isValueNonEmpty, isValueTruthy, UNDEF_RESULT } from "./function-utils"
+import {
+  evaluateNode, getRootScope, isValueCountable, isValueNonEmpty, passesFilter, UNDEF_RESULT
+} from "./function-utils"
 
 interface IPercentileFunctionCache {
   values: number[]
@@ -53,7 +55,7 @@ export const univariateStatsFunctions: Record<string, IFormulaMathjsFunction> = 
         filterValues = [ filterValues ]
       }
       const validExpressionValues = expressionValues.filter((v: FValue, i: number) =>
-        isValueTruthy(v) && (filter ? isValueTruthy(filterValues[i]) : true)
+        isValueCountable(v) && (filter ? passesFilter(filterValues[i]) : true)
       )
       const result = validExpressionValues.length
 
@@ -132,7 +134,7 @@ export const univariateStatsFunctions: Record<string, IFormulaMathjsFunction> = 
         const _count = values.length
         for (let i = 0; i < _count; ++i) {
           const [isValid, x] = checkNumber(values[i])
-          if (isValid && (filterValues ? isValueTruthy(filterValues[i]) : true)) {
+          if (isValid && (filterValues ? passesFilter(filterValues[i]) : true)) {
             filteredValues.push(x)
           }
         }
@@ -178,7 +180,7 @@ export const univariateStatsFunctions: Record<string, IFormulaMathjsFunction> = 
         const _count = values.length
         for (let i = 0; i < _count; ++i) {
           const [isValid, x] = checkNumber(values[i])
-          if (isValid && (filterValues ? isValueTruthy(filterValues[i]) : true)) {
+          if (isValid && (filterValues ? passesFilter(filterValues[i]) : true)) {
             filteredValues.push({ value: x, caseId: scope.context.caseIds?.[scope.casePointer + i] ?? "" })
           }
         }

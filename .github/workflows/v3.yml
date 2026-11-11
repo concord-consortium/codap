@@ -139,6 +139,9 @@ jobs:
       - name: Run Tests
         working-directory: v3
         run: npm run test:coverage -- --maxWorkers=${{ steps.cpu-cores.outputs.count }}
+      - name: Run Date Parser Tests in a Non-UTC Time Zone
+        working-directory: v3
+        run: TZ=Asia/Kolkata npx jest src/utilities/date-parser
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -168,7 +171,7 @@ jobs:
           # this key is different from the build job above because this is a dev build so its
           # folder in the cache will be different and cached data is also likely different
           key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
-      - uses: cypress-io/github-action@v6
+      - uses: cypress-io/github-action@v7
         with:
           working-directory: v3
           start: npm start

@@ -1,32 +1,33 @@
-import {useCallback, useEffect, useRef} from "react"
-import {comparer, reaction} from "mobx"
+import { useCallback, useEffect, useRef } from "react"
+import { comparer, reaction } from "mobx"
 import { observer } from "mobx-react-lite"
 import { isAlive } from "mobx-state-tree"
-import {useMap} from "react-leaflet"
+import { useMap } from "react-leaflet"
 import simpleheat from "simpleheat"
-import {useDebouncedCallback} from "use-debounce"
+import { useDebouncedCallback } from "use-debounce"
 import { select } from "d3"
-import {isCaseValueChangeAction, isSelectionAction} from "../../../models/data/data-set-actions"
+import { isCaseValueChangeAction, isSelectionAction } from "../../../models/data/data-set-actions"
 import { firstVisibleParentAttribute, idOfChildmostCollectionForAttributes } from "../../../models/data/data-set-utils"
-import {defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth} from "../../../utilities/color-utils"
+import { defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth } from "../../../utilities/color-utils"
 import { mstAutorun } from "../../../utilities/mst-autorun"
-import {mstReaction} from "../../../utilities/mst-reaction"
-import {onAnyAction} from "../../../utilities/mst-utils"
+import { mstReaction } from "../../../utilities/mst-reaction"
+import { onAnyAction } from "../../../utilities/mst-utils"
 import { prf } from "../../../utilities/profiler"
-import {DataTip} from "../../data-display/components/data-tip"
-import {CaseData} from "../../data-display/d3-types"
+import { DataTip } from "../../data-display/components/data-tip"
+import { CaseData } from "../../data-display/d3-types"
 import {
   computePointRadius, handleClickOnCase, legendShapeGetter, matchCirclesToData, setPointSelection
 } from "../../data-display/data-display-utils"
 import { IConnectingLineDescription } from "../../data-display/data-display-types"
-import {isDisplayItemVisualPropsAction} from "../../data-display/models/display-model-actions"
-import {useDataDisplayLayout} from "../../data-display/hooks/use-data-display-layout"
+import { isDisplayItemVisualPropsAction } from "../../data-display/models/display-model-actions"
+import { useDataDisplayLayout } from "../../data-display/hooks/use-data-display-layout"
 import { IPoint, IPointMetadata, PixiPointRenderer, useLayerRenderer } from "../../data-display/renderer"
-import {useMapClickWithDoubleClickZoom} from "../hooks/use-map-click-with-double-click-zoom"
-import {useMapModelContext} from "../hooks/use-map-model-context"
-import {IMapPointLayerModel} from "../models/map-point-layer-model"
-import {shiftLongitudeIntoView} from "../utilities/map-utils"
-import {MapPointGrid} from "./map-point-grid"
+import { useMapClickWithDoubleClickZoom } from "../hooks/use-map-click-with-double-click-zoom"
+import { useMapModelContext } from "../hooks/use-map-model-context"
+import { IMapPointLayerModel } from "../models/map-point-layer-model"
+import { shiftLongitudeIntoView } from "../utilities/map-utils"
+import { MapHotSpotLayer } from "./map-hot-spot-layer"
+import { MapPointGrid } from "./map-point-grid"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
 import { useConnectingLines } from "../../data-display/hooks/use-connecting-lines"
 
@@ -471,6 +472,21 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     return () => disposer()
   }, [refreshHeatmap, refreshPoints, dataConfiguration])
 
+  // Changing the type of the lat/long attributes (e.g. categorical → numeric) changes their numeric
+  // values and which cases have valid coordinates, so the cases are re-filtered and redrawn.
+  useEffect(function setupResponseToLatLongTypeChange() {
+    return mstReaction(
+      () => [dataConfiguration?.attributeType('lat'), dataConfiguration?.attributeType('long')],
+      () => {
+        dataConfiguration?.invalidateCases()
+        refreshPoints(false)
+        refreshConnectingLines()
+        refreshHeatmap()
+      },
+      {name: "MapPointLayer.respondToLatLongTypeChange", equals: comparer.structural}, dataConfiguration
+    )
+  }, [refreshConnectingLines, refreshHeatmap, refreshPoints, dataConfiguration])
+
   useEffect(function setupResponseToChangeInCases() {
     return mstReaction(
       () => dataConfiguration?.caseDataHash,
@@ -569,6 +585,7 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       </svg>
       <div ref={pixiContainerRef} className="map-dot-area"/>
       <MapPointGrid mapLayerModel={mapLayerModel} />
+      <MapHotSpotLayer mapPointLayerModel={mapLayerModel} />
       {displayHeatmap && (
         <div className="heatmap-area">
           <canvas ref={heatmapCanvasRef} className="heatmap-canvas" />

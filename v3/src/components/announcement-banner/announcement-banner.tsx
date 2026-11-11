@@ -1,4 +1,6 @@
 import React, { useEffect, useLayoutEffect, useState } from "react"
+import { Logger } from "../../lib/logger"
+import { ExternalLink } from "../common/external-link"
 import {
   BannerConfig, dismissBanner, fetchBannerConfig, isValidButtonUrl, parseMessageWithLinks
 } from "./announcement-banner-utils"
@@ -26,6 +28,15 @@ export function AnnouncementBanner() {
     return () => { cancelled = true }
   }, [])
 
+  // Log one impression per banner id per page load.
+  const shownBannerId = config?.id
+  useEffect(() => {
+    if (shownBannerId) {
+      Logger.log("Announcement banner shown", { bannerId: shownBannerId }, "banner",
+        { analyticsArgs: ["bannerId"] })
+    }
+  }, [shownBannerId])
+
   const visible = !!config && !dismissed
   useLayoutEffect(() => {
     const root = document.documentElement
@@ -39,6 +50,12 @@ export function AnnouncementBanner() {
 
   const { message, id, buttonText = "Learn More", buttonUrl, buttonTarget = "_blank" } = config
   const showButton = isValidButtonUrl(buttonUrl)
+
+  const handleLinkClick = (url?: string) => {
+    // Banner URLs are authored in codap-resources, so they're safe to send to GA.
+    Logger.log("Announcement banner link clicked", { bannerId: id, url }, "banner",
+      { analyticsArgs: ["bannerId", "url"] })
+  }
 
   const handleClose = () => {
     setDismissed(true)
@@ -60,10 +77,10 @@ export function AnnouncementBanner() {
         {parseMessageWithLinks(message).map((segment, i) =>
           segment.url
             ? (
-              <a key={i} href={segment.url} target="_blank" rel="noopener noreferrer"
+              <ExternalLink key={i} href={segment.url} onClick={() => handleLinkClick(segment.url)}
                 data-testid={`announcement-banner-link-${i}`}>
                 {segment.text}
-              </a>
+              </ExternalLink>
             )
             : <React.Fragment key={i}>{segment.text}</React.Fragment>
         )}
@@ -76,6 +93,7 @@ export function AnnouncementBanner() {
             target={buttonTarget}
             rel="noopener noreferrer"
             className="announcement-banner-button"
+            onClick={() => handleLinkClick(buttonUrl)}
             data-testid="announcement-banner-button"
           >
             {buttonText}

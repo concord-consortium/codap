@@ -43,3 +43,13 @@ describe("combine", () => {
     expect(evaluate(`combine(Diet, Order="Proboscidae")`)).toBe("plantsplants")
   })
 })
+
+describe("filter arguments with 0/1 and \"true\"/\"false\" values", () => {
+  it.each([
+    "if(Order = 'Proboscidae', 1, 0)",
+    "if(Order = 'Proboscidae', '1', '0')",
+    "if(Order = 'Proboscidae', 'true', 'false')"
+  ])("filters combine() with %s", filter => {
+    expect(evaluate(`combine(Diet, ${filter})`)).toBe("plantsplants")
+  })
+})

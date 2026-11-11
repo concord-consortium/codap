@@ -1,6 +1,9 @@
 import { latLngBounds } from "leaflet"
+import { DataSet } from "../../../models/data/data-set"
+import { kPinColors } from "../map-types"
 import {
-  computeBoundsFromCoordinates, getRationalLongitudeBounds, shiftLongitudeIntoView, wrapBoundsToCanonicalCenter
+  computeBoundsFromCoordinates, getNextPinColorIndex, getNextPinColorIndexForDataSet, getRationalLongitudeBounds,
+  shiftLongitudeIntoView, wrapBoundsToCanonicalCenter
 } from "./map-utils"
 
 describe("getRationalLongitudeBounds", () => {
@@ -234,5 +237,61 @@ describe("wrapBoundsToCanonicalCenter", () => {
     const bounds = latLngBounds([{lat: 0, lng: 190}, {lat: 10, lng: 210}])
     const result = wrapBoundsToCanonicalCenter(bounds)
     expect((result.getWest() + result.getEast()) / 2).toBeCloseTo(-160)
+  })
+})
+
+describe("getNextPinColorIndex", () => {
+  it("returns the first color when there are no pins", () => {
+    expect(getNextPinColorIndex([])).toBe(0)
+  })
+
+  it("returns the next color in sequence when pins were added in order", () => {
+    expect(getNextPinColorIndex([kPinColors[0], kPinColors[1]])).toBe(2)
+  })
+
+  it("reuses the color of a deleted pin rather than duplicating a remaining pin's color", () => {
+    expect(getNextPinColorIndex([kPinColors[1]])).toBe(0)
+    expect(getNextPinColorIndex([kPinColors[0], kPinColors[2]])).toBe(1)
+  })
+
+  it("compares colors case-insensitively and ignores missing values", () => {
+    expect(getNextPinColorIndex([kPinColors[0].toLowerCase(), undefined])).toBe(1)
+  })
+
+  it("cycles by pin count when every color is in use", () => {
+    expect(getNextPinColorIndex([...kPinColors])).toBe(0)
+    expect(getNextPinColorIndex([...kPinColors, kPinColors[0]])).toBe(1)
+  })
+})
+
+describe("getNextPinColorIndexForDataSet", () => {
+  const createPins = (withColor: boolean) => {
+    const dataset = DataSet.create()
+    dataset.addAttribute({ id: "lat", name: "pinLat", userType: "numeric" })
+    dataset.addAttribute({ id: "long", name: "pinLong", userType: "numeric" })
+    if (withColor) dataset.addAttribute({ id: "color", name: "pinColor", userType: "color" })
+    dataset.addCases([
+      { __id__: "blue", lat: 10, long: 20, ...(withColor ? { color: kPinColors[0] } : {}) },
+      { __id__: "orange", lat: 30, long: 40, ...(withColor ? { color: kPinColors[1] } : {}) }
+    ])
+    return dataset
+  }
+
+  it("reuses the color of a deleted pin", () => {
+    const dataset = createPins(true)
+    dataset.removeCases(["blue"])
+    expect(getNextPinColorIndexForDataSet(dataset, "color")).toBe(0)
+  })
+
+  it("counts the colors of hidden pins as used", () => {
+    const dataset = createPins(true)
+    dataset.hideCasesOrItems(["blue"])
+    expect(dataset.items.length).toBe(1)
+    expect(getNextPinColorIndexForDataSet(dataset, "color")).toBe(2)
+  })
+
+  it("uses the pin count without a color attribute", () => {
+    const dataset = createPins(false)
+    expect(getNextPinColorIndexForDataSet(dataset)).toBe(2)
   })
 })

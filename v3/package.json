@@ -1,6 +1,6 @@
 {
   "name": "codap3",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "Common Online Data Analysis Platform v3",
   "main": "index.js",
   "browser": {
@@ -196,6 +196,7 @@
     "webpack": "^5.106.2",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.3",
+    "webpack-license-plugin": "^4.5.1",
     "xhr-mock": "^2.5.1"
   },
   "dependencies": {
