@@ -1,4 +1,4 @@
-import { IClipboardContent, readClipboard } from "../lib/clipboard/clipboard-utils"
+import { IClipboardContent } from "../lib/clipboard/clipboard-utils"
 import { IDataSet } from "../models/data/data-set"
 import { initiateImportFromCsv } from "./csv-import"
 import { initiateImportFromHTML } from "./html-import"
@@ -23,12 +23,4 @@ export function importClipboardContent(content: IClipboardContent, dataSet?: IDa
     initiateImportFromCsv({ text: content.text, data: dataSet, datasetName: dataSet ? undefined : "clipboard data" })
   }
   return format
-}
-
-/**
- * @deprecated Temporary until the menu call sites switch to `useClipboard()`.
- */
-export async function initiateImportFromClipboard(data?: IDataSet) {
-  const { content } = await readClipboard()
-  importClipboardContent(content, data)
 }

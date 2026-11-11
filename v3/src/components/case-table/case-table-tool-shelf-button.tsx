@@ -18,13 +18,13 @@ import { getFormulaManager, getSharedModelManager } from "../../models/tiles/til
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
 import { persistentState } from "../../models/persistent-state"
-import { initiateImportFromClipboard } from "../../utilities/clipboard-import"
 import { uniqueName } from "../../utilities/js-utils"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 import { createOrShowTableOrCardForDataset, createTableOrCardForDataset } from "../case-tile-common/case-tile-utils"
 import { CodapModal } from "../codap-modal"
 import { ToolShelfButtonTag } from "../tool-shelf/tool-shelf-button"
 import { kCaseTableTileType } from "./case-table-defs"
+import { useClipboard } from "../clipboard/use-clipboard"
 import { openCaseTableNotification } from "./case-table-notifications"
 
 import AlertIcon from "../../assets/icons/icon-alert.svg"
@@ -75,6 +75,7 @@ const CaseTableToolShelfMenuList = observer(
   const datasetNames = datasets.map(data => data.dataSet.name)
   const { isOpen, onOpen, onClose } = useDisclosure()
   const handleMenuItemFocus = useMenuItemScrollIntoView()
+  const { importData } = useClipboard()
   const [modalOpen, setModalOpen] = useState(false)
   const [dataSetIdToDeleteId, setDataSetIdToDelete] = useState("")
 
@@ -143,7 +144,7 @@ const CaseTableToolShelfMenuList = observer(
         <MenuItem
           className="tool-shelf-menu-item table-menu-item"
           data-testid="tool-shelf-table-new-clipboard"
-          onClick={() => initiateImportFromClipboard()}
+          onClick={() => importData()}
         >
           <TableIcon className="menu-icon case-table-icon"/>
           {`${t("DG.AppController.caseTableMenu.clipboardDataset")}`}
