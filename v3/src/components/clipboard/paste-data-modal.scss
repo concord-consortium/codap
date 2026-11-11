@@ -1,0 +1,18 @@
+.paste-data-modal-body {
+  font-size: 12px;
+
+  .paste-data-prompt {
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .paste-data-permission-note {
+    margin-bottom: 6px;
+    font-style: italic;
+  }
+
+  .paste-data-text-area {
+    font-family: monospace;
+    font-size: 12px;
+  }
+}
