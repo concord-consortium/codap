@@ -16,7 +16,8 @@ export function greatCircleDistance(lat1: number, long1: number, lat2: number, l
   const deltaLong = degreesToRadians(long2 - long1)
   const a = Math.sin(deltaLat / 2) ** 2 +
             Math.cos(degreesToRadians(lat1)) * Math.cos(degreesToRadians(lat2)) * Math.sin(deltaLong / 2) ** 2
-  return 2 * kEarthMeanRadiusMeters * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const clampedA = Math.min(1, Math.max(0, a))
+  return 2 * kEarthMeanRadiusMeters * Math.atan2(Math.sqrt(clampedA), Math.sqrt(1 - clampedA))
 }
 
 /**

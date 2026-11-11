@@ -123,9 +123,12 @@ export const MapPointLayerModel = MapLayerModel
         { name: "MapPointLayerModel.pointCasesVersion" }
       ))
 
-      // Changing a lat/long attribute's type changes its numeric values and which cases are valid
+      // Changing a lat/long attribute's type or id changes its numeric values and which cases are valid
       addDisposer(self, reaction(
-        () => [dataConfiguration.attributeType("lat"), dataConfiguration.attributeType("long")],
+        () => [
+          dataConfiguration.attributeID("lat"), dataConfiguration.attributeID("long"),
+          dataConfiguration.attributeType("lat"), dataConfiguration.attributeType("long")
+        ],
         () => {
           dataConfiguration.invalidateCases()
           self.bumpPointValuesVersion()
