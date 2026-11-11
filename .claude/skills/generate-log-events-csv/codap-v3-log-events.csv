@@ -46,6 +46,7 @@ Changed stroke color,,,,User changes the point stroke color in the format inspec
 Clear formula for attribute %@,name,,{ name: string },User chooses the delete-formula menu item to remove an attribute's formula.
 Close calculator,,,{ type: string },When the user closes the calculator tile using its title-bar close button.
 Close component: %@,tileType,,{ tileType: string },User closes a component tile from the workspace.
+Copy to clipboard: %@,"{ method, failed, skipped, outcome }",,"{ method: ""writeText"" | ""execCommand"" | ""none"", failed: string, skipped: string, outcome: ""copied"" | ""unavailable"" }",User copies case data to the clipboard. method is the copy method that worked; failed and skipped list (comma-separated) the methods that failed during this attempt or were skipped because an earlier failure was remembered.
 Create %@ cases in table,count,,{ count: number },When the user creates one or more new cases via the case-table input row.
 Create caseTable component,,,,User opens (or re-shows) the table/card for an existing dataset from the table tool-shelf menu.
 "Create collection: name: %@, attribute: %@","name, attribute",,"{ name: string, attribute: string }",When the user drags an attribute in the case card to create a new collection.
@@ -77,6 +78,7 @@ Hide %@ unselected cases,numUnselected,,{ numUnselected: number },User hides all
 Hide all cases from parent toggles,,,,Logged when the user clicks the hide-all toggle in the parent-toggles bar to hide all cases.
 Hide attribute %@,name,,{ name: string },User chooses the hide-attribute menu item to hide an attribute column.
 Hide percent adornment,,,,Count adornment auto-hides the percent option when the plot configuration no longer supports percent.
+Import from clipboard: %@,"{ method, failed, skipped, outcome, format, permissionDenied }",,"{ method: ""read"" | ""readText"" | ""paste"" | ""none"", failed: string, skipped: string, outcome: ""imported"" | ""empty"" | ""cancelled"", format: ""html"" | ""csv"" | """", permissionDenied: boolean }","User imports data from the clipboard. method ""paste"" means the browser refused direct clipboard access and the user pasted into the fallback dialog; failed and skipped list the read methods that failed or were skipped; permissionDenied reports whether the browser denies clipboard-read."
 Imported data set: %@,{ datasetName },,{ datasetName: string },"User imports a data set, for example from a CSV file or dropped file."
 insert %@ cases,numCases,,{ numCases: number },User inserts one or more new cases into a table.
 Joined %@ to %@,"sourceCollectionName, destCollectionName",,,"Logged when the user drops an attribute from one table onto an attribute in another, joining the source collection into the destination collection."

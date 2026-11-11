@@ -3,7 +3,7 @@ import { action, makeObservable, observable } from "mobx"
 import { IDataSet } from "../../models/data/data-set"
 import { ClipboardImportFormat, importClipboardContent } from "../../utilities/clipboard-import"
 import { Logger } from "../logger"
-import { LoggableObject, logStringifiedObjectMessage } from "../log-message"
+import { ILogMessage, logStringifiedObjectMessage } from "../log-message"
 import {
   ClipboardReadMethod, focusDocumentForClipboard, IClipboardContent, isClipboardReadDenied, readClipboard,
   writeWithExecCommand
@@ -101,12 +101,12 @@ export class ClipboardManager {
     }
 
     this.setMessage(method ? { kind: "copied", description } : { kind: "copyUnavailable" })
-    this.log("Copy to clipboard: %@", {
+    this.log(logStringifiedObjectMessage("Copy to clipboard: %@", {
       method: method ?? "none",
       failed: failed.join(","),
       skipped: skipped.join(","),
       outcome: method ? "copied" : "unavailable"
-    })
+    }, "data"))
     return !!method
   }
 
@@ -161,18 +161,17 @@ export class ClipboardManager {
   private logImport(method: ClipboardImportMethod, outcome: ClipboardImportOutcome,
                     options: { format?: ClipboardImportFormat, failed?: string, skipped?: string },
                     request?: IPasteRequest) {
-    this.log("Import from clipboard: %@", {
+    this.log(logStringifiedObjectMessage("Import from clipboard: %@", {
       method,
       failed: options.failed ?? "",
       skipped: options.skipped ?? "",
       outcome,
       format: options.format ?? "",
       permissionDenied: request?.permissionDenied ?? false
-    })
+    }, "data"))
   }
 
-  private log(event: string, logArgs: LoggableObject) {
-    const { message, args, category } = logStringifiedObjectMessage(event, logArgs, "data")
+  private log({ message, args, category }: ILogMessage) {
     Logger.log(message, args, category)
   }
 
