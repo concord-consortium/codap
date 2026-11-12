@@ -31,7 +31,7 @@
 //
 import { readFileSync, readdirSync, statSync } from "node:fs"
 import { fileURLToPath } from "node:url"
-import { dirname, join, relative } from "node:path"
+import { dirname, join, relative, resolve } from "node:path"
 import { createRequire } from "node:module"
 import { execFileSync } from "node:child_process"
 
@@ -589,7 +589,52 @@ function literalsOfType(typeNode) {
   return []
 }
 
+// Each site names its resource family, and the shape of its operation when the code builds the
+// operation from text and expressions, as `toggle show as ${plotType}` or "prefix " + x. A shape is
+// recorded readable, `toggle show as <plotType>`, and with each expression as `<>` for matching, so
+// the generator can tell which documented row with a <placeholder> the site stands for.
 const unresolvedNotifications = []
+function addUnresolved(sf, node, resource, arg) {
+  const source = siteOf(sf, node)
+  const shapes = arg ? operationShapes(arg) : []
+  if (!shapes.length) unresolvedNotifications.push({ source, resource })
+  for (const { readable, match } of shapes) {
+    unresolvedNotifications.push({ source, resource, operation: readable, shape: match })
+  }
+}
+
+const unwrap = node => {
+  while (ts.isParenthesizedExpression(node) || ts.isAsExpression(node) || ts.isNonNullExpression(node) ||
+         (ts.isSatisfiesExpression && ts.isSatisfiesExpression(node))) node = node.expression
+  return node
+}
+
+// One shape per branch of a ternary that is built from text. A branch that is a plain literal is a
+// name, not a shape, and one with no text at all, such as a bare identifier, has nothing a row
+// could match.
+function operationShapes(node) {
+  node = unwrap(node)
+  if (ts.isConditionalExpression(node)) return [...operationShapes(node.whenTrue), ...operationShapes(node.whenFalse)]
+  const parts = textParts(node)
+  if (!parts.some(pt => pt.text) || parts.every(pt => pt.text != null)) return []
+  return [{ readable: parts.map(pt => pt.text ?? `<${pt.expr}>`).join(""),
+            match: parts.map(pt => pt.text ?? "<>").join("") }]
+}
+
+// The pieces of a string built from literals, template literals and `+`. Anything else is one
+// expression piece.
+function textParts(node) {
+  node = unwrap(node)
+  if (ts.isStringLiteralLike(node)) return [{ text: node.text }]
+  if (ts.isTemplateExpression(node)) {
+    return [{ text: node.head.text },
+            ...node.templateSpans.flatMap(sp => [{ expr: sp.expression.getText() }, { text: sp.literal.text }])]
+  }
+  if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+    return [...textParts(node.left), ...textParts(node.right)]
+  }
+  return [{ expr: node.getText() }]
+}
 
 // `function f(...)` or `const f = (...) => ...` — the name a caller would use.
 function functionNameOf(n) {
@@ -602,7 +647,7 @@ function functionNameOf(n) {
 // the code base, so a call counts only in the defining file or in a file that imports the name.
 // A caller that passes something other than a literal is reported as unresolved; one that passes
 // nothing is skipped, since the parameter's default then applies.
-function callerLiterals(fnName, idx, definingFile) {
+function callerLiterals(fnName, idx, definingFile, resource) {
   const found = []
   for (const [, sf] of sources) {
     if (/\.test\.tsx?$/.test(rel(sf.fileName))) continue
@@ -621,7 +666,7 @@ function callerLiterals(fnName, idx, definingFile) {
         const arg = inner.arguments[idx]
         if (isAbsent(arg)) return
         const lits = literalsOf(arg)
-        if (!lits.length || hasOpaqueBranch(arg)) unresolvedNotifications.push(siteOf(sf, inner))
+        if (!lits.length || hasOpaqueBranch(arg)) addUnresolved(sf, inner, resource, arg)
         found.push(...lits)
       }
     })
@@ -636,10 +681,10 @@ function hasOpaqueBranch(node) {
   return !ts.isStringLiteralLike(node)
 }
 
-function operationNames(arg, callNode) {
+function operationNames(arg, callNode, resource) {
   const direct = literalsOf(arg)
   if (direct.length) {
-    if (hasOpaqueBranch(arg)) unresolvedNotifications.push(siteOf(callNode.getSourceFile(), callNode))
+    if (hasOpaqueBranch(arg)) addUnresolved(callNode.getSourceFile(), callNode, resource, arg)
     return direct
   }
   if (ts.isIdentifier(arg)) {
@@ -657,7 +702,8 @@ function operationNames(arg, callNode) {
           const fromDefault = literalsOf(match.initializer)
           if (fromDefault.length) {
             const fnName = functionNameOf(n)
-            const fromCallers = fnName ? callerLiterals(fnName, params.indexOf(match), callNode.getSourceFile()) : []
+            const fromCallers = fnName
+              ? callerLiterals(fnName, params.indexOf(match), callNode.getSourceFile(), resource) : []
             return [...new Set([...fromDefault, ...fromCallers])]
           }
         }
@@ -682,13 +728,13 @@ function operationNames(arg, callNode) {
       const fnName = functionNameOf(n)
       const idx = n.parameters?.findIndex(pm => ts.isIdentifier(pm.name) && pm.name.text === arg.text) ?? -1
       if (fnName && idx >= 0) {
-        const fromCallers = callerLiterals(fnName, idx, callNode.getSourceFile())
+        const fromCallers = callerLiterals(fnName, idx, callNode.getSourceFile(), resource)
         if (fromCallers.length) return fromCallers
       }
       if (ts.isSourceFile(n)) break
     }
   }
-  unresolvedNotifications.push(siteOf(callNode.getSourceFile(), callNode))
+  addUnresolved(callNode.getSourceFile(), callNode, resource, arg)
   return []
 }
 
@@ -752,11 +798,19 @@ function objectKeysFor(arg, at) {
   const read = objectKeys(init)
   let scope = init
   while (scope && !ts.isFunctionLike(scope) && !ts.isSourceFile(scope)) scope = scope.parent
-  // Only this function's own statements: a nested function may have its own `values`. Any other
+  // A nested function that declares its own binding of the name is skipped; one that uses this
+  // const, such as a forEach callback that fills it in, is read like the function itself. Any other
   // use of the name — `values[k] = v`, `Object.assign(values, ...)`, passing it to a helper — could
   // add keys this cannot name, so it marks the result partial.
   const visit = n => {
-    if (n !== scope && ts.isFunctionLike(n)) return
+    if (n !== scope && ts.isFunctionLike(n)) {
+      const binding = bindingOf(n, arg.text)
+      if (binding === "own") return
+      if (binding === "inner") {
+        read.partial = true
+        return
+      }
+    }
     if (ts.isIdentifier(n) && n.text === arg.text && n.parent !== init.parent &&
         !(ts.isPropertyAccessExpression(n.parent) && n.parent.name === n)) {
       const p = n.parent
@@ -773,6 +827,30 @@ function objectKeysFor(arg, at) {
   }
   visit(scope)
   return { keys: [...new Set(read.keys)], partial: read.partial }
+}
+
+// How a nested function binds `name`. "own" when a parameter (destructured ones included) or a
+// declaration directly in its body does, so the name inside it is not the outer one. "inner" when
+// only a block, a catch clause or a deeper function inside it does, so which binding each use
+// refers to isn't worked out. null when nothing inside it does.
+function bindingOf(fn, name) {
+  const binds = n => !!n && (ts.isIdentifier(n) ? n.text === name
+    : (ts.isObjectBindingPattern(n) || ts.isArrayBindingPattern(n)) &&
+      n.elements.some(el => !ts.isOmittedExpression(el) && binds(el.name)))
+  if (fn.parameters.some(pm => binds(pm.name))) return "own"
+  for (const st of fn.body && ts.isBlock(fn.body) ? fn.body.statements : []) {
+    if (ts.isVariableStatement(st) && st.declarationList.declarations.some(d => binds(d.name))) return "own"
+    if ((ts.isFunctionDeclaration(st) || ts.isClassDeclaration(st)) && st.name?.text === name) return "own"
+  }
+  let inner = false
+  const visit = n => {
+    if (inner) return
+    if ((ts.isVariableDeclaration(n) || ts.isParameter(n) || ts.isFunctionDeclaration(n) ||
+         ts.isClassDeclaration(n)) && binds(n.name)) inner = true
+    else ts.forEachChild(n, visit)
+  }
+  if (fn.body) visit(fn.body)
+  return inner ? "inner" : null
 }
 
 // The keys a call with this spec puts in `values`, or null when they cannot be read.
@@ -823,6 +901,69 @@ const kBaseNotifiers = {
   tileNotification: "component",
   dataSetNotification: "dataContextChangeNotice",
   dragNotification: "dragDrop"
+}
+
+// kBaseValueSpecs is written by hand, so it is checked against each base notifier's code. In the
+// object a notifier builds with `operation` in it, a parameter written in by name is a keyed slot,
+// a parameter spread in is the spread slot, and any other key is fixed. tileNotification instead
+// writes into the object it is passed (`values.operation = operation`), so that parameter is its
+// spread slot; the keys it adds are the ones every component notification carries, which the page
+// states once.
+function baseValueSpecFromCode(name) {
+  let fn = null
+  for (const [, sf] of sources) {
+    if (/\.test\.tsx?$/.test(rel(sf.fileName))) continue
+    eachNode(sf, node => {
+      if (ts.isFunctionDeclaration(node) && node.name?.text === name) fn ??= node
+      else if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.name.text === name &&
+               node.initializer && ts.isArrowFunction(node.initializer)) fn ??= node.initializer
+    })
+  }
+  if (!fn) return null
+  const params = fn.parameters.map(pm => ts.isIdentifier(pm.name) ? pm.name.text : null)
+  const paramIndex = n => n && ts.isIdentifier(n) ? params.indexOf(n.text) : -1
+  let spec = null
+  eachNode(fn, node => {
+    if (spec) return
+    if (ts.isObjectLiteralExpression(node) && node.properties.some(pr => pr.name?.text === "operation")) {
+      spec = { fixed: [], keyedSlots: {} }
+      for (const pr of node.properties) {
+        // A spread of anything but a parameter, or a computed key, is listed as written; no spec
+        // can express it, so the check fails until the extractor learns it.
+        if (ts.isSpreadAssignment(pr)) {
+          const i = paramIndex(pr.expression)
+          if (i >= 0) spec.spreadSlot = i
+          else spec.fixed.push(`...${pr.expression.getText()}`)
+          continue
+        }
+        const key = pr.name && (ts.isIdentifier(pr.name) || ts.isStringLiteralLike(pr.name)) ? pr.name.text
+          : pr.name?.getText() ?? "?"
+        if (key === "operation") continue
+        const i = ts.isShorthandPropertyAssignment(pr) ? paramIndex(pr.name)
+          : ts.isPropertyAssignment(pr) ? paramIndex(pr.initializer) : -1
+        if (i >= 0) spec.keyedSlots[key] = i
+        else spec.fixed.push(key)
+      }
+    } else if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+               ts.isPropertyAccessExpression(node.left) && node.left.name.text === "operation" &&
+               paramIndex(node.left.expression) >= 0) {
+      spec = { fixed: [], keyedSlots: {}, spreadSlot: paramIndex(node.left.expression) }
+    }
+  })
+  return spec
+}
+{
+  const shape = s =>
+    JSON.stringify([[...s.fixed].sort(), Object.entries(s.keyedSlots ?? {}).sort(), s.spreadSlot ?? null])
+  for (const name of Object.keys(kBaseNotifiers)) {
+    const fromCode = baseValueSpecFromCode(name)
+    if (!fromCode || shape(fromCode) !== shape(kBaseValueSpecs[name])) {
+      console.error(`extract-plugin-api: kBaseValueSpecs.${name} does not match ${name} in the code ` +
+                    `(${fromCode ? `the code gives ${JSON.stringify(fromCode)}` : "not found"}). Update the ` +
+                    `spec, or the extractor if the code does something a spec can't express.`)
+      process.exit(3)
+    }
+  }
 }
 
 // name -> the notification helper it calls, so a builder two steps from a base still resolves.
@@ -973,7 +1114,7 @@ for (const [, sf] of sources) {
       if (noDataSet) resource = "documentChangeNotice"
     }
     const values = valuesAt(valueSpecOf(helper), node)
-    for (const operation of operationNames(a0, node)) {
+    for (const operation of operationNames(a0, node, resource)) {
       notifications.push({
         operation, via: helper, resource, source: siteOf(sf, node),
         ...(values.keys && { valueKeys: values.keys }),
@@ -982,6 +1123,33 @@ for (const [, sf] of sources) {
     }
   })
 }
+// A message builder such as `notification(resource, values)` takes its resource from a parameter.
+// Its messages are read where the base notifiers call it; any other call to it is reported after
+// the scan below. Any other message that can't be read is reported where it is built.
+// Only a function or a const arrow is tracked this way; a method is called through `this` or an
+// object, which this can't follow, so a method builder is reported where it is defined.
+const messageBuilders = new Map()   // name -> the file that defines it
+function unreadableMessage(sf, node, expr, resource) {
+  const fn = ts.findAncestor(node.parent, ts.isFunctionLike)
+  const name = fn && !ts.isMethodDeclaration(fn) && functionNameOf(fn)
+  if (name && expr && ts.isIdentifier(expr) &&
+      fn.parameters.some(pm => ts.isIdentifier(pm.name) && pm.name.text === expr.text)) {
+    messageBuilders.set(name, sf)
+  }
+  else addUnresolved(sf, node, resource)
+}
+
+// The file an import specifier names, when it is one of ours.
+function importedFile(sf, specifier) {
+  if (!specifier.startsWith(".")) return null
+  const base = resolve(dirname(sf.fileName), specifier)
+  for (const candidate of [base, `${base}.ts`, `${base}.tsx`, join(base, "index.ts"), join(base, "index.tsx")]) {
+    const found = sources.get(candidate)
+    if (found) return found
+  }
+  return null
+}
+
 // Not every notification goes through a helper. Several are built inline as
 // `{ action: "notify", resource: "...", values: { operation: "..." } }` and handed to
 // broadcastMessage — undoChangeNotice, logMessageNotice, the locale change on `global`. Any of
@@ -1008,16 +1176,27 @@ for (const [, sf] of sources) {
       const init = rawProp(name)
       return init && ts.isIdentifier(init) ? (localConstInit(init.text, node) ?? init) : init
     }
+    // An object shaped like a message (action, resource and values) whose action or resource can't
+    // be read, such as a `let` or a parameter, is reported rather than passed over.
+    const messageShaped = ["action", "resource", "values"].every(name => rawProp(name))
     const action = prop("action")
-    if (!action || !ts.isStringLiteralLike(action) || action.text !== "notify") return
     const resource = prop("resource")
-    if (!resource) return
     // `resource: "undoChangeNotice"` or a template whose literal head names the family.
-    const resourceText = ts.isStringLiteralLike(resource) ? resource.text
-      : ts.isTemplateExpression(resource) ? resource.head.text
-        : null
-    if (!resourceText) return
-    const family = resourceText.replace(/\[.*$/, "")
+    const resourceText = !resource ? null
+      : ts.isStringLiteralLike(resource) ? resource.text
+        : ts.isTemplateExpression(resource) ? resource.head.text
+          : null
+    const family = resourceText ? resourceText.replace(/\[.*$/, "") : null
+    if (!action || !ts.isStringLiteralLike(action)) {
+      if (messageShaped) unreadableMessage(sf, node, action, family)
+      return
+    }
+    if (action.text !== "notify") return
+    if (!resource) return
+    if (!family) {
+      unreadableMessage(sf, node, resource, null)
+      return
+    }
     const site = { via: "inline", resource: family, source: siteOf(sf, node) }
     const values = prop("values")
     const read = values && ts.isObjectLiteralExpression(values) ? objectKeysFor(rawProp("values"), node) : null
@@ -1042,12 +1221,47 @@ for (const [, sf] of sources) {
     // Same resolution as the helper path: a literal, a ternary of literals, or an identifier
     // bound to a literal-union parameter — `operation: "undoAction" | "redoAction"` resolves.
     const operations = operationNames(
-      ts.isShorthandPropertyAssignment(opProp) ? opProp.name : opProp.initializer, node)
+      ts.isShorthandPropertyAssignment(opProp) ? opProp.name : opProp.initializer, node, family)
     if (!operations.length) {
       notifications.push({ operation: null, ...site, ...valueFields })
       return
     }
     for (const operation of operations) notifications.push({ operation, ...site, ...valueFields })
+  })
+}
+
+// A call to a message builder from anywhere but a base notifier sends a message nothing above read.
+for (const [, sf] of sources) {
+  if (/\.test\.tsx?$/.test(rel(sf.fileName))) continue
+  // Builders this file can call: its own, named imports and namespace imports of a builder's file.
+  const builtHere = name => messageBuilders.get(name) === sf
+  const localNames = new Set([...messageBuilders.keys()].filter(builtHere))
+  const namespaces = new Map()   // local namespace name -> the file it imports
+  for (const st of sf.statements) {
+    if (!ts.isImportDeclaration(st) || !ts.isStringLiteralLike(st.moduleSpecifier)) continue
+    const from = importedFile(sf, st.moduleSpecifier.text)
+    const bindings = from && st.importClause?.namedBindings
+    if (!bindings) continue
+    if (ts.isNamespaceImport(bindings)) namespaces.set(bindings.name.text, from)
+    else {
+      for (const el of bindings.elements) {
+        if (messageBuilders.get((el.propertyName ?? el.name).text) === from) localNames.add(el.name.text)
+      }
+    }
+  }
+  if (!localNames.size && !namespaces.size) continue
+  const callsBuilder = callee => ts.isIdentifier(callee) ? localNames.has(callee.text)
+    : ts.isPropertyAccessExpression(callee) && ts.isIdentifier(callee.expression) &&
+      namespaces.has(callee.expression.text) &&
+      messageBuilders.get(callee.name.text) === namespaces.get(callee.expression.text)
+  eachNode(sf, node => {
+    if (!ts.isCallExpression(node) || !callsBuilder(node.expression)) return
+    // A call anywhere inside a base notifier, a closure in one included, is how messages are meant to be built.
+    for (let n = node.parent; n && !ts.isSourceFile(n); n = n.parent) {
+      if (ts.isFunctionLike(n) && kBaseNotifiers[functionNameOf(n)]) return
+    }
+    const resource = node.arguments[0] && ts.isStringLiteralLike(node.arguments[0]) ? node.arguments[0].text : null
+    addUnresolved(sf, node, resource?.replace(/\[.*$/, "") ?? null)
   })
 }
 
@@ -1126,7 +1340,8 @@ const inventory = {
   valueTypes,
   notifications: notificationCatalog,
   // Notification sites whose operation could not be resolved to a name.
-  unresolvedNotifications: [...new Set(unresolvedNotifications)].sort(cmp),
+  unresolvedNotifications: [...new Map(unresolvedNotifications.map(u => [JSON.stringify(u), u])).values()]
+    .sort((a, b) => cmp(a.source, b.source) || cmp(a.operation ?? "", b.operation ?? "")),
   // Shapes declared in the DI type files that this extractor could not reduce to a member list.
   unextractable
 }

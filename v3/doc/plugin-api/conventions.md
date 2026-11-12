@@ -135,6 +135,13 @@ Rules:
   `_not yet described_`, which the lint fails until it is described; a row whose operations are
   all gone is dropped. The `component` notifications get one block per section of the page,
   and an area of CODAP that no block claims fails the generator.
+- **An operation built when it is sent** (`` `toggle show as ${plotType}` ``, or text joined with
+  `+`) has no name the generator can list. Write its row by hand, naming it with a placeholder
+  for each part that varies: `toggle show as <plot type>`. The row stays while the code still
+  builds an operation of that shape, and is dropped and reported once it doesn't. An operation
+  built that way with no such row fails the generator. So does a notification the extractor
+  can't read at all, such as one whose resource is a variable: no row can cover it, so send it
+  through a notification helper or with a literal resource and operation.
 - Current block names: `actions`, `selectors`, `scope`, `values`, `values-write`, and
   on the quick reference `adornment-types`, `resource-actions`, `selector-grammar`,
   `error-catalog`. On `notifications.md`: `notifications-data`, `notifications-drag`,

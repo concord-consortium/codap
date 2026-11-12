@@ -280,11 +280,18 @@ const notificationKey = n => `${n.resource}\u0000${n.operation ?? ""}`
 // Tracked by entry, not by key: the same operation sent from an area no block claims must still
 // be reported, even though another area's table lists that operation.
 const placedNotifications = new Set()
+// A documented name with a <placeholder>, such as `toggle show as <plot type>`, stands for a site
+// whose operation the code builds when it sends it. It matches a site whose shape is the same,
+// placeholders aside (the extractor records each expression in a shape as `<>`).
+const coveredUnresolved = new Set()
+const unmatchedTemplates = []
+const templateShape = op => op.replace(/<[^>]*>/g, "<>")
+const kNotReadable = "_not readable from the code_"
 
 // "—" means no values beyond the operation, and "…" values the extractor couldn't name;
 // unreadable keys say so rather than guess.
 function notificationValues(n) {
-  if (!n.valueKeys) return "_not readable from the code_"
+  if (!n.valueKeys) return kNotReadable
   if (!n.valueKeys.length) return n.valueKeysPartial ? "…" : "—"
   return n.valueKeys.map(k => `\`${k}\``).join(", ") + (n.valueKeysPartial ? ", …" : "")
 }
@@ -309,45 +316,61 @@ function tableRows(body) {
 }
 
 // `entries` are the notifications this table lists; `body` is the table as it stands.
-function renderNotificationTable(entries, body, { withResource = false, valuesHead = "`values` carries" } = {}) {
+// `unresolved` are the sites in this table's area whose operation the extractor couldn't name.
+function renderNotificationTable(entries, body,
+                                 { withResource = false, valuesHead = "`values` carries", unresolved = [] } = {}) {
   // A block whose last notification is gone would otherwise keep listing it; the page needs
   // editing, so that is reported rather than left as hand-maintained.
-  if (!entries.length) return emptyNotificationBlock
+  if (!entries.length && !unresolved.length) return emptyNotificationBlock
   const byKey = new Map(entries.map(n => [notificationKey(n), n]))
   const placed = new Set()
   const rows = []
   for (const old of tableRows(body)) {
     // `global[<name>]` is listed by its resource, `global`.
-    const resource = withResource ? (/`([^`[]+)/.exec(old.resource ?? "")?.[1] ?? "") : entries[0].resource
+    const resource = withResource ? (/`([^`[]+)/.exec(old.resource ?? "")?.[1] ?? "")
+      : (entries[0] ?? unresolved[0]).resource
     const names = [...old.operation.matchAll(/`([^`]+)`/g)].map(m => m[1])
-    const keys = (names.length ? names : [""]).map(op => `${resource}\u0000${op}`)
-    const live = keys.filter(k => byKey.has(k) && !placed.has(k))
-    // A name with a <placeholder> stands for a site the extractor reports as unresolved, so it has
-    // no entry to match and is kept as written.
-    const templated = names.length > 0 && names.every(op => op.includes("<"))
-    if (!live.length && !templated) continue
+    const isTemplated = op => op.includes("<")
+    const keyOf = op => `${resource}\u0000${op}`
+    const literal = names.length ? names.filter(op => !isTemplated(op)) : [""]
+    const live = literal.map(keyOf).filter(k => byKey.has(k) && !placed.has(k))
+    // A templated name stays only while a site of its shape is still in the code.
+    const kept = names.filter(isTemplated).filter(op => {
+      const site = unresolved.find(u => u.shape === templateShape(op) && u.resource === resource)
+      if (site) coveredUnresolved.add(site)
+      else unmatchedTemplates.push(`${resource} \`${op}\``)
+      return !!site
+    })
+    if (!live.length && !kept.length) continue
     live.forEach(k => placed.add(k))
     const members = live.map(k => byKey.get(k))
+    const keepsAll = live.length === literal.length && kept.length === names.filter(isTemplated).length
     rows.push({
       resource: old.resource,
-      operation: live.length === keys.length || templated ? old.operation
-        : members.map(notificationOperation).join(", "),
+      // Rewritten in the row's own order, so a templated name keeps its place.
+      operation: keepsAll ? old.operation
+        : names.filter(op => kept.includes(op) || live.includes(keyOf(op)))
+          .map(op => isTemplated(op) ? `\`${op}\`` : notificationOperation(byKey.get(keyOf(op)))).join(", "),
       fires: old.fires,
-      members
+      members,
+      templated: kept
     })
   }
   for (const [k, n] of byKey) {
     if (placed.has(k)) continue
-    rows.push({ resource: `\`${n.resource}\``, operation: notificationOperation(n), fires: kUndescribed, members: [n] })
+    rows.push({ resource: `\`${n.resource}\``, operation: notificationOperation(n), fires: kUndescribed, members: [n],
+                templated: [] })
   }
+  if (!rows.length) return emptyNotificationBlock
   entries.forEach(n => placedNotifications.add(n))
 
   // A row naming several operations shows one values cell when they agree, and each one's otherwise.
+  // A templated name's values can't be read.
   const values = r => {
-    if (!r.members.length) return "_not readable from the code_"
-    const cells = r.members.map(notificationValues)
-    return cells.every(c => c === cells[0]) ? cells[0]
-      : r.members.map((n, i) => `${notificationOperation(n)}: ${cells[i]}`).join("; ")
+    const cells = [...r.members.map(notificationValues), ...r.templated.map(() => kNotReadable)]
+    if (!cells.length) return kNotReadable
+    const names = [...r.members.map(notificationOperation), ...r.templated.map(op => `\`${op}\``)]
+    return cells.every(c => c === cells[0]) ? cells[0] : names.map((name, i) => `${name}: ${cells[i]}`).join("; ")
   }
   // A values column that is the same on every row says so once, below the table.
   const cells = rows.map(values)
@@ -366,17 +389,19 @@ function renderNotificationTable(entries, body, { withResource = false, valuesHe
 
 function renderNotifications(block, body) {
   const all = inventory.notifications ?? []
+  const unresolvedSites = inventory.unresolvedNotifications ?? []
+  // The same test picks this block's notifications and its unresolved sites.
+  const render = (inBlock, options) =>
+    renderNotificationTable(all.filter(inBlock), body, { ...options, unresolved: unresolvedSites.filter(inBlock) })
   if (block === "notifications-other") {
-    return renderNotificationTable(all.filter(n => !kNamedNotificationFamilies.has(n.resource)), body,
-                                   { withResource: true })
+    return render(n => !kNamedNotificationFamilies.has(n.resource), { withResource: true })
   }
-  if (kFamilyBlocks[block]) return renderNotificationTable(all.filter(n => n.resource === kFamilyBlocks[block]), body)
+  if (kFamilyBlocks[block]) return render(n => n.resource === kFamilyBlocks[block])
   // Every component notification also carries `id`, `type` and `diType`; the column lists what
   // each one adds, and the page says so above the tables.
   const areas = kComponentBlocks[block]
-  return renderNotificationTable(
-    all.filter(n => n.resource === "component" && areas.includes(notificationArea(n.source))), body,
-    { valuesHead: "`values` also carries" })
+  return render(n => n.resource === "component" && areas.includes(notificationArea(n.source)),
+                { valuesHead: "`values` also carries" })
 }
 const isNotificationBlock = name =>
   name === "notifications-other" || name in kFamilyBlocks || name in kComponentBlocks
@@ -439,6 +464,12 @@ const unplaced = (inventory.notifications ?? [])
   .filter(n => !placedNotifications.has(n))
   .map(n => `${n.resource} ${n.operation ?? "(no operation)"}` +
             (n.resource === "component" ? ` — area "${notificationArea(n.source)}" has no block` : ""))
+// A site whose operation couldn't be named is sent with nothing documenting it, unless a row names
+// its shape. One with no shape, such as a message whose resource is a variable, no row can cover.
+const uncovered = (inventory.unresolvedNotifications ?? []).filter(u => !coveredUnresolved.has(u))
+const uncoveredShapes = uncovered.filter(u => u.shape).map(u => `${u.source}: ${u.resource} \`${u.operation}\``)
+const unreadableSites = uncovered.filter(u => !u.shape)
+  .map(u => `${u.source}: ${u.resource ?? "resource not readable"}`)
 
 // --- JSON Schema for the request envelope --------------------------------------------
 // Validates the envelope and the action vocabulary, and carries the resource -> supported
@@ -581,13 +612,23 @@ if (report.skipped.length) line("Hand-maintained (left alone)", report.skipped)
 if (report.markers.length) line("MARKER PROBLEMS (page not rewritten)", report.markers)
 if (report.badSource.length) line("UNRESOLVED source= (block left frozen)", report.badSource)
 if (unplaced.length) line("NOTIFICATIONS IN NO TABLE (add a block for them)", unplaced)
+if (uncoveredShapes.length) {
+  line("OPERATIONS BUILT WHEN SENT, IN NO ROW (add a row naming them with a <placeholder>)", uncoveredShapes)
+}
+if (unreadableSites.length) {
+  line("NOTIFICATIONS THE EXTRACTOR CAN'T READ (no row can cover these; send them through a notification " +
+       "helper, or with a literal resource and operation)", unreadableSites)
+}
+if (unmatchedTemplates.length) {
+  line("TEMPLATED ROWS NO CODE SENDS (dropped; check the page)", unmatchedTemplates)
+}
 if (report.emptyBlocks.length) {
   line("NOTIFICATION BLOCKS WITH NOTHING LEFT (left as is; remove the section)", report.emptyBlocks)
 }
 
 // Marker problems fail in both modes: in --check they are a defect, and in write mode they mean
 // a page was deliberately skipped, so exiting 0 would report success for work not done.
-if (report.markers.length || report.badSource.length || unplaced.length ||
+if (report.markers.length || report.badSource.length || unplaced.length || uncovered.length ||
     report.emptyBlocks.length) process.exit(2)
 if (check && (report.changed.length || report.new.length || report.removed.length ||
               staleBaseline.length)) process.exit(2)
