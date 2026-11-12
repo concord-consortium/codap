@@ -186,6 +186,31 @@ describe("click-listener", () => {
     }
   })
 
+  it("reports the control's testid when its icon has a testid of its own", () => {
+    const { manager, delivered } = makeManagerWithCapture()
+    manager.register("plugin-A", { eventTypes: ["click", "dblclick"] })
+    installed = installClickListener(manager)
+
+    document.body.innerHTML = `
+      <div class="tool-shelf">
+        <div role="menuitem" data-testid="tool-shelf-tiles-menu-item-0">
+          <svg data-testid="tool-shelf-tiles-menu-icon"><path d="M0 0"></path></svg>
+          <span>Table</span>
+        </div>
+      </div>`
+    const icon = document.querySelector("svg")!
+    icon.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+    icon.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }))
+
+    const notices = delivered.filter(d => d.eventType === "click" || d.eventType === "dblclick")
+    expect(notices.length).toBe(2)
+    for (const notice of notices) {
+      expect(notice.target?.testId).toBe("tool-shelf-tiles-menu-item-0")
+      expect(notice.target?.tag).toBe("DIV")
+      expect(notice.target?.label).toBe("Table")
+    }
+  })
+
   it("takes the label of a widget-role control, not of a surrounding dialog", () => {
     const { manager, delivered } = makeManagerWithCapture()
     manager.register("plugin-A", { eventTypes: ["click"] })

@@ -30,10 +30,10 @@ const kControlSelector = [
   ...kWidgetRoles.map(role => `[role="${role}"]`)
 ].join(",")
 
-/** A click on a control's icon or text describes the control: its label, disabled state and kind. */
+/** A click on a control's icon or text is reported as a click on the control. */
 function buildClickTarget(el: Element): UiTarget {
   const control = el.closest?.(kControlSelector) ?? el
-  const target = buildTarget(el)
+  const target = buildTarget(control)
   const label = resolveLabel(control)
   if (label != null) target.label = label
   const interactionKind = resolveInteractionKind(control)
