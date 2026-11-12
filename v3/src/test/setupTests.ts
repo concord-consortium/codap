@@ -16,7 +16,7 @@ import { ConsoleMethod, IJestSpyConsoleOptions, jestSpyConsole, JestSpyConsoleFn
 // mock DOM APIs not supported by JSDOM
 Element.prototype.scrollIntoView = jest.fn()
 
-// jsdom does not provide window.matchMedia; tour-engine's use-reduced-motion hook depends on it
+// jsdom does not provide window.matchMedia; coachmarks' reduced-motion hook depends on it
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: (query: string) => ({
