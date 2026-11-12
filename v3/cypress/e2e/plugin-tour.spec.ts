@@ -142,6 +142,13 @@ describe("Plugin tours", () => {
     tourRequest({ request: "endTour" })
     tour.getPopover().should("not.exist")
     expectTourNotices(["stepStarted", "cancelled"])
+    // A notice for CODAP's own menu shows the monitor is delivering.
+    cy.get('[data-testid="tool-shelf-button-table"]').click()
+    testPluginWindow().should((w: any) => {
+      const menuAppear = w.getDeliveredNotices().find((n: any) =>
+        n.eventType === "appear" && n.target?.testId?.startsWith("tool-shelf-"))
+      expect(menuAppear, "appear for the Tables menu").to.not.equal(undefined)
+    })
     testPluginWindow().then((w: any) => {
       const popoverNotices = w.getDeliveredNotices().filter((n: any) => n.target?.testId?.startsWith("coachmarks-"))
       expect(popoverNotices).to.have.length(0)

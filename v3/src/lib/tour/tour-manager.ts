@@ -62,7 +62,7 @@ function codapPresentation(kind: "tour" | "highlight"): CreateCoachmarksEngineAr
   }
 }
 
-/** coachmarks places a popover on top by default; CODAP's tours have always defaulted to the right. */
+/** coachmarks defaults a popover to the top; CODAP's tours default to the right. */
 function withCodapSide(popover?: ITourPopover): ITourPopover {
   return { ...popover, side: popover?.side ?? "right" }
 }

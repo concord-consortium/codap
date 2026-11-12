@@ -3,7 +3,7 @@
  * canonical plugin-developer example for this API.
  *
  * The test fixture at cypress/fixtures/test-plugin.html runs inside an
- * iframe-phone plugin loaded via ?di=<url>, exposing:
+ * iframe-phone plugin loaded via ?di=<url>, exposing, among others:
  *   - subscribeMonitor(filter)
  *   - updateMonitor(id, filter)
  *   - unsubscribeMonitor(id)

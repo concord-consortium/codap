@@ -58,9 +58,6 @@
       action: "notify",
       resource: "uiNotificationMonitor",
       values: filter || {}
-    }).then(function (reply) {
-      if (reply && reply.values && reply.values.id != null) window.__lastMonitorId = reply.values.id
-      return reply
     })
   }
 
