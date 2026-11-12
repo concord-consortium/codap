@@ -78,7 +78,7 @@ const movePrevious = () => {
   store.getSnapshot().movePrevious();
 };
 useEffect(() => {
-  if (!popoverEl) return;
+  if (!isPrimary || !popoverEl) return;
   const from = previousFromByStore.get(store) ?? null;
   previousFromByStore.delete(store);
   if (from === null || from === activeIndex) return;
@@ -88,7 +88,7 @@ useEffect(() => {
     const next = nextBtnRef.current;
     (next && !next.disabled ? next : popoverEl).focus({ preventScroll: true });
   }
-}, [activeIndex, popoverEl, focusNone, store]);
+}, [activeIndex, popoverEl, focusNone, store, isPrimary]);
 ```
 
 The gate reads the consumer's option rather than the derived `initialFocus` (which `actionGated` forces to `"none"`). The record is made only when a move can happen (not on the first step), and the effect refocuses only when focus has dropped to `<body>`: a Previous that did not move (ArrowLeft on the first step, or a step still waiting for its target) would otherwise leave a record that pulled focus off the page on a later, unrelated step change.
@@ -106,7 +106,8 @@ Tests, each a two-step tour under `initialFocus: "none"` moved to step 2 (and ea
 - on step 1 with focus on Next, press ArrowLeft, focus an input on the page, then `moveNext()`: the input keeps focus;
 - on step 1 with focus on Next, press ArrowLeft, blur, then `moveNext()`: focus stays on `<body>` (fails without the first-step check);
 - on a step whose `moveNext()` is waiting for a selector target, click Previous (held by the wait), focus an input, then add the target: the input keeps focus (fails without the `<body>` check);
-- with a centered (viewport) first step and an anchored second, click Previous: focus is on Next (the popover remounts for the different shape, so the record must live outside it).
+- with a centered (viewport) first step and an anchored second, click Previous: focus is on Next (the popover remounts for the different shape, so the record must live outside it);
+- the same with two-popover groups: focus is on Next, not the companion (only the primary, which has the buttons, reads the record).
 
 A further test under the default `initialFocus` asserts the end state (the popover holds focus). It cannot isolate the `focusNone` gate, since the `initialFocus` effect runs after the new one and refocuses either way.
 
