@@ -577,6 +577,7 @@ Scenarios (each starts with `visitWithTestPlugin()` and `resetTourNotices()`, an
 7. A four-step tour whose second step targets an element the test adds with `display: none` and whose third step names a `testId` that does not exist: `stepStarted` reports `totalSteps` 4 and `visibleSteps` 2, the `stepIndex` values are 0 and then 3, and the tour runs to `completed`.
 8. Plain text: a description of `*x* [a](b)` shows exactly that text.
 9. UI notifications ignore the popover: with a monitor subscribed to `appear` and `disappear`, starting a tour and ending it with `endTour` (not a click, which is reported by design, R16), then waiting until the popover is gone, delivers no notice whose target testid starts with `coachmarks-`.
+10. With focus on the plugin iframe, starting a tour and moving with `tourPrevious` each put focus on `coachmarks-popover`; ArrowRight and Escape typed there move and cancel the tour (R15).
 
 ---
 
