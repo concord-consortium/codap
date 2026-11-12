@@ -10,7 +10,11 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const ESLintPlugin = require('eslint-webpack-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+const LicensePlugin = require('webpack-license-plugin')
+// keep these file names in sync with src/components/about-dialog/about-dialog-constants.ts
+const { ossLibrariesJson, thirdPartyNoticesMarkdown } = require('./scripts/oss-licenses')
 const ts = require('typescript')
+const webpack = require('webpack')
 
 const TSCONFIG_PATH = path.resolve(__dirname, 'tsconfig.json')
 
@@ -110,6 +114,36 @@ module.exports = (env, argv) => {
       inject: false,  // Don't inject the main CODAP bundle
     })] : []),
     new CleanWebpackPlugin(),
+    // Lists the third-party packages in the bundle, with their licenses, for the About dialog
+    new LicensePlugin({
+      additionalFiles: {
+        'oss-libraries.json': ossLibrariesJson,
+        'THIRD-PARTY-NOTICES.md': thirdPartyNoticesMarkdown,
+      },
+      // CODAP's own code is in the bundle too, but it isn't a third-party library
+      excludedPackageTest: (name) => name === packageName,
+      includeNoticeText: true,
+      // the Rollbar snippet is inlined into index.html by file path, so it isn't in the module graph
+      includePackages: () => [path.join(__dirname, 'node_modules/rollbar')],
+      licenseOverrides: {
+        // no license field or file; the README includes the MIT license text
+        '@nedb/binary-search-tree@2.1.5': 'MIT',
+      },
+      // replenishDefaultLicenseTexts is off so builds don't use the network; packages that don't ship a
+      // license file get a generic license text from scripts/oss-licenses.js instead
+    }),
+    // webpack-license-plugin always writes oss-licenses.json, but nothing uses it, so don't deploy it.
+    // The plugin writes its files at the ANALYSE stage, so this removes it just after.
+    {
+      apply(compiler) {
+        compiler.hooks.thisCompilation.tap('RemoveOssLicensesJson', compilation => {
+          compilation.hooks.processAssets.tap(
+            { name: 'RemoveOssLicensesJson', stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ANALYSE + 1 },
+            () => compilation.deleteAsset('oss-licenses.json')
+          )
+        })
+      }
+    },
   ]
   if (devMode && !process.env.SKIP_ESLINT) {
     // `build` script runs eslint independently in production mode,

@@ -221,7 +221,10 @@ the ids of cases, and use [`itemByID`](item-by-id.md) to change an item.
 ## Notifications
 
 `create` notifies the plugins listening to the data context with `createCases`, and `update` with
-`updateCases`, both on `dataContextChangeNotice[<context>]`. See
+`updateCases`, both on `dataContextChangeNotice[<context>]`, as the same changes made in a case
+table do. An `update` that moves cases to a different parent case also sends `createCases` for the
+cases it creates; v2 sent a second `updateCases` listing them instead. An `update` that names no
+known attribute sends nothing; v2 failed the request. See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext) for
 what each carries.
 

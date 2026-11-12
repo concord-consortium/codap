@@ -51,13 +51,14 @@ describe("data context change notices and the requesting plugin", () => {
       { tile: pluginTile })
     expect(result.success).toBe(true)
 
-    // one createCases per collection, each with values an array of { operation, result }, as in V2
+    // one createCases per collection, then createItems, each with values an array of { operation, result }, as in V2
     const calls = dataContextNoticeCalls()
-    expect(calls.length).toBe(3)
+    expect(calls.map(([message]) => message.values[0].operation))
+      .toEqual(["createCases", "createCases", "createCases", "createItems"])
     calls.forEach(([message, , , excludeTileId]) => {
       expect(excludeTileId).toBe(pluginTile.id)
       expect(message.values).toEqual([{
-        operation: "createCases",
+        operation: message.values[0].operation,
         result: expect.objectContaining({ success: true, caseIDs: expect.any(Array), itemIDs: expect.any(Array) })
       }])
     })
@@ -112,10 +113,14 @@ describe("data context change notices and the requesting plugin", () => {
 
     expect(responses.length).toBe(3)
     const calls = dataContextNoticeCalls()
-    expect(calls.length).toBe(3)  // one createCases per collection for the batch
+    // one createCases per collection for the batch, then one createItems
+    expect(calls.map(([message]) => message.values[0].operation))
+      .toEqual(["createCases", "createCases", "createCases", "createItems"])
     calls.forEach(([message, , , excludeTileId]) => {
       expect(excludeTileId).toBe(pluginTile.id)
-      expect(message.values).toEqual([{ operation: "createCases", result: expect.objectContaining({ success: true }) }])
+      expect(message.values).toEqual([
+        { operation: message.values[0].operation, result: expect.objectContaining({ success: true }) }
+      ])
     })
   })
 })
