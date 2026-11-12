@@ -1,12 +1,18 @@
-import "./tour-styles.scss"
+import {
+  createCoachmarksEngine, CreateCoachmarksEngineArgs, EngineHandle, EngineStep, isLaidOut
+} from "@concord-consortium/coachmarks"
+// After the package import, so the theme's rules follow coachmarks' base.css in the bundle.
+import "@concord-consortium/coachmarks/styles/codap"
+import { createElement } from "react"
+import CloseIcon from "../../assets/icons/close-tile-icon.svg"
 import { DEBUG_PLUGINS, debugLog } from "../debug"
 import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { findTileFromNameOrId } from "../../data-interactive/resource-parser-utils"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { uniqueId } from "../../utilities/js-utils"
+import { t } from "../../utilities/translation/translate"
 import { resolveElement, TourElementKey } from "./tour-elements"
-import { createTourEngine, EngineHandle, EngineStep, EngineStepPopover } from "./tour-engine"
-import { defaultTourOptions, ITourConfig } from "./tour-types"
+import { defaultTourOptions, ITourConfig, ITourPopover } from "./tour-types"
 
 export interface TourStepInput {
   tourKey?: string
@@ -36,6 +42,34 @@ export interface TourRequestValues {
   nextBtnText?: string
   prevBtnText?: string
   doneBtnText?: string
+}
+
+/** CODAP's look and wording for a tour or highlight. A plugin's own options are spread over these. */
+function codapPresentation(kind: "tour" | "highlight"): CreateCoachmarksEngineArgs {
+  return {
+    initialFocus: "none",
+    parseMarkdown: false,
+    showAvatar: false,
+    smoothScroll: false,
+    ariaLabel: t("V3.Tour.stepRegion"),
+    closeBtnAriaLabel: t("V3.Tour.close"),
+    closeIcon: createElement(CloseIcon, { className: "coachmarks-popover-close-icon" }),
+    prevBtnText: t("V3.Tour.previous"),
+    nextBtnText: t("V3.Tour.next"),
+    doneBtnText: t(kind === "tour" ? "V3.Tour.gotIt" : "V3.Tour.done"),
+    // coachmarks fills {{current}} and {{total}}; CODAP's string uses %{current} and %{total}.
+    progressText: t("V3.Tour.progress", { vars: { current: "{{current}}", total: "{{total}}" } }),
+  }
+}
+
+/** coachmarks places a popover on top by default; CODAP's tours have always defaulted to the right. */
+function withCodapSide(popover?: ITourPopover): ITourPopover {
+  return { ...popover, side: popover?.side ?? "right" }
+}
+
+/** An element the engine can anchor a popover to: in the document and laid out. */
+function isShowable(el: Element | null): el is HTMLElement {
+  return !!el && isLaidOut(el as HTMLElement)
 }
 
 interface ActiveTourState {
@@ -103,7 +137,7 @@ class TourManager {
   }
 
   /** Build popover config, merging registry defaults with plugin overrides */
-  private buildPopover(step: TourStepInput): EngineStepPopover | undefined {
+  private buildPopover(step: TourStepInput): ITourPopover {
     let defaults: { title?: string, description?: string } = {}
     if (step.tourKey) {
       if (step.tourKey.includes(".")) {
@@ -115,9 +149,10 @@ class TourManager {
     }
     const title = step.popover?.title ?? defaults.title
     const description = step.popover?.description ?? defaults.description
-    if (!title && !description) return undefined
 
-    const popover: EngineStepPopover = { title, description }
+    const popover: ITourPopover = {}
+    if (title) popover.title = title
+    if (description) popover.description = description
     const rawSide = step.popover?.side
     const rawAlign = step.popover?.align
     if (rawSide === "top" || rawSide === "right" || rawSide === "bottom" || rawSide === "left") {
@@ -126,7 +161,7 @@ class TourManager {
     if (rawAlign === "start" || rawAlign === "center" || rawAlign === "end") {
       popover.align = rawAlign
     }
-    return popover
+    return withCodapSide(popover)
   }
 
   /** Send a notification to the owning plugin */
@@ -148,10 +183,17 @@ class TourManager {
     return out
   }
 
+  /** Ends the active tour or highlight. Callbacks the engine fires while tearing down are ignored. */
+  private endActive() {
+    const active = this.active
+    this.active = null
+    active?.engineInstance.destroy()
+  }
+
   /** Cancel the current active tour/highlight, notifying the owner if needed */
   cancelActive() {
     if (!this.active) return
-    const { type, engineInstance, ownerTile } = this.active
+    const { type, ownerTile } = this.active
     if (type === "tour") {
       if (ownerTile) {
         const notification: Record<string, unknown> = {
@@ -179,8 +221,7 @@ class TourManager {
         ...this.active.highlightTarget
       })
     }
-    engineInstance.destroy()
-    this.active = null
+    this.endActive()
   }
 
   /** Highlight a single element */
@@ -188,15 +229,16 @@ class TourManager {
     this.cancelActive()
 
     const { element, targetProp } = this.resolveTarget(values)
-    if (!element) return { success: true as const }
+    if (!isShowable(element)) return { success: true as const }
 
-    const popover = this.buildPopover(values)
-    const engineObj = createTourEngine({
+    const isCurrent = () => this.active?.engineInstance === engineObj
+    const engineObj = createCoachmarksEngine({
+      ...codapPresentation("highlight"),
       allowClose: true,
       allowKeyboardControl: true,
-      onCancelRequested: () => this.cancelActive(),
+      onCancelRequested: () => { if (isCurrent()) this.cancelActive() },
       onDestroyed: () => {
-        if (this.active?.type !== "highlight") return
+        if (!isCurrent() || this.active?.type !== "highlight") return
         const { ownerTile, highlightId, highlightTarget } = this.active
         if (ownerTile) {
           this.notify(ownerTile, {
@@ -214,7 +256,7 @@ class TourManager {
       highlightId: values.id, highlightTarget: targetProp
     }
 
-    engineObj.highlight({ element: element as HTMLElement, popover })
+    engineObj.highlight({ element, popover: this.buildPopover(values) })
 
     this.notify(tile, {
       operation: "highlightUpdate", type: "highlighted",
@@ -236,8 +278,7 @@ class TourManager {
           ...this.active.highlightTarget
         })
       }
-      this.active.engineInstance.destroy()
-      this.active = null
+      this.endActive()
     }
     return { success: true as const }
   }
@@ -253,10 +294,10 @@ class TourManager {
     for (let i = 0; i < originalSteps.length; i++) {
       const step = originalSteps[i]
       const { element } = this.resolveTarget(step)
-      if (!element) continue
+      if (!isShowable(element)) continue
       filteredSteps.push({
         engineStep: {
-          element: element as HTMLElement,
+          element,
           popover: this.buildPopover(step),
         },
         originalIndex: i,
@@ -276,7 +317,9 @@ class TourManager {
     let currentFilteredIdx = 0
     const filteredToOriginalIndex = filteredSteps.map(s => s.originalIndex)
 
-    const engineObj = createTourEngine({
+    const isCurrent = () => this.active?.engineInstance === engineObj
+    const engineObj = createCoachmarksEngine({
+      ...codapPresentation("tour"),
       ...defaultTourOptions,
       ...(values.showButtons != null && { showButtons: values.showButtons }),
       ...(values.showProgress != null && { showProgress: values.showProgress }),
@@ -290,8 +333,8 @@ class TourManager {
       ...(values.nextBtnText != null && { nextBtnText: values.nextBtnText }),
       ...(values.prevBtnText != null && { prevBtnText: values.prevBtnText }),
       ...(values.doneBtnText != null && { doneBtnText: values.doneBtnText }),
-      steps: filteredSteps.map(s => s.engineStep),
       onHighlightStarted: (_el, _step, { state }) => {
+        if (!isCurrent()) return
         currentFilteredIdx = state.activeIndex ?? 0
         if (this.active) {
           this.active.currentFilteredIdx = currentFilteredIdx
@@ -308,6 +351,9 @@ class TourManager {
         })
       },
       onDeselected: () => {
+        // A step left before its popover was positioned never sent stepStarted.
+        if (!isCurrent() || !this.active?.hasStartedStep) return
+        this.active.hasStartedStep = false
         const origIdx = filteredToOriginalIndex[currentFilteredIdx]
         const input = filteredSteps[currentFilteredIdx].input
         this.notify(tile, {
@@ -319,13 +365,14 @@ class TourManager {
         })
       },
       onDestroyed: () => {
+        if (!isCurrent()) return
         this.notify(tile, {
           operation: "tourUpdate", tourId, type: "completed",
           totalSteps: originalSteps.length, visibleSteps: filteredSteps.length
         })
         this.active = null
       },
-      onCancelRequested: () => { this.cancelActive() }
+      onCancelRequested: () => { if (isCurrent()) this.cancelActive() }
     })
 
     this.active = {
@@ -337,7 +384,7 @@ class TourManager {
       hasStartedStep: false,
     }
 
-    engineObj.drive()
+    engineObj.drive(filteredSteps.map(s => s.engineStep))
     return { success: true as const, values: { tourId } }
   }
 
@@ -397,31 +444,31 @@ class TourManager {
       } else if (step.element) {
         el = step.element
       }
-      if (!el) continue
-      resolvedSteps.push({ element: el, popover: step.popover })
+      if (!isShowable(el)) continue
+      resolvedSteps.push({ element: el, popover: withCodapSide(step.popover) })
     }
     if (resolvedSteps.length === 0) return
 
-    const engineObj = createTourEngine({
+    const isCurrent = () => this.active?.engineInstance === engineObj
+    const engineObj = createCoachmarksEngine({
+      ...codapPresentation("tour"),
       ...defaultTourOptions,
       ...config.options,
-      steps: resolvedSteps,
-      onDestroyed: () => { this.active = null },
-      onCancelRequested: () => { this.cancelActive() }
+      onDestroyed: () => { if (isCurrent()) this.active = null },
+      onCancelRequested: () => { if (isCurrent()) this.cancelActive() }
     })
 
     this.active = {
       type: "tour", engineInstance: engineObj, ownerTile: null
     }
 
-    engineObj.drive()
+    engineObj.drive(resolvedSteps)
   }
 
   /** Clean up any active tour/highlight owned by a disconnecting plugin tile */
   cleanupForTile(tile: ITileModel) {
     if (this.active?.ownerTile === tile) {
-      this.active.engineInstance.destroy()
-      this.active = null
+      this.endActive()
     }
   }
 

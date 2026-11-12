@@ -1,6 +1,5 @@
-// tour-manager imports the tour-engine and styles; mock them to avoid loading the real engine
-jest.mock("./tour-engine", () => ({ createTourEngine: jest.fn() }))
-jest.mock("./tour-styles.scss", () => ({}))
+// tour-manager imports coachmarks; mock it to avoid loading the real engine
+jest.mock("@concord-consortium/coachmarks", () => ({ createCoachmarksEngine: jest.fn(), isLaidOut: jest.fn() }))
 
 import { sanitizeHighlightValues, sanitizeTourValues, pickString, pickNumber } from "./tour-sanitize"
 

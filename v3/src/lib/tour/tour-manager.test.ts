@@ -1,6 +1,6 @@
 import { ITileModel } from "../../models/tiles/tile-model"
 
-// --- tour-engine mock ---
+// --- coachmarks mock ---
 const mockDrive = jest.fn()
 const mockHighlight = jest.fn()
 const mockDestroy = jest.fn()
@@ -8,25 +8,39 @@ const mockMoveNext = jest.fn()
 const mockMovePrevious = jest.fn()
 const mockMoveTo = jest.fn()
 const mockRefresh = jest.fn()
+const mockIsLaidOut = jest.fn((_el: unknown) => true)
 let capturedConfig: any = {}
 
+// Like coachmarks, destroy() fires onDeselected and onDestroyed, and Next on the last
+// step tears the engine down.
 const mockEngine = jest.fn((config: any) => {
   capturedConfig = config
+  let steps: unknown[] = []
+  let index = 0
+  const destroy = () => {
+    mockDestroy()
+    config.onDeselected?.()
+    config.onDestroyed?.()
+  }
   return {
-    drive: mockDrive,
-    highlight: mockHighlight,
-    destroy: mockDestroy,
-    moveNext: mockMoveNext,
+    drive: (s: unknown[]) => { steps = s; index = 0; mockDrive(s) },
+    highlight: (step: unknown) => { steps = [step]; index = 0; mockHighlight(step) },
+    destroy,
+    moveNext: () => {
+      mockMoveNext()
+      if (index >= steps.length - 1) destroy()
+      else index++
+    },
     movePrevious: mockMovePrevious,
     moveTo: mockMoveTo,
     refresh: mockRefresh,
   }
 })
 
-jest.mock("./tour-engine", () => ({
-  createTourEngine: (config: unknown) => mockEngine(config)
+jest.mock("@concord-consortium/coachmarks", () => ({
+  createCoachmarksEngine: (config: unknown) => mockEngine(config),
+  isLaidOut: (el: unknown) => mockIsLaidOut(el)
 }))
-jest.mock("./tour-styles.scss", () => ({}))
 
 // --- Mock resolveElement ---
 const mockResolveElement = jest.fn()
@@ -91,6 +105,8 @@ describe("TourManager", () => {
     mockBroadcastMessage.mockClear()
     mockResolveElement.mockClear()
     mockFindTileFromNameOrId.mockClear()
+    mockIsLaidOut.mockClear()
+    mockIsLaidOut.mockImplementation(() => true)
     capturedConfig = {}
 
     // Default: elements exist in DOM
@@ -425,7 +441,7 @@ describe("TourManager", () => {
         ]
       })
 
-      const steps = capturedConfig.steps
+      const steps = mockDrive.mock.calls[0][0]
       expect(steps).toHaveLength(1)
     })
 
@@ -954,17 +970,14 @@ describe("TourManager", () => {
       expect(capturedConfig.disableButtons).toEqual(["previous"])
     })
 
-    it("does not include options that are not provided", () => {
+    it("does not include options that are not provided and have no CODAP default", () => {
       const tile = makeTile()
       tourManager.startTour(tile, { steps: [{ selector: ".s" }] })
 
       expect(capturedConfig.animate).toBeUndefined()
-      expect(capturedConfig.smoothScroll).toBeUndefined()
       expect(capturedConfig.popoverOffset).toBeUndefined()
-      expect(capturedConfig.progressText).toBeUndefined()
-      expect(capturedConfig.nextBtnText).toBeUndefined()
-      expect(capturedConfig.prevBtnText).toBeUndefined()
       expect(capturedConfig.disableButtons).toBeUndefined()
+      expect(capturedConfig.showButtons).toBeUndefined()
     })
   })
 
@@ -994,6 +1007,26 @@ describe("TourManager", () => {
   // The "Feature Tour" has been removed from the help menu but these tests are a good
   // way to exercise the tour logic without needing to set up a plugin tour
   describe("runInternalTour", () => {
+    it("skips steps whose target is not laid out and places popovers on the right by default", () => {
+      const hidden = document.createElement("div")
+      jest.spyOn(document, "querySelector").mockImplementation((sel: string) =>
+        sel === ".hidden" ? hidden : document.createElement("div"))
+      mockIsLaidOut.mockImplementation(el => el !== hidden)
+
+      tourManager.runInternalTour({
+        steps: [
+          { element: "body", popover: { description: "A" } },
+          { element: ".hidden" },
+          { element: "body", popover: { side: "left" } }
+        ]
+      })
+
+      const steps = mockDrive.mock.calls[0][0]
+      expect(steps).toHaveLength(2)
+      expect(steps[0].popover.side).toBe("right")
+      expect(steps[1].popover.side).toBe("left")
+    })
+
     it("runs a feature tour with no ownerTile", () => {
       tourManager.runInternalTour({
         options: { showProgress: true },
@@ -1047,7 +1080,7 @@ describe("TourManager", () => {
         ]
       })
 
-      expect(capturedConfig.steps).toHaveLength(1)
+      expect(mockDrive.mock.calls[0][0]).toHaveLength(1)
     })
 
     it("does not launch when all steps are filtered", () => {
@@ -1093,6 +1126,178 @@ describe("TourManager", () => {
       expect(capturedConfig.showProgress).toBe(false)
       // Other defaults still apply
       expect(capturedConfig.allowClose).toBe(true)
+    })
+  })
+
+  describe("CODAP presentation", () => {
+    it("passes CODAP's defaults to a tour engine", () => {
+      tourManager.startTour(makeTile(), { steps: [{ selector: ".s" }] })
+
+      expect(capturedConfig.initialFocus).toBe("none")
+      expect(capturedConfig.parseMarkdown).toBe(false)
+      expect(capturedConfig.showAvatar).toBe(false)
+      expect(capturedConfig.smoothScroll).toBe(false)
+      expect(capturedConfig.doneBtnText).toBe("Got it!")
+      expect(capturedConfig.nextBtnText).toBe("Next")
+      expect(capturedConfig.prevBtnText).toBe("Previous")
+      expect(capturedConfig.ariaLabel).toBe("Tour step")
+      expect(capturedConfig.closeBtnAriaLabel).toBe("Close tour")
+      expect(capturedConfig.progressText).toBe("{{current}} of {{total}}")
+    })
+
+    it("uses Done as a highlight's last-step label", () => {
+      tourManager.highlight(makeTile(), { selector: ".s" })
+
+      expect(capturedConfig.doneBtnText).toBe("Done")
+      expect(capturedConfig.initialFocus).toBe("none")
+    })
+
+    it("lets a plugin's smoothScroll and doneBtnText override CODAP's defaults", () => {
+      tourManager.startTour(makeTile(), {
+        steps: [{ selector: ".s" }], smoothScroll: true, doneBtnText: "Finish"
+      })
+
+      expect(capturedConfig.smoothScroll).toBe(true)
+      expect(capturedConfig.doneBtnText).toBe("Finish")
+    })
+
+    it("places a popover on the right unless the step sets a side", () => {
+      tourManager.startTour(makeTile(), {
+        steps: [
+          { selector: ".a", popover: { title: "A" } },
+          { selector: ".b" },
+          { selector: ".c", popover: { title: "C", side: "left" } }
+        ]
+      })
+
+      const steps = mockDrive.mock.calls[0][0]
+      expect(steps[0].popover.side).toBe("right")
+      expect(steps[1].popover.side).toBe("right")
+      expect(steps[2].popover.side).toBe("left")
+    })
+  })
+
+  describe("targets without a layout box", () => {
+    it("skips a tour step whose target is not laid out", () => {
+      const hidden = document.createElement("div")
+      jest.spyOn(document, "querySelector").mockImplementation((sel: string) =>
+        sel === ".hidden" ? hidden : document.createElement("div"))
+      mockIsLaidOut.mockImplementation(el => el !== hidden)
+
+      tourManager.startTour(makeTile(), {
+        steps: [{ selector: ".a" }, { selector: ".hidden" }, { selector: ".c", id: "c" }]
+      })
+      expect(mockDrive.mock.calls[0][0]).toHaveLength(2)
+      mockBroadcastMessage.mockClear()
+
+      capturedConfig.onHighlightStarted(null, null, { state: { activeIndex: 1 } })
+
+      const n = lastNotification()
+      expect(n.type).toBe("stepStarted")
+      expect(n.stepIndex).toBe(2)
+      expect(n.id).toBe("c")
+      expect(n.totalSteps).toBe(3)
+      expect(n.visibleSteps).toBe(2)
+    })
+
+    it("does not highlight a target that is not laid out", () => {
+      mockIsLaidOut.mockImplementation(() => false)
+
+      tourManager.highlight(makeTile(), { selector: ".s" })
+
+      expect(mockEngine).not.toHaveBeenCalled()
+      expect(mockBroadcastMessage).not.toHaveBeenCalled()
+      expect(tourManager.isActive).toBe(false)
+    })
+  })
+
+  describe("notifications around engine teardown", () => {
+    function startedTour(tile = makeTile()) {
+      tourManager.startTour(tile, {
+        steps: [{ selector: ".a", id: "a" }, { selector: ".b", id: "b" }]
+      })
+      const config = capturedConfig
+      config.onHighlightStarted(null, null, { state: { activeIndex: 0 } })
+      mockBroadcastMessage.mockClear()
+      return config
+    }
+
+    it("sends only cancelled when the user closes the tour", () => {
+      const config = startedTour()
+
+      config.onCancelRequested()
+
+      expect(allNotifications().map((n: any) => n.type)).toEqual(["cancelled"])
+      expect(lastNotification().stepIndex).toBe(0)
+    })
+
+    it("sends only cancelled when the plugin ends the tour", () => {
+      const tile = makeTile()
+      startedTour(tile)
+
+      tourManager.endTour(tile)
+
+      expect(allNotifications().map((n: any) => n.type)).toEqual(["cancelled"])
+    })
+
+    it("sends only cancelled to the owner when another tour replaces it", () => {
+      startedTour(makeTile("tile1"))
+
+      tourManager.startTour(makeTile2("tile2"), { steps: [{ selector: ".x" }] })
+
+      expect(allNotifications().map((n: any) => n.type)).toEqual(["cancelled"])
+    })
+
+    it("sends one highlightCleared when a tour replaces a highlight", () => {
+      tourManager.highlight(makeTile("tile1"), { selector: ".h", id: "h" })
+      mockBroadcastMessage.mockClear()
+
+      tourManager.startTour(makeTile2("tile2"), { steps: [{ selector: ".x" }] })
+
+      expect(allNotifications().map((n: any) => n.type)).toEqual(["highlightCleared"])
+    })
+
+    it("sends stepEnded for the last step and then completed when the tour finishes", () => {
+      const config = startedTour()
+      const engine = mockEngine.mock.results[0].value
+      engine.moveNext()
+      config.onDeselected()
+      config.onHighlightStarted(null, null, { state: { activeIndex: 1 } })
+      mockBroadcastMessage.mockClear()
+
+      engine.moveNext()
+
+      const notes = allNotifications()
+      expect(notes.map((n: any) => n.type)).toEqual(["stepEnded", "completed"])
+      expect(notes[0].stepIndex).toBe(1)
+      expect(tourManager.isActive).toBe(false)
+    })
+
+    it("sends cancelled with no step fields when the next step's target has gone", () => {
+      const config = startedTour()
+
+      config.onDeselected()
+      config.onCancelRequested()
+
+      const notes = allNotifications()
+      expect(notes.map((n: any) => n.type)).toEqual(["stepEnded", "cancelled"])
+      expect(notes[0].stepIndex).toBe(0)
+      expect(notes[1].stepIndex).toBeUndefined()
+      expect(notes[1].id).toBeUndefined()
+    })
+
+    it("sends no stepEnded for a step left before it started", () => {
+      tourManager.startTour(makeTile(), {
+        steps: [{ selector: ".a" }, { selector: ".b" }, { selector: ".c", id: "c" }]
+      })
+      mockBroadcastMessage.mockClear()
+
+      capturedConfig.onDeselected()
+      capturedConfig.onHighlightStarted(null, null, { state: { activeIndex: 2 } })
+
+      const notes = allNotifications()
+      expect(notes.map((n: any) => n.type)).toEqual(["stepStarted"])
+      expect(notes[0].stepIndex).toBe(2)
     })
   })
 
