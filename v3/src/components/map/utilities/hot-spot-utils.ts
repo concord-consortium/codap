@@ -269,23 +269,39 @@ export function computeDensityGrid(kernels: IKernel[], region: IDensityGridRegio
   return grid
 }
 
-const kColorLUTSize = 256
+/**
+ * Returns the opacity multiplier for a cell with the given normalized density (density / maxDensity):
+ * 0 at or below kHotSpotFadeFloor, 1 at or above kHotSpotFadeFull, and smoothstep in between.
+ */
+export const kHotSpotFadeFloor = 0.02
+export const kHotSpotFadeFull = 0.35
+export function hotSpotFade(normalizedDensity: number) {
+  const x = Math.min(1, Math.max(0,
+    (normalizedDensity - kHotSpotFadeFloor) / (kHotSpotFadeFull - kHotSpotFadeFloor)))
+  return x * x * (3 - 2 * x)
+}
+
+export const kColorLUTSize = 256
 
 /**
  * Returns a lookup table of kColorLUTSize RGBA colors (4 bytes each) running from lowColor to highColor, sampled
- * with getChoroplethColors so the gradient matches CODAP's legend gradients. Future multi-stop gradients,
- * binning (getChoroplethColors with the bin count), and density-based opacity all plug in here.
+ * with getChoroplethColors so the gradient matches CODAP's legend gradients. Each entry's alpha is multiplied by
+ * hotSpotFade of its normalized density, so low densities fade to transparent. Future multi-stop gradients and
+ * binning (getChoroplethColors with the bin count) plug in here.
  */
 export function buildColorLUT(lowColor: string, highColor: string) {
   const lut = new Uint8ClampedArray(kColorLUTSize * 4)
   getChoroplethColors(lowColor, highColor, kColorLUTSize, { format: "rgba" }).forEach(({ r, g, b, a }, i) => {
+    const fade = hotSpotFade(i / (kColorLUTSize - 1))
     // Uint8ClampedArray rounds the unrounded channels
-    lut.set([r, g, b, a * 255], i * 4)
+    lut.set([r, g, b, a * fade * 255], i * 4)
   })
   return lut
 }
 
-/** Writes each grid cell's RGBA color to out, scaling density so 0 → the LUT's first entry and maxDensity → its last */
+/**
+ * Writes each grid cell's RGBA color to out, scaling density so 0 → the LUT's first entry and maxDensity → its last.
+ */
 export function colorizeDensityGrid(
   grid: Float32Array, maxDensity: number, lut: Uint8ClampedArray, out: Uint8ClampedArray
 ) {
