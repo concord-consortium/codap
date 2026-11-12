@@ -369,7 +369,6 @@ import { t } from "../../utilities/translation/translate"
 function codapPresentation(kind: "tour" | "highlight"): CreateCoachmarksEngineArgs {
   return {
     initialFocus: "none",
-    parseMarkdown: false,
     showAvatar: false,
     smoothScroll: false,
     ariaLabel: t("V3.Tour.stepRegion"),
@@ -423,7 +422,7 @@ Tests (`tour-manager.test.ts`):
   - `onDeselected` followed by `onCancelRequested` (the next step's target gone) sends `stepEnded` for the step left and then `cancelled` with no `stepIndex` (fails if `onDeselected` leaves `hasStartedStep` set, which repeats the ended step's index in `cancelled`).
   - `onDeselected` fired before the first `onHighlightStarted`, then `onHighlightStarted` for the third step (what a batched `startTour` plus `tourMoveTo` produces), sends only `stepStarted` with `stepIndex` 2 (fails without the `hasStartedStep` check, which sends `stepEnded` 0 for a step that never started).
   - A step whose target fails `isLaidOut` is skipped: `visibleSteps` drops by one and `stepIndex` values still refer to the original array (fails if the filter is removed). A highlight of such a target creates no engine and sends nothing.
-  - The engine receives `initialFocus: "none"`, `parseMarkdown: false`, `showAvatar: false`, `smoothScroll: false`, `doneBtnText` "Got it!" for a tour and "Done" for a highlight, and a `progressText` of `{{current}} of {{total}}`; a plugin's `smoothScroll: true` and `doneBtnText` override them.
+  - The engine receives `initialFocus: "none"`, no `parseMarkdown` (coachmarks' bold-only default), `showAvatar: false`, `smoothScroll: false`, `doneBtnText` "Got it!" for a tour and "Done" for a highlight, and a `progressText` of `{{current}} of {{total}}`; a plugin's `smoothScroll: true` and `doneBtnText` override them.
   - The existing "does not include options that are not provided" test expects `smoothScroll`, `progressText`, `nextBtnText` and `prevBtnText` to be undefined, which CODAP's defaults now set; it keeps its assertions only for the options CODAP has no default for (`animate`, `popoverOffset`, `disableButtons`, `showButtons`).
   - A step with no `side`, and a step with no popover text, reach `drive` with `side: "right"`; a plugin's `side: "left"` is kept.
 - `tour-sanitize.test.ts` and `tour-manager.test.ts` each mock `@concord-consortium/coachmarks` in place of `./tour-engine` and drop their `./tour-styles.scss` mock. Jest would not catch a leftover: the `.scss` mapping resolves the mocked path even after the deletion step removes the file. Its first-line comment ("tour-manager imports the tour-engine and styles") and `tour-manager.test.ts`'s `// --- tour-engine mock ---` heading are rewritten to name coachmarks.
@@ -575,7 +574,7 @@ Scenarios (each starts with `visitWithTestPlugin()` and `resetTourNotices()`, an
 5. The close button: the same, `cancelled` only.
 6. A highlight of `toolShelf.graph` with a title: `highlighted`; the button reads "Done"; clicking it sends one `highlightCleared`.
 7. A four-step tour whose second step targets an element the test adds with `display: none` and whose third step names a `testId` that does not exist: `stepStarted` reports `totalSteps` 4 and `visibleSteps` 2, the `stepIndex` values are 0 and then 3, and the tour runs to `completed`.
-8. Plain text: a description of `*x* [a](b)` shows exactly that text.
+8. Bold only: a description of `Click **Graph**, not *x* [a](b) <b>c</b>` shows "Graph" in one `<strong>` and the rest as written; a title of `**Title**` shows as written.
 9. UI notifications ignore the popover: with a monitor subscribed to `appear` and `disappear`, starting a tour and ending it with `endTour` (not a click, which is reported by design, R16), then waiting until the popover is gone, delivers no notice whose target testid starts with `coachmarks-`.
 10. With focus on the plugin iframe, starting a tour and moving with `tourPrevious` each put focus on `coachmarks-popover`; ArrowRight and Escape typed there move and cancel the tour (R15).
 
