@@ -276,6 +276,8 @@ describe("dateToEpoch", () => {
     expect(fn.evaluate({ x: date, unit: "ns" })).toBe(1700000000123000000)
     expect(fn.evaluate({ x: new Date(28333333 * 60000), unit: "min" })).toBe(28333333)
     expect(fn.evaluate({ x: date, unit: "hours" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: date, unit: "constructor" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: date, unit: "__proto__" })).toBe(UNDEF_RESULT)
   })
 
   it("converts numbers from epoch seconds to the given unit", () => {
@@ -322,6 +324,8 @@ describe("epochToDate", () => {
     expect(fn.evaluate({ x: "1700000000123456789", unit: "ns" })).toEqual(expected)
     expect(fn.evaluate({ x: "1700000000123456789", unit: "nanoseconds" })).toEqual(expected)
     expect(fn.evaluate({ x: 1700000000, unit: "hours" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: 1700000000, unit: "constructor" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: 1700000000, unit: "__proto__" })).toBe(UNDEF_RESULT)
   })
 
   it("converts whole microseconds exactly", () => {

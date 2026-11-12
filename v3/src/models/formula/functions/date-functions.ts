@@ -15,8 +15,10 @@ const kEpochUnits: Record<string, [number, number]> = {
   ns: [1, 1e6], nanoseconds: [1, 1e6]
 }
 
-function getEpochUnit(unit: FValue) {
-  return kEpochUnits[String(unit).trim().toLowerCase()] as [number, number] | undefined
+function getEpochUnit(unit: FValue): [number, number] | undefined {
+  const key = String(unit).trim().toLowerCase()
+  // Only own keys, so inherited names such as "constructor" and "__proto__" aren't treated as units
+  return Object.prototype.hasOwnProperty.call(kEpochUnits, key) ? kEpochUnits[key] : undefined
 }
 
 export const dateFunctions = {
