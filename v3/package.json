@@ -208,6 +208,7 @@
     "@codemirror/language": "^6.12.3",
     "@codemirror/view": "^6.41.1",
     "@concord-consortium/cloud-file-manager": "~2.3.2",
+    "@concord-consortium/coachmarks": "0.0.1-pre.12",
     "@concord-consortium/log-monitor": "^1.0.0",
     "@concord-consortium/mobx-state-tree": "^6.0.0-cc.1",
     "@concord-consortium/slate-editor": "^0.12.0",
