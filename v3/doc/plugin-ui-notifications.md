@@ -115,6 +115,10 @@ Top-level:
   native `disabled` or `aria-disabled="true"`. Omitted when enabled.
 - `target.interactionKind` (click / dblclick / drag / appear / disappear):
   ARIA `role` → `data-role` → omitted.
+- For click / dblclick, `label`, `disabled` and `interactionKind` describe the
+  clicked element's control: the nearest button, link, form field, element with a
+  widget `role` (such as `menuitem` or `tab`), or `data-role` element, else the
+  clicked element itself. Clicking the icon inside a button reports the button's.
 
 ## Target catalog
 

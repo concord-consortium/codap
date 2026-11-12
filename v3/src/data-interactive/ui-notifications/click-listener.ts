@@ -21,14 +21,24 @@ function updateRecentClick(region: UiRegion, componentId?: string) {
   recentClick = { timestampMs: Date.now(), region, componentId }
 }
 
+const kWidgetRoles = [
+  "button", "link", "menuitem", "menuitemcheckbox", "menuitemradio", "tab", "checkbox", "radio",
+  "switch", "option", "slider", "spinbutton", "combobox", "treeitem"
+]
+const kControlSelector = [
+  "button", "a[href]", "input", "select", "textarea", "summary", "[data-role]",
+  ...kWidgetRoles.map(role => `[role="${role}"]`)
+].join(",")
+
+/** A click on a control's icon or text describes the control: its label, disabled state and kind. */
 function buildClickTarget(el: Element): UiTarget {
+  const control = el.closest?.(kControlSelector) ?? el
   const target = buildTarget(el)
-  const label = resolveLabel(el)
+  const label = resolveLabel(control)
   if (label != null) target.label = label
-  const interactionKind = resolveInteractionKind(el)
-  if (interactionKind != null && target.interactionKind == null) target.interactionKind = interactionKind
-  const disabled = resolveDisabled(el)
-  if (disabled === true) target.disabled = true
+  const interactionKind = resolveInteractionKind(control)
+  if (interactionKind != null) target.interactionKind = interactionKind
+  if (resolveDisabled(control) === true) target.disabled = true
   return target
 }
 

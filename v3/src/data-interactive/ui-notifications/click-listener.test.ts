@@ -162,6 +162,51 @@ describe("click-listener", () => {
     expect(click?.target?.interactionKind).toBe("axis-drag-rect")
   })
 
+  it("describes the owning control when its icon is clicked", () => {
+    const { manager, delivered } = makeManagerWithCapture()
+    manager.register("plugin-A", { eventTypes: ["click", "dblclick"] })
+    installed = installClickListener(manager)
+
+    document.body.innerHTML = `
+      <div class="tool-shelf">
+        <button data-testid="tool-shelf-button-undo" aria-label="Undo" aria-disabled="true">
+          <svg><path d="M0 0"></path></svg>
+        </button>
+      </div>`
+    const path = document.querySelector("path")!
+    path.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+    path.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }))
+
+    const click = delivered.find(d => d.eventType === "click")
+    const dblclick = delivered.find(d => d.eventType === "dblclick")
+    for (const notice of [click, dblclick]) {
+      expect(notice?.target?.testId).toBe("tool-shelf-button-undo")
+      expect(notice?.target?.label).toBe("Undo")
+      expect(notice?.target?.disabled).toBe(true)
+    }
+  })
+
+  it("takes the label of a widget-role control, not of a surrounding dialog", () => {
+    const { manager, delivered } = makeManagerWithCapture()
+    manager.register("plugin-A", { eventTypes: ["click"] })
+    installed = installClickListener(manager)
+
+    document.body.innerHTML = `
+      <div role="dialog" aria-label="Settings">
+        <div role="menuitem" data-testid="item"><span>Rename</span></div>
+        <p data-testid="text">Some text here</p>
+      </div>`
+    document.querySelector("span")!.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+    document.querySelector("p")!.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+
+    const clicks = delivered.filter(d => d.eventType === "click")
+    expect(clicks.length).toBe(2)
+    expect(clicks[0].target?.label).toBe("Rename")
+    expect(clicks[0].target?.interactionKind).toBe("menuitem")
+    expect(clicks[1].target?.label).toBe("Some text here")
+    expect(clicks[1].target?.interactionKind).toBeUndefined()
+  })
+
   it("dblclick fires independent of click", () => {
     const { manager, delivered } = makeManagerWithCapture()
     manager.register("plugin-A", { eventTypes: ["dblclick"] })
