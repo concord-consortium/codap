@@ -9,7 +9,7 @@ import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
 import { DIResources, DISuccessResult, DIValues } from "../data-interactive-types"
 import { DICaseValues, DIFullCase, DIUpdateCase, DIUpdateItemResult } from "../data-interactive-data-set-types"
 import { getV2ItemResult, getCaseRequestResultValues } from "../data-interactive-type-utils"
-import { attrNamesToIds } from "../data-interactive-utils"
+import { resolveAttrNames } from "../data-interactive-utils"
 import {
   caseNotFoundResult, dataContextNotFoundResult, fieldRequiredResult, itemNotFoundResult, valuesRequiredResult
 } from "./di-results"
@@ -107,7 +107,7 @@ export function updateCaseBy(
     _values = updateCase.values
   }
 
-  const updatedAttributes = attrNamesToIds(_values, dataContext)
+  const { caseValues: updatedAttributes, unknownNames } = resolveAttrNames(_values, dataContext)
   const hasUpdates = Object.keys(updatedAttributes).length > 0
   dataContext.validateCases()
   const priorCaseIds = new Set(dataContext.caseInfoMap.keys())
@@ -132,12 +132,7 @@ export function updateCaseBy(
 
   if (itemReturnStyle) return itemResult({ changedCases: [toV2Id(aCase.__id__)] })
 
-  // as in V2, a name that matches no attribute makes the reply report failure, though the other values are set
-  return { success: !hasUnknownAttributeName(_values, dataContext) }
-}
-
-function hasUnknownAttributeName(values: DICaseValues, dataContext: IDataSet) {
-  return Object.keys(values).some(name => !dataContext.attrIDFromName(name))
+  return { success: unknownNames.length === 0 }
 }
 
 export function updateCasesBy(resources: DIResources, values?: DIValues, itemReturnStyle?: boolean) {
@@ -167,9 +162,9 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
       if (id && v3Id && (dcItem || dcCase) && (aCase.values || !itemReturnStyle)) {
         caseIDs.push(id)
         if (aCase.values) {
-          const updatedAttributes = attrNamesToIds(aCase.values, dataContext)
+          const { caseValues: updatedAttributes, unknownNames } = resolveAttrNames(aCase.values, dataContext)
           updatedCases.push({ ...updatedAttributes, __id__: v3Id })
-          if (hasUnknownAttributeName(aCase.values, dataContext)) unknownAttributeName = true
+          if (unknownNames.length > 0) unknownAttributeName = true
           if (Object.keys(updatedAttributes).length > 0) {
             changedIds.add(v3Id)
             // a case id (which `update item` also accepts) stands for the items setCaseValues changes:
@@ -201,7 +196,6 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
   if (caseIDs.length > 0) {
     if (itemReturnStyle) return itemResult({ changedCases: caseIDs })
 
-    // as in V2, a name that matches no attribute makes the reply report failure, though the cases are changed
     return { success: !unknownAttributeName, caseIDs }
   }
 

@@ -297,14 +297,17 @@ describe("DataInteractive CaseHandler", () => {
     expect(result).toEqual({ success: true, caseIDs: [toV2Id(caseIdOf(0))] })
     expect(a3.value(0)).toBe(10)
 
-    // Update multiple cases
+    // Update multiple cases, including attributes of the collections above through a child case
+    const [case1, case2] = [caseIdOf(1), caseIdOf(2)]
     const result2 = handler.update?.({ dataContext: dataset, collection }, [
-      { id: toV2Id(caseIdOf(1)), values: { a3: 20 } },
-      { id: toV2Id(caseIdOf(2)), values: { a3: 30 } }
+      { id: toV2Id(case1), values: { a3: 20 } },
+      { id: toV2Id(case2), values: { a1: "c", a2: "c", a3: 30 } }
     ] as DIValues)
-    expect(result2).toEqual({ success: true, caseIDs: [toV2Id(caseIdOf(1)), toV2Id(caseIdOf(2))] })
+    expect(result2).toEqual({ success: true, caseIDs: [toV2Id(case1), toV2Id(case2)] })
     expect(a3.value(1)).toBe(20)
     expect(a3.value(2)).toBe(30)
+    expect(dataset.getAttributeByName("a1")!.value(2)).toBe("c")
+    expect(a2.value(2)).toBe("c")
 
     // as in V2, a case sent with no values is still listed
     const result3 = handler.update?.({ dataContext: dataset, collection }, [
@@ -313,10 +316,13 @@ describe("DataInteractive CaseHandler", () => {
     expect((result3 as DISuccessResult).caseIDs).toEqual([toV2Id(caseIdOf(3)), toV2Id(caseIdOf(1))])
 
     // as in V2, a name that matches no attribute makes the reply report failure, but the other values are set
-    const result4 = handler.update?.({ dataContext: dataset, collection },
-      [{ id: toV2Id(caseIdOf(0)), values: { a3: 11, noSuchAttribute: 1 } }] as DIValues)
-    expect(result4).toEqual({ success: false, caseIDs: [toV2Id(caseIdOf(0))] })
+    const result4 = handler.update?.({ dataContext: dataset, collection }, [
+      { id: toV2Id(caseIdOf(0)), values: { a3: 11, noSuchAttribute: 1 } },
+      { id: toV2Id(caseIdOf(1)), values: { a3: 23 } }
+    ] as DIValues)
+    expect(result4).toEqual({ success: false, caseIDs: [toV2Id(caseIdOf(0)), toV2Id(caseIdOf(1))] })
     expect(a3.value(0)).toBe(11)
+    expect(a3.value(1)).toBe(23)
 
     // as in V2, only case ids are accepted: an item id that matches no case is skipped
     const itemId = dataset.itemIds[4]
