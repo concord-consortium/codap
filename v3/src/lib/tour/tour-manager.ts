@@ -12,7 +12,7 @@ import { ITileModel } from "../../models/tiles/tile-model"
 import { uniqueId } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
 import { resolveElement, TourElementKey } from "./tour-elements"
-import { defaultTourOptions, ITourConfig, ITourPopover } from "./tour-types"
+import { defaultTourOptions, ITourConfig, ITourOptions, ITourPopover } from "./tour-types"
 
 export interface TourStepInput {
   tourKey?: string
@@ -25,23 +25,8 @@ export interface TourStepInput {
 
 export interface HighlightRequestValues extends TourStepInput {}
 
-export interface TourRequestValues {
+export interface TourRequestValues extends ITourOptions {
   steps: TourStepInput[]
-  // Navigation options
-  showButtons?: ("next" | "previous" | "close")[]
-  disableButtons?: ("next" | "previous")[]
-  showProgress?: boolean
-  allowKeyboardControl?: boolean
-  allowClose?: boolean
-  // Presentation options
-  animate?: boolean
-  smoothScroll?: boolean
-  popoverOffset?: number
-  // Label customization
-  progressText?: string
-  nextBtnText?: string
-  prevBtnText?: string
-  doneBtnText?: string
 }
 
 /** CODAP's look and wording for a tour or highlight. A plugin's own options are spread over these. */
