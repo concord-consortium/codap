@@ -195,6 +195,15 @@ describe("API data changes send dataContextChangeNotice", () => {
     }])
   })
 
+  it("update case with values given as an array sends updateCases", async () => {
+    const caseId = childCase(0)
+    await request("update", "collection[collection3].case", [{ id: toV2Id(caseId), values: [10, -10] }])
+    expect(changes()).toEqual([{
+      operation: "updateCases",
+      result: { success: true, caseIDs: [toV2Id(caseId)], cases: [expect.objectContaining({ __id__: caseId })] }
+    }])
+  })
+
   it("create item sends createCases for each collection, then createItems", async () => {
     await request("create", "item", [{ a1: "new", a2: "w", a3: 50, a4: -50 }])
     // a new parent, a new middle case and a new child case
