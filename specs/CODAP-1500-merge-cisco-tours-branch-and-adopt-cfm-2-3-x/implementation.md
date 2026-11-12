@@ -63,29 +63,32 @@ R3 has no unit test (jsdom does not apply CSS to touch behavior); it is checked 
 **Estimated diff size**: ~50 lines
 
 ```tsx
-// Gate on the consumer's option, not the derived `initialFocus` (which actionGated forces to
-// "none"), so gated tours keep their current behavior.
 const focusNone = (opts.initialFocus ?? "popover") === "none";
 const nextBtnRef = useRef<HTMLButtonElement>(null);
 // The step Previous was used on while focus was in the popover, or null.
 const previousFrom = useRef<number | null>(null);
-// Shared by the Previous button and ArrowLeft. Focus elsewhere on the page stays where it is.
+// Shared by the Previous button and ArrowLeft.
 const movePrevious = () => {
-  previousFrom.current = popoverEl?.contains(document.activeElement)
-    ? activeIndex
-    : null;
+  previousFrom.current =
+    activeIndex > 0 && popoverEl?.contains(document.activeElement)
+      ? activeIndex
+      : null;
   store.getSnapshot().movePrevious();
 };
 useEffect(() => {
-  if (previousFrom.current === null || previousFrom.current === activeIndex)
-    return;
+  const from = previousFrom.current;
   previousFrom.current = null;
+  if (from === null || from === activeIndex) return;
   if (!focusNone || !popoverEl) return;
-  if (!popoverEl.contains(document.activeElement)) {
-    (nextBtnRef.current ?? popoverEl).focus({ preventScroll: true });
+  const active = document.activeElement;
+  if (active === null || active === document.body) {
+    const next = nextBtnRef.current;
+    (next && !next.disabled ? next : popoverEl).focus({ preventScroll: true });
   }
 }, [activeIndex, popoverEl, focusNone]);
 ```
+
+The gate reads the consumer's option rather than the derived `initialFocus` (which `actionGated` forces to `"none"`). The record is made only when a move can happen (not on the first step), and the effect refocuses only when focus has dropped to `<body>`: a Previous that did not move (ArrowLeft on the first step, or a step still waiting for its target) would otherwise leave a record that pulled focus off the page on a later, unrelated step change.
 
 The effect reads `activeIndex` in its body, so biome's `useExhaustiveDependencies` (part of `npm run check`, the pre-commit hook) accepts it without a suppression; a boolean flag with `activeIndex` only in the dependency list is rejected as an unnecessary dependency.
 
@@ -94,9 +97,14 @@ The Previous button's `onClick` and `useKeyboardControl`'s `onPrev` both become 
 Tests, each a two-step tour under `initialFocus: "none"` moved to step 2 (and each engine destroyed in `afterEach`, since a live engine's document keydown listener calls `preventDefault` and silences the next test's engine):
 - focus Previous and click it: `document.activeElement` is the Next button;
 - focus Previous and press ArrowLeft: the same (fails if `onPrev` bypasses `movePrevious`);
-- with focus on `<body>`, press ArrowLeft: the tour is on step 1 and focus stays on `<body>` (fails if the step is recorded without checking where focus is).
+- with focus on `<body>`, press ArrowLeft: the tour is on step 1 and focus stays on `<body>` (fails if the step is recorded without checking where focus is);
+- with `showButtons: ["previous", "close"]`, click Previous: focus is on the popover;
+- with `disableButtons: ["next"]`, click Previous: focus is on the popover (a disabled button cannot take focus);
+- on step 1 with focus on Next, press ArrowLeft, focus an input on the page, then `moveNext()`: the input keeps focus;
+- on step 1 with focus on Next, press ArrowLeft, blur, then `moveNext()`: focus stays on `<body>` (fails without the first-step check);
+- on a step whose `moveNext()` is waiting for a selector target, click Previous (held by the wait), focus an input, then add the target: the input keeps focus (fails without the `<body>` check).
 
-A further test under the default `initialFocus` asserts the existing behavior (the popover holds focus), so the new effect cannot change it.
+A further test under the default `initialFocus` asserts the end state (the popover holds focus). It cannot isolate the `focusNone` gate, since the `initialFocus` effect runs after the new one and refocuses either way.
 
 ---
 
@@ -120,7 +128,11 @@ const focusPulledForStep = useRef<string | null>(null);
 // in the existing pullFocusFromIframe effect, after popoverEl.focus(...):
 //   focusPulledForStep.current = `${seqId}:${activeIndex}`;
 
-const announcement = [spec.popover?.title, spec.popover?.description]
+const announcedDescription =
+  spec.popover?.description && (opts.parseMarkdown ?? true)
+    ? markdownToPlainText(spec.popover.description)
+    : spec.popover?.description;
+const announcement = [spec.popover?.title, announcedDescription]
   .filter(Boolean)
   .join(" ");
 const [liveText, setLiveText] = useState("");
@@ -136,6 +148,8 @@ useEffect(() => {
   return () => window.clearTimeout(timer);
 }, [announceSteps, announcement, stepKey]);
 ```
+
+`markdownToPlainText`, added to `src/markdown.tsx` with a unit test, drops the bold delimiters `renderMarkdown` hides, so the region says what the popover shows.
 
 Rendered as a sibling after `.coachmarks-popover-content` (not inside it, where it would break the `.coachmarks-popover-description:first-child` rule):
 
@@ -171,7 +185,9 @@ Tests (fake timers):
 - a highlight (single step) is announced the same way;
 - under the default `initialFocus` no element with the live-region testid renders;
 - under `actionGated: true` with no `initialFocus` option, no region renders (gated tours unchanged, R9);
-- with an iframe focused when the step starts, the region stays empty for that step.
+- with an iframe focused when the step starts, the region stays empty for that step;
+- a step with a companion popover renders one region, on the primary;
+- a `**bold**` description is announced without the asterisks.
 
 ---
 
@@ -208,6 +224,7 @@ Run `npm run build` before committing: `npm run check`'s `tsc` type-checks `test
 
 **Files affected**:
 - `src/styles/codap.css`
+- `demo/theme-context.tsx`: the codap theme's `closeIcon` becomes CODAP's close-tile SVG (with `className="coachmarks-popover-close-icon"`), in place of a text glyph the rewritten theme no longer styles.
 - `README.md`: the Theming section, if it describes the codap theme's look.
 
 **Estimated diff size**: ~120 lines
@@ -223,6 +240,7 @@ Target values, with their CODAP source:
 | popover | shadow | `0 2px 10px rgba(0, 0, 0, 0.2)` | |
 | popover | padding | `16px 32px 16px 16px` (on `.coachmarks-popover-content`; `.coachmarks-popover-title` and the first-child description get `padding-right: 0` because the 32px right padding already clears the close button) | |
 | popover | font | `Montserrat, sans-serif` | |
+| popover | max-width | `370px` (CODAP's popover is content-box with `max-width: 320px`; coachmarks' is border-box, so 320 plus the 48px of horizontal padding and the 2px border) | |
 | arrow | fill and stroke | `--coachmarks-popover-bg: #f0f0f0`, `--coachmarks-popover-border: #0081a9` | |
 | title | font | `"museo-sans", sans-serif`, 14px, 700, `#006c8e`, margin-bottom 8px | `vars.$icon-fill-dark` |
 | description | font | 13px, 400, line-height 1.5, `#222` | |
