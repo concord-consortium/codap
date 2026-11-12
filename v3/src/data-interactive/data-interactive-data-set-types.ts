@@ -55,7 +55,7 @@ export interface DICase {
   collectionID?: number
   collectionName?: string
   caseID?: number
-  itemID?: number | null
+  itemID?: number
 }
 export type DICollection = Partial<ICodapV2Collection>
 export type DIDataContext = Partial<ICodapV2DataContext>
@@ -78,7 +78,7 @@ export interface DICreateCollection {
 }
 export interface DINewCase {
   id?: number
-  itemID?: number | null
+  itemID?: number
 }
 export interface DIUpdateCase {
   values: DICaseValues

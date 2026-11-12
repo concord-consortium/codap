@@ -192,6 +192,11 @@ This resource takes no `notify` requests of its own.
 moves the case to a different parent case also sends `createCases` for the cases it creates; v2
 sent a second `updateCases` listing them instead.
 
+An `update` that replies `success: false` because a name matches no attribute still sends
+`updateCases` for the values it did set, and that notice's `result` says `success: true`. v2 sent
+no `updateCases` for the change itself, since it had failed; it sent one only for the regrouping
+when an attribute of a parent collection changed.
+
 ## Errors
 
 | Error | Condition |

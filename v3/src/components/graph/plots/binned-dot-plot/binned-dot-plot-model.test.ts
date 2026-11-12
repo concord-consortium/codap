@@ -1,10 +1,10 @@
 import { BinnedDotPlotModel } from "./binned-dot-plot-model"
 
+const kDefaultValueMap: Record<string, number> = { c1: 0.5, c2: 3.5 }
+let mockValueMap = kDefaultValueMap
+
 jest.mock("../../../data-display/data-display-value-utils", () => ({
-  dataDisplayGetNumericValue: (_dataset: unknown, caseID: string) => {
-    const valueMap: Record<string, number> = { c1: 0.5, c2: 3.5 }
-    return valueMap[caseID]
-  }
+  dataDisplayGetNumericValue: (_dataset: unknown, caseID: string) => mockValueMap[caseID]
 }))
 
 describe("BinnedDotPlotModel", () => {
@@ -79,6 +79,30 @@ describe("BinnedDotPlotModel", () => {
       } as any)
       const result = m.countAdornmentValues({ cellKey: {} })
       expect(result.numHorizontalRegions).toBe(8) // 2 horizontal regions * 4 bins (x-primary default)
+    })
+
+    it("counts a value on a bin edge in the same bin it is plotted in", () => {
+      // dates in seconds with 0.2 s bins, so minDate + 0.6 is on the edge of bin 3
+      const minDate = Date.UTC(2024, 0, 5) / 1000
+      mockValueMap = { c1: minDate, c2: minDate + 0.6, c3: minDate + 1 }
+      try {
+        const m = BinnedDotPlotModel.create({ _binWidth: 0.2, _binAlignment: minDate })
+        const caseIDs = ["c1", "c2", "c3"]
+        m.setGraphContext({
+          primaryRole: "x",
+          primaryAttributeID: "attr1",
+          dataset: { isCaseSelected: () => false } as any,
+          showMeasuresForSelection: false,
+          numberOfHorizontalRegions: 1,
+          getCaseDataArray: () => caseIDs.map(caseID => ({ caseID })),
+          subPlotCases: () => caseIDs
+        } as any)
+        expect(m.binDetails().getBinForValue(minDate + 0.6)).toBe(3)
+        const counts = m.countAdornmentValues({ cellKey: {} }).values.map(value => value.numerator)
+        expect(counts).toEqual([1, 0, 0, 1, 0, 1])
+      } finally {
+        mockValueMap = kDefaultValueMap
+      }
     })
   })
 

@@ -1,0 +1,108 @@
+@use "../vars";
+
+.back-arrow {
+  font-size: 14px;
+}
+
+.about-dialog-body {
+  color: vars.$charcoal-dark-2;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 12px 8px;
+
+  a {
+    color: vars.$accent;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  p + p {
+    margin-top: 8px;
+  }
+
+  .about-dialog-identity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+  }
+
+  .about-dialog-logo {
+    width: 240px;
+  }
+
+  .about-dialog-version {
+    background-color: vars.$menu-item-hover-bg;
+    border: 1px solid vars.$menu-border-color;
+    border-radius: 20px;
+    margin-top: 4px;
+    padding: 0 10px;
+  }
+
+  .about-dialog-copyright {
+    margin-top: 6px;
+  }
+
+  .about-dialog-divider {
+    margin: 12px 0;
+  }
+
+  .about-dialog-heading {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .about-dialog-text {
+    font-size: 16px;
+
+    &.welcome-dialog-margin {
+      margin-top: 12px;
+    }
+
+    a {
+      text-decoration: underline;
+    }
+  }
+
+  .about-dialog-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .about-dialog-library-list {
+    border: 1px solid #E2E6EA;
+    border-radius: 6px;
+    margin-top: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .about-dialog-library {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+
+    & + .about-dialog-library {
+      border-top: 1px solid #E2E6EA;
+    }
+  }
+
+  .about-dialog-library-name {
+    flex: 1;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .about-dialog-library-status {
+    padding: 12px;
+  }
+
+  .about-dialog-libraries-footer {
+    margin-top: 12px;
+  }
+}

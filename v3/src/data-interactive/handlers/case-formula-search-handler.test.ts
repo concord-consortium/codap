@@ -19,7 +19,6 @@ describe("DataInteractive CaseFormulaSearchHandler", () => {
     expect(handler.get?.({ dataContext, caseFormulaSearch }).success).toBe(false)
     expect(handler.get?.({ collection, caseFormulaSearch }).success).toBe(false)
 
-    // as in V2, a formula error is reported in values.error
     expect(handler.get?.({ dataContext, collection, error: "Undefined symbol foo" }))
       .toEqual({ success: false, values: { error: "Undefined symbol foo" } })
 
