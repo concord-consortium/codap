@@ -301,7 +301,6 @@ export function buildColorLUT(lowColor: string, highColor: string) {
 
 /**
  * Writes each grid cell's RGBA color to out, scaling density so 0 → the LUT's first entry and maxDensity → its last.
- * The LUT's alpha makes low-density cells transparent.
  */
 export function colorizeDensityGrid(
   grid: Float32Array, maxDensity: number, lut: Uint8ClampedArray, out: Uint8ClampedArray
