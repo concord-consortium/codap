@@ -2,9 +2,9 @@ import { Map as LeafletMap, Point, Projection } from "leaflet"
 import { greatCircleDistance } from "../../../utilities/geo-utils"
 import {
   bandwidthToWorldUnits, buildColorLUT, colorizeDensityGrid, computeDefaultBandwidth, computeDensityGrid,
-  computeHotSpotSurface, computeMaxDensity, IDensityGridRegion, IKernel, kernelWeight, kFallbackBandwidthMeters,
-  kMaxMercatorLatitude, kWebMercatorRadiusMeters, kWorldSize, latLongToWorldPoint, projectHotSpotKernels,
-  renderHotSpotSurface, wrapWorldDelta
+  computeHotSpotSurface, computeMaxDensity, hotSpotFade, IDensityGridRegion, IKernel, kColorLUTSize, kernelWeight,
+  kFallbackBandwidthMeters, kHotSpotFadeFloor, kHotSpotFadeFull, kMaxMercatorLatitude, kWebMercatorRadiusMeters,
+  kWorldSize, latLongToWorldPoint, projectHotSpotKernels, renderHotSpotSurface, wrapWorldDelta
 } from "./hot-spot-utils"
 import { createLatLongProjector } from "./map-utils"
 
@@ -273,42 +273,98 @@ describe("computeDensityGrid", () => {
   })
 })
 
+describe("hotSpotFade", () => {
+  it("is 0 at or below the floor", () => {
+    expect(hotSpotFade(0)).toBe(0)
+    expect(hotSpotFade(kHotSpotFadeFloor - 0.001)).toBe(0)
+    expect(hotSpotFade(kHotSpotFadeFloor)).toBe(0)
+  })
+
+  it("is 1 at or above the full cutoff", () => {
+    expect(hotSpotFade(kHotSpotFadeFull)).toBe(1)
+    expect(hotSpotFade(kHotSpotFadeFull + 0.001)).toBe(1)
+    expect(hotSpotFade(1)).toBe(1)
+  })
+
+  it("is 0.5 halfway between the cutoffs", () => {
+    expect(hotSpotFade((kHotSpotFadeFloor + kHotSpotFadeFull) / 2)).toBeCloseTo(0.5, 10)
+  })
+
+  it("follows smoothstep between the cutoffs", () => {
+    const x = 0.25
+    const density = kHotSpotFadeFloor + x * (kHotSpotFadeFull - kHotSpotFadeFloor)
+    expect(hotSpotFade(density)).toBeCloseTo(x * x * (3 - 2 * x), 10)
+  })
+
+  it("never decreases", () => {
+    let previous = 0
+    for (let i = 0; i <= 1000; i++) {
+      const fade = hotSpotFade(i / 1000)
+      expect(fade).toBeGreaterThanOrEqual(previous)
+      previous = fade
+    }
+  })
+})
+
 describe("buildColorLUT", () => {
   const rgbaAt = (lut: Uint8ClampedArray, i: number) => Array.from(lut.slice(i * 4, i * 4 + 4))
+  // the first LUT index at or above the full cutoff
+  const fullIndex = Math.ceil(kHotSpotFadeFull * (kColorLUTSize - 1))
 
   it("runs from the low color to the high color", () => {
     const lut = buildColorLUT("#000000", "#ffffff")
-    expect(lut.length).toBe(256 * 4)
-    expect(rgbaAt(lut, 0)).toEqual([0, 0, 0, 255])
+    expect(lut.length).toBe(kColorLUTSize * 4)
+    expect(rgbaAt(lut, 0)).toEqual([0, 0, 0, 0])
     expect(rgbaAt(lut, 128)).toEqual([128, 128, 128, 255])
     expect(rgbaAt(lut, 255)).toEqual([255, 255, 255, 255])
   })
 
-  it("interpolates alpha", () => {
+  it("fades low densities to transparent", () => {
+    const lut = buildColorLUT("#000000", "#ffffff")
+    const alphaAt = (i: number) => lut[i * 4 + 3]
+    const floorIndex = Math.floor(kHotSpotFadeFloor * (kColorLUTSize - 1))
+    for (let i = 0; i <= floorIndex; i++) {
+      expect(alphaAt(i)).toBe(0)
+    }
+    const midIndex = 30
+    expect(alphaAt(midIndex)).toBe(Math.round(255 * hotSpotFade(midIndex / (kColorLUTSize - 1))))
+    expect(alphaAt(midIndex)).toBeGreaterThan(0)
+    expect(alphaAt(midIndex)).toBeLessThan(255)
+    for (let i = fullIndex; i < kColorLUTSize; i++) {
+      expect(alphaAt(i)).toBe(255)
+    }
+  })
+
+  it("multiplies the gradient's alpha by the fade", () => {
     const lut = buildColorLUT("#ff000000", "#ff0000ff")
     expect(rgbaAt(lut, 0)).toEqual([255, 0, 0, 0])
     expect(rgbaAt(lut, 255)).toEqual([255, 0, 0, 255])
+    // above the full cutoff, only the gradient's alpha applies
+    expect(lut[fullIndex * 4 + 3]).toBe(Math.round(fullIndex))
+    // within the fade, both apply
+    const midIndex = 30
+    expect(lut[midIndex * 4 + 3]).toBe(Math.round(midIndex * hotSpotFade(midIndex / (kColorLUTSize - 1))))
   })
 })
 
 describe("colorizeDensityGrid", () => {
   const lut = buildColorLUT("#000000", "#ffffff")
 
-  it("maps 0 to the low color, the maximum to the high color, and clamps above it", () => {
+  it("maps 0 to the transparent low color, the maximum to the high color, and clamps above it", () => {
     const out = new Uint8ClampedArray(4 * 4)
     colorizeDensityGrid(Float32Array.of(0, 1, 2, 4), 2, lut, out)
     expect(Array.from(out)).toEqual([
-      0, 0, 0, 255,
+      0, 0, 0, 0,
       128, 128, 128, 255,
       255, 255, 255, 255,
       255, 255, 255, 255
     ])
   })
 
-  it("uses the low color everywhere when the maximum is 0", () => {
+  it("is transparent everywhere when the maximum is 0", () => {
     const out = new Uint8ClampedArray(4)
     colorizeDensityGrid(Float32Array.of(0), 0, lut, out)
-    expect(Array.from(out)).toEqual([0, 0, 0, 255])
+    expect(Array.from(out)).toEqual([0, 0, 0, 0])
   })
 })
 
@@ -347,8 +403,8 @@ describe("rendering a surface", () => {
     const out = new Uint8ClampedArray(region.cols * region.rows * 4)
     renderHotSpotSurface(surface, createLatLongProjector(map), zoomScale(map), region,
       buildColorLUT("#000000", "#ffffff"), out)
-    // far corner: no density, so the low color
-    expect(Array.from(out.slice(0, 4))).toEqual([0, 0, 0, 255])
+    // far corner: no density, so transparent
+    expect(Array.from(out.slice(0, 4))).toEqual([0, 0, 0, 0])
     // some cell near the points is bright
     expect(Math.max(...out.filter((_, i) => i % 4 === 0))).toBeGreaterThan(200)
     map.remove()
