@@ -126,9 +126,12 @@ describe("Plugin tours", () => {
     tourNotices().then(notes => expect(notes[2].stepIndex).to.equal(3))
   })
 
-  it("shows descriptions as plain text", () => {
-    tourRequest({ request: "highlight", tourKey: "toolShelf.graph", popover: { description: "*x* [a](b)" } })
-    tour.getDescription().should("have.text", "*x* [a](b)")
+  it("shows bold in descriptions and other markup as written", () => {
+    tourRequest({ request: "highlight", tourKey: "toolShelf.graph",
+      popover: { title: "**Title**", description: "Click **Graph**, not *x* [a](b) <b>c</b>" } })
+    tour.getDescription().should("have.text", "Click Graph, not *x* [a](b) <b>c</b>")
+    tour.getDescription().find("strong").should("have.length", 1).and("have.text", "Graph")
+    tour.getTitle().should("have.text", "**Title**")
   })
 
   it("does not report the popover as a UI notification", () => {

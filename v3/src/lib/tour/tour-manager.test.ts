@@ -1134,7 +1134,8 @@ describe("TourManager", () => {
       tourManager.startTour(makeTile(), { steps: [{ selector: ".s" }] })
 
       expect(capturedConfig.initialFocus).toBe("none")
-      expect(capturedConfig.parseMarkdown).toBe(false)
+      // coachmarks' default: **bold** and __bold__ in a description render as bold.
+      expect(capturedConfig.parseMarkdown).toBeUndefined()
       expect(capturedConfig.showAvatar).toBe(false)
       expect(capturedConfig.smoothScroll).toBe(false)
       expect(capturedConfig.doneBtnText).toBe("Got it!")

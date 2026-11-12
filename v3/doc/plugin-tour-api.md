@@ -77,7 +77,7 @@ Highlight a single element with an optional popover.
 }
 ```
 
-All fields except `request` and at least one targeting property (`tourKey`, `testId`, `selector`, or `component`) are optional. When using `tourKey`, the registry provides default `title` and `description` which can be overridden via `popover`. `title` and `description` are plain text: any markup is displayed as written, not interpreted.
+All fields except `request` and at least one targeting property (`tourKey`, `testId`, `selector`, or `component`) are optional. When using `tourKey`, the registry provides default `title` and `description` which can be overridden via `popover`. In `description`, text wrapped in a matching pair of `**` or `__`, with no space just inside either delimiter (`**Graph**`), is shown in bold, so an identifier such as `__id__` shows `id` in bold; everything else, including other markdown and any HTML, is shown as written. `title` is always shown as written.
 
 Additional options: `component`.
 
@@ -112,6 +112,8 @@ Start a multi-step guided tour. Returns a `tourId` for tracking.
 ```
 
 Steps whose target is missing, or is in the page but not displayed (no layout box), are skipped: they count toward `totalSteps` but not `visibleSteps`.
+
+Step `popover` text follows the same rules as `highlight`: `**` or `__` pairs in `description` are shown in bold, and everything else is shown as written.
 
 #### Tour-Level Options
 

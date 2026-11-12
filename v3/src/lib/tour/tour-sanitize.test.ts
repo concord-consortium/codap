@@ -47,8 +47,8 @@ describe("sanitizeHighlightValues", () => {
     expect((result as any).overlayOpacity).toBeUndefined()
   })
 
-  // Popover text is rendered as React text, so it is plain text: markup is shown as-is, never
-  // interpreted, and characters like < and > survive.
+  // Popover text is rendered as React text, so HTML is shown as-is, never interpreted, and
+  // characters like < and > survive.
   it("keeps popover title and description text unchanged", () => {
     const result = sanitizeHighlightValues({
       popover: {

@@ -48,7 +48,6 @@ export interface TourRequestValues {
 function codapPresentation(kind: "tour" | "highlight"): CreateCoachmarksEngineArgs {
   return {
     initialFocus: "none",
-    parseMarkdown: false,
     showAvatar: false,
     smoothScroll: false,
     ariaLabel: t("V3.Tour.stepRegion"),
