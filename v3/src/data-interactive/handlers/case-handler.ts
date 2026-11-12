@@ -123,8 +123,9 @@ export const diCaseHandler: DIHandler = {
       success: true,
       values: createdCaseIds.map(id => {
         // as in V2, each case is reported with the id of an item it contains
-        const itemId = dataContext.caseInfoMap.get(id)?.childItemIds[0]
-        return { id: toV2Id(id), itemID: itemId ? toV2Id(itemId) : null }
+        const caseInfo = dataContext.caseInfoMap.get(id)
+        const itemId = caseInfo?.childItemIds[0] ?? caseInfo?.hiddenChildItemIds[0]
+        return { id: toV2Id(id), itemID: itemId ? toV2Id(itemId) : undefined }
       })
     }
   },

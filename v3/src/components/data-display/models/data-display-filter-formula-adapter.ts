@@ -4,7 +4,7 @@ import { ICase } from "../../../models/data/data-set-types"
 import { IFormulaContext, IFormulaExtraMetadata } from "../../../models/formula/formula-manager-types"
 import { IFormulaAdapterApi, FormulaManagerAdapter } from "../../../models/formula/formula-manager-adapter"
 import { FormulaMathJsScope } from "../../../models/formula/formula-mathjs-scope"
-import { toBoolean } from "../../../models/formula/functions/function-utils"
+import { passesFilter } from "../../../models/formula/functions/function-utils"
 import { math } from "../../../models/formula/functions/math"
 import { formulaError } from "../../../models/formula/utils/misc"
 import { ITileContentModel } from "../../../models/tiles/tile-content"
@@ -134,7 +134,7 @@ export class DataDisplayFilterFormulaAdapter extends FormulaManagerAdapter {
         formulaScope.savePreviousResult(formulaValue)
         return {
           itemId: c,
-          result: toBoolean(formulaValue) ?? false
+          result: passesFilter(formulaValue)
         }
       })
     } catch (e: any) {

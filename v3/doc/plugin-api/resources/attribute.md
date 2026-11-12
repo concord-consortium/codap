@@ -151,7 +151,8 @@ the read shape above, even when you created or updated exactly one.
 **`type` is accepted differently by the two actions.** `create` understands the v2 spellings —
 `"nominal"` for categorical, `"number"` for numeric, `"none"` — and passes anything else through
 unchecked. `update` accepts only v3 type names and silently ignores the v2 spellings and `null`,
-so a type set on `create` cannot be cleared back to inferred by `update`.
+so a type set on `create` cannot be cleared back to inferred by `update`. What each type means,
+and how CODAP infers one when none is set, is in [Data types](../guides/data-types.md).
 
 **Date precisions are dropped on write.** `get` can return a precision such as `"month"`, but
 neither `create` nor `update` applies one.

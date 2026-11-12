@@ -1,4 +1,4 @@
-import { toV2Id, toV3CaseId } from "../../utilities/codap-utils"
+import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
 import { DISuccessResult, DIValues } from "../data-interactive-types"
 import { DINewCase } from "../data-interactive-data-set-types"
 import { diCaseHandler } from "./case-handler"
@@ -21,6 +21,7 @@ describe("DataInteractive CaseHandler", () => {
       expect(dataset.caseInfoMap.get(toV3CaseId(newCase.id!))).toBeDefined()
       // as in V2, each case is reported with the id of a new item it contains
       expect(newItemIds()).toContain(newCase.itemID)
+      expect(dataset.getItemCaseIds(toV3ItemId(newCase.itemID!))).toContain(toV3CaseId(newCase.id!))
     }
 
     expect(handler.create?.({}).success).toBe(false)

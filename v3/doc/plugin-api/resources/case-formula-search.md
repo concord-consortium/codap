@@ -189,8 +189,13 @@ This resource sends none. Changes to a data set's cases are reported on
 
 **A formula that fails for any case fails the whole request.** If evaluating the formula throws
 an error for even one case, CODAP returns `success: false` with the formula engine's message,
-such as `Undefined symbol Mas` for a misspelled attribute name, and no cases. The message's
-wording differs from v2's. Like every other error, it is in `values.error`.
+such as `Undefined symbol Mas` for a misspelled attribute name, and no cases. Like every other
+error, it is in `values.error`.
+
+**Error messages are worded differently from v2's.** v2 sent `SyntaxError: Incomplete expression`
+or `SyntaxError: Syntax error: '<token>'` where CODAP now sends `Unable to parse query.`, and
+`❌: 'Mas' is unrecognized` where CODAP now sends `Undefined symbol Mas`. A plugin should not
+depend on the text of either message.
 
 ## See also
 

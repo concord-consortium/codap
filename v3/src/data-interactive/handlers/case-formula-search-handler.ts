@@ -10,7 +10,6 @@ export const diCaseFormulaSearchHandler: DIHandler = {
     const { caseFormulaSearch, collection, dataContext, error } = resources
     if (!collection) return collectionNotFoundResult
     if (!dataContext) return dataContextNotFoundResult
-    // as in V2, a formula error is reported in values.error
     if (error) return errorResult(error)
     if (!caseFormulaSearch) return couldNotParseQueryResult
 

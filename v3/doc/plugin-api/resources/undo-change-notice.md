@@ -49,7 +49,7 @@ apply. Naming a `dataContext` in the selector has no effect.
 | Property | Type | Notes |
 |---|---|---|
 | `operation` | String | required. One of the operations below |
-| `logMessage` | String | optional, with `undoableActionPerformed` only. Describes the action in CODAP's log. v3 currently ignores it; see [Known limitations](#known-limitations) |
+| `logMessage` | String | optional, with `undoableActionPerformed` only. Describes the action in CODAP's log, which records `Interactive action occurred: <logMessage>`, or `Unknown action` without it |
 
 | Operation | What CODAP does |
 |---|---|
@@ -57,8 +57,9 @@ apply. Naming a `dataContext` in the selector has no effect.
 | `undoButtonPress` | Undoes the most recent entry in the history, whichever part of CODAP made it. With nothing to undo, does nothing and still succeeds |
 | `redoButtonPress` | Redoes the most recently undone entry, the same way |
 
-Each replies with the state of the history afterwards. v3's reply to `undoableActionPerformed`
-can describe the history before the action; see [Known limitations](#known-limitations).
+Each replies with the state of the history afterwards. If the entry for `undoableActionPerformed`
+takes more than a second to be recorded, which should not happen, the reply describes the history
+as it stands.
 
 | Property | Notes |
 |---|---|
@@ -73,15 +74,21 @@ CODAP sends `notify` on `undoChangeNotice` with one of these operations:
 
 | Operation | Sent to | `values` carries | The plugin replies |
 |---|---|---|---|
-| `undoAction` | the plugin whose entry is being undone | — | `{ "success": true }` once it has reversed the action, or `{ "success": false }` if it could not |
+| `undoAction` | the plugin whose entry is being undone | — | `{ "success": true }` once it has reversed the action, or `{ "success": false }` if it could not, and CODAP then tells the user the undo failed |
 | `redoAction` | the plugin whose entry is being redone | — | the same, once it has reapplied the action |
 | `clearUndo` | every plugin | `canUndo`, `canRedo` | anything; CODAP does not read the reply |
 | `clearRedo` | every plugin | `canUndo`, `canRedo` | anything; CODAP does not read the reply |
 
-`clearRedo` is intended when an action is added to the history, which empties the redo history,
-and `clearUndo` when the undo history is emptied. Set your buttons from `canUndo` and `canRedo`
-whatever the operation is called. They are sent to plugins only. v3 currently also sends them to
-the host page when CODAP is embedded in one; see [Known limitations](#known-limitations). See
+`clearRedo` is sent each time an action is added to the history, even when there was nothing to
+redo, so a plugin learns that undo has become possible. `clearUndo` is sent, with `clearRedo`,
+when the undo history is erased. v2 erased it whenever a change could not be undone and after an
+`update document`. CODAP keeps the history after a change that cannot be undone, so it does not
+send them for that. It does not yet erase the history after an `update document` either, and
+sends `clearRedo` with `canUndo: true` instead; this is a known bug. `clearUndo` and `clearRedo`
+are sent to plugins only. v3 currently also sends them to the host page when CODAP is embedded in
+one; see [Known limitations](#known-limitations). Undoing or redoing sends neither: CODAP sends
+`undo` or `redo` on [`document`](document.md) to every plugin instead, also with `canUndo` and
+`canRedo`. Set your buttons from those values whatever the operation is called. See
 [Keeping your buttons in step](../guides/undo-and-redo.md#keeping-your-buttons-in-step).
 
 ## Examples
@@ -127,27 +134,16 @@ function requestHandler(command, callback) {
     if (operation === "redoAction") return callback({ success: redoMyLastAction() })
     if (operation === "clearUndo" || operation === "clearRedo") setButtons(canUndo, canRedo)
   }
+  // undoing or redoing anything in CODAP sends `undo` or `redo` on `document`
+  if (command.resource === "document" && ["undo", "redo"].includes(command.values.operation)) {
+    setButtons(command.values.canUndo, command.values.canRedo)
+  }
   callback({ success: true })
 }
 ```
 
 ## Known limitations
 
-Each of these except the last two is described in full in
-[the guide's known limitations](../guides/undo-and-redo.md#known-limitations).
-
-- **The reply to `undoableActionPerformed` describes the history before the action**, so
-  `canUndo` can read `false` and `canRedo` `true` when they should not. Treat a successful reply
-  as making undo available.
-- **`clearUndo` and `clearRedo` are sent at different moments from v2.** v3 sends them only when
-  `canUndo` or `canRedo` changes from `true` to `false`, so a plugin is not told when undo becomes
-  possible.
-- **`logMessage` is not logged.**
-- **A failed `undoAction` or `redoAction` is not shown to the user**, and the history moves on as
-  if the step had succeeded.
-- **Undoing an entry from a closed plugin can do nothing visible.** When the plugin was closed by
-  another plugin's `delete` on `component`, which leaves no entry, undoing one of its entries
-  does nothing visible but still uses an undo step.
 - **The host page cannot use this resource.** When CODAP is embedded in a page, every operation
   from the host page fails with `Interactive Frame not found`; v2 accepted them. See
   [Embedding CODAP in your page](../guides/embedded-server.md#known-limitations).
