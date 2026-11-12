@@ -210,6 +210,13 @@ export function matchesMarker(el: Element): boolean {
   }
 }
 
+/**
+ * coachmarks renders tours into its root element; tours have their own notifications
+ * (tourUpdate, highlightUpdate). The popover is matched directly as well, because a removed
+ * popover is reported detached from its portal node, with no ancestor to find.
+ */
+const kCoachmarksSelector = '[data-testid="coachmarks-root"], [data-testid="coachmarks-popover"]'
+
 /** Query a subtree (including the root) for nodes matching the marker selectors */
 export function findMarkers(root: Element, includeRoles = true): Element[] {
   const results: Element[] = []
@@ -225,7 +232,7 @@ export function findMarkers(root: Element, includeRoles = true): Element[] {
       for (const d of Array.from(descendants)) results.push(d)
     }
   } catch { /* ignore */ }
-  return dedupeMarkers(results)
+  return dedupeMarkers(results).filter(el => !el.closest?.(kCoachmarksSelector))
 }
 
 /**

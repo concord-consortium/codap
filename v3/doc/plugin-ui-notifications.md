@@ -69,7 +69,9 @@ All delivered as `notify uiNotificationNotice`.
 
 - **`appear` / `disappear`** — element became visible / was removed. Emitted
   for menu/palette/dialog markers, `role="menuitem"` additions, and
-  `aria-expanded` flips on menu triggers.
+  `aria-expanded` flips on menu triggers. CODAP's tour popover is not reported
+  here; tours and highlights are reported through `tourUpdate` and
+  `highlightUpdate` (see [Plugin Tour API](plugin-tour-api.md)).
 - **`click`** — a DOM `click` event, from a pointer or from keyboard activation.
   `via: "keyboard"` when the event's `detail` is 0, which is how the browser marks
   a click synthesized from Enter/Space; `via: "pointer"` otherwise. A programmatic

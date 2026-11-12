@@ -153,6 +153,23 @@ describe("findMarkers", () => {
     expect(ids).toContain("i1")
   })
 
+  it("ignores coachmarks' popover, inside its root or detached from it", () => {
+    document.body.innerHTML = `
+      <div data-testid="coachmarks-root" id="root">
+        <div id="portal">
+          <div id="pop" role="dialog" data-testid="coachmarks-popover"></div>
+        </div>
+      </div>`
+    const root = document.getElementById("root")!
+    const portal = document.getElementById("portal")!
+    const pop = document.getElementById("pop")!
+    expect(findMarkers(root)).toEqual([])
+    // A browser reports the portal leaving the root, then the popover leaving the portal.
+    portal.remove()
+    pop.remove()
+    expect(findMarkers(pop)).toEqual([])
+  })
+
   it("keeps standalone role='dialog' when no class marker is in the chain", () => {
     document.body.innerHTML = `<div id="d" role="dialog"><span>hi</span></div>`
     const d = document.getElementById("d")!

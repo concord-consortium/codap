@@ -1,3 +1,5 @@
+import { createCoachmarksEngine } from "@concord-consortium/coachmarks"
+import { act, screen } from "@testing-library/react"
 import { installDomObserver } from "./dom-observer"
 import { UiNotificationMonitorManager } from "./ui-notification-monitor-manager"
 import { UiNotice } from "./ui-notification-types"
@@ -52,6 +54,39 @@ describe("dom-observer", () => {
     expect(appears.some(a =>
       a.eventType === "appear" && a.target?.testId === "cfm-dialog-share"
     )).toBe(true)
+  })
+
+  it("reports no appear or disappear for coachmarks' popover", async () => {
+    const { manager, delivered } = makeManagerWithCapture()
+    manager.register("plugin-A", { eventTypes: ["appear", "disappear"] })
+    installed = installDomObserver(manager)
+
+    const anchor = document.createElement("button")
+    document.body.appendChild(anchor)
+    Object.defineProperty(anchor, "offsetParent", { configurable: true, value: document.body })
+    jest.spyOn(anchor, "getBoundingClientRect").mockReturnValue(
+      { left: 10, top: 10, width: 50, height: 20, right: 60, bottom: 30, x: 10, y: 10, toJSON: () => ({}) })
+    let engine!: ReturnType<typeof createCoachmarksEngine>
+    await act(async () => {
+      engine = createCoachmarksEngine({})
+      engine.highlight({ element: anchor, popover: { title: "Tour" } })
+      await awaitMutations()
+    })
+    expect(screen.getByTestId("coachmarks-popover")).toBeInTheDocument()
+    await act(async () => {
+      engine.destroy()
+      await awaitMutations()
+    })
+    expect(screen.queryByTestId("coachmarks-popover")).toBeNull()
+
+    const dialog = document.createElement("div")
+    dialog.setAttribute("role", "dialog")
+    dialog.setAttribute("data-testid", "other-dialog")
+    document.body.appendChild(dialog)
+    await awaitMutations()
+
+    expect(delivered.some(d => d.target?.testId?.startsWith("coachmarks-"))).toBe(false)
+    expect(delivered.some(d => d.eventType === "appear" && d.target?.testId === "other-dialog")).toBe(true)
   })
 
   it("emits appear via aria-expanded trigger flip", async () => {
