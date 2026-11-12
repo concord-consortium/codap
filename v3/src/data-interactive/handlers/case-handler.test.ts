@@ -1,4 +1,4 @@
-import { toV2Id, toV3CaseId } from "../../utilities/codap-utils"
+import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
 import { DISuccessResult, DIValues } from "../data-interactive-types"
 import { DINewCase } from "../data-interactive-data-set-types"
 import { diCaseHandler } from "./case-handler"
@@ -17,6 +17,7 @@ describe("DataInteractive CaseHandler", () => {
       expect(dataset.caseInfoMap.get(toV3CaseId(newCase.id!))).toBeDefined()
       // as in V2, each case is reported with the id of a new item it contains
       expect(newItemIds()).toContain(newCase.itemID)
+      expect(dataset.getItemCaseIds(toV3ItemId(newCase.itemID!))).toContain(toV3CaseId(newCase.id!))
     }
     let itemIdsBefore = new Set<string>()
     const newItemIds = () => dataset.itemIds.filter(id => !itemIdsBefore.has(id)).map(id => toV2Id(id))
@@ -40,6 +41,8 @@ describe("DataInteractive CaseHandler", () => {
     expect(dataset.items.length).toBe(8)
     expect(dataset.getCasesForCollection(c2.id).length).toBe(5)
     const newCases = result?.values as DINewCase[]
+    // a case in each collection for the first object, and one child case for the second
+    expect(newCases).toHaveLength(4)
     newCases.forEach(confirmNewCase)
 
     // creating a single parent case
@@ -69,6 +72,8 @@ describe("DataInteractive CaseHandler", () => {
     expect(dataset.items.length).toBe(10)
     expect(dataset.getCasesForCollection(c2.id).length).toBe(7)
     const newCases3 = result3?.values as DINewCase[]
+    // the new child case and its own child case
+    expect(newCases3).toHaveLength(2)
     newCases3.forEach(confirmNewCase)
   })
 
