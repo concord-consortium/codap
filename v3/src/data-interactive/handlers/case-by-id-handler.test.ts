@@ -39,6 +39,10 @@ describe("DataInteractive CaseByIDHandler", () => {
     expect(handler.update?.(caseResources, { values: { a3: 10 } }).success).toBe(true)
     expect(a3.numValues[dataContext.getItemIndex(itemId)!]).toBe(10)
 
+    // as in V2, a name that matches no attribute makes the reply report failure, but the other values are set
+    expect(handler.update?.(caseResources, { values: { a3: 11, noSuchAttribute: 1 } }).success).toBe(false)
+    expect(a3.numValues[dataContext.getItemIndex(itemId)!]).toBe(11)
+
     expect(handler.update?.({ dataContext, caseByID: aCase }, { values: { a3: 100 } }).success).toBe(true)
     dataContext.caseInfoMap.get(caseId)?.childItemIds.forEach(id => {
       expect(a3.numValues[dataContext.getItemIndex(id)!]).toBe(100)

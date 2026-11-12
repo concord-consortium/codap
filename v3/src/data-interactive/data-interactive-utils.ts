@@ -36,17 +36,26 @@ export function getCaseValues(caseId: string, dataSet: IDataSet, collectionId?: 
   return values
 }
 
-// Converts an attributeName => value dictionary to attributeId => value
-export function attrNamesToIds(values: DICaseValues, dataSet: IDataSet, v2Ids?: boolean) {
+// Converts an attributeName => value dictionary to attributeId => value, and lists the names that match no
+// attribute (as in V2, an update that names one replies with failure, though the other values are set)
+export function resolveAttrNames(values: DICaseValues, dataSet: IDataSet, v2Ids?: boolean) {
   const caseValues: ICaseCreation = {}
+  const unknownNames: string[] = []
   Object.keys(values).forEach(attrName => {
     const attrId = dataSet.attrIDFromName(attrName)
     if (attrId) {
       const _attrId = v2Ids ? toV2Id(attrId) : attrId
       caseValues[_attrId] = values[attrName]
+    } else {
+      unknownNames.push(attrName)
     }
   })
-  return caseValues
+  return { caseValues, unknownNames }
+}
+
+// Converts an attributeName => value dictionary to attributeId => value
+export function attrNamesToIds(values: DICaseValues, dataSet: IDataSet, v2Ids?: boolean) {
+  return resolveAttrNames(values, dataSet, v2Ids).caseValues
 }
 
 export function getCollection(dataContext?: IDataSet, nameOrId?: string) {

@@ -71,7 +71,7 @@ not repeat its parent's; read the parent for those.
 The values are nested one level: the request's `values` holds an object whose own `values` key
 holds the attribute values. A name that matches no attribute is tried again with leading and
 trailing spaces removed. If it still matches none, the other values are still set, and the reply
-is `{ "success": false }`. v3 currently differs on both points; see
+is `{ "success": false }`. v3 currently doesn't retry the name without the spaces; see
 [Known limitations](#known-limitations).
 
 Updating a parent case changes that value for every item grouped under it, so the case keeps its
@@ -174,10 +174,6 @@ Delete the first diet, and with it every mammal grouped under it:
 case within its collection: `"first"`, `"last"`, or a numeric position. v3 rejects the
 request as an unsupported action. This is a known bug.
 
-**An unknown attribute name does not make `update` report failure.** v2 replied `success: false`
-when a name in `values` matched no attribute, and v3 replies `success: true`. Both still set the
-other values. This is a known bug; the intended behavior is v2's.
-
 **Attribute names must match exactly.** v2 tried a name in `values` again with leading and
 trailing spaces removed, so `"Age "` still matched `Age`. v3 matches the name exactly and ignores
 one that differs. This is a known bug; the intended behavior is v2's.
@@ -190,6 +186,11 @@ This resource takes no `notify` requests of its own.
 `updateCases` or `deleteCases`, as the same change made in a case table does. An `update` that
 moves the case to a different parent case also sends `createCases` for the cases it creates; v2
 sent a second `updateCases` listing them instead.
+
+An `update` that replies `success: false` because a name matches no attribute still sends
+`updateCases` for the values it did set, and that notice's `result` says `success: true`. v2 sent
+no `updateCases` for the change itself, since it had failed; it sent one only for the regrouping
+when an attribute of a parent collection changed.
 
 ## Errors
 

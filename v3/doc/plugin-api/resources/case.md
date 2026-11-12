@@ -84,8 +84,8 @@ necessarily list the cases in the order you sent them.
 A case object whose `id` matches no case is skipped, and the rest are still updated. `update`
 replies with `caseIDs`, the ids of the cases it found. A case is listed even when none of its
 values changed, or when its object has no `values`. If no case matched, the reply is
-`{ "success": false }`. v3 currently accepts item ids as well as case ids; see
-[Known limitations](#known-limitations).
+`{ "success": false }`. Only case ids are accepted: to change an item, use
+[`itemByID`](item-by-id.md).
 
 If a name in `values` matches no attribute, the other values are still set, and the reply has
 `success: false` alongside `caseIDs`.
@@ -181,22 +181,19 @@ sendRequest({
 
 **A parent's only child case can be filled if it is empty.** CODAP can't always tell the empty
 case a new parent starts with from a real child case whose values were all cleared. If a parent's
-only child case has no values, and no request has filled it in this collection since the document was opened, the
-next child case you create under it fills that case instead of adding another. v2 added a new case
-under a parent that already had a child.
+only child case has no values, and no request has filled it in this collection since the document
+was opened, the next child case you create under it fills that case instead of adding another. v2
+added a new case under a parent that already had a child.
 
 **A new case that matches an existing one joins it.** CODAP groups the cases of a collection by
 their values, so a new case whose values in that collection match an existing case under the same
 parent, including two cases with no values, becomes part of that case rather than a separate one,
 and is missing from the reply. v2 kept them separate.
 
-**An unknown attribute name does not make `update` report failure.** v2 replied `success: false`
-when a name in `values` matched no attribute, and v3 replies `success: true`. Both still set the
-other values. This is a known bug; the intended behavior is v2's.
-
 **Attribute names must match exactly.** On both actions, v2 tried a name in `values` again with
 leading and trailing spaces removed, so `"Age "` still matched `Age`. v3 matches the name exactly
-and ignores one that differs. This is a known bug; the intended behavior is v2's.
+and ignores one that differs, and `update` replies `success: false`. This is a known bug; the
+intended behavior is v2's.
 
 **`create` also sets attributes of the collections below.** v2 ignored names in `values` that
 were not attributes of the named collection. v3 also sets the attributes of the collections below
@@ -205,12 +202,8 @@ plugin should not rely on it.
 
 **`values` given as an array is not applied.** v2 also accepted `values` as an array of values in
 the collection's attribute order, on both actions. v3 does not: `create` makes a case with no
-values, and `update` changes nothing. This is a known bug; until it is fixed, key `values` by
+values, and `update` changes nothing and replies `success: false`. This is a known bug; until it is fixed, key `values` by
 attribute name.
-
-**`update` also accepts item ids.** When an `id` matches no case, v3 tries it as the id of an
-item, changes that item, and lists the id in `caseIDs`. v2 skipped it. This is a known bug. Use
-the ids of cases, and use [`itemByID`](item-by-id.md) to change an item.
 
 ## Notifications
 
@@ -218,7 +211,9 @@ the ids of cases, and use [`itemByID`](item-by-id.md) to change an item.
 `updateCases`, both on `dataContextChangeNotice[<context>]`, as the same changes made in a case
 table do. An `update` that moves cases to a different parent case also sends `createCases` for the
 cases it creates; v2 sent a second `updateCases` listing them instead. An `update` that names no
-known attribute sends nothing; v2 failed the request. An `update` object with no `values` is
+known attribute replies `success: false` and sends nothing, as in v2. One that also sets values
+sends `updateCases` for them, and that notice's `result` says `success: true`; v2 sent
+`updateCases` only for the regrouping when an attribute of a parent collection changed. An `update` object with no `values` is
 listed in `caseIDs` but not in `updateCases`; v2 listed it in both. A case that fills a parent's
 empty child case is sent in `createCases`, as in v2, even though the parent's own `createCases`
 already listed it, so a plugin that keeps a copy of the cases may see the same id created twice.
