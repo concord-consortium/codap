@@ -1,3 +1,4 @@
+import { kTitleBarHeight } from "../components/constants"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { ICaseCreation } from "../models/data/data-set-types"
@@ -18,6 +19,29 @@ export function canonicalizeAttributeName(name: string, iCanonicalize = true) {
     tName = 'attr'
   }
   return tName
+}
+
+interface IDimensions { width?: number, height?: number }
+
+// The sides of a size a plugin sent that are usable: positive numbers, or text that converts to one
+export function validDimensions(dimensions?: unknown): IDimensions {
+  if (!dimensions || typeof dimensions !== "object") return {}
+  const pick = (value: unknown) => {
+    const num = typeof value === "number" || typeof value === "string" ? Number(value) : NaN
+    return isFinite(num) && num > 0 ? num : undefined
+  }
+  const { width, height } = dimensions as Record<string, unknown>
+  const [w, h] = [pick(width), pick(height)]
+  return { ...(w != null && { width: w }), ...(h != null && { height: h }) }
+}
+
+// A tile's size for a given size of its content: CODAP's only chrome is the title bar
+export function tileDimensionsFromContent({ width, height }: IDimensions): IDimensions {
+  return { ...(width != null && { width }), ...(height != null && { height: height + kTitleBarHeight }) }
+}
+
+export function contentDimensionsFromTile({ width, height }: IDimensions): IDimensions {
+  return { ...(width != null && { width }), ...(height != null && { height: Math.max(height - kTitleBarHeight, 0) }) }
 }
 
 export function getCaseValues(caseId: string, dataSet: IDataSet, collectionId?: string) {
