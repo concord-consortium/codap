@@ -113,7 +113,7 @@ export const DataDisplayContentModel = TileContentModel
           }
           case 'date': {
             const datePrecision = attribute.datePrecision
-            // parse the way the case table does, so tips match the table's display
+            // parse the way the case table does
             const date = value && datePrecision ? parseDate(String(value), true) : null
             return date ? formatDate(date, datePrecision) ?? value : value
           }
