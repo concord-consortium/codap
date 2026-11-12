@@ -21,7 +21,7 @@ describe("DataInteractive CaseByIDHandler", () => {
     expect(caseResult.case.id).toBe(maybeToV2Id(caseId))
     expect(caseResult.case.children?.length).toBe(2)
 
-    // as in V2, a top-level case's parent is null rather than missing
+    // as in V2, a top-level case's parent is null
     const topCase = dataContext.getCasesForCollection(dataContext.collections[0].id)[0]
     const topResult = handler.get?.({ dataContext, caseByID: topCase })?.values as DIGetCaseResult
     expect(topResult.case.parent).toBeNull()

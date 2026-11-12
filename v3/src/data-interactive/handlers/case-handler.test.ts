@@ -1,4 +1,4 @@
-import { toV2Id, toV3CaseId } from "../../utilities/codap-utils"
+import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
 import { DISuccessResult, DIValues } from "../data-interactive-types"
 import { DINewCase } from "../data-interactive-data-set-types"
 import { diCaseHandler } from "./case-handler"
@@ -21,6 +21,7 @@ describe("DataInteractive CaseHandler", () => {
       expect(dataset.caseInfoMap.get(toV3CaseId(newCase.id!))).toBeDefined()
       // as in V2, each case is reported with the id of a new item it contains
       expect(newItemIds()).toContain(newCase.itemID)
+      expect(dataset.getItemCaseIds(toV3ItemId(newCase.itemID!))).toContain(toV3CaseId(newCase.id!))
     }
 
     expect(handler.create?.({}).success).toBe(false)
@@ -58,6 +59,16 @@ describe("DataInteractive CaseHandler", () => {
     const result3 = handler.create?.({ dataContext: dataset, collection: c1 }, { parent: 12345, values: { a1: "e" } })
     expect(result3?.success).toBe(true)
     expect(dataset.getCasesForCollection(c1.id).length).toBe(4)
+
+    // ... including one that names a real case, whose values the new case doesn't take
+    const realParent = toV2Id(dataset.getCasesForCollection(c1.id)[0].__id__)
+    const result4 = handler.create?.({ dataContext: dataset, collection: c1 }, { parent: realParent, values: {} })
+    const [newCase4] = result4?.values as DINewCase[]
+    expect(dataset.getStrValue(toV3CaseId(newCase4.id!), dataset.attrIDFromName("a1")!)).toBe("")
+
+    // create needs values
+    expect(handler.create?.({ dataContext: dataset, collection: c1 }))
+      .toEqual({ success: false, values: { error: "A values object is required for this request." } })
   })
 
   it("create and update need a collection, as in V2", () => {
@@ -89,6 +100,15 @@ describe("DataInteractive CaseHandler", () => {
     expect(result?.success).toBe(true)
     expect(result?.values as DINewCase[]).toHaveLength(1)
     expect(dataset.items.length).toBe(7)
+
+    // a request whose valid cases all join existing ones succeeds, even when it also skips some
+    const joined = handler.create?.({ dataContext: dataset, collection: c2 },
+      [{ parent, values: { a2: "x" } }, { parent: 12345, values: { a2: "r" } }] as DIValues)
+    expect(joined).toEqual({ success: true, values: [] })
+    expect(handler.create?.({ dataContext: dataset, collection: c2 }, [{ parent, values: { a2: "x" } }] as DIValues))
+      .toEqual({ success: true, values: [] })
+    expect(handler.create?.({ dataContext: dataset, collection: c2 }, [] as DIValues))
+      .toEqual({ success: true, values: [] })
   })
 
   it("creates an empty case for a case object with no values, as in V2", () => {
@@ -210,7 +230,8 @@ describe("DataInteractive CaseHandler", () => {
 
   it("fills a new parent's empty child case even when a lower collection has a formula", () => {
     const { dataset, c1, c2 } = setupTestDataset()
-    const formulaAttr = dataset.addAttribute({ name: "f", formula: { display: "1" } }, { collection: c2.id })
+    const c3 = dataset.collections[2]
+    const formulaAttr = dataset.addAttribute({ name: "f", formula: { display: "1" } }, { collection: c3.id })
     const parentResult = handler.create?.({ dataContext: dataset, collection: c1 }, { values: { a1: "p" } })
     const parent = (parentResult?.values as DINewCase[])[0].id!
     const [itemId] = dataset.caseInfoMap.get(toV3CaseId(parent))!.childItemIds
@@ -221,15 +242,42 @@ describe("DataInteractive CaseHandler", () => {
     expect(dataset.items.length).toBe(itemCount)
   })
 
-  it("accepts a parent in any collection above, as in V2", () => {
+  it("skips a parent that isn't in the parent collection, as V2 failed once the collection had cases", () => {
     const { dataset, c1 } = setupTestDataset()
     const c3 = dataset.collections[2]
     const grandparent = toV2Id(dataset.getCasesForCollection(c1.id)[0].__id__)
     const itemCount = dataset.items.length
-    const result = handler.create?.({ dataContext: dataset, collection: c3 },
-      { parent: grandparent, values: { a3: 99 } })
-    expect(result?.success).toBe(true)
+    expect(handler.create?.({ dataContext: dataset, collection: c3 }, { parent: grandparent, values: { a3: 99 } }))
+      .toEqual({ success: false, values: { error: "Cannot create case with invalid or deleted parent" } })
+    expect(dataset.items.length).toBe(itemCount)
+  })
+
+  it("doesn't fill a parent's only child case when it has a value in a collection below", () => {
+    const { dataset, c1, c2 } = setupTestDataset()
+    const parentResult = handler.create?.({ dataContext: dataset, collection: c1 }, { values: { a1: "p", a3: 7 } })
+    const parent = (parentResult?.values as DINewCase[])[0].id!
+    const itemCount = dataset.items.length
+    expect(handler.create?.({ dataContext: dataset, collection: c2 }, { parent, values: { a2: "q" } })?.success)
+      .toBe(true)
     expect(dataset.items.length).toBe(itemCount + 1)
+  })
+
+  it("fills the empty case at each level when cases are built from the top down, as in V2", () => {
+    const { dataset, c1, c2 } = setupTestDataset()
+    const c3 = dataset.collections[2]
+    const itemCount = dataset.items.length
+    const p = (handler.create?.({ dataContext: dataset, collection: c1 }, { values: { a1: "p" } })
+      ?.values as DINewCase[])[0].id!
+    const q = (handler.create?.({ dataContext: dataset, collection: c2 }, { parent: p, values: { a2: "q" } })
+      ?.values as DINewCase[])[0].id!
+    expect(handler.create?.({ dataContext: dataset, collection: c3 }, { parent: q, values: { a3: 5 } })?.success)
+      .toBe(true)
+    // the one item the parent was created with holds all three values
+    expect(dataset.items.length).toBe(itemCount + 1)
+    const qChildren = dataset.caseInfoMap.get(toV3CaseId(q))!.childCaseIds!
+    expect(qChildren).toHaveLength(1)
+    expect(dataset.getStrValue(qChildren[0], dataset.attrIDFromName("a3")!)).toBe("5")
+    expect(dataset.getCasesForCollection(c3.id)).toHaveLength(7)
   })
 
   it("update works as expected", () => {

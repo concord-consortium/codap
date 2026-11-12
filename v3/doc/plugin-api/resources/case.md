@@ -54,18 +54,21 @@ object on its own. v3 accepts one for `update` too, but v2 did not, so send an a
 
 | Property | Type | Notes |
 |---|---|---|
-| `values` | Object | The new case's values, keyed by the names of this collection's attributes. Attributes you leave out are empty, and a case object with no `values` creates an empty case. A name that matches none of them is ignored |
-| `parent` | number | The id of the parent case. Required when the collection has a parent collection, and the parent case must already exist in a collection above this one. A case in the top collection ignores it; v2 used it if it named a case, and otherwise failed |
+| `values` | Object | The new case's values, keyed by the names of this collection's attributes. Attributes you leave out are empty, and a case object with no `values` creates an empty case, as does a `null` entry in the array (v2 failed the request for one). A name that matches none of them is ignored |
+| `parent` | number | The id of the parent case. Required when the collection has a parent collection, and the parent case must already exist in that collection. A case in the top collection ignores it; v2 used it if it named a case, and otherwise failed |
 
 The new case takes its parent's values for the attributes of the collections above, so `values`
 needs only this collection's attributes. A parent case created on its own starts with one empty
 case beneath it; the first child case you create under it fills that case rather than adding
-another, as in v2.
+another, as in v2. This holds at each level, so building a parent, a child and a grandchild from
+the top down makes one item.
 
-A case object whose `parent` is missing or names no case in a collection above is skipped, and
-the others are still created. If none can be created, the request fails with
-`Cannot create case with invalid or deleted parent`. (v2 also skipped such a case, but replied
-`success: true` even when it created nothing.)
+A case object whose `parent` is missing or names no case in the parent collection is skipped, and
+the others are still created. If every case object is skipped, the request fails with
+`Cannot create case with invalid or deleted parent`. A request whose cases all join existing ones
+(see below) succeeds with an empty reply. v2 also skipped a missing or unknown parent, but replied
+`success: true` even when it created nothing; it accepted a parent from a collection further up
+only while the collection had no cases, and otherwise failed the request.
 
 `create` replies with the ids of the new cases in this collection, as an array of objects. Each
 carries `id`, the new case's id, and `itemID`, the id of the item behind it. The reply does not
@@ -178,7 +181,7 @@ sendRequest({
 
 **A parent's only child case can be filled if it is empty.** CODAP can't always tell the empty
 case a new parent starts with from a real child case whose values were all cleared. If a parent's
-only child case has no values, and no request has filled it since the document was opened, the
+only child case has no values, and no request has filled it in this collection since the document was opened, the
 next child case you create under it fills that case instead of adding another. v2 added a new case
 under a parent that already had a child.
 
@@ -204,7 +207,14 @@ attribute name.
 ## Notifications
 
 `create` notifies the plugins listening to the data context with `createCases`, and `update` with
-`updateCases`, both on `dataContextChangeNotice[<context>]`. See
+`updateCases`, both on `dataContextChangeNotice[<context>]`, as the same changes made in a case
+table do. An `update` that moves cases to a different parent case also sends `createCases` for the
+cases it creates; v2 sent a second `updateCases` listing them instead. An `update` that names no
+known attribute sends nothing; v2 failed the request. An `update` object with no `values` is
+listed in `caseIDs` but not in `updateCases`; v2 listed it in both. A case that fills a parent's
+empty child case is sent in `createCases`, as in v2, even though the parent's own `createCases`
+already listed it, so a plugin that keeps a copy of the cases may see the same id created twice.
+See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext) for
 what each carries.
 
@@ -214,8 +224,8 @@ what each carries.
 |---|---|
 | `DataContext not found` | the selector's data context does not resolve. v2 reported this as being unable to resolve the data context |
 | `Collection not found` | the `collection` segment is missing or names no collection. For `update` without the segment, v2 replied `{ "success": false }` with no message, and for a collection that does not exist it reported being unable to resolve it |
-| `Cannot create case with invalid or deleted parent` | `create` in a collection below the top, when no case object has a `parent` that names a case in the parent collection |
-| `A values object is required for this request.` | `update` with no `values` |
+| `Cannot create case with invalid or deleted parent` | `create` in a collection below the top, when every case object lacks a `parent` that names a case in the parent collection |
+| `A values object is required for this request.` | `create` or `update` with no `values`. For `create`, v2 failed with a script error |
 
 `update` replies `{ "success": false }`, with no error message, when no case in `values` matches
 a case in the data context.

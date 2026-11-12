@@ -14,12 +14,9 @@ import {
   collectionNotFoundResult, dataContextNotFoundResult, errorResult, valuesRequiredResult
 } from "./di-results"
 
-// When a parent case is created on its own in a hierarchical dataset, V3's flat data model gives it one
-// item, which also appears as a child case with no child-level values. As in V2, which filled the parent's
-// item while the parent had no children, the first child case created under such a parent fills that item
-// instead of adding another. The empty child case must be the parent's only one, so a real child case whose
-// values the user cleared isn't reused, and an item is filled only once, so a child created with no values
-// isn't filled again by the next request.
+// A parent created on its own has one item, shown as an empty child case; the first child created under it
+// fills that item, as V2 filled a childless parent's item. Filled items are remembered per collection, so a
+// later child in the same collection isn't written into one. Keys are `${collectionId}:${itemId}`.
 const filledItemIds = new WeakMap<IDataSet, Set<string>>()
 
 function getFilledItemIds(dataContext: IDataSet) {
@@ -31,11 +28,14 @@ function getFilledItemIds(dataContext: IDataSet) {
   return itemIds
 }
 
-function findReusableChildItemId(dataContext: IDataSet, parentId: string, lowerAttrIds: string[]) {
+const filledItemKey = (collectionId: string, itemId: string) => `${collectionId}:${itemId}`
+
+function findReusableChildItemId(dataContext: IDataSet, collectionId: string, parentId: string,
+    lowerAttrIds: string[]) {
   const childItemIds = dataContext.caseInfoMap.get(parentId)?.childItemIds ?? []
   if (childItemIds.length !== 1) return
   const [itemId] = childItemIds
-  if (getFilledItemIds(dataContext).has(itemId)) return
+  if (getFilledItemIds(dataContext).has(filledItemKey(collectionId, itemId))) return
   return lowerAttrIds.some(attrId => isValueNonEmpty(dataContext.getValue(itemId, attrId))) ? undefined : itemId
 }
 
@@ -52,7 +52,6 @@ export const diCaseHandler: DIHandler = {
     // the non-formula attributes of this collection and those below it
     const lowerAttrIds = dataContext.collections.slice(collectionIndex)
       .flatMap(aCollection => aCollection.dataAttributesArray.map(attr => attr.id))
-    const ancestorCollectionIds = new Set(dataContext.collections.slice(0, collectionIndex).map(({ id }) => id))
 
     const newCaseData: ICaseCreation[] = []
     const reusedItemUpdates: ICase[] = []
@@ -71,17 +70,17 @@ export const diCaseHandler: DIHandler = {
           newCaseData.push(caseValues)
           return
         }
-        // as in V2, a case below the top level needs an existing parent case, in a collection above this one;
-        // otherwise nothing is created
+        // a case below the top level needs an existing parent case in the parent collection; otherwise it is
+        // skipped (V2 also failed for a parent further up once the collection had cases)
         const parentId = aCase?.parent != null ? toV3CaseId(aCase.parent) : undefined
         const parentCollectionId = parentId ? dataContext.caseInfoMap.get(parentId)?.collectionId : undefined
-        if (!parentId || !parentCollectionId || !ancestorCollectionIds.has(parentCollectionId)) {
+        if (!parentId || parentCollectionId !== parentCollection.id) {
           ++skippedCount
           return
         }
-        const reusableItemId = findReusableChildItemId(dataContext, parentId, lowerAttrIds)
+        const reusableItemId = findReusableChildItemId(dataContext, collection.id, parentId, lowerAttrIds)
         if (reusableItemId) {
-          getFilledItemIds(dataContext).add(reusableItemId)
+          getFilledItemIds(dataContext).add(filledItemKey(collection.id, reusableItemId))
           // only this collection's values and those below it, so the parent case doesn't change
           const lowerValues: ICase = { __id__: reusableItemId }
           lowerAttrIds.forEach(attrId => {
@@ -116,15 +115,17 @@ export const diCaseHandler: DIHandler = {
     })
 
     const createdCaseIds = [...reusedCaseIds, ...newCaseIds.filter(caseId => collection.hasCase(caseId))]
-    if (createdCaseIds.length === 0 && skippedCount > 0) {
+    // the request fails only when every case object was skipped
+    if (skippedCount > 0 && skippedCount === cases.length) {
       return errorResult(t("V3.DI.Error.caseParentInvalid"))
     }
     return {
       success: true,
       values: createdCaseIds.map(id => {
         // as in V2, each case is reported with the id of an item it contains
-        const itemId = dataContext.caseInfoMap.get(id)?.childItemIds[0]
-        return { id: toV2Id(id), itemID: itemId ? toV2Id(itemId) : null }
+        const caseInfo = dataContext.caseInfoMap.get(id)
+        const itemId = caseInfo?.childItemIds[0] ?? caseInfo?.hiddenChildItemIds[0]
+        return { id: toV2Id(id), itemID: itemId ? toV2Id(itemId) : undefined }
       })
     }
   },

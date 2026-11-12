@@ -14,10 +14,8 @@ finished its work before the next one starts, so you can send a `create` and the
 waiting for the first response.
 
 The queue guarantees order, not completion. A few requests reply at once and finish their work
-afterwards: `update` on [`document`](../resources/document.md#update--replacing-the-document)
-replies `success` before the new document is in place, so a request sent after it, even in the
-same array, can still see the old document. Wait for the `updateDocumentEnded` notification before
-sending anything that depends on the replacement.
+afterwards: `get` on [`document`](../resources/document.md) replies `success` at once, and the
+document itself arrives later, in a `newDocumentState` notification.
 
 Each plugin has its own queue. CODAP makes no promise about the order of requests from two
 different plugins.
@@ -97,8 +95,8 @@ not combined. A plugin sees three effects:
   `An error occurred while processing the request.`, and some of the batch's cases may already
   have been added.
 - **Notifications are combined.** A batch sends one `createCases` notification per collection
-  for all its requests, before any of their responses. Do not count `createCases` notifications
-  to count requests or cases; read the case ids they carry.
+  for all its requests, then one `createItems`, before any of their responses. Do not count these
+  notifications to count requests or cases; read the ids they carry.
 
 Only consecutive item creates with the same resource are combined. Anything else between them —
 a `get`, a selection change, a create on another data context — ends the run, so the order of
@@ -160,4 +158,4 @@ context needs to wait while its data is being edited, but requests from all plug
 - [`dataContext`](../resources/data-context.md) for `managingController`
 - [The notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext)
   for `createCases` and the other data notifications
-- [Undo and redo](undo-and-redo.md): requests your plugin makes are not on CODAP's undo history
+- [Undo and redo](undo-and-redo.md): most requests your plugin makes are not on CODAP's undo history

@@ -1,5 +1,5 @@
 import { IDataSet } from "../../models/data/data-set"
-import { createCasesNotification } from "../../models/data/data-set-notifications"
+import { createCasesNotification, createItemsNotification } from "../../models/data/data-set-notifications"
 import { toV2Id, toV3ItemId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIHandlerFnResult, DIResources, DIValues } from "../data-interactive-types"
@@ -45,6 +45,42 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
 
   const newCaseIds: Record<string, string[]> = {}
   let itemIDs: string[] = []
+  // the new cases attributed to each segment, by collection, in collection order
+  let segmentCases: Array<Record<string, string[]>> = []
+
+  // Attribute each new case to the segment containing its earliest contributing item.
+  // This matches sequential semantics: under one-create-at-a-time processing, a new
+  // parent case is reported by the first request whose item forms it; later requests
+  // join the existing case without reporting it. Items were appended in segment order, so
+  // a case's earliest contributing item is simply the one in its lowest-numbered segment.
+  const attributeCasesToSegments = () => {
+    const casesBySegment: Array<Record<string, string[]>> = segmentRanges.map(() => ({}))
+    const addCase = (segment: number, collectionId: string, caseId: string) => {
+      (casesBySegment[segment][collectionId] ??= []).push(caseId)
+    }
+    const segmentByItemId = new Map<string, number>()
+    if (segments.length > 1) {
+      segmentRanges.forEach(({ start, count }, segmentIndex) => {
+        for (let i = start; i < start + count; ++i) segmentByItemId.set(itemIDs[i], segmentIndex)
+      })
+    }
+    for (const collectionId in newCaseIds) {
+      newCaseIds[collectionId].forEach(caseId => {
+        // Single segment (the ordinary, non-coalesced create path): every new case trivially
+        // belongs to segment 0, so skip the per-item attribution.
+        if (segments.length <= 1) return addCase(0, collectionId, caseId)
+        const childItemIds = dataContext.caseInfoMap.get(caseId)?.childItemIds ?? []
+        const earliestSegment = childItemIds.reduce<number>((earliest, itemId) => {
+          const segment = segmentByItemId.get(itemId)
+          return segment != null && segment < earliest ? segment : earliest
+        }, Infinity)
+        // a new case with no contributing batch item shouldn't occur during pure adds;
+        // attribute to the first segment if it ever does
+        addCase(isFinite(earliestSegment) ? earliestSegment : 0, collectionId, caseId)
+      })
+    }
+    return casesBySegment
+  }
 
   dataContext.applyModelChange(() => {
     // Bring grouping up to date before adding, so the add can group the new items additively
@@ -73,53 +109,31 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
         .sort((a, b) => a.index - b.index)
         .map(({ caseId }) => caseId)
     })
+    segmentCases = attributeCasesToSegments()
   }, {
+    // As in V2, the `createCases` notices (one per collection) are followed by `createItems`
+    // (data_context.js:1694-1708, 785-795), whose `caseIDs` pair each created case with the item it
+    // was built from. A coalesced batch sends these once for the whole batch rather than once per
+    // request, to keep a stream of creates from multiplying the notices other plugins receive.
     notify: () => {
       const notifications = []
+      const caseIds: string[] = []
       for (const collectionId in newCaseIds) {
-        const caseIds = newCaseIds[collectionId]
-        if (caseIds.length > 0) {
-          notifications.push(createCasesNotification(caseIds, dataContext))
+        if (newCaseIds[collectionId].length > 0) {
+          notifications.push(createCasesNotification(newCaseIds[collectionId], dataContext))
+          caseIds.push(...newCaseIds[collectionId])
         }
       }
+      const caseItemIds = caseIds.map(caseId => dataContext.caseInfoMap.get(caseId)?.childItemIds[0] ?? "")
+      notifications.push(createItemsNotification(dataContext,
+        caseIds.map(caseId => toV2Id(caseId)), caseItemIds.map(itemId => toV2Id(itemId))))
       return notifications
     }
   })
 
-  // Attribute each new case to the segment containing its earliest contributing item.
-  // This matches sequential semantics: under one-create-at-a-time processing, a new
-  // parent case is reported by the first request whose item forms it; later requests
-  // join the existing case without reporting it. Items were appended in segment order, so
-  // a case's earliest contributing item is simply the one in its lowest-numbered segment.
-  const segmentCaseIDs: number[][] = segmentRanges.map(() => [])
-  if (segments.length > 1) {
-    const segmentByItemId = new Map<string, number>()
-    segmentRanges.forEach(({ start, count }, segmentIndex) => {
-      for (let i = start; i < start + count; ++i) segmentByItemId.set(itemIDs[i], segmentIndex)
-    })
-    for (const collectionId in newCaseIds) {
-      newCaseIds[collectionId].forEach(caseId => {
-        const childItemIds = dataContext.caseInfoMap.get(caseId)?.childItemIds ?? []
-        const earliestSegment = childItemIds.reduce<number>((earliest, itemId) => {
-          const segment = segmentByItemId.get(itemId)
-          return segment != null && segment < earliest ? segment : earliest
-        }, Infinity)
-        // a new case with no contributing batch item shouldn't occur during pure adds;
-        // attribute to the first segment if it ever does
-        segmentCaseIDs[isFinite(earliestSegment) ? earliestSegment : 0].push(toV2Id(caseId))
-      })
-    }
-  } else {
-    // Single segment (the ordinary, non-coalesced create path): every new case trivially
-    // belongs to segment 0, so skip the per-item attribution map and reduce entirely.
-    for (const collectionId in newCaseIds) {
-      newCaseIds[collectionId].forEach(caseId => segmentCaseIDs[0].push(toV2Id(caseId)))
-    }
-  }
-
   return segmentRanges.map(({ start, count }, index) => ({
     success: true as const,
-    caseIDs: segmentCaseIDs[index],
+    caseIDs: Object.values(segmentCases[index]).flat().map(caseId => toV2Id(caseId)),
     itemIDs: itemIDs.slice(start, start + count).map(itemID => toV2Id(itemID))
   }))
 }

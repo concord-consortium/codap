@@ -8,6 +8,8 @@ interface IProps {
   closeOnOverlayClick?: boolean
   finalFocusRef?: React.RefObject<HTMLElement>
   initialRef?: any
+  isCentered?: boolean
+  isDraggable?: boolean
   isOpen: boolean
   returnFocusOnClose?: boolean
   onClick?: () => void
@@ -18,8 +20,8 @@ interface IProps {
 }
 
 export const CodapModal = forwardRef(({
-  children, finalFocusRef, initialRef, isOpen, returnFocusOnClose, closeOnOverlayClick, onClick, onClose,
-  onKeyDown, modalWidth, modalHeight
+  children, finalFocusRef, initialRef, isCentered, isDraggable = true, isOpen, returnFocusOnClose,
+  closeOnOverlayClick, onClick, onClose, onKeyDown, modalWidth, modalHeight
 }: IProps, ref: React.Ref<HTMLElement> | undefined) => {
 
   return (
@@ -27,6 +29,7 @@ export const CodapModal = forwardRef(({
       data-testid="codap-modal"
       finalFocusRef={finalFocusRef}
       initialFocusRef={initialRef}
+      isCentered={isCentered}
       isOpen={isOpen}
       returnFocusOnClose={returnFocusOnClose}
       closeOnOverlayClick={closeOnOverlayClick}
@@ -34,16 +37,29 @@ export const CodapModal = forwardRef(({
       size="xs"
     >
       <ModalOverlay />
-      <DraggableModalContent
-        fRef={ref}
-        modalWidth={modalWidth}
-        modalHeight={modalHeight}
-        onClick={onClick}
-        onKeyDown={onKeyDown}
-        isOpen={isOpen}
-      >
-        {children}
-      </DraggableModalContent>
+      {isDraggable
+        ? <DraggableModalContent
+            fRef={ref}
+            modalWidth={modalWidth}
+            modalHeight={modalHeight}
+            onClick={onClick}
+            onKeyDown={onKeyDown}
+            isOpen={isOpen}
+          >
+            {children}
+          </DraggableModalContent>
+        : <ModalContent
+            ref={ref}
+            w={modalWidth}
+            // maxW overrides the width limit from size="xs".
+            maxW={modalWidth}
+            h={modalHeight}
+            onClick={onClick}
+            onKeyDownCapture={onKeyDown}
+          >
+            {children}
+          </ModalContent>
+      }
     </Modal>
   )
 })
