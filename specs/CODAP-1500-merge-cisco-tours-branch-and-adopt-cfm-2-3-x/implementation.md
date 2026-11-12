@@ -190,7 +190,7 @@ Tests (fake timers):
 - a highlight (single step) is announced the same way;
 - under the default `initialFocus` no element with the live-region testid renders;
 - under `actionGated: true` with no `initialFocus` option, no region renders (gated tours unchanged, R9);
-- with an iframe focused when the step starts, the region stays empty for that step;
+- with an iframe focused when the step starts, the region stays empty for that step, and the next step is announced;
 - a step with a companion popover renders one region, on the primary;
 - a `**bold**` description is announced without the asterisks.
 
@@ -201,8 +201,8 @@ Tests (fake timers):
 **Summary**: `destroy()` sets `tabindex="-1"` on any target without a `tabindex` attribute before focusing it, which turns a button into something Tab skips. It now does so only when the target is not already focusable.
 
 **Files affected**:
-- `src/engine.tsx`: in `destroy()`, focus the target first, and only if focus did not land on it and it has no `tabindex` attribute, set `tabindex="-1"` and focus it again. Checking where focus landed rather than `tabIndex` covers an `<a>` without `href`, which reports `tabIndex` 0 but cannot take focus.
-- `src/engine.test.tsx`: the existing test "destroy() restores focus to step anchor when focus was inside the popover" asserts `tabindex="-1"` on its anchor, which `makeAnchorButton()` makes a `<button>`, so it encodes the bug and is updated to expect no `tabindex` attribute. A second test uses a `<div>` anchor (laid out the same way) and expects `tabindex="-1"` and focus on it, and a third does the same for an `<a>` without `href`.
+- `src/engine.tsx`: in `destroy()`, focus the target first, and only if focus did not land on it, it has no `tabindex` attribute, and it is neither disabled nor hidden (`:disabled`, `isLaidOut`), set `tabindex="-1"` and focus it again; a disabled or hidden control would otherwise stay out of the Tab order once it came back. Checking where focus landed rather than `tabIndex` covers an `<a>` without `href`, which reports `tabIndex` 0 but cannot take focus.
+- `src/engine.test.tsx`: the existing test "destroy() restores focus to step anchor when focus was inside the popover" asserts `tabindex="-1"` on its anchor, which `makeAnchorButton()` makes a `<button>`, so it encodes the bug and is updated to expect no `tabindex` attribute. A second test uses a `<div>` anchor (laid out the same way) and expects `tabindex="-1"` and focus on it, and a third does the same for an `<a>` without `href`. A fourth disables a `<button>` anchor before `destroy()` and expects no `tabindex`.
 
 **Estimated diff size**: ~40 lines
 
