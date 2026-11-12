@@ -25,7 +25,7 @@ Tour steps target CODAP UI elements using one of three methods (in priority orde
 | `selector` | Raw CSS selector | `".menu-bar-left .file-menu-button"` |
 | `component` alone | Target the tile itself (no sub-element) | `"123"` or `"Mammals"` |
 
-If multiple are provided, the first one found (in the priority order above) is used. If none of `tourKey`, `testId`, or `selector` is provided but `component` is, the tile's root element is targeted directly — this is the simplest way to highlight an entire tile. If the targeted element is not found in the DOM, the step is silently skipped.
+If multiple are provided, the first one found (in the priority order above) is used. If none of `tourKey`, `testId`, or `selector` is provided but `component` is, the tile's root element is targeted directly — this is the simplest way to highlight an entire tile. If the targeted element is not found in the DOM, or is in the page but not displayed (it has no layout box: for example under `display: none`, or with zero width or height; an element under `visibility: hidden` still counts as displayed), the step is silently skipped.
 
 ### Component Scoping
 
@@ -81,6 +81,8 @@ All fields except `request` and at least one targeting property (`tourKey`, `tes
 
 Additional options: `component`.
 
+If the target is missing, or is in the page but not displayed (no layout box), the highlight shows nothing and sends no `highlighted` notification (a highlight or tour already showing is still ended and notified as usual).
+
 ### clearHighlight
 
 Dismiss the active highlight. Idempotent — safe to call when nothing is active.
@@ -108,6 +110,8 @@ Start a multi-step guided tour. Returns a `tourId` for tracking.
 ```json
 { "success": true, "values": { "tourId": "tour-01JQ..." } }
 ```
+
+Steps whose target is missing, or is in the page but not displayed (no layout box), are skipped: they count toward `totalSteps` but not `visibleSteps`.
 
 #### Tour-Level Options
 
@@ -206,7 +210,7 @@ Notifications are delivered to the plugin's iframe-phone channel automatically �
 | Type | When |
 |------|------|
 | `highlighted` | Highlight is shown |
-| `highlightCleared` | User dismisses (Escape, close button, Done), the target is removed from the page, or replaced by another tour/highlight |
+| `highlightCleared` | User dismisses (Escape, close button, Done), the target is removed from the page or stops being displayed (no layout box), or replaced by another tour/highlight |
 
 Programmatic `clearHighlight` does **not** generate a notification (the plugin already knows).
 
@@ -229,10 +233,10 @@ Programmatic `clearHighlight` does **not** generate a notification (the plugin a
 
 | Type | When | Notes |
 |------|------|-------|
-| `stepStarted` | Step begins transitioning | Includes `stepIndex`, `totalSteps`, `visibleSteps`, `id`, targeting property |
+| `stepStarted` | The step's popover is on screen, so it can arrive after the `startTour` response | Includes `stepIndex`, `totalSteps`, `visibleSteps`, `id`, targeting property. A step the tour leaves before its popover is on screen (for example `tourMoveTo` batched with `startTour`) gets neither `stepStarted` nor `stepEnded`. |
 | `stepEnded` | User moves past a step | Same fields as `stepStarted` |
 | `completed` | Tour reaches the end | Includes `tourId`, `totalSteps`, `visibleSteps` |
-| `cancelled` | User dismisses, the current step's target is removed from the page, or tour is replaced | Includes `stepIndex` and step fields. **`stepEnded` is NOT sent** for the interrupted step. |
+| `cancelled` | User dismisses, the current step's target is removed from the page or stops being displayed (no layout box), or tour is replaced | Includes `stepIndex` and step fields when the current step has received `stepStarted`. **`stepEnded` is NOT sent** for the interrupted step. Two cases have no step fields: when the tour moves to a step whose target has been removed or hidden since the tour started, that step never starts, and `cancelled` follows the previous step's `stepEnded`; and a tour ended before its first popover is on screen (for example `endTour` batched with `startTour`) sends `cancelled` alone. |
 
 `stepIndex` and `totalSteps` always refer to the **original** step array (pre-filtering). `visibleSteps` is the filtered count — the number of steps the user actually sees.
 
@@ -535,6 +539,10 @@ The following `tourKey` values are available in the registry. Use `get tourEleme
 ### Tutorial Plugins and Click-Through
 
 Tours and highlights don't place an overlay over the workspace. Click-through and subelement interaction (menus, dialogs, the highlighted element itself) are the default behavior. Tutorial plugins that need students to interact with CODAP between steps can use either single highlights cleared between steps, or a multi-step tour — students can interact with any part of the UI while the popover is visible.
+
+### Popover Behavior
+
+The popover is a non-modal dialog named by the step's title (or CODAP's localized "Tour step" when it has none), with the title as a heading. CODAP does not move keyboard focus to it. The exception is at each step while focus is in a plugin iframe: focus moves to the popover so the arrow keys and Escape reach the tour. Each step is announced to screen readers. Scrolling to a target is instant when the user prefers reduced motion, even if the tour sets `smoothScroll`. The popover's testids are `coachmarks-popover`, `coachmarks-popover-title`, `coachmarks-popover-description`, `coachmarks-popover-progress-text`, `coachmarks-popover-next-btn`, `coachmarks-popover-prev-btn`, `coachmarks-popover-close-btn` and `coachmarks-popover-live-region`. The highlight outline is `coachmarks-outline-ring`, inside the container `coachmarks-root`.
 
 ### Cleanup
 
