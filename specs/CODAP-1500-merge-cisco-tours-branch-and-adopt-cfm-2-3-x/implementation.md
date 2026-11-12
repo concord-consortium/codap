@@ -255,7 +255,7 @@ Target values, with their CODAP source:
 | progress text | font | 12px, `#545454`, margin-top 8px, above the buttons | `vars.$charcoal-dark-1` |
 | buttons row | layout | progress text on its own line, then the buttons left-aligned: `.coachmarks-popover-buttons { display: block; margin-top: 0 }`, `.coachmarks-popover-button-group { margin-left: 0; gap: 0 }` (base's `gap: 4px` on top of the buttons' 4px right margin would space them 8px apart; CODAP's are 4px) | CODAP stacks them |
 | Previous, Next | style | Montserrat 12px 500, `#006c8e` background, white text, no border, radius 4px, padding `5px 12px`, margin-top 8px, margin-right 4px | |
-| Previous, Next | hover | background `#01879E` | `vars.$teal-dark` |
+| Previous, Next | hover | background `#007e98`, not CODAP's `#01879E` (`vars.$teal-dark`), which gives white text 4.23:1; `#007e98` gives 4.73:1 (R7) | |
 | Previous, Next | disabled | opacity 0.5, default cursor | |
 | Previous, Next | focus-visible | `2px solid #0957d0`, offset 2px, radius 4px | `vars.focus-outline($offset: 2px)` |
 | close button | box | 24 by 24px, `top: 4px; right: 4px`, transparent, no border, radius 4px, flex-centered, padding 0 (replaces the theme's `all: unset` text-glyph styling) | |
@@ -265,7 +265,7 @@ Target values, with their CODAP source:
 | outline ring | color | `--coachmarks-ring-color: #01879E`, width 2px | `$tour-ring-color` |
 | focus color | variable | `--coachmarks-focus-color: #0957d0` | `vars.$focus-outline-color` |
 
-The theme file's header contrast notes are updated to the new pairs (title `#006c8e` on `#f0f0f0`, white on `#006c8e`; the ring's 3:1 claim is dropped, since CODAP-1609 records that `#01879E` against CODAP's menu bar is 2.06:1, a design question out of scope here).
+The theme file's header contrast notes are updated to the new pairs (title `#006c8e` on `#f0f0f0`, white on `#006c8e`, white on the `#007e98` hover; the ring's 3:1 claim is dropped, since CODAP-1609 records that `#01879E` against CODAP's menu bar is 2.06:1, a design question out of scope here).
 
 Check: with the demo's theme switcher on `codap`, a screenshot of the multi-step tour section is compared by eye with CODAP's current popover (the branch before the CODAP switch step), and the computed styles of the popover, title, description, progress text, a button and the close button, plus the horizontal space between Previous and Next (a per-element comparison cannot see it), are read in both through Playwright and compared property by property. The comparison is throwaway and its result goes in the PR description.
 
