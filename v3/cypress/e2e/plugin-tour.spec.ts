@@ -154,4 +154,24 @@ describe("Plugin tours", () => {
       expect(popoverNotices).to.have.length(0)
     })
   })
+
+  it("pulls focus out of the plugin iframe at each step so the keys reach the tour", () => {
+    const focusPluginIframe = () => {
+      cy.get(".codap-web-view-iframe").then($iframe => { $iframe[0].focus() })
+      cy.document().its("activeElement.tagName").should("equal", "IFRAME")
+    }
+    focusPluginIframe()
+    tourRequest(twoStepTour)
+    tour.getTitle().should("have.text", "Tables")
+    cy.focused().should("have.attr", "data-testid", "coachmarks-popover")
+    cy.focused().type("{rightarrow}")
+    tour.getTitle().should("have.text", "Graph")
+    focusPluginIframe()
+    tourRequest({ request: "tourPrevious" })
+    tour.getTitle().should("have.text", "Tables")
+    cy.focused().should("have.attr", "data-testid", "coachmarks-popover")
+    cy.focused().type("{esc}")
+    tour.getPopover().should("not.exist")
+    expectTourNotices(["stepStarted", "stepEnded", "stepStarted", "stepEnded", "stepStarted", "cancelled"])
+  })
 })
