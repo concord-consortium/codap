@@ -178,6 +178,23 @@ describe("API data changes send dataContextChangeNotice", () => {
     expect(operations()).toEqual(["updateCases"])
   })
 
+  it("create case that fills a new parent's empty child case sends createCases for it, as in V2", async () => {
+    await request("create", "collection[collection1].case", { values: { a1: "p" } })
+    const parentId = dataset.getCasesForCollection(dataset.collections[0].id).find(aCase =>
+      dataset.getStrValue(aCase.__id__, dataset.attrIDFromName("a1")!) === "p")!.__id__
+    const itemId = dataset.caseInfoMap.get(parentId)!.childItemIds[0]
+    broadcastSpy.mockClear()
+    await request("create", "collection[collection2].case", { parent: toV2Id(parentId), values: { a2: "q" } })
+    const filledCaseId = dataset.getItemCaseIds(itemId).find(id => dataset.collections[1].hasCase(id))!
+    expect(changes()).toEqual([{
+      operation: "createCases",
+      result: {
+        success: true, caseIDs: [toV2Id(filledCaseId)], itemIDs: [toV2Id(itemId)],
+        caseID: toV2Id(filledCaseId), itemID: toV2Id(itemId)
+      }
+    }])
+  })
+
   it("create item sends createCases for each collection, then createItems", async () => {
     await request("create", "item", [{ a1: "new", a2: "w", a3: 50, a4: -50 }])
     // a new parent, a new middle case and a new child case
