@@ -209,6 +209,7 @@ const SingleCaseView = observer(function SingleCaseView({
           caseItem={displayedCase}
           collection={collection}
           collectionIndex={level}
+          dummy={dummy}
           onResizeColumn={onResizeColumn}
         />
         { childCollection && (

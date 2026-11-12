@@ -26,6 +26,7 @@ interface ICaseAttrsViewProps {
   caseItem?: IGroupedCase
   collection?: ICollectionModel
   collectionIndex: number
+  dummy?: boolean // A hidden copy used for the card-flip animation
   onResizeColumn?: (collectionId: string, widthPct: number, isComplete?: boolean) => void
 }
 
@@ -69,7 +70,7 @@ function getNextAttrId(attrs: readonly IAttribute[], currentAttrId: string): May
 }
 
 export const CaseAttrsView = observer(function CaseAttrsView(
-  { caseItem, collection, collectionIndex, onResizeColumn }: ICaseAttrsViewProps
+  { caseItem, collection, collectionIndex, dummy, onResizeColumn }: ICaseAttrsViewProps
 ) {
   const cardModel = useCaseCardModel()
   const isCollectionSummarized = !!collection?.cases && collection.cases.length > 0 &&
@@ -132,7 +133,8 @@ export const CaseAttrsView = observer(function CaseAttrsView(
   const colWidthStyle = `${(columnWidthPct * 100).toFixed(1)}%`
 
   return (
-    <div className="case-card-attrs-wrapper" ref={resizeRef} data-testid={`case-card-attrs-wrapper-${collectionIndex}`}>
+    <div className="case-card-attrs-wrapper" ref={resizeRef}
+        data-testid={dummy ? undefined : `case-card-attrs-wrapper-${collectionIndex}`}>
       <table className={tableClassName} data-testid="case-card-attrs">
         <colgroup>
           <col style={{ width: colWidthStyle }} />

@@ -21,4 +21,15 @@ describe("CaseAttrsView", () => {
       </DndContext>)
     expect(screen.getByTestId("case-card-attrs-wrapper-1")).toHaveClass("case-card-attrs-wrapper")
   })
+
+  it("leaves the testid off the hidden copy used for the flip animation", () => {
+    render(
+      <DndContext>
+        <TileSelectionContext.Provider value={tileSelection}>
+          <CaseAttrsView collectionIndex={1} dummy={true} />
+        </TileSelectionContext.Provider>
+      </DndContext>)
+    expect(screen.queryByTestId("case-card-attrs-wrapper-1")).toBeNull()
+    expect(screen.getByTestId("case-card-attrs")).toBeInTheDocument()
+  })
 })
