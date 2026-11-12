@@ -154,12 +154,12 @@ attribute of the collection and every child case.
 
 ## Known limitations
 
-**A boolean value does not match.** CODAP v3 stores every value a plugin sends as either a
-number or text, so a case created with `"Endangered": true` holds the text `true`. The search
-`Endangered==true` compares that text with the boolean `true` and finds no cases, and
-`Endangered==false` finds only the cases with no value. v2 kept the boolean, so `==true` found
-the `true` cases and `==false` the `false` ones, which is the intended behavior. This is a known bug. Until it is fixed, use
-[`caseFormulaSearch`](case-formula-search.md) with `Endangered=true`, which does match.
+**The text `true` and `false` matches as a boolean.** `Endangered==true` finds the cases a plugin
+created with `"Endangered": true`, as in v2. CODAP stores every value as a number or text, so the
+text `true` typed into a table, imported from a file, or set by a checkbox matches too, where v2
+compared it as text and did not match. This is a deliberate difference. As in v2,
+`Endangered==false` also finds the cases with no value or `0`. Unlike v2, `Endangered==1` finds
+the `true` cases too, because the comparison converts between types.
 
 **A top-level case's `parent` is `undefined`, not `null`.** v2 sent `null`. A plugin that tests
 `parent === null` treats every top-level case as a child; test for a missing parent instead, such

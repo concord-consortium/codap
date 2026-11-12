@@ -1,3 +1,4 @@
+import { IValueType } from "../models/data/attribute-types"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { ICaseCreation } from "../models/data/data-set-types"
@@ -20,6 +21,12 @@ export function canonicalizeAttributeName(name: string, iCanonicalize = true) {
   return tName
 }
 
+// A value as a plugin reads it. V2 kept the booleans plugins sent (data_utilities.js:63-71), but V3 stores
+// every value as text, so the text "true" and "false" read back as booleans, whatever stored them.
+export function toPluginValue<T extends IValueType>(value: T): T | boolean {
+  return value === "true" ? true : value === "false" ? false : value
+}
+
 export function getCaseValues(caseId: string, dataSet: IDataSet, collectionId?: string) {
   const attributes = collectionId
                       ? dataSet.getCollection(collectionId)?.attributes ?? []
@@ -29,7 +36,7 @@ export function getCaseValues(caseId: string, dataSet: IDataSet, collectionId?: 
   const itemIndex = dataSet.getItemIndex(caseId) ?? -1
   attributes.map(attribute => {
     if (attribute?.name) {
-      values[attribute.name] = dataSet.getValue(caseId, attribute.id) ?? attribute?.value(itemIndex)
+      values[attribute.name] = toPluginValue(dataSet.getValue(caseId, attribute.id) ?? attribute?.value(itemIndex))
     }
   })
 

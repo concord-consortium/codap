@@ -43,8 +43,10 @@ own data context — see [the index](../README.md#the-default-data-context).
 ## Search formulas
 
 CODAP evaluates the formula once for each case in the collection, as if it were the formula of
-an attribute in that collection, and returns the cases for which the result is truthy: `true`, a
-non-zero number, or non-empty text.
+an attribute in that collection, and returns the cases for which the result is true as a filter
+formula reads it: `true`, the text `true` in any case, a non-zero number, or other non-empty text.
+The text `false` in any case, `0`, text that converts to `0` (such as `0.0` or a space) and an
+empty result do not match.
 
 Because it is an ordinary formula:
 
@@ -168,11 +170,11 @@ sendRequest({
 
 ## Known limitations
 
-**A boolean value is treated as text.** CODAP v3 stores every value a plugin sends as either a
-number or text, so a case created with `"Endangered": false` holds the text `false`. Non-empty
-text is truthy, so the formula `Endangered` on its own matches that case as well as the ones
-holding `true`. v2 kept the boolean, so `Endangered` matched only the `true` cases, which is the
-intended behavior. This is a known bug. Comparing explicitly works in both: `Endangered=true`.
+**The text `false` does not match.** The formula `Endangered` on its own matches the cases a
+plugin created with `"Endangered": true` and not those created with `false`, as in v2. It also
+skips the text `false` typed into a table, imported from a file, or left by an unchecked checkbox,
+and text that converts to `0`, as described under [Search formulas](#search-formulas). v2 used
+JavaScript truthiness, so any non-empty text matched there. This is a deliberate difference.
 
 **A formula error is not in `values.error`.** When the formula is not a valid formula, or
 evaluating it fails, the message is in a top-level `error` property,
