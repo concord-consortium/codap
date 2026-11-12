@@ -63,32 +63,34 @@ R3 has no unit test (jsdom does not apply CSS to touch behavior); it is checked 
 **Estimated diff size**: ~50 lines
 
 ```tsx
-// Per engine, the step Previous was used on while focus was in the popover, or null. Kept
-// outside the component because a step of a different shape (anchored or viewport) remounts it.
-const previousFromByStore = new WeakMap<Store<EngineLiveState>, number | null>();
+// Per engine, the tour (seqId) and step Previous was used on while focus was in the popover.
+// Kept outside the component because a step of a different shape (anchored or viewport)
+// remounts it.
+const previousFromByStore = new WeakMap<Store<EngineLiveState>, { seqId: number; index: number }>();
 
 // in PopoverContent:
 const focusNone = (opts.initialFocus ?? "popover") === "none";
 const nextBtnRef = useRef<HTMLButtonElement>(null);
 const movePrevious = () => {
-  previousFromByStore.set(
-    store,
-    activeIndex > 0 && popoverEl?.contains(document.activeElement) ? activeIndex : null,
-  );
+  if (activeIndex > 0 && popoverEl?.contains(document.activeElement)) {
+    previousFromByStore.set(store, { seqId, index: activeIndex });
+  } else {
+    previousFromByStore.delete(store);
+  }
   store.getSnapshot().movePrevious();
 };
 useEffect(() => {
   if (!isPrimary || !popoverEl) return;
-  const from = previousFromByStore.get(store) ?? null;
+  const from = previousFromByStore.get(store);
   previousFromByStore.delete(store);
-  if (from === null || from === activeIndex) return;
+  if (!from || from.seqId !== seqId || from.index === activeIndex) return;
   if (!focusNone) return;
   const active = document.activeElement;
   if (active === null || active === document.body) {
     const next = nextBtnRef.current;
     (next && !next.disabled ? next : popoverEl).focus({ preventScroll: true });
   }
-}, [activeIndex, popoverEl, focusNone, store, isPrimary]);
+}, [activeIndex, seqId, popoverEl, focusNone, store, isPrimary]);
 ```
 
 The gate reads the consumer's option rather than the derived `initialFocus` (which `actionGated` forces to `"none"`). The record is made only when a move can happen (not on the first step), and the effect refocuses only when focus has dropped to `<body>`: a Previous that did not move (ArrowLeft on the first step, or a step still waiting for its target) would otherwise leave a record that pulled focus off the page on a later, unrelated step change.
@@ -107,7 +109,8 @@ Tests, each a two-step tour under `initialFocus: "none"` moved to step 2 (and ea
 - on step 1 with focus on Next, press ArrowLeft, blur, then `moveNext()`: focus stays on `<body>` (fails without the first-step check);
 - on a step whose `moveNext()` is waiting for a selector target, click Previous (held by the wait), focus an input, then add the target: the input keeps focus (fails without the `<body>` check);
 - with a centered (viewport) first step and an anchored second, click Previous: focus is on Next (the popover remounts for the different shape, so the record must live outside it);
-- the same with two-popover groups: focus is on Next, not the companion (only the primary, which has the buttons, reads the record).
+- the same with two-popover groups: focus is on Next, not the companion (only the primary, which has the buttons, reads the record);
+- a Previous held by a pending step, then a new `drive()` on the same engine with focus on `<body>`: focus stays on `<body>` (the record belongs to the earlier tour's `seqId`).
 
 A further test under the default `initialFocus` asserts the end state (the popover holds focus). It cannot isolate the `focusNone` gate, since the `initialFocus` effect runs after the new one and refocuses either way.
 
@@ -202,7 +205,7 @@ Tests (fake timers):
 
 **Files affected**:
 - `src/engine.tsx`: in `destroy()`, focus the target first, and only if focus did not land on it, it has no `tabindex` attribute, and it is neither disabled nor hidden (`:disabled`, `isLaidOut`), set `tabindex="-1"` and focus it again; a disabled or hidden control would otherwise stay out of the Tab order once it came back. Checking where focus landed rather than `tabIndex` covers an `<a>` without `href`, which reports `tabIndex` 0 but cannot take focus.
-- `src/engine.test.tsx`: the existing test "destroy() restores focus to step anchor when focus was inside the popover" asserts `tabindex="-1"` on its anchor, which `makeAnchorButton()` makes a `<button>`, so it encodes the bug and is updated to expect no `tabindex` attribute. A second test uses a `<div>` anchor (laid out the same way) and expects `tabindex="-1"` and focus on it, and a third does the same for an `<a>` without `href`. A fourth disables a `<button>` anchor before `destroy()` and expects no `tabindex`.
+- `src/engine.test.tsx`: the existing test "destroy() restores focus to step anchor when focus was inside the popover" asserts `tabindex="-1"` on its anchor, which `makeAnchorButton()` makes a `<button>`, so it encodes the bug and is updated to expect no `tabindex` attribute. A second test uses a `<div>` anchor (laid out the same way) and expects `tabindex="-1"` and focus on it, and a third does the same for an `<a>` without `href`. A fourth disables a `<button>` anchor before `destroy()` and expects no `tabindex`. A fifth hides a `<div>` anchor (no `offsetParent`) before `destroy()` and expects no `tabindex`.
 
 **Estimated diff size**: ~40 lines
 
