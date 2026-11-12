@@ -63,29 +63,32 @@ R3 has no unit test (jsdom does not apply CSS to touch behavior); it is checked 
 **Estimated diff size**: ~50 lines
 
 ```tsx
+// Per engine, the step Previous was used on while focus was in the popover, or null. Kept
+// outside the component because a step of a different shape (anchored or viewport) remounts it.
+const previousFromByStore = new WeakMap<Store<EngineLiveState>, number | null>();
+
+// in PopoverContent:
 const focusNone = (opts.initialFocus ?? "popover") === "none";
 const nextBtnRef = useRef<HTMLButtonElement>(null);
-// The step Previous was used on while focus was in the popover, or null.
-const previousFrom = useRef<number | null>(null);
-// Shared by the Previous button and ArrowLeft.
 const movePrevious = () => {
-  previousFrom.current =
-    activeIndex > 0 && popoverEl?.contains(document.activeElement)
-      ? activeIndex
-      : null;
+  previousFromByStore.set(
+    store,
+    activeIndex > 0 && popoverEl?.contains(document.activeElement) ? activeIndex : null,
+  );
   store.getSnapshot().movePrevious();
 };
 useEffect(() => {
-  const from = previousFrom.current;
-  previousFrom.current = null;
+  if (!popoverEl) return;
+  const from = previousFromByStore.get(store) ?? null;
+  previousFromByStore.delete(store);
   if (from === null || from === activeIndex) return;
-  if (!focusNone || !popoverEl) return;
+  if (!focusNone) return;
   const active = document.activeElement;
   if (active === null || active === document.body) {
     const next = nextBtnRef.current;
     (next && !next.disabled ? next : popoverEl).focus({ preventScroll: true });
   }
-}, [activeIndex, popoverEl, focusNone]);
+}, [activeIndex, popoverEl, focusNone, store]);
 ```
 
 The gate reads the consumer's option rather than the derived `initialFocus` (which `actionGated` forces to `"none"`). The record is made only when a move can happen (not on the first step), and the effect refocuses only when focus has dropped to `<body>`: a Previous that did not move (ArrowLeft on the first step, or a step still waiting for its target) would otherwise leave a record that pulled focus off the page on a later, unrelated step change.
@@ -102,7 +105,8 @@ Tests, each a two-step tour under `initialFocus: "none"` moved to step 2 (and ea
 - with `disableButtons: ["next"]`, click Previous: focus is on the popover (a disabled button cannot take focus);
 - on step 1 with focus on Next, press ArrowLeft, focus an input on the page, then `moveNext()`: the input keeps focus;
 - on step 1 with focus on Next, press ArrowLeft, blur, then `moveNext()`: focus stays on `<body>` (fails without the first-step check);
-- on a step whose `moveNext()` is waiting for a selector target, click Previous (held by the wait), focus an input, then add the target: the input keeps focus (fails without the `<body>` check).
+- on a step whose `moveNext()` is waiting for a selector target, click Previous (held by the wait), focus an input, then add the target: the input keeps focus (fails without the `<body>` check);
+- with a centered (viewport) first step and an anchored second, click Previous: focus is on Next (the popover remounts for the different shape, so the record must live outside it).
 
 A further test under the default `initialFocus` asserts the end state (the popover holds focus). It cannot isolate the `focusNone` gate, since the `initialFocus` effect runs after the new one and refocuses either way.
 
@@ -196,8 +200,8 @@ Tests (fake timers):
 **Summary**: `destroy()` sets `tabindex="-1"` on any target without a `tabindex` attribute before focusing it, which turns a button into something Tab skips. It now does so only when the target is not already focusable.
 
 **Files affected**:
-- `src/engine.tsx`: in `destroy()`, `if (!focusTarget.hasAttribute("tabindex") && focusTarget.tabIndex < 0)`. A `<button>`, `<a href>` or form control reports `tabIndex` 0; a plain `<div>` reports -1.
-- `src/engine.test.tsx`: the existing test "destroy() restores focus to step anchor when focus was inside the popover" asserts `tabindex="-1"` on its anchor, which `makeAnchorButton()` makes a `<button>`, so it encodes the bug and is updated to expect no `tabindex` attribute. A second test uses a `<div>` anchor (laid out the same way) and expects `tabindex="-1"` and focus on it.
+- `src/engine.tsx`: in `destroy()`, focus the target first, and only if focus did not land on it and it has no `tabindex` attribute, set `tabindex="-1"` and focus it again. Checking where focus landed rather than `tabIndex` covers an `<a>` without `href`, which reports `tabIndex` 0 but cannot take focus.
+- `src/engine.test.tsx`: the existing test "destroy() restores focus to step anchor when focus was inside the popover" asserts `tabindex="-1"` on its anchor, which `makeAnchorButton()` makes a `<button>`, so it encodes the bug and is updated to expect no `tabindex` attribute. A second test uses a `<div>` anchor (laid out the same way) and expects `tabindex="-1"` and focus on it, and a third does the same for an `<a>` without `href`.
 
 **Estimated diff size**: ~40 lines
 
@@ -253,6 +257,7 @@ Target values, with their CODAP source:
 | close button | box | 24 by 24px, `top: 4px; right: 4px`, transparent, no border, radius 4px, flex-centered, padding 0 (replaces the theme's `all: unset` text-glyph styling) | |
 | close button | focus-visible | `2px solid #0957d0`, offset -2px, radius 2px | `vars.focus-outline` |
 | close button | hover | `.coachmarks-popover-close-btn:hover .coachmarks-popover-close-icon path[fill] { fill: #01879E }` | |
+| close button | color | `#006c8e`, `#01879e` on hover, for an icon drawn in `currentColor` such as coachmarks' default (CODAP's SVG sets its own fill) | |
 | outline ring | color | `--coachmarks-ring-color: #01879E`, width 2px | `$tour-ring-color` |
 | focus color | variable | `--coachmarks-focus-color: #0957d0` | `vars.$focus-outline-color` |
 
@@ -499,7 +504,7 @@ Tests:
 - `v3/cypress/fixtures/ui-notification-test-plugin.html` renamed to `v3/cypress/fixtures/test-plugin.html` (`git mv`), and:
   - loads iframe-phone from `/cypress-fixtures/iframe-phone.js` (served by the helper) instead of unpkg;
   - sets `window.__codapReady = true` in the callback of its first request, the `update interactiveFrame` handshake;
-  - keeps `subscribeMonitor`, `updateMonitor`, `unsubscribeMonitor`, `getDeliveredNotices` and `resetDeliveredNotices`, and records the id `subscribeMonitor` returns in `window.__lastMonitorId`;
+  - keeps `subscribeMonitor`, `updateMonitor`, `unsubscribeMonitor`, `getDeliveredNotices` and `resetDeliveredNotices` (callers take the monitor id from `subscribeMonitor`'s reply);
   - adds `window.codapRequest(request)`, which sends any request and resolves with the reply, and `window.getTourNotices()`, which returns the `values` of every `notify interactiveFrame` message received (where `tourUpdate` and `highlightUpdate` arrive), plus `resetTourNotices()`.
 - `v3/cypress/support/helpers/test-plugin.ts` (new):
 
