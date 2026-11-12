@@ -23,7 +23,7 @@ export class BinDetails {
     this.binAlignmentPrecision = Math.min(this.binWidthPrecision + 2, getPrecisionForValue(this.binAlignment))
     // edge precision is the max of width and alignment precisions
     this.binEdgePrecision = Math.max(this.binWidthPrecision ?? 0, this.binAlignmentPrecision ?? 0)
-    // bin values are rounded to two more decimal places when determining bin assignments
+    // bin midpoints are rounded to two more decimal places than bin edges
     this.binValuePrecision = this.binEdgePrecision + 2
     this.minBinEdge = this.getMinBinEdge() ?? 0
     this.maxBinEdge = this.getMaxBinEdge() ?? 0

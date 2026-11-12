@@ -93,6 +93,12 @@ describe("BinDetails", () => {
     expect(binDetails.getBinForValue(minDate + 0.59)).toBe(2)
   })
 
+  it("should put negative values exactly on a bin edge in the upper bin", () => {
+    const binDetails = new BinDetails(-1, 0, 0.1, -1)
+    expect(binDetails.getBinForValue(-0.3)).toBe(7)
+    expect(binDetails.getBinForValue(-0.31)).toBe(6)
+  })
+
   it("should determine bin for values whose bin value precision is zero", () => {
     const binDetails = new BinDetails(1000, 1500)
     expect(binDetails.binValuePrecision).toBe(0)
