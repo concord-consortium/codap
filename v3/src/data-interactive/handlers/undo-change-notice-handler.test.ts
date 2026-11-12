@@ -214,6 +214,22 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
       expect(clearNotices).toEqual([])
     })
 
+    it("sends clearUndo, then clearRedo, to every plugin when the history is erased, as v2 did", async () => {
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
+      await waitForHistoryEntry()
+      broadcastSpy.mockClear()
+
+      appState.document.treeManagerAPI!.undoManager.clearHistory()
+      expect([appState.document.canUndo, appState.document.canRedo]).toEqual([false, false])
+      expect(notices("undoChangeNotice").map(({ message, targetTileId, excludeTileId }) =>
+        [message.values, targetTileId, excludeTileId])).toEqual([
+        [{ operation: "clearUndo", canUndo: false, canRedo: true }, undefined, undefined],
+        [{ operation: "clearRedo", canUndo: false, canRedo: false }, undefined, undefined]
+      ])
+    })
+
     it("logs the plugin's logMessage, as v2 did", async () => {
       await handler.notify?.({ interactiveFrame: tile },
         { operation: "undoableActionPerformed", logMessage: "moved the slider" })
