@@ -17,11 +17,11 @@ export interface DIFullCase {
     parent?: {
       id?: number
       name?: string
-    }
+    } | null
   }
   id?: number
   itemId?: number
-  parent?: number
+  parent?: number | null
   values?: DICaseValues
 }
 export interface DIAllCases {
@@ -103,7 +103,7 @@ export type DIResultAttributes = { attrs: ICodapV2Attribute[]}
 export interface DIGetCaseResult {
   case: {
     id?: number
-    parent?: number
+    parent?: number | null
     collection?: {
       id?: number
       name?: string

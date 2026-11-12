@@ -61,9 +61,8 @@ The new case takes its parent's values for the attributes of the collections abo
 needs only this collection's attributes.
 
 `create` replies with the ids of the new cases, as an array of objects. Each carries `id`, the
-new case's id, and `itemID`, the id of the item behind it. v3 currently omits `itemID`; see
-[Known limitations](#known-limitations). The reply does not necessarily list the cases in the
-order you sent them.
+new case's id, and `itemID`, the id of the item behind it. The reply does not necessarily list
+the cases in the order you sent them.
 
 ### What `update` accepts
 
@@ -169,10 +168,6 @@ sendRequest({
 ```
 
 ## Known limitations
-
-**`create` does not reply with `itemID`.** Each object in the reply carries only `id`. v2 also
-returned `itemID`. This is a known bug. Until it is fixed, a plugin that needs the item ids can
-read them with `itemByCaseID`.
 
 **The `create` reply can leave out a case, and can overwrite one.** When CODAP creates a parent
 case, it also makes an empty case beneath it in each child collection. A child case you then
