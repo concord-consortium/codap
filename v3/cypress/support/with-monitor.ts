@@ -7,6 +7,8 @@
  * maximum-pressure configuration for parity testing.
  */
 
+import { testPluginWindow } from "./helpers/test-plugin"
+
 export const BROAD_MONITOR_FILTER = {
   eventTypes: [
     "appear", "disappear", "click", "dblclick", "dragStart", "dragEnd", "layoutChange", "dialogChange"
@@ -20,17 +22,18 @@ export function withBroadMonitor(runTest: () => void) {
     baselineSignature = signatureOfMainDOM(doc)
   })
 
-  cy.window().then((win: any) => {
-    expect(win.subscribeMonitor, "test-plugin subscribeMonitor").to.be.a("function")
-    return win.subscribeMonitor(BROAD_MONITOR_FILTER)
+  let monitorId: number | undefined
+  testPluginWindow().then(async (win: any) => {
+    const reply = await win.subscribeMonitor(BROAD_MONITOR_FILTER)
+    expect(reply?.success, "subscribeMonitor succeeded").to.equal(true)
+    monitorId = reply.values.id
   })
 
   runTest()
 
-  cy.window().then((win: any) => {
-    return win.unsubscribeMonitor && win.__lastMonitorId != null
-      ? win.unsubscribeMonitor(win.__lastMonitorId)
-      : undefined
+  testPluginWindow().then(async (win: any) => {
+    const reply = await win.unsubscribeMonitor(monitorId)
+    expect(reply?.success, "unsubscribeMonitor succeeded").to.equal(true)
   })
 
   cy.document().then(doc => {
@@ -40,7 +43,8 @@ export function withBroadMonitor(runTest: () => void) {
 }
 
 function signatureOfMainDOM(doc: Document): string {
-  const app = doc.querySelector("#codap-app")
+  const app = doc.querySelector('[data-testid="codap-app"]')
+  expect(app, "CODAP app root").to.not.equal(null)
   if (!app) return ""
   // Cheap signature: count of each tagName + number of free-tile-components
   const counts: Record<string, number> = {}
