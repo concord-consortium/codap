@@ -209,35 +209,60 @@ export interface IDensityGridRegion {
  * Returns the density of pixel-coordinate kernels sampled at each cell's center, in row-major order. A Gaussian is
  * separable, exp(−(dx² + dy²)/2h²) = exp(−dx²/2h²) · exp(−dy²/2h²), so each kernel adds
  * rowWeight · colWeight[col] to each cell in its window and the inner loop needs no exp.
+ *
+ * Horizontal distances wrap around the world, whose width (one world copy) is worldWidth pixels.
+ * Each cell gets each kernel's weight exactly once, from the kernel's nearest copy.
  */
-export function computeDensityGrid(kernels: IKernel[], region: IDensityGridRegion) {
+export function computeDensityGrid(kernels: IKernel[], region: IDensityGridRegion, worldWidth: number) {
   const { originX, originY, cols, rows, cellSize } = region
   const grid = new Float32Array(cols * rows)
   const colWeights = new Float64Array(cols)
+  const rowWeights = new Float64Array(rows)
+  const halfWorld = worldWidth / 2
+  const regionRight = originX + cols * cellSize
 
-  // The first and last cells whose centers, origin + (i + 0.5) · cellSize, are within r of p
-  const cellRange = (p: number, r: number, origin: number, count: number) => [
-    Math.max(0, Math.ceil((p - r - origin) / cellSize - 0.5)),
-    Math.min(count - 1, Math.floor((p + r - origin) / cellSize - 0.5))
-  ]
+  // Indices of the cells whose centers, origin + (i + 0.5) · cellSize, are nearest p on either side
+  const firstCellAtOrAfter = (p: number, origin: number) => Math.ceil((p - origin) / cellSize - 0.5)
+  const lastCellAtOrBefore = (p: number, origin: number) => Math.floor((p - origin) / cellSize - 0.5)
 
   kernels.forEach(({ x, y, h }) => {
     const r = kKernelCutoff * h
-    const [colMin, colMax] = cellRange(x, r, originX, cols)
-    const [rowMin, rowMax] = cellRange(y, r, originY, rows)
-    if (colMin > colMax || rowMin > rowMax) return
+    const rowMin = Math.max(0, firstCellAtOrAfter(y - r, originY))
+    const rowMax = Math.min(rows - 1, lastCellAtOrBefore(y + r, originY))
+    if (rowMin > rowMax) return
 
     const denominator = 2 * h * h
-    for (let col = colMin; col <= colMax; col++) {
-      const dx = originX + (col + 0.5) * cellSize - x
-      colWeights[col] = Math.exp(-dx * dx / denominator)
-    }
     for (let row = rowMin; row <= rowMax; row++) {
       const dy = originY + (row + 0.5) * cellSize - y
-      const rowWeight = Math.exp(-dy * dy / denominator)
-      const rowStart = row * cols
+      rowWeights[row] = Math.exp(-dy * dy / denominator)
+    }
+
+    // A window wider than the world is clipped to [−halfWorld, halfWorld) around each copy, so that copies'
+    // windows don't overlap and no cell counts the kernel twice
+    const clipped = r >= halfWorld
+    const reach = clipped ? halfWorld : r
+    // The world copies whose windows overlap the region
+    const copyMin = Math.ceil((originX - reach - x) / worldWidth)
+    const copyMax = Math.floor((regionRight + reach - x) / worldWidth)
+
+    for (let copy = copyMin; copy <= copyMax; copy++) {
+      const copyX = x + copy * worldWidth
+      const colMin = Math.max(0, firstCellAtOrAfter(copyX - reach, originX))
+      const colMax = Math.min(cols - 1, clipped
+        ? firstCellAtOrAfter(copyX + reach, originX) - 1
+        : lastCellAtOrBefore(copyX + reach, originX))
+      if (colMin > colMax) continue
+
       for (let col = colMin; col <= colMax; col++) {
-        grid[rowStart + col] += rowWeight * colWeights[col]
+        const dx = originX + (col + 0.5) * cellSize - copyX
+        colWeights[col] = Math.exp(-dx * dx / denominator)
+      }
+      for (let row = rowMin; row <= rowMax; row++) {
+        const rowWeight = rowWeights[row]
+        const rowStart = row * cols
+        for (let col = colMin; col <= colMax; col++) {
+          grid[rowStart + col] += rowWeight * colWeights[col]
+        }
       }
     }
   })
@@ -288,11 +313,16 @@ export function projectHotSpotKernels(
   })
 }
 
-/** Renders the surface into out, one RGBA pixel per cell of the region */
+/**
+ * Renders the surface into out, one RGBA pixel per cell of the region. Horizontal distances wrap around the world,
+ * so the density at a location matches the surface's maxDensity and doesn't change as the map pans across the
+ * antimeridian. When the view is wide enough to show several world copies, the hot spots repeat in each one.
+ */
 export function renderHotSpotSurface(
   surface: IHotSpotSurface, project: LatLongProjector, zoomScale: number, region: IDensityGridRegion,
   lut: Uint8ClampedArray, out: Uint8ClampedArray
 ) {
-  const grid = computeDensityGrid(projectHotSpotKernels(surface, project, zoomScale), region)
+  const kernels = projectHotSpotKernels(surface, project, zoomScale)
+  const grid = computeDensityGrid(kernels, region, kWorldSize * zoomScale)
   colorizeDensityGrid(grid, surface.maxDensity, lut, out)
 }

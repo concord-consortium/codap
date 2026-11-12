@@ -41,8 +41,10 @@ low-color → high-color gradient over the map.
 6. Hot spots display whenever the layer and the hot spot toggle are on, **even if the points
    themselves are hidden** (`pointsAreVisible === false`).
 7. Ignore legend grouping.
-8. World copies: whatever is simplest. This design uses a single copy that matches the
-   displayed points.
+8. World copies: the density surface wraps around the world, as the maximum-density search does,
+   so the brightness at a location doesn't change when the map pans across the antimeridian. When
+   the view shows several world copies, the hot spots repeat in each one, like the base map; the
+   points themselves are still drawn once.
 
 ### Explicitly deferred (but the design should leave room)
 
@@ -298,7 +300,11 @@ export const kHotSpotCellSize = 2   // px per grid cell side
 - Grid dimensions: `ceil(regionWidth / kHotSpotCellSize) × ceil(regionHeight / kHotSpotCellSize)`;
   densities are sampled at cell centers into a `Float32Array`.
 - Point positions: `createLatLongProjector(leafletMap)` (R1), the same projection the points use,
-  so the hot spots line up with the displayed points (a single world copy).
+  so the hot spots line up with the displayed points.
+- World wrap: horizontal distances wrap at the world's width in pixels, `256 · 2^zoom`, matching
+  `computeMaxDensity`. Each point is accumulated at every world copy whose window overlaps the
+  region, with each copy's columns limited to half a world on either side of it, so every cell
+  gets each point's weight exactly once, from its nearest copy. Zoomed in, that's one copy.
 - Per-point pixel bandwidth: `hpxᵢ = hᵢ · 2^zoom`, equivalently
   `h / metersPerPixel(latᵢ, zoom)`.
 - **Separable accumulation:** `exp(−(dx² + dy²)/2h²) = exp(−dx²/2h²) · exp(−dy²/2h²)`. For each point,
@@ -433,7 +439,10 @@ In `src/components/map/utilities/hot-spot-utils.ts`:
   between points); far-apart points → 1; cluster across the antimeridian is found.
 - `computeDensityGrid`: single point peak at its cell ≈ 1; symmetric falloff; zero beyond the cutoff;
   matches the brute-force `exp` evaluation on a small grid; points just outside the region still
-  contribute to edge cells.
+  contribute to edge cells; with a world width, matches brute force with wrapped distances, even
+  for a window wider than the world, and repeats in each world copy.
+- Rendering near the antimeridian: the brightness at a point next to the seam is the same whether
+  the view is centered on 0° or 180°.
 - `buildColorLUT` / `colorizeDensityGrid`: 0 → lowColor, max → highColor, midpoint interpolates,
   values above max clamp.
 - Zoom invariance: the grid value at a fixed lat/long is the same at two zoom levels.

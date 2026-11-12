@@ -196,9 +196,11 @@ describe("computeDensityGrid", () => {
   // 20 × 20 cells of 2px starting at the container origin; cell (c, r) is centered at (2c + 1, 2r + 1)
   const region: IDensityGridRegion = { originX: 0, originY: 0, cols: 20, rows: 20, cellSize: 2 }
   const at = (grid: Float32Array, col: number, row: number) => grid[row * region.cols + col]
+  // much wider than the region and the kernels' windows, so nothing wraps
+  const wideWorld = 1000
 
   it("peaks at 1 on a single point and falls off symmetrically", () => {
-    const grid = computeDensityGrid([{ x: 11, y: 11, h: 4 }], region)
+    const grid = computeDensityGrid([{ x: 11, y: 11, h: 4 }], region, wideWorld)
     expect(at(grid, 5, 5)).toBeCloseTo(1)
     // one cell = 2px away: exp(−4 / (2·16))
     expect(at(grid, 6, 5)).toBeCloseTo(Math.exp(-4 / 32))
@@ -207,14 +209,14 @@ describe("computeDensityGrid", () => {
   })
 
   it("is zero outside the cutoff window", () => {
-    const grid = computeDensityGrid([{ x: 11, y: 11, h: 1 }], region)
+    const grid = computeDensityGrid([{ x: 11, y: 11, h: 1 }], region, wideWorld)
     expect(at(grid, 6, 5)).toBeGreaterThan(0)   // 2px away, within 3px
     expect(at(grid, 7, 5)).toBe(0)              // 4px away
   })
 
   it("matches brute-force evaluation at the cell centers", () => {
     const kernels = [{ x: 11, y: 11, h: 4 }, { x: 15.3, y: 9.7, h: 2.5 }, { x: 30, y: 31, h: 6 }]
-    const grid = computeDensityGrid(kernels, region)
+    const grid = computeDensityGrid(kernels, region, wideWorld)
     for (let row = 0; row < region.rows; row++) {
       for (let col = 0; col < region.cols; col++) {
         const cx = 2 * col + 1, cy = 2 * row + 1
@@ -225,15 +227,49 @@ describe("computeDensityGrid", () => {
   })
 
   it("includes points just outside the region", () => {
-    const grid = computeDensityGrid([{ x: -3, y: 11, h: 4 }], region)
+    const grid = computeDensityGrid([{ x: -3, y: 11, h: 4 }], region, wideWorld)
     // cell (0, 5) is centered 4px from the point
     expect(at(grid, 0, 5)).toBeCloseTo(Math.exp(-16 / 32))
   })
 
   it("respects the region's origin", () => {
     const shifted = { ...region, originX: -40, originY: -30 }
-    const grid = computeDensityGrid([{ x: -29, y: -19, h: 4 }], shifted)
+    const grid = computeDensityGrid([{ x: -29, y: -19, h: 4 }], shifted, wideWorld)
     expect(at(grid, 5, 5)).toBeCloseTo(1)
+  })
+
+  describe("around a world as wide as the region", () => {
+    const worldWidth = 40
+    const wrap = (dx: number) => dx - worldWidth * Math.round(dx / worldWidth)
+
+    it("wraps horizontal distances around the world", () => {
+      const grid = computeDensityGrid([{ x: 1, y: 11, h: 2 }], region, worldWidth)
+      // cell 19 is centered at 39, 38px away within this copy but 2px away across the seam
+      expect(at(grid, 19, 5)).toBeCloseTo(Math.exp(-4 / 8))
+      expect(at(grid, 0, 5)).toBeCloseTo(1)
+    })
+
+    it("matches brute-force evaluation with wrapped distances, counting each kernel once per cell", () => {
+      // the last kernel's window (3h = 24px each way) is wider than the world
+      const kernels = [{ x: 2.3, y: 11, h: 3 }, { x: 37.7, y: 20.4, h: 2.5 }, { x: 19.1, y: 30, h: 8 }]
+      const grid = computeDensityGrid(kernels, region, worldWidth)
+      for (let row = 0; row < region.rows; row++) {
+        for (let col = 0; col < region.cols; col++) {
+          const cx = 2 * col + 1, cy = 2 * row + 1
+          const expected = kernels.reduce((sum, k) => sum + kernelWeight(wrap(cx - k.x), cy - k.y, k.h), 0)
+          expect(at(grid, col, row)).toBeCloseTo(expected, 5)
+        }
+      }
+    })
+
+    it("draws a kernel in each world copy that the region shows", () => {
+      const wide = { ...region, cols: 60 }   // three worlds wide
+      const grid = computeDensityGrid([{ x: 11, y: 11, h: 2 }], wide, worldWidth)
+      const atWide = (col: number, row: number) => grid[row * wide.cols + col]
+      expect(atWide(5, 5)).toBeCloseTo(1)
+      expect(atWide(25, 5)).toBeCloseTo(1)
+      expect(atWide(45, 5)).toBeCloseTo(1)
+    })
   })
 })
 
@@ -295,7 +331,8 @@ describe("rendering a surface", () => {
       const { x, y } = project(target)
       // a single cell centered on the target
       const region = { originX: x - 1, originY: y - 1, cols: 1, rows: 1, cellSize: 2 }
-      const density = computeDensityGrid(projectHotSpotKernels(surface, project, zoomScale(map)), region)[0]
+      const kernels = projectHotSpotKernels(surface, project, zoomScale(map))
+      const density = computeDensityGrid(kernels, region, kWorldSize * zoomScale(map))[0]
       map.remove()
       return density
     })
@@ -315,5 +352,29 @@ describe("rendering a surface", () => {
     // some cell near the points is bright
     expect(Math.max(...out.filter((_, i) => i % 4 === 0))).toBeGreaterThan(200)
     map.remove()
+  })
+
+  it("gives the same brightness near the antimeridian wherever the map is panned", () => {
+    // one world unit apart across the antimeridian, with a bandwidth of one world unit
+    const bandwidth = 2 * Math.PI * kWebMercatorRadiusMeters / kWorldSize
+    const east = { lat: 0, long: 179.296875 }
+    const seamSurface = computeHotSpotSurface([east, { lat: 0, long: -179.296875 }], bandwidth)!
+    const lut = buildColorLUT("#000000", "#ffffff")
+    // centered on 0°, the points project to opposite sides of the map; centered on 180°, next to each other
+    const brightnesses = [0, 180].map(centerLong => {
+      const map = createMap([0, centerLong], 1)
+      const project = createLatLongProjector(map)
+      const { x, y } = project(east)
+      // a single cell centered on the eastern point
+      const region = { originX: x - 1, originY: y - 1, cols: 1, rows: 1, cellSize: 2 }
+      const out = new Uint8ClampedArray(4)
+      renderHotSpotSurface(seamSurface, project, zoomScale(map), region, lut, out)
+      map.remove()
+      return out[0]
+    })
+    // the density there is 1 + e^(−½), against a maximum of 2e^(−⅛) between the points
+    const expected = 255 * (1 + Math.exp(-0.5)) / (2 * Math.exp(-0.125))
+    // Leaflet rounds projected points to whole pixels
+    brightnesses.forEach(brightness => expect(Math.abs(brightness - expected)).toBeLessThanOrEqual(2))
   })
 })
