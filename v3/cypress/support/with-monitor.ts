@@ -36,9 +36,9 @@ export function withBroadMonitor(runTest: () => void) {
     expect(reply?.success, "unsubscribeMonitor succeeded").to.equal(true)
   })
 
-  cy.document().then(doc => {
-    const post = signatureOfMainDOM(doc)
-    expect(post).to.equal(baselineSignature)
+  // Retried, so a menu still animating closed has time to unmount.
+  cy.document().should(doc => {
+    expect(signatureOfMainDOM(doc), "app DOM signature").to.equal(baselineSignature)
   })
 }
 
@@ -46,10 +46,12 @@ function signatureOfMainDOM(doc: Document): string {
   const app = doc.querySelector('[data-testid="codap-app"]')
   expect(app, "CODAP app root").to.not.equal(null)
   if (!app) return ""
-  // Cheap signature: count of each tagName + number of free-tile-components
+  // Counts of each element kind under the app root, a kind being its tag with its
+  // aria-expanded and aria-hidden values, so a control left open or hidden shows up.
   const counts: Record<string, number> = {}
   app.querySelectorAll("*").forEach(el => {
-    counts[el.tagName] = (counts[el.tagName] || 0) + 1
+    const kind = [el.tagName, el.getAttribute("aria-expanded"), el.getAttribute("aria-hidden")].join("|")
+    counts[kind] = (counts[kind] || 0) + 1
   })
-  return JSON.stringify(counts)
+  return JSON.stringify(Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)))
 }

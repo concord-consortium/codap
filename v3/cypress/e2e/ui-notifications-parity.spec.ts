@@ -1,9 +1,6 @@
 /**
- * Regression-parity suite for uiNotificationMonitor. Runs UI scenarios with a broad
- * monitor subscribed and checks that CODAP's own UI ends in the same state as it
- * started, by comparing a signature of the app's DOM before and after:
- *   1. File menu open/close
- *   2. Tables tool-shelf menu open/close
+ * Regression-parity suite for uiNotificationMonitor: UI scenarios run with a broad monitor
+ * subscribed must leave CODAP's own UI as they found it (see withBroadMonitor).
  */
 
 import { visitWithTestPlugin } from "../support/helpers/test-plugin"

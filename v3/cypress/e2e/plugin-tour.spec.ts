@@ -99,18 +99,18 @@ describe("Plugin tours", () => {
     expectTourNotices(["highlighted", "highlightCleared"])
   })
 
-  it("skips steps whose target is hidden or missing", () => {
+  it("skips steps whose target is not displayed or missing", () => {
     cy.document().then(doc => {
-      const hidden = doc.createElement("div")
-      hidden.setAttribute("data-testid", "hidden-tour-target")
-      hidden.style.display = "none"
-      doc.body.appendChild(hidden)
+      const undisplayed = doc.createElement("div")
+      undisplayed.setAttribute("data-testid", "undisplayed-tour-target")
+      undisplayed.style.display = "none"
+      doc.body.appendChild(undisplayed)
     })
     tourRequest({
       request: "startTour",
       steps: [
         { tourKey: "toolShelf.table" },
-        { testId: "hidden-tour-target" },
+        { testId: "undisplayed-tour-target" },
         { testId: "no-such-tour-target" },
         { tourKey: "toolShelf.graph" }
       ]
