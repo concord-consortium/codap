@@ -107,7 +107,7 @@ never combined.
 
 A plugin that keeps data in step with another source — a collaborative plugin, for example —
 risks overwriting a value the user is typing. Setting `blockAPIRequestsWhileEditing` on
-`interactiveFrame` prevents that:
+`interactiveFrame` keeps your plugin from doing that:
 
 ```json
 {
@@ -131,7 +131,10 @@ applies only to case table cells, not to the case card or to attribute names.
 **The hold applies only to your plugin.** While it lasts, all of your plugin's requests wait,
 including `get`s, so if your plugin polls, it sees its responses arrive late while the user types.
 Requests from other plugins, and from the page CODAP is
-[embedded in](embedded-server.md), are processed as usual.
+[embedded in](embedded-server.md), are processed as usual, so they can change the data under the
+cell being edited. If one changes that cell, the value the user typed replaces the change when the
+edit is committed. If one deletes the edited case, or a case above it in the table, the editor
+closes and the typed text is lost.
 
 The setting defaults to `false` and is new in v3. It is saved with the document, but the
 `managingController` it depends on is not: after the document is reopened, nothing is held until

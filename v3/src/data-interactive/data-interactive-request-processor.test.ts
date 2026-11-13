@@ -371,6 +371,25 @@ describe("setupRequestQueueProcessor", () => {
     otherDisposer()
   })
 
+  it("doesn't count a request that was running when the hold started as interrupting the edit", async () => {
+    const otherQueue = new RequestQueue()
+    const otherDisposer = setupRequestQueueProcessor(otherQueue, { tile: { id: "OTHER" } as any })
+    setupPluginQueue()
+    // a slow create on another queue, like a create dataContextFromURL still downloading
+    registerDIHandler("testSlowCreate", {
+      create: () => new Promise(resolve => setTimeout(() => resolve({ success: true }), 100))
+    })
+    const interruptionCount = uiState.interruptionCount
+    const responses: DIRequestResponse[] = []
+    otherQueue.push({ request: { action: "create", resource: "testSlowCreate" }, callback: r => responses.push(r) })
+    await jest.advanceTimersByTimeAsync(10)
+    startBlockingEdit()
+    await jest.runAllTimersAsync()
+    expect(responses.length).toBe(1)
+    expect(uiState.interruptionCount).toBe(interruptionCount)
+    otherDisposer()
+  })
+
   it("moves the hold when another plugin takes over the data set during a cell edit", async () => {
     const pluginTile = () => {
       const tile = createDefaultTileOfType(kWebViewTileType)!

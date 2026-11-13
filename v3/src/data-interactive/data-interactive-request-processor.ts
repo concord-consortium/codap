@@ -82,7 +82,7 @@ export async function processRequest(
  * Check if an action may have modified table data.
  */
 function mayHaveModifiedTable(action: DIAction, result: DIHandlerFnResult): boolean {
-  // a malformed action (null, or with no resource) has already been answered with an error
+  // a malformed action (null, or without a string resource) changed nothing; its result is already an error
   if (!result || typeof action?.resource !== "string") return false
   const resourceSelector = parseResourceSelector(action.resource)
   const type = resourceSelector.type ?? ""
@@ -248,6 +248,7 @@ export function setupRequestQueueProcessor(
     isDraining = true
     // While a cell edit holds another plugin's requests, this queue's requests don't interrupt the edit:
     // the edited table re-selects its cell after an interruption, which would commit the half-typed value.
+    // The hold is checked again once the request is done, since it may have started while the request ran.
     const interruptsEdit = !uiState.isEditingBlockingRequests
     try {
       if (interruptsEdit) uiState.captureEditingStateBeforeInterruption()
@@ -275,7 +276,7 @@ export function setupRequestQueueProcessor(
         ? await processCoalescedRun(unit)
         : await processSingleRequest(unit.item)
 
-      if (tableModified && interruptsEdit) uiState.incrementInterruptionCount()
+      if (tableModified && interruptsEdit && !uiState.isEditingBlockingRequests) uiState.incrementInterruptionCount()
     } finally {
       isDraining = false
       // pushes that arrived during the drain re-fire the reaction, but any drain it scheduled
