@@ -67,8 +67,6 @@ export async function readClipboard(): Promise<IClipboardReadResult> {
   return { method: "readText", content: { text: await clipboard.readText() } }
 }
 
-// The legacy copy fallback that V2 used when `navigator.clipboard.write()` failed.
-// Returns true only if the browser reports that the copy succeeded.
 // Copies text with the Clipboard API. Resolves false, rather than rejecting, if the API is missing or the
 // browser refuses the write.
 export async function writeWithClipboardApi(text: string): Promise<boolean> {
@@ -81,6 +79,10 @@ export async function writeWithClipboardApi(text: string): Promise<boolean> {
   }
 }
 
+// The legacy copy fallback that V2 used when `navigator.clipboard.write()` failed.
+// Returns true only if the browser reports that the copy succeeded. It's called only after the Clipboard API
+// write has failed, so it relies on the click still counting as recent user activity (about 5 seconds in
+// Chrome). Policy refusals of the Clipboard API write are immediate, so that should hold.
 export function writeWithExecCommand(text: string): boolean {
   const handleCopy = (e: ClipboardEvent) => {
     e.clipboardData?.setData("text/plain", text)

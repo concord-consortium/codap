@@ -39,6 +39,10 @@ export type ClipboardMessage =
  * callout), so each operation falls back to an alternative, and failures are remembered for the rest of
  * the page session so the user doesn't wait on an attempt that's known to fail.
  *
+ * The manager doesn't ask for clipboard permission up front. Chrome prompts on the first read anyway, and
+ * most refusals come from the context rather than a prompt the user could accept, so an extra request would
+ * only be noise.
+ *
  * The manager never renders anything. It exposes observable state describing what the UI should show,
  * which the app-level ClipboardHost renders. Clipboard refusals never cause a rejection.
  */

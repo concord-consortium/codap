@@ -25,8 +25,8 @@ Like V2, all importer-based imports (CSV, GeoJSON, HTML table, Google Sheets) la
 | Image file | File drop | `downscaleImageFile()` -> `loadWebView()` | WebView tile (visible) |
 | Image URL | URL drop | `loadWebView()` | WebView tile (visible) |
 | HTML table | Drag from web page | `initiateImportFromHTML(html)` | Importer plugin (hidden WebView) |
-| Clipboard (CSV) | Menu action | `initiateImportFromClipboard()` | Importer plugin (hidden WebView) |
-| Clipboard (HTML table) | Menu action | `initiateImportFromClipboard()` | Importer plugin (hidden WebView) |
+| Clipboard (CSV) | Menu action | `clipboardManager.importData()` | Importer plugin (hidden WebView) |
+| Clipboard (HTML table) | Menu action | `clipboardManager.importData()` | Importer plugin (hidden WebView) |
 | Other URL | URL drop | `loadWebView(url)` | WebView tile (visible) |
 
 ## Drop Priority
@@ -95,15 +95,24 @@ initiateImportFromCsv/HTML/Generic(options)
 ### D) Clipboard
 
 ```
-User -> "Open new dataset from clipboard" menu item
-   -> initiateImportFromClipboard(data?)
-      -> navigator.clipboard.read() if supported (feature-detected at runtime)
-         -> check for text/html with <table> element
-            | yes -> initiateImportFromHTML(html, data)
-            | no  -> initiateImportFromCsv({ text: html, data, datasetName })
-      -> navigator.clipboard.readText() fallback (e.g. Firefox < 127)
-         -> initiateImportFromCsv({ text, data, datasetName })
+User -> Tables menu "New from Clipboard" or ruler menu "Import Case Data from Clipboard..."
+   -> clipboardManager.importData(data?)
+      | reading failed earlier this session -> paste dialog
+      | otherwise -> readClipboard(): one read() call, or readText() where read() is missing
+         | rejects        -> paste dialog
+         | resolves       -> importClipboardContent(content, data)
+            | text/html with <table> -> initiateImportFromHTML(html, data)
+            | non-empty text/plain   -> initiateImportFromCsv({ text, data, datasetName })
+            | neither                -> "The clipboard doesn't contain any data to import." message
+
+Paste dialog (PasteDataModal, rendered by the app-level ClipboardHost)
+   -> user pastes with Cmd/Ctrl-V, which needs no clipboard permission, and clicks Import
+   -> clipboardManager.importPastedData(content)
+      -> importClipboardContent(content, data), using the pasted text/html only if that paste
+         was the text area's whole content and hasn't been edited
 ```
+
+The Clipboard API is often refused: in an iframe without clipboard permission, when the page has lost focus, or when the user dismisses the iOS Paste callout. The `ClipboardManager` catches every refusal, remembers it for the rest of the page session, and falls back as shown above. See `src/lib/clipboard/`.
 
 ## Type Detection
 
@@ -122,7 +131,10 @@ Returns one of: `"csv"`, `"codap"`, `"geojson"`, `"google-sheets"`, `"image"`, `
 | `src/hooks/use-import-helpers.ts` | `handleDrop` with priority logic, `getDropPriority()`, `importFile` routing |
 | `src/utilities/csv-import.ts` | `initiateImportFromCsv()` — launches Importer for CSV |
 | `src/utilities/html-import.ts` | `initiateImportFromHTML()` — launches Importer for HTML tables |
-| `src/utilities/clipboard-import.ts` | `initiateImportFromClipboard()` — detects HTML tables vs CSV on clipboard |
+| `src/lib/clipboard/clipboard-manager.ts` | `clipboardManager` — all clipboard reads and writes, failure memory, paste-dialog fallback, logging |
+| `src/lib/clipboard/clipboard-import.ts` | `importClipboardContent()` — routes clipboard content to the HTML or CSV importer |
+| `src/lib/clipboard/clipboard-utils.ts` | Browser clipboard primitives (`readClipboard()`, write fallbacks, permission check) |
+| `src/components/clipboard/clipboard-host.tsx` | Renders the paste dialog and clipboard messages at app level |
 | `src/utilities/generic-import.ts` | `initiateGenericImport()` — launches Importer for GeoJSON/Sheets |
 | `src/utilities/importable-files.ts` | File type detection from MIME types, extensions, URLs |
 | `src/components/web-view/web-view-defs.ts` | `kImporterPluginInsertOptions` (hidden tile layout) |
@@ -269,7 +281,7 @@ Returns the matching entry with `{ group, mime[], extensions[] }`, or `undefined
 | Plugin launch | `openImporterPlugin()` creates `GameView` component | `insertTileSnapshotInDefaultRow()` creates hidden WebView tile |
 | Plugin state delivery | `savedGameState` on component creation | `IWebViewSnapshot.state` -> plugin queries `interactiveFrame` |
 | Type detection | `matchMimeSpec()` with MIME/extension table | `getImportableFileTypeFromDataTransferFile/Url()` |
-| Clipboard | `openNewDataSetFromClipboard()` in AppController | `initiateImportFromClipboard()` in `clipboard-import.ts` |
+| Clipboard | `openNewDataSetFromClipboard()` in AppController | `clipboardManager.importData()` in `clipboard-manager.ts` |
 
 ---
 
@@ -279,6 +291,6 @@ The following V2 import capabilities are not yet implemented in V3:
 
 1. **Data-URI CSV** — V2 handles `data:text/csv;...` URIs via `importCSVFromDataUri()`, supporting both base64 and percent-encoded payloads. V3's `getImportableFileTypeFromUrl()` only recognizes `data:image/` URIs; a `data:text/csv;...` URI would be treated as a generic URL and opened as a WebView instead of being parsed as CSV.
 
-2. **Clipboard URL detection** — V2's `openNewDataSetFromClipboard()` checks if the clipboard text is a single-line HTTP/HTTPS URL and calls `importURL()` to fetch and import the resource. V3's `initiateImportFromClipboard()` always treats clipboard text as raw CSV content, so pasting a URL to a CSV file results in the URL string itself being imported as data rather than fetching and importing from that URL.
+2. **Clipboard URL detection** — V2's `openNewDataSetFromClipboard()` checks if the clipboard text is a single-line HTTP/HTTPS URL and calls `importURL()` to fetch and import the resource. V3 always treats clipboard text as raw CSV content, so pasting a URL to a CSV file results in the URL string itself being imported as data rather than fetching and importing from that URL.
 
 3. **Drop target visual feedback on main document** — V2 adds a `dg-receive-outside-drop` CSS class to the main workspace during external drags to indicate the drop target is active. V3 only shows drag-over visual feedback (yellow border via `show-highlight` class) on the user-entry overlay modal. Once that modal is dismissed, there is no visual feedback when dragging files or HTML content over the main CODAP workspace. Drops still work; there is just no visual cue.

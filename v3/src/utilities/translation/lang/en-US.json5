@@ -1364,6 +1364,9 @@
     "V3.app.errorDialog.suggestionWithSave": "You may wish to reload this page after you save a copy of your work.",
     "V3.app.errorDialog.suggestion": "You may wish to reload this page.",
     "V3.app.errorDialog.errorDetails": "(Error: %@)",
+    // Clipboard messages are mostly read by students. Say "failed" rather than "blocked" unless the browser
+    // reports that access is denied; never promise a fix or send students to their IT administrators; and
+    // use neutral wording rather than having CODAP refer to itself.
     "V3.clipboard.pasteDialog.title": "Import from Clipboard",
     "V3.clipboard.pasteDialog.prompt": "Reading from the clipboard failed. Paste your data here:",
     "V3.clipboard.pasteDialog.permissionDenied": "Your browser is blocking clipboard access. You may be able to allow it in site settings.",
