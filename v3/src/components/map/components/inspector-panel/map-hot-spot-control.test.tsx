@@ -46,7 +46,7 @@ describe("MapHotSpotControl", () => {
     render(<MapHotSpotControl mapPointLayerModel={pointLayer}/>)
 
     expect(screen.getByRole("group", { name: "V3.Inspector.map.hotSpotOpacity" })).toBeInTheDocument()
-    const slider = screen.getByRole("slider")
+    const slider = screen.getByRole("slider", { name: "V3.Inspector.map.hotSpotOpacity" })
     expect(slider).toHaveAttribute("aria-valuetext", "75%")
     expect(screen.getByTestId("map-hot-spot-opacity-slider")).toHaveAttribute("data-disabled", "true")
   })
@@ -58,12 +58,58 @@ describe("MapHotSpotControl", () => {
     pointLayer.hotSpotModel.setIsVisible(true)
     render(<MapHotSpotControl mapPointLayerModel={pointLayer}/>)
 
-    const slider = screen.getByRole("slider")
+    const slider = screen.getByRole("slider", { name: "V3.Inspector.map.hotSpotOpacity" })
     expect(screen.getByTestId("map-hot-spot-opacity-slider")).not.toHaveAttribute("data-disabled")
     act(() => slider.focus())
     await user.keyboard("{ArrowRight}")
     expect(pointLayer.hotSpotModel.opacity).toBeCloseTo(0.76)
     expect(pointLayer.hotSpotModel.dynamicOpacity).toBeUndefined()
     expect(slider).toHaveAttribute("aria-valuetext", "76%")
+  })
+
+  it("renders the resolution slider above the opacity slider, centered on the default bandwidth", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const pointLayer = MapPointLayerModel.create(undefined, { historyService: new AppHistoryService() })
+    render(<MapHotSpotControl mapPointLayerModel={pointLayer}/>)
+
+    const [first, second] = screen.getAllByRole("slider")
+    expect(first).toHaveAccessibleName("V3.Inspector.map.hotSpotResolution")
+    expect(second).toHaveAccessibleName("V3.Inspector.map.hotSpotOpacity")
+    expect(first).toHaveAttribute("min", "-1")
+    expect(first).toHaveAttribute("max", "1")
+    expect(first).toHaveAttribute("value", "0")
+    // with no points the default is the 10 km fallback, which is announced in place of the slider position
+    expect(first).toHaveAttribute("aria-valuetext", "10 km")
+    expect(screen.getByTestId("map-hot-spot-resolution-slider")).toHaveAttribute("data-disabled", "true")
+  })
+
+  it("commits a smaller bandwidth when the resolution is increased", async () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const user = userEvent.setup()
+    const pointLayer = MapPointLayerModel.create(undefined, { historyService: new AppHistoryService() })
+    const { hotSpotModel } = pointLayer
+    hotSpotModel.setIsVisible(true)
+    render(<MapHotSpotControl mapPointLayerModel={pointLayer}/>)
+
+    const slider = screen.getByRole("slider", { name: "V3.Inspector.map.hotSpotResolution" })
+    act(() => slider.focus())
+    await user.keyboard("{End}")
+    expect(hotSpotModel.bandwidth).toBeCloseTo(hotSpotModel.defaultBandwidth / 10)
+    expect(hotSpotModel.dynamicBandwidth).toBeUndefined()
+    expect(slider).toHaveAttribute("aria-valuetext", "1 km")
+  })
+
+  it("widens the resolution range to include a bandwidth outside the usual range", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const pointLayer = MapPointLayerModel.create(undefined, { historyService: new AppHistoryService() })
+    // 1000 km is 100 times the 10 km default, so it's at resolution -2
+    pointLayer.hotSpotModel.setBandwidth(1000000)
+    render(<MapHotSpotControl mapPointLayerModel={pointLayer}/>)
+
+    const slider = screen.getByRole("slider", { name: "V3.Inspector.map.hotSpotResolution" })
+    expect(slider).toHaveAttribute("min", "-2")
+    expect(slider).toHaveAttribute("max", "2")
+    expect(Number(slider.getAttribute("value"))).toBeCloseTo(-2)
+    expect(slider).toHaveAttribute("aria-valuetext", "1,000 km")
   })
 })

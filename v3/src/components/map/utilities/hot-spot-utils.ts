@@ -61,6 +61,32 @@ export function computeDefaultBandwidth(latLongs: ILatLong[]) {
   return 0.9 * spread * n ** -0.2
 }
 
+/**
+ * The resolution slider spans bandwidths from the default divided by this factor (resolution 1) to the default
+ * multiplied by it (resolution -1), on a log scale with the default at resolution 0.
+ */
+export const kResolutionRangeFactor = 10
+const kLogResolutionRangeFactor = Math.log(kResolutionRangeFactor)
+
+/** Converts a bandwidth to a resolution, the slider's log-scale position. Higher resolution is a smaller bandwidth. */
+export function bandwidthToResolution(bandwidthMeters: number, defaultBandwidthMeters: number) {
+  return -Math.log(bandwidthMeters / defaultBandwidthMeters) / kLogResolutionRangeFactor
+}
+
+/** Converts a resolution, the slider's log-scale position, to a bandwidth */
+export function resolutionToBandwidth(resolution: number, defaultBandwidthMeters: number) {
+  return defaultBandwidthMeters * kResolutionRangeFactor ** -resolution
+}
+
+/**
+ * Returns the limit of the resolution slider's symmetric range: normally 1, but widened (to a multiple of step) to
+ * include the given resolution, so that a bandwidth outside the usual range stays on the slider with the default
+ * still in the center.
+ */
+export function resolutionLimit(resolution: number, step: number) {
+  return Math.max(1, Math.ceil(Math.abs(resolution) / step) * step)
+}
+
 /** A Gaussian kernel centered at (x, y) with bandwidth h, all in the same units */
 export interface IKernel {
   x: number

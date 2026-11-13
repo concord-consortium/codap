@@ -1,12 +1,37 @@
 import { Map as LeafletMap, Point, Projection } from "leaflet"
 import { greatCircleDistance } from "../../../utilities/geo-utils"
 import {
-  bandwidthToWorldUnits, buildColorLUT, colorizeDensityGrid, computeDefaultBandwidth, computeDensityGrid,
-  computeHotSpotSurface, computeMaxDensity, IDensityGridRegion, IKernel, kernelWeight, kFallbackBandwidthMeters,
-  kMaxMercatorLatitude, kWebMercatorRadiusMeters, kWorldSize, latLongToWorldPoint, projectHotSpotKernels,
-  renderHotSpotSurface, wrapWorldDelta
+  bandwidthToResolution, bandwidthToWorldUnits, buildColorLUT, colorizeDensityGrid, computeDefaultBandwidth,
+  computeDensityGrid, computeHotSpotSurface, computeMaxDensity, IDensityGridRegion, IKernel, kernelWeight,
+  kFallbackBandwidthMeters, kMaxMercatorLatitude, kResolutionRangeFactor, kWebMercatorRadiusMeters, kWorldSize,
+  latLongToWorldPoint, projectHotSpotKernels, renderHotSpotSurface, resolutionLimit, resolutionToBandwidth,
+  wrapWorldDelta
 } from "./hot-spot-utils"
 import { createLatLongProjector } from "./map-utils"
+
+describe("resolution slider scale", () => {
+  it("puts the default bandwidth at 0 and the ends of the range at ±1", () => {
+    expect(bandwidthToResolution(5000, 5000)).toBeCloseTo(0)
+    expect(bandwidthToResolution(5000 / kResolutionRangeFactor, 5000)).toBeCloseTo(1)
+    expect(bandwidthToResolution(5000 * kResolutionRangeFactor, 5000)).toBeCloseTo(-1)
+  })
+
+  it("converts resolutions back to bandwidths on a log scale", () => {
+    expect(resolutionToBandwidth(0, 5000)).toBeCloseTo(5000)
+    expect(resolutionToBandwidth(1, 5000)).toBeCloseTo(5000 / kResolutionRangeFactor)
+    expect(resolutionToBandwidth(-1, 5000)).toBeCloseTo(5000 * kResolutionRangeFactor)
+    // halfway to the end of the range is the geometric mean
+    expect(resolutionToBandwidth(0.5, 5000)).toBeCloseTo(5000 / Math.sqrt(kResolutionRangeFactor))
+    expect(bandwidthToResolution(resolutionToBandwidth(0.37, 5000), 5000)).toBeCloseTo(0.37)
+  })
+
+  it("widens the limit to include resolutions outside the usual range", () => {
+    expect(resolutionLimit(0, 0.01)).toBe(1)
+    expect(resolutionLimit(-0.8, 0.01)).toBe(1)
+    expect(resolutionLimit(1.234, 0.01)).toBeCloseTo(1.24)
+    expect(resolutionLimit(-2.5, 0.01)).toBeCloseTo(2.5)
+  })
+})
 
 describe("hot spot constants", () => {
   it("match Leaflet's Web Mercator projection", () => {

@@ -62,6 +62,31 @@ describe("MapHotSpotModel opacity", () => {
   })
 })
 
+describe("MapHotSpotModel bandwidth", () => {
+  it("uses the default until a bandwidth is set and the dynamic bandwidth while one is set", () => {
+    const hotSpot = MapHotSpotModel.create()
+    hotSpot.setLatLongSource({ plottedLatLongs: [{ lat: 0, long: 0 }, { lat: 1, long: 1 }, { lat: 2, long: 0 }] })
+    const { defaultBandwidth } = hotSpot
+    expect(defaultBandwidth).not.toBe(kFallbackBandwidthMeters)
+    expect(hotSpot.effectiveBandwidth).toBe(defaultBandwidth)
+    expect(hotSpot.displayBandwidth).toBe(defaultBandwidth)
+    expect(hotSpot.hotSpotSurface?.bandwidthMeters).toBe(defaultBandwidth)
+
+    hotSpot.setDynamicBandwidth(5000)
+    expect(hotSpot.effectiveBandwidth).toBe(defaultBandwidth)
+    expect(hotSpot.displayBandwidth).toBe(5000)
+    expect(hotSpot.hotSpotSurface?.bandwidthMeters).toBe(5000)
+    // the dynamic value is volatile, so it doesn't affect the snapshot
+    expect(isDefaultHotSpotModel(hotSpot)).toBe(true)
+
+    hotSpot.setBandwidth(7000)
+    expect(hotSpot.dynamicBandwidth).toBeUndefined()
+    expect(hotSpot.effectiveBandwidth).toBe(7000)
+    expect(hotSpot.displayBandwidth).toBe(7000)
+    expect(hotSpot.hotSpotSurface?.bandwidthMeters).toBe(7000)
+  })
+})
+
 describe("MapHotSpotModel.hotSpotSurface", () => {
   const latLongs = [{ lat: 42, long: -71 }, { lat: 42, long: -71 }]
 
