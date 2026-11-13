@@ -87,6 +87,7 @@ Fails on `main` (0 ticks for [-6000, 100]). The domain order matters: on `main` 
 **Files affected**:
 - `src/components/axis/axis-domain-utils.ts`: new `setNiceDateDomain`, a constant, and the dispatch in `setNiceDomain`.
 - `src/components/axis/axis-domain-utils.test.ts`: a new `describe` block.
+- `src/components/axis/axis-types.ts`: the `growOnly` comment, which said a grow-only refit never shrinks the domain, now names the exception for an axis whose model still allows its range to shrink.
 
 **Estimated diff size**: ~95 lines
 
