@@ -13,9 +13,13 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
   highColor: "#ffffff"
 })
   .volatile(() => ({
-    latLongSource: undefined as Maybe<ILatLongSource>
+    latLongSource: undefined as Maybe<ILatLongSource>,
+    dynamicOpacity: undefined as Maybe<number>
   }))
   .views(self => ({
+    get displayOpacity() {
+      return self.dynamicOpacity ?? self.opacity
+    },
     get hotSpotSurface(): Maybe<IHotSpotSurface> {
       return computeHotSpotSurface(self.latLongSource?.plottedLatLongs ?? [], self.bandwidth)
     }
@@ -29,6 +33,10 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
     },
     setOpacity(opacity: number) {
       self.opacity = opacity
+      self.dynamicOpacity = undefined
+    },
+    setDynamicOpacity(opacity: Maybe<number>) {
+      self.dynamicOpacity = opacity
     },
     setLowColor(color: string) {
       self.lowColor = color

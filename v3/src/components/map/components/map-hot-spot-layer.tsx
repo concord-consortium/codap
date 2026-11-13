@@ -37,7 +37,7 @@ export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayer
   const leafletMap = useMap()
   const { isVisible, hotSpotModel } = mapPointLayerModel
   const show = isFeatureEnabled("mapHotSpot") && isVisible && hotSpotModel.isVisible
-  const { opacity } = hotSpotModel
+  const opacity = hotSpotModel.displayOpacity
   const layerRef = useRef<HotSpotCanvasLayer>()
   // Coalesce bursts of changes (e.g. while dragging a point) into one redraw
   const redraw = useDebouncedCallback(() => layerRef.current?.redraw(), 10)

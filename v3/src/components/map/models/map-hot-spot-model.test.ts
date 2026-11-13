@@ -47,6 +47,21 @@ describe("MapHotSpotModel", () => {
   })
 })
 
+describe("MapHotSpotModel opacity", () => {
+  it("uses the dynamic opacity while set and clears it when the opacity is committed", () => {
+    const hotSpot = MapHotSpotModel.create()
+    expect(hotSpot.displayOpacity).toBe(0.75)
+    hotSpot.setDynamicOpacity(0.3)
+    expect(hotSpot.displayOpacity).toBe(0.3)
+    expect(hotSpot.opacity).toBe(0.75)
+    // the dynamic value is volatile, so it doesn't affect the snapshot
+    expect(isDefaultHotSpotModel(hotSpot)).toBe(true)
+    hotSpot.setOpacity(0.4)
+    expect(hotSpot.dynamicOpacity).toBeUndefined()
+    expect(hotSpot.displayOpacity).toBe(0.4)
+  })
+})
+
 describe("MapHotSpotModel.hotSpotSurface", () => {
   const latLongs = [{ lat: 42, long: -71 }, { lat: 42, long: -71 }]
 
