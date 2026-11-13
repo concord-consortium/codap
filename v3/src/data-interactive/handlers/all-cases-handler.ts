@@ -30,7 +30,8 @@ export const diAllCasesHandler: DIHandler = {
     const cases = dataContext.getCasesForCollection(collection.id).map(({ __id__ }, index) => {
       const pseudoCase = dataContext.caseInfoMap.get(__id__)
       const parentCase = dataContext.getParentCaseInfo(__id__)
-      const parent = maybeToV2Id(parentCase?.groupedCase.__id__)
+      // as in V2, a case in the top-level collection has a null parent
+      const parent = maybeToV2Id(parentCase?.groupedCase.__id__) ?? null
       const children: number[] = []
       if (pseudoCase) {
         children.push(...(pseudoCase.childCaseIds ?? []).map(childId => toV2Id(childId)))

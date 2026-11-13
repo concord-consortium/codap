@@ -76,7 +76,7 @@ Each case is an object:
 | Property | Notes |
 |---|---|
 | `id` | the case's id |
-| `parent` | the id of its parent case; `null` for a case in the top-level collection. v3 currently differs; see [Known limitations](#known-limitations) |
+| `parent` | the id of its parent case; `null` for a case in the top-level collection |
 | `collection` | `{ "name", "id" }` of the collection searched |
 | `values` | the case's values, keyed by attribute name — only the attributes of this collection, not its parents' |
 | `children` | the ids of its child cases; empty for a case in the last collection. New in v3 |
@@ -174,17 +174,6 @@ text is truthy, so the formula `Endangered` on its own matches that case as well
 holding `true`. v2 kept the boolean, so `Endangered` matched only the `true` cases, which is the
 intended behavior. This is a known bug. Comparing explicitly works in both: `Endangered=true`.
 
-**A formula error is not in `values.error`.** When the formula is not a valid formula, or
-evaluating it fails, the message is in a top-level `error` property,
-`{ "success": false, "error": "..." }`, instead of in `values.error` as every other error is, and
-as v2 reported it. Only a missing or empty formula reports its error in `values.error`. A plugin
-that reads only `values.error` gets nothing. This is a known bug. Until it is fixed, read
-`values?.error ?? error`.
-
-**A top-level case's `parent` is `undefined`, not `null`.** v2 sent `null`. A plugin that tests
-`parent === null` treats every top-level case as a child; test for a missing parent instead, such
-as `parent == null`. This is a known bug.
-
 ## Notifications
 
 This resource sends none. Changes to a data set's cases are reported on
@@ -195,13 +184,18 @@ This resource sends none. Changes to a data set's cases are reported on
 | Error | Condition |
 |---|---|
 | `Collection not found` | The selector names no collection, names one that does not exist, or names a data context that does not exist |
-| `Unable to parse query.` | The formula is missing, empty, or not a valid formula. For a formula that is not valid, v3 currently puts the message in a top-level `error`; see [Known limitations](#known-limitations) |
+| `Unable to parse query.` | The formula is missing, empty, or has a syntax error |
+| the formula engine's message | The formula names something that does not exist, such as `Undefined symbol Mas`, or evaluating it fails for some case; see below |
 
 **A formula that fails for any case fails the whole request.** If evaluating the formula throws
 an error for even one case, CODAP returns `success: false` with the formula engine's message,
-such as `Undefined symbol Mas` for a misspelled attribute name, and no cases. The message's
-wording differs from v2's, and it currently arrives in a different place; see
-[Known limitations](#known-limitations).
+such as `Undefined symbol Mas` for a misspelled attribute name, and no cases. Like every other
+error, it is in `values.error`.
+
+**Error messages are worded differently from v2's.** v2 sent `SyntaxError: Incomplete expression`
+or `SyntaxError: Syntax error: '<token>'` where CODAP now sends `Unable to parse query.`, and
+`❌: 'Mas' is unrecognized` where CODAP now sends `Undefined symbol Mas`. A plugin should not
+depend on the text of either message.
 
 ## See also
 

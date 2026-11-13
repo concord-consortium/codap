@@ -11,6 +11,8 @@ any one of them. For per-resource reference, see [the index](../README.md).
   history, answers undo and redo, and drives them from buttons of its own.
 - **[How CODAP processes requests](request-processing.md)** — order and responses, array
   requests, sending many cases, and holding requests while the user edits.
+- **[Data types](data-types.md)** — how CODAP decides whether an attribute holds numbers,
+  dates, colors or categories, and which values count as each.
 - **[Language and locale](locale.md)** — how a plugin learns CODAP's language, and what happens
   when the user switches it.
 - **[Embedding CODAP in your page](embedded-server.md)** — CODAP running inside *your* page and

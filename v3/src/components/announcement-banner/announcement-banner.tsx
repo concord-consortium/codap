@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useState } from "react"
 import { Logger } from "../../lib/logger"
+import { ExternalLink } from "../common/external-link"
 import {
   BannerConfig, dismissBanner, fetchBannerConfig, isValidButtonUrl, parseMessageWithLinks
 } from "./announcement-banner-utils"
@@ -76,10 +77,9 @@ export function AnnouncementBanner() {
         {parseMessageWithLinks(message).map((segment, i) =>
           segment.url
             ? (
-              <a key={i} href={segment.url} target="_blank" rel="noopener noreferrer"
-                onClick={() => handleLinkClick(segment.url)}>
+              <ExternalLink key={i} href={segment.url} onClick={() => handleLinkClick(segment.url)}>
                 {segment.text}
-              </a>
+              </ExternalLink>
             )
             : <React.Fragment key={i}>{segment.text}</React.Fragment>
         )}

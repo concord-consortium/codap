@@ -8,6 +8,7 @@ import { createDefaultTileOfType } from "../models/codap/add-default-content"
 import { SharedDataSet } from "../models/shared/shared-data-set"
 import { uiState } from "../models/ui-state"
 import { setupTestDataset } from "../test/dataset-test-utils"
+import { toV2Id, toV3ItemId } from "../utilities/codap-utils"
 import { editingBlockedPluginId } from "../utilities/plugin-utils"
 import { registerDIHandler } from "./data-interactive-handler"
 import * as itemHandler from "./handlers/item-handler"
@@ -82,6 +83,53 @@ describe("setupRequestQueueProcessor", () => {
     itemIDs.forEach(ids => expect(ids?.length).toBe(1))
     expect(new Set(itemIDs.flat()).size).toBe(3)
     actionDisposer()
+  })
+
+  it("sends one createCases per collection, then one createItems, for a coalesced batch of creates", async () => {
+    // an existing parent "m" with child "y"
+    queue.push({ request: createItemRequest({ a1: "m", a2: "y", a3: 16 }), callback: () => null })
+    await jest.runAllTimersAsync()
+
+    const broadcastSpy = jest.spyOn(content!, "broadcastMessage")
+    const responses: DISuccessResult[] = []
+    // the first request creates parent "n", the second joins the existing "m", the third joins "n"
+    queue.push({ request: createItemRequest({ a1: "n", a2: "x", a3: 17 }),
+      callback: r => responses.push(r as DISuccessResult) })
+    queue.push({ request: createItemRequest({ a1: "m", a2: "y", a3: 18 }),
+      callback: r => responses.push(r as DISuccessResult) })
+    queue.push({ request: createItemRequest({ a1: "n", a2: "w", a3: 19 }),
+      callback: r => responses.push(r as DISuccessResult) })
+    await jest.runAllTimersAsync()
+
+    const changes = broadcastSpy.mock.calls
+      .map(([message]) => message)
+      .filter(message => message.resource === `dataContextChangeNotice[${datasetName}]`)
+      .flatMap(message => ([] as any[]).concat(message.values))
+    expect(changes.map(({ operation }) => operation))
+      .toEqual(["createCases", "createCases", "createCases", "createItems"])
+
+    const [i1, i2, i3] = responses.map(response => response.itemIDs![0])
+    // the v2 id of the case in the given collection that contains the item
+    const caseOf = (itemId: number, collectionIndex: number) => {
+      const collectionId = dataset.collections[collectionIndex].id
+      const entry = Array.from(dataset.caseInfoMap.entries()).find(([, info]) =>
+        info.collectionId === collectionId && info.childItemIds.includes(toV3ItemId(itemId)))
+      return entry && toV2Id(entry[0])
+    }
+    const [c1, c2, c3] = changes.slice(0, 3).map(({ result }) => result.caseIDs)
+    expect(c1).toEqual([caseOf(i1, 0)])
+    expect(c2).toEqual([caseOf(i1, 1), caseOf(i3, 1)])
+    // in collection order: the existing parent "m"'s new child comes before "n"'s
+    expect(c3).toEqual([caseOf(i2, 2), caseOf(i1, 2), caseOf(i3, 2)])
+    // as in V2, createItems pairs each created case with the item it was built from
+    expect(changes[3].result).toEqual({
+      success: true, caseIDs: [...c1, ...c2, ...c3], itemIDs: [i1, i1, i3, i2, i1, i3]
+    })
+    // each response still names only the cases its own request created
+    expect(responses.map(response => response.caseIDs)).toEqual([
+      [caseOf(i1, 0), caseOf(i1, 1), caseOf(i1, 2)], [caseOf(i2, 2)], [caseOf(i3, 1), caseOf(i3, 2)]
+    ])
+    broadcastSpy.mockRestore()
   })
 
   it("processes one batch of at least 5 creates per drain tick", async () => {

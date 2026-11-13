@@ -107,7 +107,7 @@ It receives none of the notifications sent to one plugin or to plugins that opte
 - `localeChanged` goes only to plugins that set `handlesLocaleChange`, so the host page is not
   told when the user switches language.
 
-When the host page sends `update document`, CODAP sends `updateDocumentBegun` and
+When the host page or a plugin sends `update document`, CODAP sends `updateDocumentBegun` and
 `updateDocumentEnded` to every plugin and to the host page.
 
 ## Known limitations
