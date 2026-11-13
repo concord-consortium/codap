@@ -15,7 +15,7 @@ import PlacedLocationMarker from "../assets/placed-location-marker.svg"
 import { useMapModelContext } from "../hooks/use-map-model-context"
 import { kPinColors, kPinCursors } from "../map-types"
 import { IMapPinLayerModel } from "../models/map-pin-layer-model"
-import { getNextPinColorIndexForDataSet, shiftLongitudeIntoView } from "../utilities/map-utils"
+import { createLatLongProjector, getCaseLatLong, getNextPinColorIndexForDataSet } from "../utilities/map-utils"
 import { PinControls } from "./pin-controls"
 
 import "./map-pin-layer.scss"
@@ -148,9 +148,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
   const style = mapLayerModel.addMode ? { cursor: `url(${kPinCursors[colorIndex]}) 15 37, pointer` } : undefined
 
   const renderPins = mapLayerModel.isVisible && mapLayerModel.pinsAreVisible
-  const mapBounds = map.getBounds()
-  const west = mapBounds.getWest()
-  const east = mapBounds.getEast()
+  const project = createLatLongProjector(map)
   return (
     <div className="map-pin-layer">
       <div
@@ -162,12 +160,10 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
         style={style}
       />
       {renderPins && dataset.items.map(({ __id__ }, index) => {
-        const lat = dataset.getNumeric(__id__, pinLatId)
-        const long = dataset.getNumeric(__id__, pinLongId)
-        if (lat == null || long == null || !isFinite(lat) || !isFinite(long)) return null
+        const latLong = getCaseLatLong(dataset, __id__, pinLatId, pinLongId)
+        if (!latLong) return null
 
-        const shiftedLong = shiftLongitudeIntoView(long, west, east)
-        const { x, y } = map.latLngToContainerPoint([lat, shiftedLong])
+        const { x, y } = project(latLong)
         const pinX = x - mapPinWidth / 2
         const pinY = y - mapPinHeight
 

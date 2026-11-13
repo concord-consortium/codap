@@ -6,7 +6,7 @@ import { useMap } from "react-leaflet"
 import simpleheat from "simpleheat"
 import { useDebouncedCallback } from "use-debounce"
 import { select } from "d3"
-import { isCaseValueChangeAction, isSelectionAction } from "../../../models/data/data-set-actions"
+import { isSelectionAction } from "../../../models/data/data-set-actions"
 import { firstVisibleParentAttribute, idOfChildmostCollectionForAttributes } from "../../../models/data/data-set-utils"
 import { defaultSelectedStroke, defaultSelectedStrokeWidth, defaultStrokeWidth } from "../../../utilities/color-utils"
 import { mstAutorun } from "../../../utilities/mst-autorun"
@@ -25,7 +25,7 @@ import { IPoint, IPointMetadata, PixiPointRenderer, useLayerRenderer } from "../
 import { useMapClickWithDoubleClickZoom } from "../hooks/use-map-click-with-double-click-zoom"
 import { useMapModelContext } from "../hooks/use-map-model-context"
 import { IMapPointLayerModel } from "../models/map-point-layer-model"
-import { shiftLongitudeIntoView } from "../utilities/map-utils"
+import { createLatLongProjector, LatLongProjector } from "../utilities/map-utils"
 import { MapHotSpotLayer } from "./map-hot-spot-layer"
 import { MapPointGrid } from "./map-point-grid"
 import { useInstanceIdContext } from "../../../hooks/use-instance-id-context"
@@ -59,26 +59,11 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
 
   const { wrapClickHandler } = useMapClickWithDoubleClickZoom(leafletMap)
 
-  const connectingLine = useCallback((caseID: string, west: number, east: number) => {
-    const {latId, longId} = mapLayerModel.pointAttributes || {}
-    if (!dataset || !latId || !longId) return
+  const connectingLine = useCallback((caseID: string, project: LatLongProjector) => {
+    const latLong = mapLayerModel.getCaseLatLong(caseID)
+    if (!dataset || !latLong) return
 
-    const getCoords = (anID: string) => {
-      const long = dataset.getNumeric(anID, longId) || 0,
-        lat = dataset?.getNumeric(anID, latId) || 0
-      const shiftedLong = shiftLongitudeIntoView(long, west, east)
-      return leafletMap.latLngToContainerPoint([lat, shiftedLong])
-    },
-    getScreenX = (anID: string) => {
-      const coords = getCoords(anID)
-      return coords.x
-    },
-    getScreenY = (anID: string) => {
-      const coords = getCoords(anID)
-      return coords.y
-    }
-    const xValue = getScreenX(caseID)
-    const yValue = getScreenY(caseID)
+    const { x: xValue, y: yValue } = project(latLong)
     if (isFinite(xValue) && isFinite(yValue)) {
       const caseData = dataset?.getFirstItemForCase(caseID, { numeric: false })
       if (caseData) {
@@ -86,16 +71,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         return { caseData, lineCoords }
       }
     }
-  }, [dataset, leafletMap, mapLayerModel])
+  }, [dataset, mapLayerModel])
 
   const connectingLinesForCases = useCallback(() => {
     const lineDescriptions: IConnectingLineDescription[] = []
-    // Compute the viewport bounds once per refresh; they're constant across all cases.
-    const mapBounds = leafletMap.getBounds()
-    const west = mapBounds.getWest()
-    const east = mapBounds.getEast()
+    // Create the projector once per refresh; the viewport bounds are constant across all cases.
+    const project = createLatLongProjector(leafletMap)
     dataConfiguration?.getCaseDataArray(0).forEach(c => {
-        const cLine = connectingLine(c.caseID, west, east)
+        const cLine = connectingLine(c.caseID, project)
         cLine && lineDescriptions.push(cLine)
     })
     return lineDescriptions
@@ -212,19 +195,14 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       })
 
       // Add the data to the heatmap
-      const { latId, longId } = mapLayerModel.pointAttributes || {}
-      if (!latId || !longId) return
-      const mapBounds = leafletMap.getBounds()
-      const west = mapBounds.getWest()
-      const east = mapBounds.getEast()
+      const project = createLatLongProjector(leafletMap)
       dataConfiguration.joinedCaseDataArrays.forEach(c => {
         const { caseID } = c
+        const latLong = mapLayerModel.getCaseLatLong(caseID)
+        if (!latLong) return
         const value = dataset.getNumeric(caseID, legendAttributeId) || minValue
         const normalizedValue = (value - minValue) / (maxValue - minValue)
-        const long = dataset.getNumeric(caseID, longId) || 0
-        const lat = dataset.getNumeric(caseID, latId) || 0
-        const shiftedLong = shiftLongitudeIntoView(long, west, east)
-        const point = leafletMap.latLngToContainerPoint([lat, shiftedLong])
+        const point = project(latLong)
         simpleheatRef.current?.add([point.x * scaleX, point.y * scaleY, normalizedValue])
       })
     }
@@ -327,27 +305,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
 
   const displayPoints = (displayType === "points" || !canDrawHeatmap) && pointsAreVisible && layerIsVisible
   const refreshPoints = useDebouncedCallback(async (selectedOnly: boolean) => {
-    const mapBounds = leafletMap.getBounds()
-    const west = mapBounds.getWest()
-    const east = mapBounds.getEast()
-    const {pointSizeMultiplier, pointStrokeColor} = pointDescription,
-      getCoords = (anID: string) => {
-        const long = longId ? dataset?.getNumeric(anID, longId) || 0 : 0,
-          lat = latId ? dataset?.getNumeric(anID, latId) || 0 : 0
-        const shiftedLong = shiftLongitudeIntoView(long, west, east)
-        return leafletMap.latLngToContainerPoint([lat, shiftedLong])
-      },
-      getScreenX = (anID: string) => {
-        const coords = getCoords(anID)
-        return coords.x
-      },
-      getScreenY = (anID: string) => {
-        const coords = getCoords(anID)
-        return coords.y
-      }
-    if (!renderer || !dataset) {
-      return
-    }
+    const project = createLatLongProjector(leafletMap)
+    const { pointSizeMultiplier, pointStrokeColor } = pointDescription
+    if (!renderer || !dataset) return
+
     if (!(displayPoints && renderer.isVisible)) {
       renderer?.setVisibility(false)
       return
@@ -366,7 +327,11 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     prf.measure("Map.refreshPoints[forEachPoint]", () => {
       renderer.forEachPoint((point: IPoint, metadata: IPointMetadata) => {
         const {caseID} = metadata
-        renderer.setPointPosition(point, getScreenX(caseID), getScreenY(caseID))
+        const latLong = mapLayerModel.getCaseLatLong(caseID)
+        if (latLong) {
+          const { x, y } = project(latLong)
+          renderer.setPointPosition(point, x, y)
+        }
         renderer.setPointStyle(point, {
           radius: dataset?.isCaseSelected(caseID) ? selectedPointRadius : pointRadius,
           fill: lookupLegendColor(metadata),
@@ -382,8 +347,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     refreshPointSelection()
   }, 10)
 
-  // Actions in the dataset can trigger need for point updates
-  useEffect(function setupResponsesToDatasetActions() {
+  // Selection actions in the dataset require restyling points.
+  useEffect(function setupResponsesToSelectionActions() {
     if (dataset) {
       const disposer = onAnyAction(dataset, action => {
         if (isSelectionAction(action)) {
@@ -401,18 +366,11 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
             }
           }
           refreshPointSelection(caseIdsToUpdate)
-        } else if (isCaseValueChangeAction(action)) {
-          // assumes that if we're caching then only selected cases are being updated
-          refreshPoints(dataset.isCaching())
-          refreshHeatmap()
-        } else if (["addCases", "removeCases"].includes(action.name)) {
-          refreshPoints(false)
-          refreshHeatmap()
         }
       })
       return () => disposer()
     }
-  }, [dataset, refreshPoints, refreshHeatmap, refreshPointSelection, renderer])
+  }, [dataset, refreshPointSelection, renderer])
 
   // Refresh points when the renderer changes (e.g., after reacquiring a WebGL context)
   useEffect(function refreshPointsOnRendererChange() {
@@ -429,7 +387,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         refreshPoints(false)
         refreshHeatmap()
       },
-      {name: "MapPointLayer [legendColorChange]", fireImmediately: true}, dataConfiguration)
+      {name: "MapPointLayer [legendColorChange]", fireImmediately: true},
+      dataConfiguration
+    )
   }, [dataConfiguration, refreshHeatmap, refreshPoints])
 
   // A shape change alters only how each point is drawn, so the points are restyled without touching
@@ -440,7 +400,9 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       () => {
         refreshPointSelection()
       },
-      {name: "MapPointLayer [shapeChange]", equals: comparer.structural}, dataConfiguration)
+      {name: "MapPointLayer [shapeChange]", equals: comparer.structural},
+      dataConfiguration
+    )
   }, [dataConfiguration, mapLayerModel, refreshPointSelection])
 
   // Changes in layout or map pan/zoom require repositioning points
@@ -455,7 +417,8 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         refreshPoints(false)
         refreshConnectingLines()
         refreshHeatmap()
-      }, {name: "MapPointLayer.respondToLayoutChanges", equals: comparer.structural}
+      },
+      { name: "MapPointLayer.respondToLayoutChanges", equals: comparer.structural }
     )
   }, [layout, mapModel.leafletMapState, refreshConnectingLines, refreshHeatmap, refreshPoints])
 
@@ -467,36 +430,38 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
         refreshPoints(false)
         refreshHeatmap()
       },
-      {name: "MapPointLayer.respondToLegendAttributeChange", equals: comparer.structural}, dataConfiguration
+      { name: "MapPointLayer.respondToLegendAttributeChange", equals: comparer.structural },
+      dataConfiguration
     )
     return () => disposer()
   }, [refreshHeatmap, refreshPoints, dataConfiguration])
 
-  // Changing the type of the lat/long attributes (e.g. categorical → numeric) changes their numeric
-  // values and which cases have valid coordinates, so the cases are re-filtered and redrawn.
-  useEffect(function setupResponseToLatLongTypeChange() {
-    return mstReaction(
-      () => [dataConfiguration?.attributeType('lat'), dataConfiguration?.attributeType('long')],
-      () => {
-        dataConfiguration?.invalidateCases()
-        refreshPoints(false)
-        refreshConnectingLines()
-        refreshHeatmap()
-      },
-      {name: "MapPointLayer.respondToLatLongTypeChange", equals: comparer.structural}, dataConfiguration
-    )
-  }, [refreshConnectingLines, refreshHeatmap, refreshPoints, dataConfiguration])
-
+  // The set of plotted cases changed: re-match the renderer's points to the cases, then redraw
   useEffect(function setupResponseToChangeInCases() {
     return mstReaction(
-      () => dataConfiguration?.caseDataHash,
+      () => mapLayerModel.pointCasesVersion,
       () => {
         callMatchCirclesToData()
         refreshPoints(false)
         refreshHeatmap()
-      }, {name: "MapPointLayer.setupResponseToChangeInCases", fireImmediately: true}, dataConfiguration
+      }, { name: "MapPointLayer.setupResponseToChangeInCases", fireImmediately: true },
+      mapLayerModel
     )
-  }, [callMatchCirclesToData, dataConfiguration, refreshHeatmap, refreshPoints])
+  }, [callMatchCirclesToData, mapLayerModel, refreshHeatmap, refreshPoints])
+
+  // Plotted values changed (value edits, cases added or removed, lat/long attribute type changes).
+  useEffect(function setupResponseToChangeInValues() {
+    return mstReaction(
+      () => mapLayerModel.pointValuesVersion,
+      () => {
+        // While the dataset is caching only selected cases change, so only they are restyled.
+        refreshPoints(mapLayerModel.pointValuesChangedWhileCaching)
+        refreshConnectingLines()
+        refreshHeatmap()
+      }, {name: "MapPointLayer.setupResponseToChangeInValues"},
+      mapLayerModel
+    )
+  }, [mapLayerModel, refreshConnectingLines, refreshHeatmap, refreshPoints])
 
   // respond to visual item properties change
   useEffect(function respondToDisplayItemVisualPropsAction() {
