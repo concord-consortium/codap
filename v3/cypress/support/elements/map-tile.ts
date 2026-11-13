@@ -72,6 +72,15 @@ export const MapTileElements = {
   getHeatmapCanvas() {
     return this.getMapTile().find(".heatmap-canvas")
   },
+  getAttribution() {
+    return this.getMapTile().find(".leaflet-control-attribution")
+  },
+  getBaseLayerCheckbox() {
+    return cy.get("[data-testid=map-layers-checkbox-base]")
+  },
+  getBaseLayerButton(layer: "oceans" | "topo" | "streets") {
+    return cy.get(`[data-testid=map-layers-base-${layer}]`)
+  },
   selectHideUnselectedCases() {
     cy.get("[data-testid=inspector-menu-hide-show]").should("be.visible").then(() => {
       cy.get("[data-testid=hide-unselected-cases]").click()

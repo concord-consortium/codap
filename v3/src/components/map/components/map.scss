@@ -89,10 +89,29 @@
 .leaflet-container ~ div {
   z-index: 1100;
 }
+// Stretch the bottom-right control area across the map so the attribution can use the map's full width.
+// (Leaflet sets pointer-events: none on this area, and only the controls themselves receive events.)
+.leaflet-container .leaflet-bottom.leaflet-right {
+  left: 0;
+}
+
+// Base map attribution: a single truncated line, expanded to the full text on hover or keyboard/touch focus
 .leaflet-container .leaflet-control-attribution {
   margin: 10px;
+  max-width: calc(100% - 20px);
   opacity: .5;
-  width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover, &:focus-within {
+    opacity: .9;
+    white-space: normal;
+  }
+
+  &:focus-visible {
+    @include vars.focus-outline(1px);
+  }
 }
 
 .map-container {

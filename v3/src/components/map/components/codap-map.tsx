@@ -3,7 +3,7 @@ import {observer} from "mobx-react-lite"
 import {clsx} from "clsx"
 import {MapContainer, TileLayer} from "react-leaflet"
 import {kPortalClass} from "../../data-display/data-display-types"
-import {BaseMapKeys, kMapAttribution, kMapUrls} from "../map-types"
+import {BaseMapKeys, kMapAttributions, kMapUrls} from "../map-types"
 import {GraphPlace} from "../../axis-graph-shared"
 import {useForceUpdate} from "../../../hooks/use-force-update"
 import {useMapModelContext} from "../hooks/use-map-model-context"
@@ -143,7 +143,7 @@ export const CodapMap = observer(function CodapMap({
               BaseMapKeys.map(mapKey => {
                 const url = kMapUrls[mapKey]
                 const show = mapModel.baseMapLayerIsVisible && mapModel.baseMapLayerName === mapKey
-                return show && <TileLayer key={mapKey} attribution={kMapAttribution} url={url}/>
+                return show && <TileLayer key={mapKey} attribution={kMapAttributions[mapKey]} url={url}/>
               })
             }
           </>
