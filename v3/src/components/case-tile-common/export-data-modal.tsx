@@ -63,11 +63,13 @@ export const ExportDataModal = observer(function ExportDataModal({
   const footerButtons = [{
     label: okLabel,
     tooltip: okTooltip,
+    testId: "export-data-export-button",
     onClick: applyAndClose,
     default: true
   }, {
     label: t("DG.AppController.exportDocument.cancelTitle"),
     tooltip: t("DG.AppController.exportDocument.cancelTooltip"),
+    testId: "export-data-cancel-button",
     onClick: closeModal
   }]
 
@@ -83,6 +85,7 @@ export const ExportDataModal = observer(function ExportDataModal({
 
   return (
     <CodapModal
+      data-testid="export-data-modal"
       isOpen={isOpen}
       onClose={closeModal}
       modalWidth={`400px`}
@@ -136,7 +139,7 @@ export const ExportDataModal = observer(function ExportDataModal({
                 placement="bottom" bottom="15px" left="15px" data-testid="modal-tooltip"
               >
                 <Button key={key} size="xs" variant={`${b.default ? "default" : ""}`} ml="5" onClick={b.onClick}
-                      _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={`${b.label}-button`}>
+                      _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={b.testId}>
                   {b.label}
                 </Button>
               </Tooltip>

@@ -3,3 +3,4 @@
 # no longer needed. Maintained by hand.
 
 tourElements
+uiNotificationMonitor

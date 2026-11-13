@@ -39,6 +39,11 @@ export function blockAPIRequestsWhileEditing(dataset?: IDataSet) {
   return getManagingController(dataset)?.blockAPIRequestsWhileEditing ?? kDefaultBlockAPIRequestsWhileEditing
 }
 
+// the tile id of the plugin whose requests wait while the user edits the dataset, if any
+export function editingBlockedPluginId(dataset: IDataSet) {
+  return blockAPIRequestsWhileEditing(dataset) ? dataset.managingControllerId || undefined : undefined
+}
+
 // preventAttributeDeletion disables the Delete Attribute item from the attribute menu.
 export function preventAttributeDeletion(dataset: IDataSet) {
   if (!dataset) return true

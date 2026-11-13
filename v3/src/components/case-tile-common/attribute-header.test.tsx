@@ -44,8 +44,8 @@ describe("AttributeHeader", () => {
     const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => null)
 
     try {
-      const { attribute } = renderAttributeHeader()
-      const button = screen.getByTestId(`codap-attribute-button ${attribute.name}`)
+      renderAttributeHeader()
+      const button = screen.getByTestId("codap-attribute-button-0")
       await user.click(button)
       expect(button).toHaveAttribute("aria-expanded", "true")
 
@@ -65,12 +65,12 @@ describe("AttributeHeader", () => {
     const onOpenMenu = jest.fn()
     const onCloseMenu = jest.fn()
 
-    const { attribute } = renderAttributeHeader({ onOpenMenu, onCloseMenu })
+    renderAttributeHeader({ onOpenMenu, onCloseMenu })
     // no spurious notification on mount
     expect(onOpenMenu).not.toHaveBeenCalled()
     expect(onCloseMenu).not.toHaveBeenCalled()
 
-    const button = screen.getByTestId(`codap-attribute-button ${attribute.name}`)
+    const button = screen.getByTestId("codap-attribute-button-0")
     await user.click(button)
     expect(onOpenMenu).toHaveBeenCalledTimes(1)
     expect(onCloseMenu).not.toHaveBeenCalled()

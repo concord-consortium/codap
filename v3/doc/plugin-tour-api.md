@@ -1,6 +1,6 @@
 # Plugin Tour API
 
-This document describes how CODAP plugins can use the Tour API to highlight UI elements and run guided tours. The Tour API is powered by [driver.js](https://driverjs.com/) and is available to any data-interactive plugin communicating with CODAP via iframe-phone.
+This document describes how CODAP plugins can use the Tour API to highlight UI elements and run guided tours. The Tour API is available to any data-interactive plugin communicating with CODAP via iframe-phone.
 
 ## Overview
 
@@ -25,7 +25,7 @@ Tour steps target CODAP UI elements using one of three methods (in priority orde
 | `selector` | Raw CSS selector | `".menu-bar-left .file-menu-button"` |
 | `component` alone | Target the tile itself (no sub-element) | `"123"` or `"Mammals"` |
 
-If multiple are provided, the first one found (in the priority order above) is used. If none of `tourKey`, `testId`, or `selector` is provided but `component` is, the tile's root element is targeted directly — this is the simplest way to highlight an entire tile. If the targeted element is not found in the DOM, the step is silently skipped.
+If multiple are provided, the first one found (in the priority order above) is used. If none of `tourKey`, `testId`, or `selector` is provided but `component` is, the tile's root element is targeted directly — this is the simplest way to highlight an entire tile. If the targeted element is not found in the DOM, or is in the page but not displayed (it has no layout box: for example under `display: none`, or with zero width or height; an element under `visibility: hidden` still counts as displayed), the step is silently skipped.
 
 ### Component Scoping
 
@@ -77,9 +77,11 @@ Highlight a single element with an optional popover.
 }
 ```
 
-All fields except `request` and at least one targeting property (`tourKey`, `testId`, `selector`, or `component`) are optional. When using `tourKey`, the registry provides default `title` and `description` which can be overridden via `popover`.
+All fields except `request` and at least one targeting property (`tourKey`, `testId`, `selector`, or `component`) are optional. When using `tourKey`, the registry provides default `title` and `description` which can be overridden via `popover`. In `description`, text wrapped in a matching pair of `**` or `__`, with no space just inside either delimiter (`**Graph**`), is shown in bold, so an identifier such as `__id__` shows `id` in bold; everything else, including other markdown and any HTML, is shown as written. `title` is always shown as written.
 
-Additional options: `overlayOpacity`, `stagePadding`, `stageRadius`, `disableActiveInteraction`, `component`.
+Additional options: `component`.
+
+If the target is missing or not displayed, the highlight shows nothing and sends no `highlighted` notification (a highlight or tour already showing is still ended and notified as usual).
 
 ### clearHighlight
 
@@ -109,29 +111,26 @@ Start a multi-step guided tour. Returns a `tourId` for tracking.
 { "success": true, "values": { "tourId": "tour-01JQ..." } }
 ```
 
+Steps whose target is missing or not displayed are skipped: they count toward `totalSteps` but not `visibleSteps`.
+
+Step `popover` text is shown by the same rules as a highlight's `title` and `description`, above.
+
 #### Tour-Level Options
 
 | Option | Type | Description |
 |--------|------|-------------|
-| `overlayColor` | string | Overlay background color |
-| `overlayOpacity` | number | Overlay opacity (0-1) |
-| `stagePadding` | number | Padding around highlighted element (px) |
-| `stageRadius` | number | Border radius of highlight cutout (px) |
 | `showButtons` | string[] | Which buttons to show: `"next"`, `"previous"`, `"close"` |
 | `disableButtons` | string[] | Buttons to disable (visible but not clickable) |
 | `showProgress` | boolean | Show step progress indicator |
 | `allowKeyboardControl` | boolean | Allow arrow key navigation |
-| `allowClose` | boolean | Allow dismissing via Escape or overlay click |
-| `disableActiveInteraction` | boolean | Prevent interaction with highlighted element |
+| `allowClose` | boolean | Allow dismissing via Escape or close button |
 | `animate` | boolean | Animate step transitions (default: true) |
 | `smoothScroll` | boolean | Smooth scroll to elements (default: false) |
 | `popoverOffset` | number | Distance between popover and element (px) |
-| `progressText` | string | Progress format, e.g., `"{{current}} of {{total}}"` |
-| `nextBtnText` | string | Next button label (for i18n) |
-| `prevBtnText` | string | Previous button label (for i18n) |
-| `doneBtnText` | string | Done button label (for i18n) |
-
-Per-step overrides are supported for `disableActiveInteraction`, `stagePadding`, and `stageRadius`.
+| `progressText` | string | Progress format, e.g., `"{{current}} of {{total}}"`. Defaults to CODAP's localized "1 of 5" form |
+| `nextBtnText` | string | Next button label. Defaults to CODAP's localized "Next" |
+| `prevBtnText` | string | Previous button label. Defaults to CODAP's localized "Previous" |
+| `doneBtnText` | string | Last-step button label. Defaults to CODAP's localized "Got it!" for tours and "Done" for highlights |
 
 ### endTour
 
@@ -160,7 +159,7 @@ Jump to a specific step by its original (pre-filter) array index.
 
 ### tourRefresh
 
-Recalculate overlay and popover position for the current step. Useful after layout changes (e.g., tile resize).
+Recalculate popover position for the current step. Useful after layout changes (e.g., tile resize).
 
 ```json
 { "request": "tourRefresh" }
@@ -213,7 +212,7 @@ Notifications are delivered to the plugin's iframe-phone channel automatically �
 | Type | When |
 |------|------|
 | `highlighted` | Highlight is shown |
-| `highlightCleared` | User dismisses (Escape, overlay click) or replaced by another tour/highlight |
+| `highlightCleared` | User dismisses (Escape, close button, Done), the target is removed from the page or stops being displayed, or replaced by another tour/highlight |
 
 Programmatic `clearHighlight` does **not** generate a notification (the plugin already knows).
 
@@ -236,10 +235,10 @@ Programmatic `clearHighlight` does **not** generate a notification (the plugin a
 
 | Type | When | Notes |
 |------|------|-------|
-| `stepStarted` | Step begins transitioning | Includes `stepIndex`, `totalSteps`, `visibleSteps`, `id`, targeting property |
+| `stepStarted` | The step's popover is on screen, so it can arrive after the `startTour` response | Includes `stepIndex`, `totalSteps`, `visibleSteps`, `id`, targeting property. A step the tour leaves before its popover is on screen (for example `tourMoveTo` batched with `startTour`) gets neither `stepStarted` nor `stepEnded`. |
 | `stepEnded` | User moves past a step | Same fields as `stepStarted` |
 | `completed` | Tour reaches the end | Includes `tourId`, `totalSteps`, `visibleSteps` |
-| `cancelled` | User dismisses or tour is replaced | Includes `stepIndex` and step fields. **`stepEnded` is NOT sent** for the interrupted step. |
+| `cancelled` | User dismisses, the current step's target is removed from the page or stops being displayed, or tour is replaced | Includes `stepIndex` and step fields when the current step has received `stepStarted`. **`stepEnded` is NOT sent** for the interrupted step. Two cases have no step fields: when the tour moves to a step whose target has been removed or has stopped being displayed since the tour started, that step never starts, and `cancelled` follows the previous step's `stepEnded`; and a tour ended before its first popover is on screen (for example `endTour` batched with `startTour`) sends `cancelled` alone. |
 
 `stepIndex` and `totalSteps` always refer to the **original** step array (pre-filtering). `visibleSteps` is the filtered count — the number of steps the user actually sees.
 
@@ -498,26 +497,6 @@ await codapInterface.sendRequest({
 })
 ```
 
-### Example 6: Highlight Without Overlay
-
-Use `overlayOpacity: 0` to highlight an element without dimming the rest of the interface. This lets students interact with CODAP while the highlight is visible — useful for "try it now" moments.
-
-```javascript
-await codapInterface.sendRequest({
-  action: "notify", resource: "interactiveFrame",
-  values: {
-    request: "highlight",
-    tourKey: "toolShelf.graph",
-    overlayOpacity: 0,
-    popover: {
-      title: "Try it!",
-      description: "Go ahead and click this button to create a graph.",
-      side: "bottom"
-    }
-  }
-})
-```
-
 ## Available Tour Element Keys
 
 The following `tourKey` values are available in the registry. Use `get tourElements` to retrieve the full list at runtime.
@@ -559,13 +538,13 @@ The following `tourKey` values are available in the registry. Use `get tourEleme
 
 ## Design Notes
 
-### Overlay and Plugin Interaction
+### Tutorial Plugins and Click-Through
 
-When a tour overlay is active, it covers the entire CODAP window including plugin iframes. Tutorial plugins that need students to interact with CODAP between tour steps should:
+Tours and highlights don't place an overlay over the workspace. Click-through and subelement interaction (menus, dialogs, the highlighted element itself) are the default behavior. Tutorial plugins that need students to interact with CODAP between steps can use either single highlights cleared between steps, or a multi-step tour — students can interact with any part of the UI while the popover is visible.
 
-- Use **single highlights** (not multi-step tours) and clear them before the student needs to act
-- Set **`overlayOpacity: 0`** to allow click-through
-- Set **`disableActiveInteraction: false`** (the default) to let students interact with the highlighted element
+### Popover Behavior
+
+The popover is a non-modal dialog named by the step's title (or CODAP's localized "Tour step" when it has none), with the title as a heading. CODAP does not move keyboard focus to it. The exception is at each step while focus is in an iframe (a plugin or a web page tile): focus moves to the popover so the arrow keys and Escape reach the tour. Each step is announced to screen readers. Scrolling to a target is instant when the user prefers reduced motion, even if the tour sets `smoothScroll`. The popover's testids are `coachmarks-popover`, `coachmarks-popover-title`, `coachmarks-popover-description`, `coachmarks-popover-progress-text`, `coachmarks-popover-next-btn`, `coachmarks-popover-prev-btn`, `coachmarks-popover-close-btn` and `coachmarks-popover-live-region`. The highlight outline is `coachmarks-outline-ring`, inside the container `coachmarks-root`.
 
 ### Cleanup
 

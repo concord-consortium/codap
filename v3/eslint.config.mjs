@@ -14,6 +14,7 @@ import globals from "globals"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import tseslint from "typescript-eslint"
+import codapRequireTestid from "./eslint-rules/codap-require-testid.cjs"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -101,8 +102,7 @@ export default [
       "curly": ["error", "multi-line", "consistent"],
       "dot-notation": "error",
       "eqeqeq": ["error", "smart"],
-      // driver.js package name has a .js extension which confuses the import resolver
-      "import-x/no-unresolved": ["error", { ignore: ["^driver\\.js"] }],
+      "import-x/no-unresolved": "error",
       "import-x/no-cycle": ["warn", { ignoreExternal: true }],
       "import-x/no-extraneous-dependencies": "warn",
       "import-x/no-named-as-default-member": "off",
@@ -264,6 +264,16 @@ export default [
       "@typescript-eslint/no-var-requires": "off"
       // This can be used for more strict webpack config linting which matches the webpack examples
       // "quotes": ["error", "single", { allowTemplateLiterals: true, avoidEscape: true }],
+    }
+  },
+  {
+    files: ["src/components/**/*.{ts,tsx}"],
+    ignores: ["src/components/**/*.test.{ts,tsx}"],
+    plugins: {
+      codap: { rules: { "require-testid": codapRequireTestid } }
+    },
+    rules: {
+      "codap/require-testid": "error"
     }
   }
 ]

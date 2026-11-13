@@ -25,6 +25,6 @@ export const Marquee = observer(function Marquee(props:{marqueeState: MarqueeSta
   }, [marqueeRect])
 
   return (
-    <g ref={marqueeRef}/>
+    <g ref={marqueeRef} data-testid="selection-marquee" role="presentation"/>
   )
 })

@@ -58,6 +58,7 @@ export const Container: React.FC = observer(function Container() {
         aria-describedby="tile-area-hint"
         aria-label={t("V3.app.tileArea.ariaLabel")}
         className={classes}
+        data-testid="codap-container"
         ref={containerRef}
       >
         <h2 className="codap-visually-hidden">{appState.document.title}</h2>

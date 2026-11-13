@@ -718,7 +718,7 @@ context("case table ui", () => {
 })
 
 context("edit attribute properties date precision", () => {
-  const precisionSelect = () => cy.get("[data-testid=attr-precision-select]")
+  const precisionSelect = () => cy.get("[data-testid^='attr-precision-select-']")
   const enterValues = (values: string[]) => {
     values.forEach((value, i) => table.typeInCell(2, i + 2, `{selectAll}${value}`))
   }
