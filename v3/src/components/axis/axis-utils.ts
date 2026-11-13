@@ -6,10 +6,10 @@ import { IDataDisplayContentModel } from "../data-display/models/data-display-co
 import { axisPlaceToAttrRole, kDataDisplayFont, transitionDuration } from "../data-display/data-display-types"
 import {measureText, measureTextExtent} from "../../hooks/use-measure-text"
 import { determineLevels } from "../../utilities/date-utils"
-import { GraphLayout } from "../graph/models/graph-layout"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "./axis-constants"
 import {AxisPlace, labelPaddingX, labelPaddingY} from "./axis-types"
+import { IAxisLayout } from "./models/axis-layout-context"
 import { updateAxisNotification } from "./models/axis-notifications"
 import { IBaseNumericAxisModel } from "./models/base-numeric-axis-model"
 
@@ -64,15 +64,25 @@ export const collisionExists = (props: ICollisionProps) => {
 }
 
 /**
+ * Returns the number of categories that fit on one repetition of a categorical axis. When the axis
+ * is split (e.g. by an attribute on the right or top), each sub-axis gets only its cell's share of
+ * the axis length, so the limit is based on the cell length rather than the full axis length.
+ * The result is at least 1, since a limit of 0 is stored as "no limit".
+ */
+export const getNumberOfCategoriesLimit = (layout: IAxisLayout, axisPlace: AxisPlace) => {
+  const length = layout.getAxisMultiScale(axisPlace)?.cellLength || layout.getAxisLength(axisPlace)
+  return Math.max(1, Math.floor(length / kDefaultFontHeight))
+}
+
+/**
  * Having this utility function makes it possible to set the number of categories limit for a categorical
  * axis early in the process of treating an attribute as categorical so that, if there is a large number of categories,
  * we can limit the computation involved in figuring out which cases belong to which subplot.
  */
 export const setNumberOfCategoriesLimit = (dataConfig: IDataConfigurationModel, axisPlace: AxisPlace,
-                                           layout: GraphLayout) => {
-  const axisLength = layout.getAxisLength(axisPlace),
-    numCategoriesLimit = Math.floor(axisLength / kDefaultFontHeight)
-  dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace], numCategoriesLimit)
+                                           layout: IAxisLayout) => {
+  dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace],
+    getNumberOfCategoriesLimit(layout, axisPlace))
 }
 
 interface ILabelPlacement {
