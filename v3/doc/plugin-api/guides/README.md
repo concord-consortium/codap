@@ -27,6 +27,7 @@ implementation detail and occasional references to internals that are not part o
 | Topic | Document |
 |---|---|
 | Tour API | [`../../plugin-tour-api.md`](../../plugin-tour-api.md) |
+| UI notifications (`uiNotificationMonitor`) | [`../../plugin-ui-notifications.md`](../../plugin-ui-notifications.md) |
 
 Treat them as background, not as API contract: where one of these documents and a resource page
 disagree, the resource page is authoritative, and where neither is verified against the code, the
