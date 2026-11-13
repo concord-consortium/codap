@@ -9,6 +9,10 @@
     "path": false
   },
   "browserslist": "> 0.2%, last 5 versions, Firefox ESR, not dead, not ie > 0",
+  "engines": {
+    "node": ">= 18",
+    "npm": ">= 9"
+  },
   "jest": {
     "preset": "ts-jest/presets/js-with-ts",
     "resolver": "<rootDir>/src/test/jest-resolver.js",
