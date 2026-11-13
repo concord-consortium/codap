@@ -2,6 +2,7 @@ import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
 import { useCfmContext } from "../../../hooks/use-cfm-context"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { clipboardManager } from "../../../lib/clipboard/clipboard-manager"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { IAttribute } from "../../../models/data/attribute"
 import { ICollectionModel } from "../../../models/data/collection"
@@ -13,14 +14,12 @@ import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
 import { rerandomizeAllAttributes } from "../../../models/data/data-set-utils"
-import { useClipboard } from "../../clipboard/use-clipboard"
 import { ExportDataModal } from "../export-data-modal"
 import { IMenuItem, StdMenuList } from "../std-menu-list"
 
 export const RulerMenuList = observer(function RulerMenuList() {
   const data = useDataSetContext()
   const cfm = useCfmContext()
-  const { copyText, importData } = useClipboard()
   const { isOpen: isExportModalOpen, onClose: onCloseExportModal, onOpen: onOpenExportModal } = useDisclosure()
   const { isOpen: isCopyModalOpen, onClose: onCloseCopyModal, onOpen: onOpenCopyModal } = useDisclosure()
 
@@ -60,7 +59,8 @@ export const RulerMenuList = observer(function RulerMenuList() {
 
   const copyDataToClipboard = (dataSet: IDataSet, selectedCollection?: ICollectionModel) => {
     const collection = selectedCollection ?? dataSet.childCollection
-    copyText(convertDatasetToCsv(dataSet, selectedCollection), `${collection.caseIds.length} ${collection.title}`)
+    const description = `${collection.caseIds.length} ${collection.title}`
+    clipboardManager.copyText(convertDatasetToCsv(dataSet, selectedCollection), description)
   }
 
   const menuItems: IMenuItem[] = [
@@ -97,7 +97,7 @@ export const RulerMenuList = observer(function RulerMenuList() {
     {
       itemKey: "DG.Inspector.getCaseDataFromClipboard",
       handleClick: () => {
-        if (data) importData(data)
+        if (data) clipboardManager.importData(data)
       }
     }
   ]
