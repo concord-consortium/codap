@@ -5,11 +5,10 @@ import { ClipboardImportFormat, importClipboardContent } from "../../utilities/c
 import { Logger } from "../logger"
 import { ILogMessage, logStringifiedObjectMessage } from "../log-message"
 import {
-  ClipboardReadMethod, focusDocumentForClipboard, getReturnFocusTarget, IClipboardContent, IClipboardReadResult,
-  isClipboardReadDenied, readClipboard, writeWithExecCommand
+  ClipboardReadMethod, ClipboardWriteMethod, focusDocumentForClipboard, getReturnFocusTarget, IClipboardContent,
+  IClipboardReadResult, isClipboardReadDenied, readClipboard, writeWithClipboardApi, writeWithExecCommand
 } from "./clipboard-utils"
 
-type ClipboardWriteMethod = "writeText" | "execCommand"
 type ClipboardImportMethod = ClipboardReadMethod | "paste"
 type ClipboardImportOutcome = "imported" | "empty" | "cancelled"
 
@@ -93,7 +92,7 @@ export class ClipboardManager {
 
     if (this.writeTextFailed) {
       skipped.push("writeText")
-    } else if (await this.tryWriteText(text)) {
+    } else if (await writeWithClipboardApi(text)) {
       method = "writeText"
     } else {
       failed.push("writeText")
@@ -206,16 +205,6 @@ export class ClipboardManager {
 
   private log({ message, args, category }: ILogMessage) {
     Logger.log(message, args, category)
-  }
-
-  private async tryWriteText(text: string) {
-    try {
-      if (!navigator.clipboard) return false
-      await navigator.clipboard.writeText(text)
-      return true
-    } catch {
-      return false
-    }
   }
 
   @action

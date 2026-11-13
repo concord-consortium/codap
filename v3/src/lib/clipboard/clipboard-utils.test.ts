@@ -1,5 +1,6 @@
 import {
-  focusDocumentForClipboard, getReturnFocusTarget, isClipboardReadDenied, readClipboard, writeWithExecCommand
+  focusDocumentForClipboard, getReturnFocusTarget, isClipboardReadDenied, readClipboard, writeWithClipboardApi,
+  writeWithExecCommand
 } from "./clipboard-utils"
 
 function mockBlob(content: string) {
@@ -56,6 +57,29 @@ describe("readClipboard", () => {
   it("rejects when the Clipboard API is missing", async () => {
     setClipboard(undefined)
     await expect(readClipboard()).rejects.toThrow()
+  })
+})
+
+describe("writeWithClipboardApi", () => {
+  afterEach(() => {
+    setClipboard(undefined)
+  })
+
+  it("writes the text and returns true on success", async () => {
+    const writeText = jest.fn().mockResolvedValue(undefined)
+    setClipboard({ writeText })
+    await expect(writeWithClipboardApi("a,b")).resolves.toBe(true)
+    expect(writeText).toHaveBeenCalledWith("a,b")
+  })
+
+  it("returns false when writeText rejects", async () => {
+    setClipboard({ writeText: jest.fn().mockRejectedValue(new Error("blocked by permissions policy")) })
+    await expect(writeWithClipboardApi("a,b")).resolves.toBe(false)
+  })
+
+  it("returns false when the Clipboard API is missing", async () => {
+    setClipboard(undefined)
+    await expect(writeWithClipboardApi("a,b")).resolves.toBe(false)
   })
 })
 

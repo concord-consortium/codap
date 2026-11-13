@@ -1,8 +1,9 @@
-import { useState } from "react"
-import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
-    Tooltip, useDisclosure } from "@chakra-ui/react"
+import {
+  Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter, Tooltip, useDisclosure
+} from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
+import { useState } from "react"
 import { useMenuItemScrollIntoView } from "../../hooks/use-menu-item-scroll-into-view"
 import { clipboardManager } from "../../lib/clipboard/clipboard-manager"
 import { logStringifiedObjectMessage } from "../../lib/log-message"

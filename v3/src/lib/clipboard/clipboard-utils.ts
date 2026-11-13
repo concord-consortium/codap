@@ -2,6 +2,7 @@
 // the ClipboardManager is the only intended caller.
 
 export type ClipboardReadMethod = "read" | "readText"
+export type ClipboardWriteMethod = "writeText" | "execCommand"
 
 export interface IClipboardContent {
   html?: string
@@ -58,6 +59,18 @@ export async function readClipboard(): Promise<IClipboardReadResult> {
 
 // The legacy copy fallback that V2 used when `navigator.clipboard.write()` failed.
 // Returns true only if the browser reports that the copy succeeded.
+// Copies text with the Clipboard API. Resolves false, rather than rejecting, if the API is missing or the
+// browser refuses the write.
+export async function writeWithClipboardApi(text: string): Promise<boolean> {
+  try {
+    if (!navigator.clipboard) return false
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    return false
+  }
+}
+
 export function writeWithExecCommand(text: string): boolean {
   const handleCopy = (e: ClipboardEvent) => {
     e.clipboardData?.setData("text/plain", text)
