@@ -34,6 +34,11 @@ const kControlSelector = [
 function buildClickTarget(el: Element): UiTarget {
   const control = el.closest?.(kControlSelector) ?? el
   const target = buildTarget(control)
+  // A control without a testid of its own takes the one nearest the clicked element, as other events do.
+  if (!control.hasAttribute("data-testid")) {
+    const testId = el.closest?.("[data-testid]")?.getAttribute("data-testid")
+    if (testId != null) target.testId = testId
+  }
   const label = resolveLabel(control)
   if (label != null) target.label = label
   const interactionKind = resolveInteractionKind(control)

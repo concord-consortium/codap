@@ -116,9 +116,12 @@ Top-level:
 - `target.interactionKind` (click / dblclick / drag / appear / disappear):
   ARIA `role` → `data-role` → omitted.
 - A click / dblclick target describes the clicked element's control: the nearest
-  button, link, form field, element with a widget `role` (such as `menuitem` or
-  `tab`), or `data-role` element, else the clicked element itself. Clicking the icon
-  inside a button reports the button's testid, label, disabled state and tag.
+  button, link, form field, `summary`, element with a widget `role` (such as
+  `menuitem`, `tab` or `option`), or `data-role` element, else the clicked element
+  itself. Its testid, tourKey, label, interactionKind, disabled state, tag and
+  componentId come from the control, so clicking the icon inside a button reports
+  the button. A control with no testid of its own takes the testid nearest the
+  clicked element, such as its icon's.
 
 ## Target catalog
 

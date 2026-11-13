@@ -211,6 +211,30 @@ describe("click-listener", () => {
     }
   })
 
+  it("reports the clicked icon's testid when its control has none, not an ancestor's", () => {
+    const { manager, delivered } = makeManagerWithCapture()
+    manager.register("plugin-A", { eventTypes: ["click"] })
+    installed = installClickListener(manager)
+
+    document.body.innerHTML = `
+      <div data-testid="point-shape-popover">
+        <div role="option" aria-label="Circle">
+          <svg data-testid="point-shape-glyph"><path d="M0 0"></path></svg>
+        </div>
+        <div role="option" aria-label="Square"><span>Square</span></div>
+      </div>`
+    document.querySelector("svg")!.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+    document.querySelector("span")!.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+
+    const clicks = delivered.filter(d => d.eventType === "click")
+    expect(clicks.length).toBe(2)
+    expect(clicks[0].target?.testId).toBe("point-shape-glyph")
+    expect(clicks[0].target?.label).toBe("Circle")
+    expect(clicks[0].target?.interactionKind).toBe("option")
+    expect(clicks[1].target?.testId).toBe("point-shape-popover")
+    expect(clicks[1].target?.label).toBe("Square")
+  })
+
   it("takes the label of a widget-role control, not of a surrounding dialog", () => {
     const { manager, delivered } = makeManagerWithCapture()
     manager.register("plugin-A", { eventTypes: ["click"] })
