@@ -9,7 +9,8 @@ function messageText(message: ClipboardMessage) {
     case "copied":
       return t("DG.Inspector.caseTable.exportCaseDialog.copiedData", { vars: [message.description] })
     case "copyUnavailable":
-      return t("V3.clipboard.copyUnavailable")
+      // The menu item is named from its own string, so the message matches the menu in every language
+      return t("V3.clipboard.copyUnavailable", { vars: [t("DG.Inspector.exportCaseData")] })
     case "emptyClipboard":
       return t("V3.clipboard.emptyClipboard")
   }
@@ -25,6 +26,7 @@ export const ClipboardHost = observer(function ClipboardHost() {
       <PasteDataModal
         isOpen={!!pasteRequest}
         permissionDenied={!!pasteRequest?.permissionDenied}
+        returnFocus={pasteRequest?.returnFocus}
         onImport={content => clipboardManager.importPastedData(content)}
         onCancel={() => clipboardManager.cancelPaste()}
       />

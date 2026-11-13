@@ -15,6 +15,17 @@ export interface IClipboardReadResult {
 
 // Reading the clipboard fails with "Document is not focused" when focus is elsewhere (e.g. in an iframe).
 // V2 focused the window and blurred the active element before reading; we do the same.
+// Returns the element focus should return to after a clipboard dialog closes. When the focused element is
+// an item in a menu, that's the button that opens the menu (which a menu's aria-labelledby identifies),
+// since the item itself disappears when the menu closes.
+export function getReturnFocusTarget(): Maybe<HTMLElement> {
+  const active = document.activeElement
+  if (!(active instanceof HTMLElement) || active === document.body) return
+  const buttonId = active.closest("[role='menu']")?.getAttribute("aria-labelledby")
+  const menuButton = buttonId ? document.getElementById(buttonId) : null
+  return menuButton ?? active
+}
+
 export function focusDocumentForClipboard() {
   window.focus()
   if (document.activeElement instanceof HTMLElement) {

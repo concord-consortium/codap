@@ -39,6 +39,29 @@ describe("PasteDataModal", () => {
     )).toBeInTheDocument()
   })
 
+  it("doesn't close when the overlay is clicked, so pasted text isn't lost", async () => {
+    const user = userEvent.setup()
+    const { onCancel } = renderModal()
+    // Chakra closes a modal when the area around its content is clicked, and that area has no accessible role
+    // eslint-disable-next-line testing-library/no-node-access
+    const container = document.querySelector(".chakra-modal__content-container")
+    expect(container).toBeInTheDocument()
+    await user.click(container as Element)
+    expect(onCancel).not.toHaveBeenCalled()
+  })
+
+  it("returns focus to the given element when it closes", async () => {
+    const returnTo = document.createElement("button")
+    document.body.appendChild(returnTo)
+    const props = { permissionDenied: false, onImport: jest.fn(), onCancel: jest.fn(), returnFocus: returnTo }
+    const { rerender } = render(<PasteDataModal isOpen={true} {...props} />)
+    await waitFor(() => expect(screen.getByRole("textbox")).toHaveFocus())
+    // the request (and with it the return-focus element) is cleared in the same render that closes the dialog
+    rerender(<PasteDataModal isOpen={false} {...props} returnFocus={undefined} />)
+    await waitFor(() => expect(returnTo).toHaveFocus())
+    returnTo.remove()
+  })
+
   it("focuses the text area when it opens", async () => {
     const { textArea } = renderModal()
     await waitFor(() => expect(textArea).toHaveFocus())

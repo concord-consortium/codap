@@ -5,17 +5,19 @@ import { ClipboardImportFormat, importClipboardContent } from "../../utilities/c
 import { Logger } from "../logger"
 import { ILogMessage, logStringifiedObjectMessage } from "../log-message"
 import {
-  ClipboardReadMethod, focusDocumentForClipboard, IClipboardContent, IClipboardReadResult, isClipboardReadDenied,
-  readClipboard, writeWithExecCommand
+  ClipboardReadMethod, focusDocumentForClipboard, getReturnFocusTarget, IClipboardContent, IClipboardReadResult,
+  isClipboardReadDenied, readClipboard, writeWithExecCommand
 } from "./clipboard-utils"
 
 type ClipboardWriteMethod = "writeText" | "execCommand"
-type ClipboardImportMethod = ClipboardReadMethod | "paste" | "none"
+type ClipboardImportMethod = ClipboardReadMethod | "paste"
 type ClipboardImportOutcome = "imported" | "empty" | "cancelled"
 
 export interface IPasteRequest {
   dataSet?: IDataSet
   permissionDenied: boolean
+  // Where focus should go when the paste dialog closes
+  returnFocus?: HTMLElement
 }
 
 // The read attempt that led to the paste dialog, so its log event can report it when the dialog closes
@@ -125,8 +127,10 @@ export class ClipboardManager {
   async importData(dataSet?: IDataSet): Promise<void> {
     if (this.isReadInProgress() || this._pasteRequest) return
 
+    // Captured before reading, which blurs the focused element
+    const returnFocus = getReturnFocusTarget()
     if (this.readFailed) {
-      return this.requestPaste(dataSet, { failed: "", skipped: "read" })
+      return this.requestPaste(dataSet, returnFocus, { failed: "", skipped: "read" })
     }
 
     const attempt = ++this.readAttempt
@@ -139,7 +143,7 @@ export class ClipboardManager {
       if (attempt !== this.readAttempt) return
       this.readStartTime = undefined
       this.setReadFailed()
-      return this.requestPaste(dataSet, { failed: "read", skipped: "" })
+      return this.requestPaste(dataSet, returnFocus, { failed: "read", skipped: "" })
     }
     if (attempt !== this.readAttempt) return
     this.readStartTime = undefined
@@ -178,8 +182,8 @@ export class ClipboardManager {
 
   // Opens the paste dialog right away, then adds the permission note if the permission check reports
   // that reading is denied. The check runs afterwards so the dialog never waits on it.
-  private async requestPaste(dataSet: Maybe<IDataSet>, pasteLog: IPendingPasteLog) {
-    const request: IPasteRequest = { dataSet, permissionDenied: false }
+  private async requestPaste(dataSet: Maybe<IDataSet>, returnFocus: Maybe<HTMLElement>, pasteLog: IPendingPasteLog) {
+    const request: IPasteRequest = { dataSet, permissionDenied: false, returnFocus }
     this.pendingPasteLog = pasteLog
     this.setPasteRequest(request)
     if (await isClipboardReadDenied() && this._pasteRequest === request) {

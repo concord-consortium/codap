@@ -336,6 +336,29 @@ describe("ClipboardManager import", () => {
     nowSpy.mockRestore()
   })
 
+  it("records where focus should return when the paste dialog closes", async () => {
+    const menuButton = document.createElement("button")
+    menuButton.id = "test-menu-button"
+    const menu = document.createElement("div")
+    menu.setAttribute("role", "menu")
+    menu.setAttribute("aria-labelledby", menuButton.id)
+    const item = document.createElement("button")
+    menu.appendChild(item)
+    document.body.append(menuButton, menu)
+    item.focus()
+
+    await failRead()
+    expect(clipboardManager.pasteRequest?.returnFocus).toBe(menuButton)
+
+    // the remembered-failure path records it too
+    clipboardManager.cancelPaste()
+    item.focus()
+    await clipboardManager.importData(dataSet)
+    expect(clipboardManager.pasteRequest?.returnFocus).toBe(menuButton)
+    menuButton.remove()
+    menu.remove()
+  })
+
   it("imports into a new dataset if the requested dataset was destroyed", async () => {
     const realDataSet = DataSet.create({ name: "doomed" })
     mockReadClipboard.mockRejectedValue(new Error("denied"))

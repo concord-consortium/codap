@@ -1,5 +1,5 @@
 import {
-  focusDocumentForClipboard, isClipboardReadDenied, readClipboard, writeWithExecCommand
+  focusDocumentForClipboard, getReturnFocusTarget, isClipboardReadDenied, readClipboard, writeWithExecCommand
 } from "./clipboard-utils"
 
 function mockBlob(content: string) {
@@ -133,6 +133,36 @@ describe("isClipboardReadDenied", () => {
   it("returns false when the Permissions API is missing", async () => {
     setPermissions(undefined)
     await expect(isClipboardReadDenied()).resolves.toBe(false)
+  })
+})
+
+describe("getReturnFocusTarget", () => {
+  afterEach(() => {
+    document.body.innerHTML = ""
+  })
+
+  it("returns the button that opens the menu containing the focused item", () => {
+    document.body.innerHTML = `
+      <button id="menu-button">Tables</button>
+      <div role="menu" aria-labelledby="menu-button"><button role="menuitem" id="item">Import</button></div>`
+    document.getElementById("item")?.focus()
+    expect(getReturnFocusTarget()).toBe(document.getElementById("menu-button"))
+  })
+
+  it("returns the focused element when it isn't in a menu", () => {
+    document.body.innerHTML = `<button id="plain">Plain</button>`
+    document.getElementById("plain")?.focus()
+    expect(getReturnFocusTarget()).toBe(document.getElementById("plain"))
+  })
+
+  it("returns the focused item when its menu has no labelling button", () => {
+    document.body.innerHTML = `<div role="menu"><button role="menuitem" id="item">Import</button></div>`
+    document.getElementById("item")?.focus()
+    expect(getReturnFocusTarget()).toBe(document.getElementById("item"))
+  })
+
+  it("returns undefined when nothing has focus", () => {
+    expect(getReturnFocusTarget()).toBeUndefined()
   })
 })
 

@@ -9,6 +9,8 @@ import "./paste-data-modal.scss"
 interface IProps {
   isOpen: boolean
   permissionDenied: boolean
+  // Where focus should go when the dialog closes
+  returnFocus?: HTMLElement
   onImport: (content: IClipboardContent) => void
   onCancel: () => void
 }
@@ -16,8 +18,11 @@ interface IProps {
 // Fallback for importing clipboard data when the browser won't let CODAP read the clipboard directly.
 // A paste event needs no permission or user activation, and it provides text/html as well as text/plain,
 // so pasted HTML tables can still be imported as tables.
-export function PasteDataModal({ isOpen, permissionDenied, onImport, onCancel }: IProps) {
+export function PasteDataModal({ isOpen, permissionDenied, returnFocus, onImport, onCancel }: IProps) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
+  // Holds the return-focus element past the render that closes the dialog, which may no longer provide it
+  const returnFocusRef = useRef<HTMLElement | null>(null)
+  if (isOpen) returnFocusRef.current = returnFocus ?? null
   const [value, setValue] = useState("")
   // The HTML from the most recent paste, and the text area's value right after that paste. The HTML is
   // only imported if that paste was the text area's entire content and the text hasn't been edited since,
@@ -57,7 +62,8 @@ export function PasteDataModal({ isOpen, permissionDenied, onImport, onCancel }:
   const canImport = !!value.trim()
 
   return (
-    <CodapModal initialRef={textAreaRef} isOpen={isOpen} onClose={onCancel} modalWidth="400px">
+    <CodapModal initialRef={textAreaRef} finalFocusRef={returnFocusRef} isOpen={isOpen} onClose={onCancel}
+        closeOnOverlayClick={false} modalWidth="400px">
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
         <div className="codap-modal-icon-container" />
         <div className="codap-header-title">{t("V3.clipboard.pasteDialog.title")}</div>
