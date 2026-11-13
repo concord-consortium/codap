@@ -240,6 +240,28 @@
           "date(16) returns 1/1/2016"
         ]
       },
+      { "displayName": "dateToEpoch",
+        "description": "Returns the time between January 1, 1970 (UTC) and the given date, in seconds unless another unit is given. A date without a time zone, including one ending in \"Z\", is read in your local time zone; add an offset such as \"+00:00\" for UTC.",
+        "args": [
+          {
+            "name": "date",
+            "type": "string",
+            "description": "The specified date. May be a string or a computed date."
+          },
+          {
+            "name": "unit",
+            "type": "string",
+            "description": "\"s\" (seconds, the default), \"min\" (minutes), \"ms\" (milliseconds), \"us\" or \"μs\" (microseconds), or \"ns\" (nanoseconds).",
+            "optional": true
+          }
+        ],
+        "examples": [
+          "dateToEpoch(\"11/14/2023, 17:13:20\") returns 1700000000 in US Eastern time",
+          "dateToEpoch(\"11/14/2023, 17:13:20\", \"ms\") returns 1700000000000 in US Eastern time",
+          "dateToEpoch(\"2023-11-14T22:13:20+00:00\") returns 1700000000 in any time zone",
+          "dateToEpoch(epochToDate(86400)) returns 86400"
+        ]
+      },
       { "displayName": "dayOfMonth",
         "description": "Returns the day of the month corresponding to the given date.",
         "args": [
@@ -280,6 +302,27 @@
         "examples": [
           "dayOfWeekName(\"8-31-2005\") returns Wednesday",
           "dayOfWeekName(date(2017,3,20)) returns Monday"
+        ]
+      },
+      { "displayName": "epochToDate",
+        "description": "Returns the date corresponding to the given time since January 1, 1970 (UTC), in seconds unless another unit is given. Unlike date(), small numbers are not treated as years. The date is shown in your local time zone.",
+        "args": [
+          {
+            "name": "epochTime",
+            "type": "number",
+            "description": "The time since January 1, 1970 (UTC)."
+          },
+          {
+            "name": "unit",
+            "type": "string",
+            "description": "\"s\" (seconds, the default), \"min\" (minutes), \"ms\" (milliseconds), \"us\" or \"μs\" (microseconds), or \"ns\" (nanoseconds). Many data sources record milliseconds, which are 13-digit numbers for recent dates. Dates keep only whole milliseconds, so anything smaller is dropped.",
+            "optional": true
+          }
+        ],
+        "examples": [
+          "epochToDate(1700000000) returns 11/14/2023, 17:13:20 in US Eastern time",
+          "epochToDate(1700000000000, \"ms\") returns 11/14/2023, 17:13:20 in US Eastern time",
+          "epochToDate(0) returns 12/31/1969, 19:00:00 in US Eastern time"
         ]
       },
       { "displayName": "hours",
