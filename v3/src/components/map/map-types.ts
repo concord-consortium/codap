@@ -38,7 +38,8 @@ export const kMapAttributions: Record<BaseMapKey, string> = {
 }
 
 // Esri requires exactly "Powered by Esri" wherever its basemaps are shown.
-export const kPoweredByEsriAttribution = 'Powered by <a href="https://www.esri.com">Esri</a>'
+export const kPoweredByEsriAttribution =
+  'Powered by <a href="https://www.esri.com" target="_blank" rel="noopener noreferrer">Esri</a>'
 
 export const kMapPolygonLayerType = "mapPolygonLayer"
 export const kMapPointLayerType = "mapPointLayer"
