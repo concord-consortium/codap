@@ -113,8 +113,8 @@ Every request a plugin sends has the same envelope:
 ```
 
 A request may also be an array of envelopes. CODAP processes them in order and replies with an
-array of responses, one per envelope, except in one known case; see
-[How CODAP processes requests](guides/request-processing.md#known-limitations).
+array of responses, one per envelope; see
+[How CODAP processes requests](guides/request-processing.md#array-requests).
 
 ### Response shape
 
