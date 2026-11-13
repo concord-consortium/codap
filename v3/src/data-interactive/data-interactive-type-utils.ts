@@ -121,7 +121,9 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     ...(low ? { "low-attribute-color": low } : {}),
     ...(high ? { "high-attribute-color": high } : {})
   } as ICodapV2CategoryMap
-  const categoryMap = categorySet ? { _categoryMap } : undefined
+  // as in V2, where assigned colors were kept in the category map, they are reported even without a category set
+  const attrMeta = metadata?.attributes.get(attribute.id)
+  const categoryMap = categorySet || attrMeta?.color || attrMeta?.colorRange ? { _categoryMap } : undefined
   // Omitted entirely when no category carries a shape, so a document that never used the feature
   // gains nothing.
   const shapeMap = categorySet?.shapeMap ?? {}

@@ -608,8 +608,8 @@ export const DataSetMetadata = SharedModel
   }))
   .views(self => ({
     /*
-     * Returns an existing category set (if available) or creates a new provisional one (for valid
-     * attributes).
+     * Returns an existing category set (official or provisional), or, unless `createIfMissing` is false,
+     * creates a provisional one for a valid attribute.
      *
      * Call this again for each modification rather than holding the result across them: the first
      * change promotes a provisional set, which replaces the instance, and writes through a stale

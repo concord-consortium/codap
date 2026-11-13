@@ -206,4 +206,15 @@ describe("DataInteractive AttributeHandler", () => {
     expect(attrResult()._categoryMap?.__order).toEqual(["a", "b"])
     spy.mockRestore()
   })
+
+  it("get includes _categoryMap with an attribute's assigned colors even without a category set, as in V2", () => {
+    const { dataset: dataContext, metadata, a1 } = setupTestDataset()
+    const spy = jest.spyOn(SharedDataUtils, "getMetadataFromDataSet").mockReturnValue(metadata)
+    metadata.setAttributeColor(a1.id, "#123456", "low")
+    const categoryMap = (handler.get?.({ dataContext, attribute: a1 })?.values as any)._categoryMap
+    expect(categoryMap?.["low-attribute-color"]).toBe("#123456")
+    expect(categoryMap?.__order).toEqual([])
+    expect(metadata.provisionalCategories.size).toBe(0)
+    spy.mockRestore()
+  })
 })

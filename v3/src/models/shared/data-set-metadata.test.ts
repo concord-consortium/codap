@@ -442,8 +442,8 @@ describe("DataSetMetadata", () => {
   it("doesn't create a category set when createIfMissing is false", () => {
     expect(tree.metadata.getCategorySet("aId", false)).toBeUndefined()
     expect(tree.metadata.provisionalCategories.size).toBe(0)
-    // an existing set is returned
     const set1 = tree.metadata.getCategorySet("aId")
+    expect(set1).toBeDefined()
     expect(tree.metadata.getCategorySet("aId", false)).toBe(set1)
   })
 

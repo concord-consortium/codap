@@ -83,7 +83,7 @@ reach a plugin by structured clone rather than JSON, so a key with no value surv
 | `precision` | yes | |
 | `unit` | yes | |
 | `defaultMin`, `defaultMax` | no | only when a default range is set |
-| `_categoryMap` | no | only once something in CODAP has used the attribute's categories, such as a graph legend or the case table's category colors, as in v2. `__order` lists the categories in their current order |
+| `_categoryMap` | no | only once something in CODAP has used the attribute's categories, such as a graph or map legend or a categorical axis, or a `colormap` sent by a plugin, or once the attribute has assigned colors, as in v2. `__order` lists the categories in their current order. Unlike v2, CODAP saves the categories with the document only when they were reordered, recolored or given shapes, so after a reopen `_categoryMap` comes back only once something in CODAP uses them again |
 | `v3.categoryShapes` | no | only when some category carries a point shape |
 
 ### What `create` and `update` accept
