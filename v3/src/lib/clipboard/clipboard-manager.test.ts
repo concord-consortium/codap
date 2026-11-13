@@ -12,6 +12,12 @@ jest.mock("./clipboard-utils", () => ({
   readClipboard: jest.fn()
 }))
 
+// The current document, replaced by tests that simulate opening another document
+const mockAppState = { document: { name: "first document" } as object }
+jest.mock("../../models/app-state", () => ({
+  get appState() { return mockAppState }
+}))
+
 jest.mock("./clipboard-import", () => ({
   ...jest.requireActual("./clipboard-import"),
   importClipboardContent: jest.fn()
@@ -196,7 +202,7 @@ describe("ClipboardManager import", () => {
 
   it("requests the paste dialog when the read fails", async () => {
     await failRead(true)
-    expect(clipboardManager.pasteRequest).toEqual({ dataSet, permissionDenied: true })
+    expect(clipboardManager.pasteRequest).toMatchObject({ dataSet, permissionDenied: true })
     expect(mockImportContent).not.toHaveBeenCalled()
     expect(logSpy).not.toHaveBeenCalled()
   })
@@ -218,7 +224,7 @@ describe("ClipboardManager import", () => {
 
     await clipboardManager.importData(dataSet)
     expect(mockReadClipboard).not.toHaveBeenCalled()
-    expect(clipboardManager.pasteRequest).toEqual({ dataSet, permissionDenied: false })
+    expect(clipboardManager.pasteRequest).toMatchObject({ dataSet, permissionDenied: false })
 
     clipboardManager.cancelPaste()
     expect(clipboardManager.pasteRequest).toBeUndefined()
@@ -234,7 +240,7 @@ describe("ClipboardManager import", () => {
     const otherDataSet = DataSet.create({ name: "other" })
 
     await clipboardManager.importData(otherDataSet)
-    expect(clipboardManager.pasteRequest).toEqual({ dataSet, permissionDenied: false })
+    expect(clipboardManager.pasteRequest).toMatchObject({ dataSet, permissionDenied: false })
     expect(mockReadClipboard).not.toHaveBeenCalled()
     expect(logSpy).not.toHaveBeenCalled()
   })
@@ -268,11 +274,11 @@ describe("ClipboardManager import", () => {
     mockReadClipboard.mockRejectedValue(new Error("denied"))
     const pending = clipboardManager.importData(dataSet)
     await flushPromises()
-    expect(clipboardManager.pasteRequest).toEqual({ dataSet, permissionDenied: false })
+    expect(clipboardManager.pasteRequest).toMatchObject({ dataSet, permissionDenied: false })
 
     resolveDenied(true)
     await pending
-    expect(clipboardManager.pasteRequest).toEqual({ dataSet, permissionDenied: true })
+    expect(clipboardManager.pasteRequest).toMatchObject({ dataSet, permissionDenied: true })
     clipboardManager.cancelPaste()
     expect(lastLogArgs(logSpy)).toMatchObject({ outcome: "cancelled", permissionDenied: true })
   })
@@ -282,13 +288,13 @@ describe("ClipboardManager import", () => {
     mockReadClipboard.mockRejectedValue(new Error("denied"))
     clipboardManager.importData(dataSet)
     await flushPromises()
-    expect(clipboardManager.pasteRequest).toEqual({ dataSet, permissionDenied: false })
+    expect(clipboardManager.pasteRequest).toMatchObject({ dataSet, permissionDenied: false })
 
     // the same applies to later imports, which go straight to the paste dialog
     clipboardManager.cancelPaste()
     clipboardManager.importData(dataSet)
     await flushPromises()
-    expect(clipboardManager.pasteRequest).toEqual({ dataSet, permissionDenied: false })
+    expect(clipboardManager.pasteRequest).toMatchObject({ dataSet, permissionDenied: false })
   })
 
   it("accepts a new import once a read has been pending too long, ignoring the stale read", async () => {
@@ -357,6 +363,23 @@ describe("ClipboardManager import", () => {
     expect(clipboardManager.pasteRequest?.returnFocus).toBe(menuButton)
     menuButton.remove()
     menu.remove()
+  })
+
+  it("imports a read that finishes after a document switch into a new dataset", async () => {
+    let resolveRead: (value: unknown) => void = () => null
+    mockReadClipboard.mockImplementation(() => new Promise(resolve => { resolveRead = resolve }))
+    const pending = clipboardManager.importData(dataSet)
+    mockAppState.document = { name: "second document" }
+    resolveRead({ method: "read", content: tableContent })
+    await pending
+    expect(mockImportContent).toHaveBeenCalledWith(tableContent, undefined)
+  })
+
+  it("imports pasted data into a new dataset after a document switch", async () => {
+    await failRead()
+    mockAppState.document = { name: "second document" }
+    clipboardManager.importPastedData({ text: "a,b" })
+    expect(mockImportContent).toHaveBeenCalledWith({ text: "a,b" }, undefined)
   })
 
   it("imports into a new dataset if the requested dataset was destroyed", async () => {
