@@ -1,4 +1,6 @@
-import { fixYear, isDateString, isValidDateSpec, parseDate, parseTimeZoneOffset } from './date-parser'
+import {
+  fixYear, inferDatePrecision, isDateString, isValidDateSpec, parseDate, parseTimeZoneOffset
+} from './date-parser'
 
 describe('Date Parser tests - V2 compatibility', () => {
   // These tests are ported from V2 and should always pass unchanged as long as we want to maintain compatibility.
@@ -318,5 +320,36 @@ describe('fixYear', () => {
   test('returns 19xx year when year is 2 digits and greater than or equal to 50', () => {
     expect(fixYear(50)).toEqual(1950)
     expect(fixYear(99)).toEqual(1999)
+  })
+})
+
+describe('inferDatePrecision', () => {
+  test('returns the finest unit a single format specifies', () => {
+    expect(inferDatePrecision(['1990'])).toBe('year')
+    expect(inferDatePrecision(['5/2024'])).toBe('month')
+    expect(inferDatePrecision(['2024-05'])).toBe('month')
+    expect(inferDatePrecision(['May 2024'])).toBe('month')
+    expect(inferDatePrecision(['5/1/2024'])).toBe('day')
+    expect(inferDatePrecision(['2024-05-01'])).toBe('day')
+    expect(inferDatePrecision(['May 1, 2024'])).toBe('day')
+    expect(inferDatePrecision(['2024-05-01T10'])).toBe('hour')
+    expect(inferDatePrecision(['5/1/2024 10:30'])).toBe('minute')
+    expect(inferDatePrecision(['5/1/2024 10:30 PM'])).toBe('minute')
+    expect(inferDatePrecision(['5/1/2024 10:30:15'])).toBe('second')
+    expect(inferDatePrecision(['2024-05-01T10:30:15.250'])).toBe('millisecond')
+  })
+
+  test('returns the finest unit across values and ignores empty values', () => {
+    expect(inferDatePrecision(['5/2024', '', '6/2024'])).toBe('month')
+    expect(inferDatePrecision(['5/2024', '5/1/2024'])).toBe('day')
+    expect(inferDatePrecision(['5/1/2024', '5/1/2024 10:30:15'])).toBe('second')
+  })
+
+  test('returns undefined when the precision can\'t be determined', () => {
+    expect(inferDatePrecision([])).toBeUndefined()
+    expect(inferDatePrecision(['', ''])).toBeUndefined()
+    expect(inferDatePrecision(['5/2024', 'abc'])).toBeUndefined()
+    expect(inferDatePrecision(['13/2024'])).toBeUndefined()
+    expect(inferDatePrecision(['2024-05-01T00:00:00.000Z'])).toBeUndefined()
   })
 })
