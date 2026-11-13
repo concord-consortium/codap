@@ -22,7 +22,7 @@ describe("CaseAttrsView", () => {
     expect(screen.getByTestId("case-card-attrs-wrapper-1")).toHaveClass("case-card-attrs-wrapper")
   })
 
-  it("leaves the testid off the hidden copy used for the flip animation", () => {
+  it("leaves the testid off the copy shown during the card-flip animation", () => {
     render(
       <DndContext>
         <TileSelectionContext.Provider value={tileSelection}>

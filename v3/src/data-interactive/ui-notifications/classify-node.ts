@@ -211,9 +211,10 @@ export function matchesMarker(el: Element): boolean {
 }
 
 /**
- * coachmarks renders tours into its root element; tours have their own notifications
- * (tourUpdate, highlightUpdate). The popover is matched directly as well, because a removed
- * popover is reported detached from its portal node, with no ancestor to find.
+ * Tours have their own notifications (tourUpdate, highlightUpdate), so coachmarks' elements are
+ * not reported; otherwise its role="dialog" popover would appear as a dialog in the header region.
+ * The popover is matched directly as well as the root, because a removed popover is reported
+ * detached from its portal node, with no ancestor to find.
  */
 const kCoachmarksSelector = '[data-testid="coachmarks-root"], [data-testid="coachmarks-popover"]'
 

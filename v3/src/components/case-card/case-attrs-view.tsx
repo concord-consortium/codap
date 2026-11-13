@@ -26,7 +26,7 @@ interface ICaseAttrsViewProps {
   caseItem?: IGroupedCase
   collection?: ICollectionModel
   collectionIndex: number
-  dummy?: boolean // A hidden copy used for the card-flip animation
+  dummy?: boolean // Copy of the previous case, shown only during the card-flip animation
   onResizeColumn?: (collectionId: string, widthPct: number, isComplete?: boolean) => void
 }
 

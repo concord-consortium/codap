@@ -282,7 +282,7 @@ Naming the data context explicitly avoids depending on which data context is you
 
 ## Resources
 
-All 39 resources CODAP v3 registers, alphabetically. `tourElements` is not yet documented, and `uiNotificationMonitor` has only an interim guide.
+All 39 resources CODAP v3 registers, alphabetically.
 
 | Resource | What it is for |
 |---|---|

@@ -29,7 +29,7 @@ export interface TourRequestValues extends ITourOptions {
   steps: TourStepInput[]
 }
 
-/** CODAP's look and wording for a tour or highlight. A plugin's own options are spread over these. */
+/** CODAP's look and wording for a tour or highlight; startTour sets a plugin's options over these one by one. */
 function codapPresentation(kind: "tour" | "highlight"): CreateCoachmarksEngineArgs {
   return {
     initialFocus: "none",
@@ -48,7 +48,7 @@ function codapPresentation(kind: "tour" | "highlight"): CreateCoachmarksEngineAr
   }
 }
 
-/** coachmarks defaults a popover to the top; CODAP's tours default to the right. */
+/** coachmarks defaults a popover to the top; CODAP's tours and highlights default to the right. */
 function withCodapSide(popover?: ITourPopover): ITourPopover {
   return { ...popover, side: popover?.side ?? "right" }
 }
@@ -337,7 +337,7 @@ class TourManager {
         })
       },
       onDeselected: () => {
-        // A step left before its popover was positioned never sent stepStarted.
+        // A step left before its popover was on screen never sent stepStarted.
         if (!isCurrent() || !this.active?.hasStartedStep) return
         this.active.hasStartedStep = false
         const origIdx = filteredToOriginalIndex[currentFilteredIdx]
