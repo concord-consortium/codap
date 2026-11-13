@@ -2,7 +2,7 @@ import { select, Selection } from "d3"
 import { MutableRefObject } from "react"
 import { IDataDisplayContentModel } from "../../data-display/models/data-display-content-model"
 import { IAxisLayout } from "../models/axis-layout-context"
-import { IDateAxisModel } from "../models/numeric-axis-models"
+import { DateAxisModel, IDateAxisModel } from "../models/numeric-axis-models"
 import { DateAxisHelper, IDateAxisHelperArgs } from "./date-axis-helper"
 
 jest.mock("d3", () => ({
@@ -72,5 +72,41 @@ describe("DateAxisHelper", () => {
     expect(select(props.subAxisElt).call).toHaveBeenCalled()
     expect(select(props.subAxisElt).style).toHaveBeenCalledWith("stroke", "lightgrey")
     expect(select(props.subAxisElt).style).toHaveBeenCalledWith("stroke-opacity", "0.7")
+  })
+})
+
+describe("DateAxisHelper.render", () => {
+  const { select: realSelect } = jest.requireActual("d3")
+
+  function renderAxis(min: number, max: number) {
+    const subAxisElt = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    const helper = new DateAxisHelper({
+      displayModel: {} as IDataDisplayContentModel,
+      subAxisIndex: 0,
+      subAxisElt,
+      axisModel: DateAxisModel.create({ place: "bottom", min, max }),
+      layout: {
+        getAxisMultiScale: jest.fn().mockReturnValue({ cellLength: 300 }),
+        getComputedBounds: jest.fn().mockReturnValue({ left: 0, top: 0, width: 300, height: 30 }),
+        getAxisLength: jest.fn().mockReturnValue(300)
+      } as unknown as IAxisLayout,
+      isAnimating: jest.fn().mockReturnValue(false),
+      showScatterPlotGridLines: false,
+      subAxisSelectionRef: { current: realSelect(subAxisElt) }
+    })
+    helper.render()
+    return {
+      tickCount: subAxisElt.querySelectorAll("line.tick").length,
+      labels: Array.from(subAxisElt.querySelectorAll("text"), text => text.textContent)
+    }
+  }
+
+  it("reads bounds near the epoch as seconds, not as years", () => {
+    // A bound misread as a year puts 100 before -6000, which leaves no ticks.
+    expect(renderAxis(-6000, 100).tickCount).toBeGreaterThan(0)
+    const { tickCount, labels } = renderAxis(0, 60)
+    expect(tickCount).toBe(60)
+    // The outer label names the day the axis starts on, which is 1969 or 1970 depending on time zone.
+    expect(labels[0]).toMatch(/19(69|70)/)
   })
 })

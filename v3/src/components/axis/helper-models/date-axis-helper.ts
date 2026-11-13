@@ -2,7 +2,7 @@ import { Selection } from "d3"
 import { MutableRefObject } from "react"
 import { measureTextExtent } from "../../../hooks/use-measure-text"
 import {
-  convertToDate, createDate, determineLevels, EDateTimeLevel, shortMonthNames
+  createDateFromEpochSeconds, determineLevels, EDateTimeLevel, shortMonthNames
 } from "../../../utilities/date-utils"
 import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "../axis-constants"
 import { otherPlace } from "../axis-types"
@@ -302,7 +302,7 @@ export class DateAxisHelper extends AxisHelper {
         const rotation = isVertical ? -90 : 0,
           offset = kAxisGap + kAxisTickLength + 2.5 * kDefaultFontHeight,
           refPoint = isVertical ? {x: -offset, y: 0} : {x: 0, y: offset}
-        let thisLabel = getLevelLabelForValue(level, convertToDate(lower))
+        let thisLabel = getLevelLabelForValue(level, createDateFromEpochSeconds(lower))
         const firstLabelString = thisLabel.labelString
         let done = false,
           somethingDrawn = false,
@@ -457,9 +457,9 @@ export class DateAxisHelper extends AxisHelper {
     const isVertical = this.isVertical,
       [lowerBoundsSeconds, upperBoundsSeconds] = this.axisModel.domain,
       lowerBoundsMS = 1000 * lowerBoundsSeconds,
-      lowerBoundsDate = createDate(lowerBoundsSeconds) as Date,
+      lowerBoundsDate = createDateFromEpochSeconds(lowerBoundsSeconds) as Date,
       upperBoundsMS = 1000 * upperBoundsSeconds,
-      upperBoundsDate = createDate(upperBoundsSeconds) as Date,
+      upperBoundsDate = createDateFromEpochSeconds(upperBoundsSeconds) as Date,
       sAS = this.subAxisSelectionRef.current,
       {rangeMin, rangeMax} = this
 

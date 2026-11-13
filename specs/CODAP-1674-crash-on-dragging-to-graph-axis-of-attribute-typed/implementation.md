@@ -66,7 +66,7 @@ describe("DateAxisHelper.render", () => {
   }
 
   it("reads bounds near the epoch as seconds, not as years", () => {
-    // Read as a year, 100 would put the upper bound before the lower one and leave no ticks.
+    // A bound misread as a year puts 100 before -6000, which leaves no ticks.
     expect(renderAxis(-6000, 100).tickCount).toBeGreaterThan(0)
     const { tickCount, labels } = renderAxis(0, 60)
     expect(tickCount).toBe(60)
