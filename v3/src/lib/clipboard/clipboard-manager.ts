@@ -5,8 +5,8 @@ import { ClipboardImportFormat, importClipboardContent } from "../../utilities/c
 import { Logger } from "../logger"
 import { ILogMessage, logStringifiedObjectMessage } from "../log-message"
 import {
-  ClipboardReadMethod, focusDocumentForClipboard, IClipboardContent, isClipboardReadDenied, readClipboard,
-  writeWithExecCommand
+  ClipboardReadMethod, focusDocumentForClipboard, IClipboardContent, IClipboardReadResult, isClipboardReadDenied,
+  readClipboard, writeWithExecCommand
 } from "./clipboard-utils"
 
 type ClipboardWriteMethod = "writeText" | "execCommand"
@@ -34,7 +34,7 @@ export type ClipboardMessage =
  * the page session so the user doesn't wait on an attempt that's known to fail.
  *
  * The manager never renders anything. It exposes observable state describing what the UI should show,
- * which the app-level ClipboardHost renders. No method ever rejects.
+ * which the app-level ClipboardHost renders. Clipboard refusals never cause a rejection.
  */
 export class ClipboardManager {
   @observable private writeTextFailed = false
@@ -122,19 +122,24 @@ export class ClipboardManager {
     }
 
     this.isReading = true
+    let result: Maybe<IClipboardReadResult>
     try {
       focusDocumentForClipboard()
-      const { method, content } = await readClipboard()
-      const format = importClipboardContent(content, dataSet)
-      if (!format) this.setMessage({ kind: "emptyClipboard" })
-      this.logImport(method, format ? "imported" : "empty", { format })
+      result = await readClipboard()
     } catch {
       this.setReadFailed()
       this.pendingPasteLog = { failed: "read", skipped: "" }
       this.setPasteRequest({ dataSet, permissionDenied: await isClipboardReadDenied() })
+      return
     } finally {
       this.isReading = false
     }
+
+    // Only the read is guarded. An error importing data that was read successfully is a genuine bug,
+    // so it propagates rather than being mistaken for a clipboard refusal.
+    const format = importClipboardContent(result.content, dataSet)
+    if (!format) this.setMessage({ kind: "emptyClipboard" })
+    this.logImport(result.method, format ? "imported" : "empty", { format })
   }
 
   // Called by the paste dialog's Import button

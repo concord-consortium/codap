@@ -235,6 +235,18 @@ describe("ClipboardManager import", () => {
     expect(logSpy).not.toHaveBeenCalled()
   })
 
+  it("doesn't treat an import error after a successful read as a read failure", async () => {
+    mockReadClipboard.mockResolvedValue({ method: "read", content: tableContent })
+    mockImportContent.mockImplementationOnce(() => { throw new Error("import bug") })
+    await expect(clipboardManager.importData(dataSet)).rejects.toThrow("import bug")
+    expect(clipboardManager.pasteRequest).toBeUndefined()
+
+    mockReadClipboard.mockClear()
+    await clipboardManager.importData(dataSet)
+    expect(mockReadClipboard).toHaveBeenCalled()
+    expect(clipboardManager.pasteRequest).toBeUndefined()
+  })
+
   it("ignores another import while a read is still in progress", async () => {
     let resolveRead: (value: unknown) => void = () => null
     mockReadClipboard.mockImplementation(() => new Promise(resolve => { resolveRead = resolve }))

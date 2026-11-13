@@ -20,7 +20,8 @@ export function PasteDataModal({ isOpen, permissionDenied, onImport, onCancel }:
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
   const [value, setValue] = useState("")
   // The HTML from the most recent paste, and the text area's value right after that paste. The HTML is
-  // only imported if the text hasn't been edited since, so it still matches what the user sees.
+  // only imported if that paste was the text area's entire content and the text hasn't been edited since,
+  // so the HTML matches everything the user sees. Otherwise the text is imported as CSV.
   const pastedHtml = useRef<string>()
   const valueAfterPaste = useRef<string>()
   const justPasted = useRef(false)
@@ -35,7 +36,8 @@ export function PasteDataModal({ isOpen, permissionDenied, onImport, onCancel }:
   }, [isOpen])
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    pastedHtml.current = e.clipboardData.getData("text/html") || undefined
+    const pastingIntoEmpty = !e.currentTarget.value.trim()
+    pastedHtml.current = pastingIntoEmpty ? e.clipboardData.getData("text/html") || undefined : undefined
     justPasted.current = true
   }
 

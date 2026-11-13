@@ -78,6 +78,24 @@ describe("PasteDataModal", () => {
     expect(onImport).toHaveBeenCalledWith({ text: "1x" })
   })
 
+  it("drops the pasted HTML when pasting into text that's already there", async () => {
+    const user = userEvent.setup()
+    const { onImport, textArea, importButton } = renderModal()
+    pasteInto(textArea, "<table><tr><td>A</td></tr></table>", "A\n")
+    pasteInto(textArea, "<table><tr><td>B</td></tr></table>", "B")
+    await user.click(importButton)
+    expect(onImport).toHaveBeenCalledWith({ text: "A\nB" })
+  })
+
+  it("drops the pasted HTML when text was typed before the paste", async () => {
+    const user = userEvent.setup()
+    const { onImport, textArea, importButton } = renderModal()
+    fireEvent.change(textArea, { target: { value: "header\n" } })
+    pasteInto(textArea, kTableHtml, "1")
+    await user.click(importButton)
+    expect(onImport).toHaveBeenCalledWith({ text: "header\n1" })
+  })
+
   it("calls onCancel from the Cancel and close buttons", async () => {
     const user = userEvent.setup()
     const { onCancel } = renderModal()
