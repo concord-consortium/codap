@@ -21,13 +21,10 @@ items.
 | `create` | — |
 | `update` | ✓ |
 | `delete` | ✓ |
-| `notify` | — |
+| `notify` | ✓ |
 | `register` | — |
 | `unregister` | — |
 <!-- END GENERATED: actions -->
-
-`notify`, which moves a case within its collection, is part of the API but not yet supported;
-see [Known limitations](#known-limitations).
 
 ## Resource selector patterns
 
@@ -80,6 +77,24 @@ Updating a parent case changes that value for every item grouped under it, so th
 children.
 
 Otherwise `update` replies `{ "success": true }`.
+
+### What `notify` accepts
+
+| Property | Type | Notes |
+|---|---|---|
+| `caseOrder` | String or number | required. `"first"`, `"last"`, or the position, counting from 0, the case should end up at in its collection. A position may be sent as text, such as `"2"` |
+
+`notify` moves the case to that position, as in v2, and replies `{ "success": true }`. Its child
+cases move with it, and a child case stays under its parent: a position among another parent's
+cases puts it first or last among its own parent's cases, on the side the position was on, where
+v2 put it at that position anyway. A position is rounded toward zero, and one before the start or
+past the end puts the case first or last. Any other `caseOrder` replies `{ "success": false }`. v2
+replied that way to a position of `0` too, so send `"first"` if your plugin must also run there.
+A case that owns a set-aside or hidden item coming before every shown item under its parent stays
+ahead of its other siblings, since moving that item would move the parent.
+The `collection` segment is optional here too: the case moves within its own collection. v2
+required it.
+As in v2, the move can't be undone.
 
 ### What `delete` returns
 
@@ -164,6 +179,21 @@ Change one value of a case. Note the nested `values`:
 { "success": true }
 ```
 
+Move the mammal to the top of its diet's mammals. `"first"` puts it first in its collection, as
+in v2, but a child case stays under its parent, so it goes first among its parent's cases:
+
+```json
+{
+  "action": "notify",
+  "resource": "dataContext[Mammals].caseByID[13]",
+  "values": { "caseOrder": "first" }
+}
+```
+
+```json
+{ "success": true }
+```
+
 Delete a parent case, and with it every mammal grouped under it:
 
 ```json
@@ -177,15 +207,10 @@ Delete a parent case, and with it every mammal grouped under it:
 { "success": true, "values": [ 53 ] }
 ```
 
-## Known limitations
-
-**`notify` to move a case is not supported.** In v2, `notify` with `values.caseOrder` moved the
-case within its collection: `"first"`, `"last"`, or a numeric position. The selector had to name
-the collection. v3 rejects the request as an unsupported action. This is a known bug.
-
 ## Notifications
 
-This resource takes no `notify` requests of its own.
+`notify` sends `moveCases`, listing the case, to the other plugins on
+`dataContextChangeNotice[<context>]`, even when the case was already in place, as in v2.
 
 `update` and `delete` notify other plugins on `dataContextChangeNotice[<context>]` with
 `updateCases` or `deleteCases`, as the same change made in a case table does. An `update` that
@@ -203,7 +228,7 @@ when an attribute of a parent collection changed.
 |---|---|
 | `DataContext not found` | the selector's data context does not resolve |
 | `Case not found` | no case in the data context has that id, including when the id is an item id |
-| `<action> <resource>: <field> required` | `update` without `values`, or without `values.values` |
+| `<action> <resource>: <field> required` | `update` without `values`, or without `values.values`; `notify` without `values`, or without `values.caseOrder` (v2 replied `{ "success": false }` with no message) |
 
 ## See also
 

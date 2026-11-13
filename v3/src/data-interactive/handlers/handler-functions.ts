@@ -1,12 +1,12 @@
 import {
-  createCasesNotification, deleteCasesNotification, deleteItemsNotification, updateCasesNotificationFromIds,
-  updateItemsNotification
+  createCasesNotification, deleteCasesNotification, deleteItemsNotification, moveCasesNotification,
+  updateCasesNotificationFromIds, updateItemsNotification
 } from "../../models/data/data-set-notifications"
 import { IDataSet } from "../../models/data/data-set"
 import { getGroupedCases } from "../../models/data/data-set-utils"
 import { ICase } from "../../models/data/data-set-types"
 import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
-import { DIResources, DISuccessResult, DIValues } from "../data-interactive-types"
+import { DICaseOrderNotify, DIResources, DISuccessResult, DIValues } from "../data-interactive-types"
 import {
   DIRequestCase, DIRequestCaseValues, DIUpdateCase, DIUpdateItemResult
 } from "../data-interactive-data-set-types"
@@ -56,6 +56,63 @@ export function deleteItem(resources: DIResources, item?: ICase | string[]) {
   })
 
   return { success: true as const, values: itemIds.map(itemId => toV2Id(itemId)) }
+}
+
+// As in V2, `notify` with `caseOrder` ("first", "last" or a position) moves a case to that position in its
+// collection. A case stays grouped under its parent, so a position among another parent's cases is clamped to
+// the first or last place among the case's siblings (V2 moved it there anyway).
+export function moveCaseBy(resources: DIResources, values: DIValues | undefined, aCase: ICase | undefined,
+                           resourceName: string) {
+  const { dataContext } = resources
+  if (!dataContext) return dataContextNotFoundResult
+  if (!aCase) return caseNotFoundResult
+  if (!values) return fieldRequiredResult("notify", resourceName, "values")
+  const { caseOrder } = values as DICaseOrderNotify
+  if (caseOrder == null) return fieldRequiredResult("notify", resourceName, "values.caseOrder")
+
+  const caseId = aCase.__id__
+  const collectionId = dataContext.caseInfoMap.get(caseId)?.collectionId
+  if (!collectionId) return caseNotFoundResult
+  const otherCases = dataContext.getCasesForCollection(collectionId).filter(({ __id__ }) => __id__ !== caseId)
+  const position = caseOrder === "first" ? 0
+    : caseOrder === "last" ? otherCases.length
+    : typeof caseOrder === "number" || (typeof caseOrder === "string" && caseOrder.trim() !== "")
+      ? Number(caseOrder)
+      : NaN
+  if (!isFinite(position)) return { success: false as const }
+
+  // the case's siblings are together in the collection; a position before them puts the case first among them,
+  // and one past them (which slice allows) puts it last
+  const parentId = dataContext.getParentCaseId(caseId)
+  const siblings = otherCases.filter(({ __id__ }) => dataContext.getParentCaseId(__id__) === parentId)
+  const firstSiblingIndex = siblings.length > 0 ? otherCases.indexOf(siblings[0]) : 0
+  const siblingIndex = Math.max(Math.trunc(position) - firstSiblingIndex, 0)
+  const orderedCases = [...siblings.slice(0, siblingIndex), aCase, ...siblings.slice(siblingIndex)]
+
+  // Refill the places the siblings' items hold, in the new order, so no other item moves and the parent keeps its
+  // place. A top-level case is placed by its first shown item and a child case by its first item, hidden or not,
+  // so hidden items ahead of the group's first shown item stay put, and each case's shown items go first.
+  const itemIndex = (itemId: string) => dataContext.getItemIndex(itemId) ?? -1
+  const byIndex = (ids: string[]) => ids.slice().sort((a, b) => itemIndex(a) - itemIndex(b))
+  const caseInfos = orderedCases.map(({ __id__ }) => dataContext.caseInfoMap.get(__id__))
+  const firstShownIndex = caseInfos.flatMap(info => info?.childItemIds ?? [])
+    .reduce((min, itemId) => Math.min(min, itemIndex(itemId)), Infinity)
+  const groupItemIds = caseInfos.flatMap(info => [
+    ...byIndex(info?.childItemIds ?? []),
+    ...byIndex(info?.hiddenChildItemIds ?? []).filter(itemId => itemIndex(itemId) > firstShownIndex)
+  ])
+  const slots = groupItemIds.map(itemIndex).sort((a, b) => a - b)
+  const itemIds = Array.from(dataContext._itemIds)
+  slots.forEach((slot, index) => { itemIds[slot] = groupItemIds[index] })
+
+  dataContext.applyModelChange(() => {
+    dataContext.setItemOrder(itemIds)
+  }, {
+    // as in V2, moveCases lists the case, and is sent even when the case was already in place
+    notify: moveCasesNotification(dataContext, [aCase])
+  })
+
+  return { success: true as const }
 }
 
 export function getCaseBy(resources: DIResources, aCase?: ICase) {
