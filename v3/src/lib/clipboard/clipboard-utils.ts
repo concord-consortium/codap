@@ -14,19 +14,29 @@ export interface IClipboardReadResult {
   content: IClipboardContent
 }
 
-// Reading the clipboard fails with "Document is not focused" when focus is elsewhere (e.g. in an iframe).
-// V2 focused the window and blurred the active element before reading; we do the same.
 // Returns the element focus should return to after a clipboard dialog closes. When the focused element is
-// an item in a menu, that's the button that opens the menu (which a menu's aria-labelledby identifies),
-// since the item itself disappears when the menu closes.
+// an item in a menu, that's the button that opens the menu, since the item itself disappears when the menu
+// closes.
 export function getReturnFocusTarget(): Maybe<HTMLElement> {
   const active = document.activeElement
   if (!(active instanceof HTMLElement) || active === document.body) return
-  const buttonId = active.closest("[role='menu']")?.getAttribute("aria-labelledby")
-  const menuButton = buttonId ? document.getElementById(buttonId) : null
-  return menuButton ?? active
+  const menu = active.closest("[role='menu']")
+  return (menu && findMenuButton(menu)) ?? active
 }
 
+// Finds the button that opens `menu`, from either side of the ARIA link between them: the menu's
+// aria-labelledby, or the button's aria-controls (the only link Chakra's menus provide).
+function findMenuButton(menu: Element): Maybe<HTMLElement> {
+  const labelledBy = menu.getAttribute("aria-labelledby")
+  const labelButton = labelledBy ? document.getElementById(labelledBy) : null
+  if (labelButton) return labelButton
+  if (!menu.id) return
+  const controllers = Array.from(document.querySelectorAll<HTMLElement>("[aria-controls]"))
+  return controllers.find(element => element.getAttribute("aria-controls")?.split(/\s+/).includes(menu.id))
+}
+
+// Reading the clipboard fails with "Document is not focused" when focus is elsewhere (e.g. in an iframe).
+// V2 focused the window and blurred the active element before reading; we do the same.
 export function focusDocumentForClipboard() {
   window.focus()
   if (document.activeElement instanceof HTMLElement) {

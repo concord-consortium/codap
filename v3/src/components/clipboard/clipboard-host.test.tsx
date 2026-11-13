@@ -1,4 +1,5 @@
-import { act, render, screen } from "@testing-library/react"
+import { Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react"
+import { act, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { clipboardManager } from "../../lib/clipboard/clipboard-manager"
 import { Logger } from "../../lib/logger"
@@ -71,6 +72,32 @@ describe("ClipboardHost", () => {
 
     await user.click(screen.getByTestId("paste-data-cancel-button"))
     expect(clipboardManager.pasteRequest).toBeUndefined()
+  })
+
+  it("returns focus to the menu button when the dialog opened from a lazy menu closes", async () => {
+    const user = userEvent.setup()
+    setClipboard({ readText: jest.fn().mockRejectedValue(new Error("denied")) })
+    render(
+      <>
+        <Menu isLazy>
+          <MenuButton>Tables</MenuButton>
+          <MenuList>
+            <MenuItem onClick={() => clipboardManager.importData()}>New from Clipboard</MenuItem>
+          </MenuList>
+        </Menu>
+        <ClipboardHost />
+      </>
+    )
+    const menuButton = screen.getByRole("button", { name: "Tables" })
+    menuButton.focus()
+    await user.keyboard("{Enter}")
+    await waitFor(() => expect(screen.getByRole("menuitem", { name: "New from Clipboard" })).toHaveFocus())
+    await user.keyboard("{Enter}")
+    await waitFor(() => expect(screen.getByTestId("paste-data-text-area")).toHaveFocus())
+
+    await user.keyboard("{Escape}")
+    await waitFor(() => expect(clipboardManager.pasteRequest).toBeUndefined())
+    await waitFor(() => expect(menuButton).toHaveFocus())
   })
 
   it("passes pasted data to the manager on Import", async () => {

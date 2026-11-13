@@ -173,6 +173,14 @@ describe("getReturnFocusTarget", () => {
     expect(getReturnFocusTarget()).toBe(document.getElementById("menu-button"))
   })
 
+  it("returns the button whose aria-controls names the menu containing the focused item", () => {
+    document.body.innerHTML = `
+      <button id="menu-button" aria-controls="the-menu">Tables</button>
+      <div role="menu" id="the-menu"><button role="menuitem" id="item">Import</button></div>`
+    document.getElementById("item")?.focus()
+    expect(getReturnFocusTarget()).toBe(document.getElementById("menu-button"))
+  })
+
   it("returns the focused element when it isn't in a menu", () => {
     document.body.innerHTML = `<button id="plain">Plain</button>`
     document.getElementById("plain")?.focus()
