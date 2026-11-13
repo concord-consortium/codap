@@ -24,6 +24,11 @@ interface IPendingPasteLog {
   skipped: string
 }
 
+// How long an unfinished read blocks further imports. A read can stay pending while the browser waits on
+// the user (a permission prompt or Paste callout), and a double-click shouldn't import twice, but a read
+// that never finishes mustn't block imports for the rest of the session.
+export const kClipboardReadBusyMs = 10000
+
 export type ClipboardMessage =
   { kind: "copied", description: string } | { kind: "copyUnavailable" } | { kind: "emptyClipboard" }
 
@@ -43,7 +48,10 @@ export class ClipboardManager {
   @observable.ref private _message: Maybe<ClipboardMessage> = undefined
   @observable.ref private _pasteRequest: Maybe<IPasteRequest> = undefined
   private pendingPasteLog: Maybe<IPendingPasteLog>
-  private isReading = false
+  // When the newest read started, or undefined if no read is in progress
+  private readStartTime: Maybe<number>
+  // Identifies the newest read, so a read that finishes after a newer one started is ignored
+  private readAttempt = 0
 
   constructor() {
     makeObservable(this)
@@ -70,7 +78,8 @@ export class ClipboardManager {
     this._message = undefined
     this._pasteRequest = undefined
     this.pendingPasteLog = undefined
-    this.isReading = false
+    this.readStartTime = undefined
+    this.readAttempt++
   }
 
   // Copies `text` to the clipboard. `description` fills the "Copied %@ to the clipboard" message.
@@ -111,29 +120,29 @@ export class ClipboardManager {
   }
 
   // Imports clipboard data into `dataSet`, or into a new dataset if none is given. If the clipboard can't be
-  // read, requests the paste dialog instead. Ignored while a read or the paste dialog is already in progress.
+  // read, requests the paste dialog instead. Ignored while the paste dialog is open, or while a read that
+  // started less than kClipboardReadBusyMs ago is still pending.
   async importData(dataSet?: IDataSet): Promise<void> {
-    if (this.isReading || this._pasteRequest) return
+    if (this.isReadInProgress() || this._pasteRequest) return
 
     if (this.readFailed) {
-      this.pendingPasteLog = { failed: "", skipped: "read" }
-      this.setPasteRequest({ dataSet, permissionDenied: await isClipboardReadDenied() })
-      return
+      return this.requestPaste(dataSet, { failed: "", skipped: "read" })
     }
 
-    this.isReading = true
+    const attempt = ++this.readAttempt
+    this.readStartTime = Date.now()
     let result: Maybe<IClipboardReadResult>
     try {
       focusDocumentForClipboard()
       result = await readClipboard()
     } catch {
+      if (attempt !== this.readAttempt) return
+      this.readStartTime = undefined
       this.setReadFailed()
-      this.pendingPasteLog = { failed: "read", skipped: "" }
-      this.setPasteRequest({ dataSet, permissionDenied: await isClipboardReadDenied() })
-      return
-    } finally {
-      this.isReading = false
+      return this.requestPaste(dataSet, { failed: "read", skipped: "" })
     }
+    if (attempt !== this.readAttempt) return
+    this.readStartTime = undefined
 
     // Only the read is guarded. An error importing data that was read successfully is a genuine bug,
     // so it propagates rather than being mistaken for a clipboard refusal.
@@ -161,6 +170,21 @@ export class ClipboardManager {
     this.setPasteRequest(undefined)
     this.logImport("paste", "cancelled", { ...this.pendingPasteLog }, request)
     this.pendingPasteLog = undefined
+  }
+
+  private isReadInProgress() {
+    return this.readStartTime != null && Date.now() - this.readStartTime < kClipboardReadBusyMs
+  }
+
+  // Opens the paste dialog right away, then adds the permission note if the permission check reports
+  // that reading is denied. The check runs afterwards so the dialog never waits on it.
+  private async requestPaste(dataSet: Maybe<IDataSet>, pasteLog: IPendingPasteLog) {
+    const request: IPasteRequest = { dataSet, permissionDenied: false }
+    this.pendingPasteLog = pasteLog
+    this.setPasteRequest(request)
+    if (await isClipboardReadDenied() && this._pasteRequest === request) {
+      this.setPasteRequest({ ...request, permissionDenied: true })
+    }
   }
 
   private logImport(method: ClipboardImportMethod, outcome: ClipboardImportOutcome,

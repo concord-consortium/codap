@@ -2,7 +2,7 @@ import { destroy } from "mobx-state-tree"
 import { DataSet } from "../../models/data/data-set"
 import { importClipboardContent } from "../../utilities/clipboard-import"
 import { Logger } from "../logger"
-import { clipboardManager } from "./clipboard-manager"
+import { clipboardManager, kClipboardReadBusyMs } from "./clipboard-manager"
 import { focusDocumentForClipboard, isClipboardReadDenied, readClipboard } from "./clipboard-utils"
 
 jest.mock("./clipboard-utils", () => ({
@@ -24,6 +24,10 @@ const mockImportContent = importClipboardContent as jest.Mock
 
 function setClipboard(clipboard: Partial<Clipboard> | undefined) {
   Object.defineProperty(navigator, "clipboard", { value: clipboard, configurable: true, writable: true })
+}
+
+function flushPromises() {
+  return new Promise(resolve => setTimeout(resolve, 0))
 }
 
 function lastLogArgs(logSpy: jest.SpyInstance) {
@@ -256,6 +260,80 @@ describe("ClipboardManager import", () => {
     await first
     expect(mockReadClipboard).toHaveBeenCalledTimes(1)
     expect(mockImportContent).toHaveBeenCalledTimes(1)
+  })
+
+  it("opens the paste dialog without waiting for the permission check", async () => {
+    let resolveDenied: (value: boolean) => void = () => null
+    mockIsDenied.mockImplementation(() => new Promise(resolve => { resolveDenied = resolve }))
+    mockReadClipboard.mockRejectedValue(new Error("denied"))
+    const pending = clipboardManager.importData(dataSet)
+    await flushPromises()
+    expect(clipboardManager.pasteRequest).toEqual({ dataSet, permissionDenied: false })
+
+    resolveDenied(true)
+    await pending
+    expect(clipboardManager.pasteRequest).toEqual({ dataSet, permissionDenied: true })
+    clipboardManager.cancelPaste()
+    expect(lastLogArgs(logSpy)).toMatchObject({ outcome: "cancelled", permissionDenied: true })
+  })
+
+  it("opens the paste dialog when a permission check never finishes", async () => {
+    mockIsDenied.mockImplementation(() => new Promise(() => null))
+    mockReadClipboard.mockRejectedValue(new Error("denied"))
+    clipboardManager.importData(dataSet)
+    await flushPromises()
+    expect(clipboardManager.pasteRequest).toEqual({ dataSet, permissionDenied: false })
+
+    // the same applies to later imports, which go straight to the paste dialog
+    clipboardManager.cancelPaste()
+    clipboardManager.importData(dataSet)
+    await flushPromises()
+    expect(clipboardManager.pasteRequest).toEqual({ dataSet, permissionDenied: false })
+  })
+
+  it("accepts a new import once a read has been pending too long, ignoring the stale read", async () => {
+    const nowSpy = jest.spyOn(Date, "now").mockReturnValue(1000)
+    const resolvers: Array<(value: unknown) => void> = []
+    mockReadClipboard.mockImplementation(() => new Promise(resolve => { resolvers.push(resolve) }))
+    const first = clipboardManager.importData(dataSet)
+
+    nowSpy.mockReturnValue(1000 + kClipboardReadBusyMs - 1)
+    clipboardManager.importData(dataSet)
+    expect(mockReadClipboard).toHaveBeenCalledTimes(1)
+
+    nowSpy.mockReturnValue(1000 + kClipboardReadBusyMs + 1)
+    const second = clipboardManager.importData(dataSet)
+    expect(mockReadClipboard).toHaveBeenCalledTimes(2)
+
+    resolvers[1]({ method: "read", content: tableContent })
+    await second
+    resolvers[0]({ method: "read", content: tableContent })
+    await first
+    expect(mockImportContent).toHaveBeenCalledTimes(1)
+    expect(logSpy).toHaveBeenCalledTimes(1)
+    nowSpy.mockRestore()
+  })
+
+  it("ignores a stale read failure after a newer import started", async () => {
+    const nowSpy = jest.spyOn(Date, "now").mockReturnValue(1000)
+    const rejecters: Array<(reason: unknown) => void> = []
+    const resolvers: Array<(value: unknown) => void> = []
+    mockReadClipboard.mockImplementation(() => new Promise((resolve, reject) => {
+      resolvers.push(resolve)
+      rejecters.push(reject)
+    }))
+    const first = clipboardManager.importData(dataSet)
+    nowSpy.mockReturnValue(1000 + kClipboardReadBusyMs + 1)
+    const second = clipboardManager.importData(dataSet)
+
+    rejecters[0](new Error("dismissed"))
+    await first
+    expect(clipboardManager.pasteRequest).toBeUndefined()
+
+    resolvers[1]({ method: "read", content: tableContent })
+    await second
+    expect(mockImportContent).toHaveBeenCalledTimes(1)
+    nowSpy.mockRestore()
   })
 
   it("imports into a new dataset if the requested dataset was destroyed", async () => {
