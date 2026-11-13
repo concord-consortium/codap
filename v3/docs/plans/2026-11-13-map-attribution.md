@@ -33,7 +33,7 @@ truncated line that expands on hover or focus.
 Create `v3/src/components/map/map-types.test.ts`:
 
 ```ts
-import { BaseMapKeys, kMapAttributions, kPoweredByEsriAttribution } from "./map-types"
+import { BaseMapKeys, kMapAttributions } from "./map-types"
 
 describe("map attributions", () => {
   it("has a non-empty attribution for every base map layer", () => {
@@ -47,7 +47,7 @@ describe("map attributions", () => {
 **Step 2: Run the test and confirm it fails**
 
 Run: `npm test -- map-types`
-Expected: FAIL. TypeScript/Jest reports that `kMapAttributions` and `kPoweredByEsriAttribution` are not exported.
+Expected: FAIL. TypeScript/Jest reports that `kMapAttributions` is not exported.
 
 **Step 3: Implement**
 
@@ -89,7 +89,7 @@ Confirm nothing else references the old name: `grep -rn "kMapAttribution\b" src 
 **Step 5: Run the tests and type check**
 
 Run: `npm test -- map-types && npm run build:tsc`
-Expected: 3 tests pass, and tsc reports no errors.
+Expected: 1 test passes, and tsc reports no errors.
 
 **Step 6: Commit** (after the user approves the message)
 
