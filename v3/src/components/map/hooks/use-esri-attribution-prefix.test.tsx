@@ -1,9 +1,16 @@
 import { render } from "@testing-library/react"
 import { Map as LeafletMap } from "leaflet"
 import { MapContainer } from "react-leaflet"
-import { EsriAttributionPrefix } from "./esri-attribution-prefix"
+import { useEsriAttributionPrefix } from "./use-esri-attribution-prefix"
 
-describe("EsriAttributionPrefix", () => {
+// The hook needs react-leaflet's MapContainer context, and the unmount test needs to unmount the hook while the map
+// stays mounted, so the hook is exercised through a minimal component rendered inside a MapContainer.
+function EsriAttributionPrefix({ show }: { show: boolean }) {
+  useEsriAttributionPrefix(show)
+  return null
+}
+
+describe("useEsriAttributionPrefix", () => {
   function renderPrefix(props: { mounted?: boolean, show: boolean }) {
     const { mounted = true, show } = props
     let leafletMap: LeafletMap | null = null

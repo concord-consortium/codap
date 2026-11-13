@@ -16,7 +16,6 @@ import {logStringifiedObjectMessage} from "../../../lib/log-message"
 import { mapLegendChangeNotification } from "../map-notifications"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import {DroppableMapArea} from "./droppable-map-area"
-import {EsriAttributionPrefix} from "./esri-attribution-prefix"
 import {MapBackground} from "./map-background"
 import {MapInterior} from "./map-interior"
 import {MapMarqueeSelectButton} from "./map-marquee-select-button"
@@ -148,7 +147,6 @@ export const CodapMap = observer(function CodapMap({
               })
             }
           </>
-          <EsriAttributionPrefix show={mapModel.baseMapLayerIsVisible}/>
           <MapInterior/>
         </MapContainer>
         <MapBackground mapModel={mapModel} rendererArray={rendererArray}/>

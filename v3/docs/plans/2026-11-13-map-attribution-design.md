@@ -67,11 +67,13 @@ visible area. We do not use it here (see "Approaches").
   code is needed.
 - **"Powered by Esri" goes in the attribution prefix.** Leaflet joins layer attributions with commas, which would read
   badly ("Powered by Esri, Sources: Esri, …"). The prefix is separated from layer attributions by ` | `, so a new
-  `EsriAttributionPrefix` component, rendered inside `MapContainer`, will:
-  - use `useMap()` to get the Leaflet map and its `attributionControl`
+  `useEsriAttributionPrefix(show)` hook will:
+  - use `useMap()` to get the Leaflet map and its `attributionControl`. `useMap()` only works inside `MapContainer`,
+    so the hook is called from `MapInterior` (alongside `useMapModel()`), with
+    `show = mapModel.baseMapLayerIsVisible` (`MapInterior` is a MobX observer)
   - read the default prefix once and store it
-  - while `mapModel.baseMapLayerIsVisible` is true (MobX observer), call
-    `setPrefix(`${defaultPrefix} | ${kPoweredByEsriAttribution}`)`; otherwise call `setPrefix(defaultPrefix)`
+  - while `show` is true, call `setPrefix(`${defaultPrefix} | ${kPoweredByEsriAttribution}`)`; otherwise call
+    `setPrefix(defaultPrefix)`
   - restore the default prefix on unmount
 
   This matches esri-leaflet's approach. With the Topo layer, the result is:
@@ -89,7 +91,7 @@ Instead:
   reduced opacity.
 - **Expanded:** on `:hover` and `:focus-within`, the full text wraps (`white-space: normal`) and opacity goes up for
   readability.
-- **Keyboard and touch:** `EsriAttributionPrefix` sets `tabindex="0"` on the attribution control container, so it can
+- **Keyboard and touch:** `useEsriAttributionPrefix` sets `tabindex="0"` on the attribution control container, so it can
   be focused with the keyboard, and tapping it on a touch device focuses it and expands it. This matters for students
   on iPads, where there is no hover.
 - Links in the attribution stay clickable when the control is expanded.
@@ -104,7 +106,7 @@ Instead:
 ## Testing
 
 - **Jest:** every `BaseMapKey` has a non-empty entry in `kMapAttributions`.
-- **Jest:** `EsriAttributionPrefix` sets the prefix to include "Powered by Esri" when the base layer is visible,
+- **Jest:** `useEsriAttributionPrefix` sets the prefix to include "Powered by Esri" when the base layer is visible,
   restores the default when it is hidden, and restores it on unmount.
 - **Cypress:** with a map tile:
   - the attribution includes "Powered by Esri" and the Topo text by default
