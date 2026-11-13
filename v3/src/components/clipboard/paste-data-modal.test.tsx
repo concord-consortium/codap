@@ -92,6 +92,18 @@ describe("PasteDataModal", () => {
     expect(onImport).toHaveBeenCalledWith({ text: "1", html: kTableHtml })
   })
 
+  it("doesn't treat a keystroke after a paste that inserted no text as the paste", async () => {
+    const user = userEvent.setup()
+    const { onImport, textArea, importButton } = renderModal()
+    // a paste whose clipboard has HTML but no plain text inserts nothing, so no change event follows
+    fireEvent.paste(textArea, {
+      clipboardData: { getData: (type: string) => type === "text/html" ? kTableHtml : "" }
+    })
+    await user.type(textArea, "x")
+    await user.click(importButton)
+    expect(onImport).toHaveBeenCalledWith({ text: "x" })
+  })
+
   it("drops the pasted HTML once the text has been edited", async () => {
     const user = userEvent.setup()
     const { onImport, textArea, importButton } = renderModal()

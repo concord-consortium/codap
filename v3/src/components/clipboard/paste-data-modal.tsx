@@ -44,6 +44,10 @@ export function PasteDataModal({ isOpen, permissionDenied, returnFocus, onImport
     const pastingIntoEmpty = !e.currentTarget.value.trim()
     pastedHtml.current = pastingIntoEmpty ? e.clipboardData.getData("text/html") || undefined : undefined
     justPasted.current = true
+    // The browser inserts the pasted text, and fires the resulting change, synchronously after this event.
+    // A paste that inserts nothing (HTML with no plain text) fires no change, so stop waiting for one rather
+    // than mistaking the next keystroke for the paste.
+    setTimeout(() => { justPasted.current = false })
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
