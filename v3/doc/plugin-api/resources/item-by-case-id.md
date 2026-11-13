@@ -58,8 +58,9 @@ own data context — see [the index](../README.md#the-default-data-context).
 ### What `update` accepts
 
 `values` is an object of the values to change, keyed by attribute name. It is not nested, unlike
-`update` on a case. Attributes you leave out keep their values, and a name that matches no
-attribute is ignored.
+`update` on a case. Attributes you leave out keep their values. A name that matches no attribute
+is tried again with leading and trailing spaces removed, as in v2, and ignored if it still matches
+none.
 
 `update` changes one item, even when the selector names a parent case. Changing a parent
 collection's attribute through it changes that one item, which then moves to a different parent

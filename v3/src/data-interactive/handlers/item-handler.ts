@@ -28,7 +28,6 @@ export function createItemsInSegments(dataContext: IDataSet, segments: DIItemVal
     // against an array so a malformed request can't crash on the __id__ access below.
     segment.forEach(item => {
       const wrapped = item.values
-      // as in V2, a name that matches no attribute is tried again with leading and trailing spaces removed
       const newItem: DIItem = withAttrNamesTrimmed(
         wrapped != null && typeof wrapped === "object" && !Array.isArray(wrapped)
           ? wrapped as DIItem

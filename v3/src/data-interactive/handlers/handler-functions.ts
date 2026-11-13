@@ -7,9 +7,11 @@ import { getGroupedCases } from "../../models/data/data-set-utils"
 import { ICase } from "../../models/data/data-set-types"
 import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
 import { DIResources, DISuccessResult, DIValues } from "../data-interactive-types"
-import { DICaseValues, DIFullCase, DIUpdateCase, DIUpdateItemResult } from "../data-interactive-data-set-types"
+import {
+  DIRequestCase, DIRequestCaseValues, DIUpdateCase, DIUpdateItemResult
+} from "../data-interactive-data-set-types"
 import { getV2ItemResult, getCaseRequestResultValues } from "../data-interactive-type-utils"
-import { arrayValuesToIds, resolveAttrNames } from "../data-interactive-utils"
+import { resolveAttrNames } from "../data-interactive-utils"
 import {
   caseNotFoundResult, dataContextNotFoundResult, fieldRequiredResult, itemNotFoundResult, valuesRequiredResult
 } from "./di-results"
@@ -100,19 +102,19 @@ export function updateCaseBy(
   const missingFieldResult = (field: string) => fieldRequiredResult("update", resourceName ?? "case", field)
   if (!values) return missingFieldResult("values")
 
-  let _values = values as DICaseValues
+  let _values = values as DIRequestCaseValues
   if (nestedValues) {
     const updateCase = values as DIUpdateCase
     if (!updateCase.values) return missingFieldResult("values.values")
     _values = updateCase.values
   }
 
-  // as in V2, values given as an array are in the order of the collection's attributes
-  const arrayValues: unknown = _values
-  const isArray = Array.isArray(arrayValues) && !!resources.collection && !itemReturnStyle
-  const { caseValues: updatedAttributes, unknownNames } = isArray
-    ? { caseValues: arrayValuesToIds(arrayValues as unknown[], resources.collection!), unknownNames: [] }
-    : resolveAttrNames(_values, dataContext)
+  // an array is read in the order of the named collection's attributes, or of the case's own collection when the
+  // selector names none
+  const collection = itemReturnStyle
+    ? undefined
+    : resources.collection ?? dataContext.getCollectionForCase(aCase.__id__)
+  const { caseValues: updatedAttributes, unknownNames } = resolveAttrNames(_values, dataContext, collection)
   const hasUpdates = Object.keys(updatedAttributes).length > 0
   dataContext.validateCases()
   const priorCaseIds = new Set(dataContext.caseInfoMap.keys())
@@ -145,7 +147,7 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
   if (!dataContext) return dataContextNotFoundResult
   if (!values) return valuesRequiredResult
 
-  const cases = (Array.isArray(values) ? values : [values]) as DIFullCase[]
+  const cases = (Array.isArray(values) ? values : [values]) as DIRequestCase[]
   const caseIDs: number[] = []
   const updatedCases: ICase[] = []
   let unknownAttributeName = false
@@ -167,12 +169,8 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
       if (id && v3Id && (dcItem || dcCase) && (aCase.values || !itemReturnStyle)) {
         caseIDs.push(id)
         if (aCase.values) {
-          // as in V2, values given as an array are in the order of the named collection's attributes
-          const rawValues: unknown = aCase.values
-          const { caseValues: updatedAttributes, unknownNames } = Array.isArray(rawValues) && collection &&
-            !itemReturnStyle
-            ? { caseValues: arrayValuesToIds(rawValues, collection), unknownNames: [] }
-            : resolveAttrNames(aCase.values, dataContext)
+          const { caseValues: updatedAttributes, unknownNames } =
+            resolveAttrNames(aCase.values, dataContext, itemReturnStyle ? undefined : collection)
           updatedCases.push({ ...updatedAttributes, __id__: v3Id })
           if (unknownNames.length > 0) unknownAttributeName = true
           if (Object.keys(updatedAttributes).length > 0) {

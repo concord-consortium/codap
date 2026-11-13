@@ -346,6 +346,10 @@ describe("DataInteractive CaseHandler", () => {
     expect(handler.update?.({ dataContext: dataset, collection },
       [{ id: toV2Id(caseId), values: { "a3 ": 40 } }] as DIValues)?.success).toBe(true)
     expect(a3.value(0)).toBe(40)
+    // as in V2, when two names reach the same attribute, the later one wins
+    expect(handler.update?.({ dataContext: dataset, collection },
+      [{ id: toV2Id(caseId), values: { a3: 1, "a3 ": 2 } }] as DIValues)?.success).toBe(true)
+    expect(a3.value(0)).toBe(2)
     // a name that matches no attribute even after trimming still makes the reply report failure
     expect(handler.update?.({ dataContext: dataset, collection },
       [{ id: toV2Id(caseId), values: { " zz ": 1 } }] as DIValues)?.success).toBe(false)
@@ -365,13 +369,23 @@ describe("DataInteractive CaseHandler", () => {
 
     // as in V2, an undefined or null value clears its attribute
     expect(handler.update?.({ dataContext: dataset, collection },
-      [{ id: newCase.id, values: [undefined, 81] }] as any)?.success).toBe(true)
+      [{ id: newCase.id, values: [undefined, 81] }])?.success).toBe(true)
     expect(dataset.getStrValue(newCaseId, a3!.id)).toBe("")
     expect(dataset.getValue(newCaseId, a4!.id)).toBe(81)
     expect(handler.update?.({ dataContext: dataset, collection },
-      [{ id: newCase.id, values: [71, null] }] as any)?.success).toBe(true)
+      [{ id: newCase.id, values: [71, null] }] as DIValues)?.success).toBe(true)
     expect(dataset.getValue(newCaseId, a3!.id)).toBe(71)
     expect(dataset.getStrValue(newCaseId, a4!.id)).toBe("")
+
+    // as in V2, a short array leaves the attributes past its end alone
+    expect(handler.update?.({ dataContext: dataset, collection },
+      [{ id: newCase.id, values: [72] }])?.success).toBe(true)
+    expect(dataset.getValue(newCaseId, a3!.id)).toBe(72)
+    expect(dataset.getStrValue(newCaseId, a4!.id)).toBe("")
+    expect(handler.update?.({ dataContext: dataset, collection },
+      [{ id: newCase.id, values: [73, 83] }, { id: newCase.id, values: [] }])?.success).toBe(true)
+    expect(dataset.getValue(newCaseId, a3!.id)).toBe(73)
+    expect(dataset.getValue(newCaseId, a4!.id)).toBe(83)
   })
 
   it("skips formula attributes in array values but keeps the positions", () => {

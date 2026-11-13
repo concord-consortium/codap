@@ -41,7 +41,7 @@ describe("DataInteractive CaseByIDHandler", () => {
 
     // as in V2, values given as an array are in the order of the collection's attributes
     const collection = dataContext.childCollection
-    expect(handler.update?.({ ...caseResources, collection }, { values: [12] } as any).success).toBe(true)
+    expect(handler.update?.({ ...caseResources, collection }, { values: [12] }).success).toBe(true)
     expect(a3.numValues[dataContext.getItemIndex(itemId)!]).toBe(12)
 
     // as in V2, a name that matches no attribute makes the reply report failure, but the other values are set

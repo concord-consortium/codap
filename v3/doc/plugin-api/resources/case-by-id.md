@@ -69,7 +69,7 @@ not repeat its parent's; read the parent for those.
 
 | Property | Type | Notes |
 |---|---|---|
-| `values` | Object or Array | required. The new values, keyed by attribute name. Attributes you leave out keep their values. As in v2, it may instead be an array of values in the order of the collection's attributes, as described on [`case`](case.md#what-create-accepts) |
+| `values` | Object or Array | required. The new values, keyed by attribute name. Attributes you leave out keep their values. As in v2, it may instead be an array of values in the order of the collection's attributes, as described on [`case`](case.md#what-create-accepts). Without a `collection` segment, the order is that of the case's own collection |
 
 The values are nested one level: the request's `values` holds an object whose own `values` key
 holds the attribute values. A name that matches no attribute is tried again with leading and

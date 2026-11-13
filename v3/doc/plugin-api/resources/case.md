@@ -64,11 +64,14 @@ another, as in v2. This holds at each level, so building a parent, a child and a
 the top down makes one item.
 
 On both actions, as in v2, a name that matches no attribute is tried again with leading and
-trailing spaces removed, and `values` may be an array instead of an object. An array's values are
-set in the order of the named collection's attributes: extra values are ignored, and `null` or
-`undefined` clears its attribute. Formula attributes keep their place in the order but are not
-set, since they compute their own values (v2 wrote to them anyway). Each case object may use
-either form; v2 used the form of the first one for the whole request.
+trailing spaces removed. `create` ignores a name that still matches none; for `update`, see below.
+
+As in v2, `values` may be an array instead of an object. An array's values are set in the order of
+the named collection's attributes: extra values are ignored, attributes past the end of a shorter
+array are left alone, and `null` or `undefined` clears its attribute. Formula attributes keep their
+place in the order but are not set, since they compute their own values (v2 wrote to them anyway).
+Each case object may use either form; for `update`, v2 used the form of the first one for the whole
+request.
 
 A case object whose `parent` is missing or names no case in the parent collection is skipped, and
 the others are still created. If every case object is skipped, the request fails with

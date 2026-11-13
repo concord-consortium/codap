@@ -1,8 +1,8 @@
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { ICaseCreation } from "../models/data/data-set-types"
-import { toV2Id, toV3AttrId, toV3CollectionId } from "../utilities/codap-utils"
-import { DICaseValues } from "./data-interactive-data-set-types"
+import { toV3AttrId, toV3CollectionId } from "../utilities/codap-utils"
+import { DICaseValue, DICaseValues, DIRequestCaseValues } from "./data-interactive-data-set-types"
 
 export function canonicalizeAttributeName(name: string, iCanonicalize = true) {
   let tName = name ?? ""
@@ -47,9 +47,7 @@ export function attrIDFromValuesName(dataSet: IDataSet, name: string) {
 export function withAttrNamesTrimmed<T extends Record<string, unknown>>(values: T, dataSet: IDataSet): T {
   const result: Record<string, unknown> = {}
   Object.entries(values).forEach(([name, value]) => {
-    const trimmed = name.trim()
-    const key = !dataSet.attrIDFromName(name) && dataSet.attrIDFromName(trimmed) ? trimmed : name
-    delete result[key]
+    const key = attrIDFromValuesName(dataSet, name) === dataSet.attrIDFromName(name) ? name : name.trim()
     result[key] = value
   })
   return result as T
@@ -58,26 +56,30 @@ export function withAttrNamesTrimmed<T extends Record<string, unknown>>(values: 
 // As in V2, values given as an array are set in the order of the collection's attributes, extra values are
 // ignored, and a null or undefined value clears its attribute. Unlike V2, which wrote to them anyway, formula
 // attributes are skipped, since they compute their own values.
-export function arrayValuesToIds(values: unknown[], collection: ICollectionModel) {
+function arrayValuesToIds(values: DICaseValue[], collection: ICollectionModel) {
   const caseValues: ICaseCreation = {}
   collection.attributes.forEach((attr, index) => {
     if (attr && !attr.hasFormula && index < values.length) {
-      caseValues[attr.id] = values[index] ?? ""
+      caseValues[attr.id] = values[index]
     }
   })
   return caseValues
 }
 
-// Converts an attributeName => value dictionary to attributeId => value, and lists the names that match no
-// attribute (as in V2, an update that names one replies with failure, though the other values are set)
-export function resolveAttrNames(values: DICaseValues, dataSet: IDataSet, v2Ids?: boolean) {
+// Converts a plugin's attributeName => value dictionary to attributeId => value, and lists the names that match no
+// attribute (as in V2, an update that names one replies with failure, though the other values are set). Values
+// given as an array are read in the order of the collection's attributes; pass the collection only where an array
+// is accepted.
+export function resolveAttrNames(values: DIRequestCaseValues, dataSet: IDataSet, collection?: ICollectionModel) {
+  if (Array.isArray(values) && collection) {
+    return { caseValues: arrayValuesToIds(values, collection), unknownNames: [] }
+  }
   const caseValues: ICaseCreation = {}
   const unknownNames: string[] = []
-  Object.keys(values).forEach(attrName => {
+  Object.entries(values).forEach(([attrName, value]) => {
     const attrId = attrIDFromValuesName(dataSet, attrName)
     if (attrId) {
-      const _attrId = v2Ids ? toV2Id(attrId) : attrId
-      caseValues[_attrId] = values[attrName]
+      caseValues[attrId] = value
     } else {
       unknownNames.push(attrName)
     }
@@ -85,9 +87,9 @@ export function resolveAttrNames(values: DICaseValues, dataSet: IDataSet, v2Ids?
   return { caseValues, unknownNames }
 }
 
-// Converts an attributeName => value dictionary to attributeId => value
-export function attrNamesToIds(values: DICaseValues, dataSet: IDataSet, v2Ids?: boolean) {
-  return resolveAttrNames(values, dataSet, v2Ids).caseValues
+// Converts a plugin's attributeName => value dictionary (or array; see resolveAttrNames) to attributeId => value
+export function attrNamesToIds(values: DIRequestCaseValues, dataSet: IDataSet, collection?: ICollectionModel) {
+  return resolveAttrNames(values, dataSet, collection).caseValues
 }
 
 export function getCollection(dataContext?: IDataSet, nameOrId?: string) {
