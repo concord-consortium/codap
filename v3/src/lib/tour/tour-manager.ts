@@ -1,7 +1,7 @@
 import {
   createCoachmarksEngine, CreateCoachmarksEngineArgs, EngineHandle, EngineStep, isLaidOut
 } from "@concord-consortium/coachmarks"
-// After the package import, so the theme's rules follow coachmarks' base.css in the bundle.
+// After the package import: the theme sets the same :root variables as coachmarks' base.css, so it must follow it.
 import "@concord-consortium/coachmarks/styles/codap"
 import { createElement } from "react"
 import CloseIcon from "../../assets/icons/close-tile-icon.svg"
@@ -53,7 +53,11 @@ function withCodapSide(popover?: ITourPopover): ITourPopover {
   return { ...popover, side: popover?.side ?? "right" }
 }
 
-/** An element the engine can anchor a popover to: in the document and laid out. */
+/**
+ * An element the engine can anchor a popover to: in the document and laid out. A step without one is
+ * skipped when the tour starts rather than left for coachmarks to cancel the tour at, so a tour that
+ * targets conditional UI runs on, and visibleSteps tells the plugin what was skipped.
+ */
 function isShowable(el: Element | null): el is HTMLElement {
   return !!el && isLaidOut(el as HTMLElement)
 }
@@ -169,7 +173,11 @@ class TourManager {
     return out
   }
 
-  /** Ends the active tour or highlight. Callbacks the engine fires while tearing down are ignored. */
+  /**
+   * Ends the active tour or highlight. Every engine callback checks that its engine is still the active
+   * one, so clearing `active` first ignores both these teardown callbacks and late ones from an engine
+   * already replaced, which a tearing-down flag would not.
+   */
   private endActive() {
     const active = this.active
     this.active = null
