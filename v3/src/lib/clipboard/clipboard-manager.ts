@@ -1,9 +1,9 @@
 import { isAlive } from "@concord-consortium/mobx-state-tree"
 import { action, makeObservable, observable } from "mobx"
 import { IDataSet } from "../../models/data/data-set"
-import { ClipboardImportFormat, importClipboardContent } from "../../utilities/clipboard-import"
 import { Logger } from "../logger"
 import { ILogMessage, logStringifiedObjectMessage } from "../log-message"
+import { ClipboardImportFormat, importClipboardContent } from "./clipboard-import"
 import {
   ClipboardReadMethod, ClipboardWriteMethod, focusDocumentForClipboard, getReturnFocusTarget, IClipboardContent,
   IClipboardReadResult, isClipboardReadDenied, readClipboard, writeWithClipboardApi, writeWithExecCommand

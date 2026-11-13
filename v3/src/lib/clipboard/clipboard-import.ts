@@ -1,7 +1,7 @@
-import { IClipboardContent } from "../lib/clipboard/clipboard-utils"
-import { IDataSet } from "../models/data/data-set"
-import { initiateImportFromCsv } from "./csv-import"
-import { initiateImportFromHTML } from "./html-import"
+import { IDataSet } from "../../models/data/data-set"
+import { initiateImportFromCsv } from "../../utilities/csv-import"
+import { initiateImportFromHTML } from "../../utilities/html-import"
+import { IClipboardContent } from "./clipboard-utils"
 
 export type ClipboardImportFormat = "html" | "csv"
 

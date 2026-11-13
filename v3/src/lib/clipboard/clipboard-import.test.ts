@@ -1,12 +1,12 @@
 import { getClipboardImportFormat, importClipboardContent } from "./clipboard-import"
 
 const mockInitiateImportFromCsv = jest.fn()
-jest.mock("./csv-import", () => ({
+jest.mock("../../utilities/csv-import", () => ({
   initiateImportFromCsv: (...args: any[]) => mockInitiateImportFromCsv(...args)
 }))
 
 const mockInitiateImportFromHTML = jest.fn()
-jest.mock("./html-import", () => ({
+jest.mock("../../utilities/html-import", () => ({
   initiateImportFromHTML: (...args: any[]) => mockInitiateImportFromHTML(...args)
 }))
 

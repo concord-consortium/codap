@@ -1,7 +1,7 @@
 import { destroy } from "mobx-state-tree"
 import { DataSet } from "../../models/data/data-set"
-import { importClipboardContent } from "../../utilities/clipboard-import"
 import { Logger } from "../logger"
+import { importClipboardContent } from "./clipboard-import"
 import { clipboardManager, kClipboardReadBusyMs } from "./clipboard-manager"
 import { focusDocumentForClipboard, isClipboardReadDenied, readClipboard } from "./clipboard-utils"
 
@@ -12,8 +12,8 @@ jest.mock("./clipboard-utils", () => ({
   readClipboard: jest.fn()
 }))
 
-jest.mock("../../utilities/clipboard-import", () => ({
-  ...jest.requireActual("../../utilities/clipboard-import"),
+jest.mock("./clipboard-import", () => ({
+  ...jest.requireActual("./clipboard-import"),
   importClipboardContent: jest.fn()
 }))
 
