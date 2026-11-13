@@ -21,6 +21,25 @@ export const kMapUrls: Record<BaseMapKey, string> = {
   streets: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
 }
 
+// Attribution for each base map layer is the `copyrightText` reported by its Esri map service
+// (`<service URL>/MapServer?f=json`). Leaflet renders attribution as HTML, so escape any HTML-special characters if
+// these are updated.
+//   oceans:  https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer?f=json
+//   topo:    https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer?f=json
+//   streets: https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer?f=json
+export const kMapAttributions: Record<BaseMapKey, string> = {
+  oceans: "Esri, Garmin, GEBCO, NOAA NGDC, and other contributors",
+  topo: "Sources: Esri, HERE, Garmin, Intermap, increment P Corp., GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, IGN, " +
+    "Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), (c) OpenStreetMap contributors, " +
+    "and the GIS User Community",
+  streets: "Sources: Esri, HERE, Garmin, USGS, Intermap, INCREMENT P, NRCan, Esri Japan, METI, " +
+    "Esri China (Hong Kong), Esri Korea, Esri (Thailand), NGCC, (c) OpenStreetMap contributors, " +
+    "and the GIS User Community"
+}
+
+// Esri requires exactly "Powered by Esri" wherever its basemaps are shown.
+export const kPoweredByEsriAttribution = 'Powered by <a href="https://www.esri.com">Esri</a>'
+
 export const kMapPolygonLayerType = "mapPolygonLayer"
 export const kMapPointLayerType = "mapPointLayer"
 export const kMapPinLayerType = "mapPinLayer"
@@ -44,7 +63,6 @@ export interface PolygonLayerOptions extends GeoJSONOptions<any, GeoJSON.Geometr
 export const
   kDefaultMapWidth = 530,
   kDefaultMapHeight = 335,
-  kMapAttribution = '&copy; <a href="https://static.arcgis.com/attribution/World_Topo_Map">USGS, NOAA</a>',
   kMaxZoomForFitBounds = 12,
   kMapBoundsExtensionFactor = 1.1,
   kDefaultMapZoomForGeoLocation = 8,
