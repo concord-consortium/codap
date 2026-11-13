@@ -1144,6 +1144,8 @@ describe("TourManager", () => {
       expect(capturedConfig.ariaLabel).toBe("Tour step")
       expect(capturedConfig.closeBtnAriaLabel).toBe("Close tour")
       expect(capturedConfig.progressText).toBe("{{current}} of {{total}}")
+      // The close button's aria-label names it, so its icon is hidden from assistive technology.
+      expect(capturedConfig.closeIcon.props).toMatchObject({ "aria-hidden": true, focusable: false })
     })
 
     it("uses Done as a highlight's last-step label", () => {

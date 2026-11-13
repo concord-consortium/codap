@@ -37,7 +37,9 @@ function codapPresentation(kind: "tour" | "highlight"): CreateCoachmarksEngineAr
     smoothScroll: false,
     ariaLabel: t("V3.Tour.stepRegion"),
     closeBtnAriaLabel: t("V3.Tour.close"),
-    closeIcon: createElement(CloseIcon, { className: "coachmarks-popover-close-icon" }),
+    closeIcon: createElement(CloseIcon, {
+      className: "coachmarks-popover-close-icon", "aria-hidden": true, focusable: false
+    }),
     prevBtnText: t("V3.Tour.previous"),
     nextBtnText: t("V3.Tour.next"),
     doneBtnText: t(kind === "tour" ? "V3.Tour.gotIt" : "V3.Tour.done"),
