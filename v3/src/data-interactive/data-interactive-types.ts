@@ -13,7 +13,7 @@ import { V2SpecificComponent } from "./data-interactive-component-types"
 import {
   DIAllCases, DIAttribute, DIAttributeLocationValues, DICase, DICreateAdornment, DICreateCollection,
   DIDataContext, DIDeleteAdornment, DIDeleteCollectionResult, DIGetCaseResult, DIItemValues, DILogMonitorResult,
-  DINewCase, DINotifyAttribute, DINotifyDataContext, DIResultAttributes, DIUpdateAdornment, DIUpdateCase,
+  DINewCase, DINotifyAttribute, DINotifyDataContext, DIRequestCase, DIResultAttributes, DIUpdateAdornment, DIUpdateCase,
   DIUpdateItemResult
 } from "./data-interactive-data-set-types"
 import { DIAdornmentValues } from "./data-interactive-adornment-types"
@@ -152,8 +152,8 @@ export interface DIResources {
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DINotifyAttribute | DIAttributeLocationValues | DICase | DIDataContext |
   DIDocument | DINotifyDataContext | DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase |
-  DIUpdateCase | DINotification | DIItemSearchNotify | DILogMessage | DIUpdateConfigurationValue | DIUrl |
-  V2SpecificComponent | DIAdornmentValues | DISelectionExpression
+  DIRequestCase | DIUpdateCase | DINotification | DIItemSearchNotify | DILogMessage | DIUpdateConfigurationValue |
+  DIUrl | V2SpecificComponent | DIAdornmentValues | DISelectionExpression
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API

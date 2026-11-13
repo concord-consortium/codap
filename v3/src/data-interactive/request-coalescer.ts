@@ -24,7 +24,7 @@ export type RequestWorkUnit<T extends IRequestItem> =
 // an `item` resource with values present.
 function coalescableResource<T extends IRequestItem>(pair: T): string | undefined {
   const { request } = pair
-  if (Array.isArray(request)) return
+  if (!request || Array.isArray(request)) return
   const { action, resource, values } = request
   if (action !== "create" || !resource || values == null) return
   if (parseResourceSelector(resource).type !== "item") return

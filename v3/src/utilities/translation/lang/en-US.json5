@@ -1627,6 +1627,7 @@
     "V3.DI.Error.dataDisplayNotFound": "DataDisplay not found",
     "V3.DI.Error.dataSetMetadataNotFound": "DataSetMetadata not found for %@",
     "V3.DI.Error.caseNotFound": "Case not found",
+    "V3.DI.Error.caseParentInvalid": "Cannot create case with invalid or deleted parent",
     "V3.DI.Error.collectionNotFound": "Collection not found",
     "V3.DI.Error.componentNotCreated": "Could not create component",
     "V3.DI.Error.downloadCSV": "Failed to download and import CSV: %{url}",
