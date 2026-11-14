@@ -115,12 +115,6 @@ sendRequest({
 
 ## Known limitations
 
-**Other plugins are not told about the new data context.** v2 sent every plugin
-`dataContextCountChanged` on `documentChangeNotice` when the import created the data context.
-v3 sends nothing. This is a known bug. Until it is fixed, a plugin that needs to know about new
-data contexts cannot rely on the notification for data imported this way, and should read
-[`dataContextList`](data-context-list.md) again when it needs the current list.
-
 **A second import with the same name is not renamed.** v2 gave the new data context a unique
 name, such as `pets_1`. v3 gives it the same name as the existing one, so selecting by name finds
 only one of them. This is a known bug.
@@ -137,10 +131,8 @@ itself. Give such an import a `title`, or rename the data context afterwards.
 
 ## Notifications
 
-The intended notification is `dataContextCountChanged` on `documentChangeNotice`, sent to every
-plugin when the new data context is created. v3 does not currently send it; see
-[Known limitations](#known-limitations) and
-[the notification catalog](../notifications.md#everything-else).
+CODAP sends `dataContextCountChanged` on `documentChangeNotice` to every plugin when the new data
+context is created, as v2 did. See [the notification catalog](../notifications.md#everything-else).
 
 ## Errors
 

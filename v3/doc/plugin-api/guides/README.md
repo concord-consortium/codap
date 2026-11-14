@@ -11,6 +11,8 @@ any one of them. For per-resource reference, see [the index](../README.md).
   history, answers undo and redo, and drives them from buttons of its own.
 - **[How CODAP processes requests](request-processing.md)** — order and responses, array
   requests, sending many cases, and holding requests while the user edits.
+- **[Data types](data-types.md)** — how CODAP decides whether an attribute holds numbers,
+  dates, colors or categories, and which values count as each.
 - **[Language and locale](locale.md)** — how a plugin learns CODAP's language, and what happens
   when the user switches it.
 - **[Embedding CODAP in your page](embedded-server.md)** — CODAP running inside *your* page and
@@ -25,6 +27,7 @@ implementation detail and occasional references to internals that are not part o
 | Topic | Document |
 |---|---|
 | Tour API | [`../../plugin-tour-api.md`](../../plugin-tour-api.md) |
+| UI notifications (`uiNotificationMonitor`) | [`../../plugin-ui-notifications.md`](../../plugin-ui-notifications.md) |
 
 Treat them as background, not as API contract: where one of these documents and a resource page
 disagree, the resource page is authoritative, and where neither is verified against the code, the

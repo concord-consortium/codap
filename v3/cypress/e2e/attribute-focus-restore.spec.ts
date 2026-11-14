@@ -16,7 +16,8 @@ context("Attribute focus restore", () => {
     cy.get("[data-testid=column-name-input]").should("be.visible")
     cy.get("[data-testid=column-name-input]").type("{esc}")
     // Focus should be on the original attribute's MenuButton
-    cy.focused().should("have.attr", "data-testid", "codap-attribute-button Height")
+    cy.focused().invoke("attr", "data-testid").should("match", /^codap-attribute-button-/)
+    cy.focused().should("contain.text", "Height")
     // The RDG cell should show its selection outline
     cy.focused().closest(".rdg-cell").should("have.attr", "aria-selected", "true")
   })
@@ -26,11 +27,12 @@ context("Attribute focus restore", () => {
     table.selectMenuItemFromAttributeMenu("Rename")
     table.renameColumnName("{selectAll}Tallness{enter}")
     // Focus should be on the renamed attribute's MenuButton
-    cy.focused().should("have.attr", "data-testid", "codap-attribute-button Tallness")
+    cy.focused().invoke("attr", "data-testid").should("match", /^codap-attribute-button-/)
+    cy.focused().should("contain.text", "Tallness")
     // The RDG cell should show its selection outline
     cy.focused().closest(".rdg-cell").should("have.attr", "aria-selected", "true")
     // The attribute menu should NOT be open
-    cy.get("[data-testid=attribute-menu-list]").should("not.be.visible")
+    cy.get("[data-testid^='attribute-header-menu-']").should("not.be.visible")
   })
 
   it("restores focus to attribute button after Edit Attribute Properties", () => {
@@ -40,7 +42,8 @@ context("Attribute focus restore", () => {
     cy.get("[data-testid=attr-name-input]").should("be.visible")
     table.getCancelButton().click()
     // Focus should return to the attribute's MenuButton
-    cy.focused().should("have.attr", "data-testid", "codap-attribute-button Height")
+    cy.focused().invoke("attr", "data-testid").should("match", /^codap-attribute-button-/)
+    cy.focused().should("contain.text", "Height")
   })
 
   it("restores focus to attribute button after Edit Formula", () => {
@@ -48,15 +51,16 @@ context("Attribute focus restore", () => {
     table.selectMenuItemFromAttributeMenu("Edit Formula...")
     // Formula editor should be open
     cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible")
-    cy.get("[data-testid=Cancel-button]").click()
+    cy.get("[data-testid=formula-cancel-button]").click()
     // Focus should return to the attribute's MenuButton
-    cy.focused().should("have.attr", "data-testid", "codap-attribute-button Height")
+    cy.focused().invoke("attr", "data-testid").should("match", /^codap-attribute-button-/)
+    cy.focused().should("contain.text", "Height")
   })
 
   it("can open attribute menu after adding a new attribute without a name", () => {
     table.addNewAttribute()
     table.openAttributeMenu("newAttr")
-    cy.get("[data-testid=attribute-menu-list]").should("be.visible")
+    cy.get("[data-testid^='attribute-header-menu-']").should("be.visible")
     table.getAttributeMenuItem("Rename").should("be.visible")
   })
 })

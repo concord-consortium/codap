@@ -208,6 +208,8 @@ const SingleCaseView = observer(function SingleCaseView({
         <CaseAttrsView
           caseItem={displayedCase}
           collection={collection}
+          collectionIndex={level}
+          dummy={dummy}
           onResizeColumn={onResizeColumn}
         />
         { childCollection && (

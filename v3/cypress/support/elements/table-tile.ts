@@ -9,6 +9,19 @@ type OptString = string | null | undefined
 const isMac = navigator.platform.toLowerCase().includes("mac")
 const metaCtrlKey = isMac ? "Meta" : "Control"
 
+// Reads the attribute-button's canonical name from its `data-label` attribute
+// (set by AttributeHeader). textContent is unreliable because case-table's
+// truncated overflow mode embeds a reversed copy of the label for a CSS
+// ellipsis effect.
+function attributeButtonName(el: Element): string {
+  return (el.getAttribute("data-label") ?? el.textContent ?? "").trim()
+}
+// Cypress filter predicate: match an attribute button by its canonical name.
+function isAttributeNamed(name: string) {
+  const target = name.trim()
+  return (_: number, el: HTMLElement) => attributeButtonName(el) === target
+}
+
 export const TableTileElements = {
   getTableTile(index = 0) {
     return c.getComponentTile("table", index)
@@ -92,7 +105,7 @@ export const TableTileElements = {
     cy.clickMenuItem("Insert Cases...")
     cy.get("[data-testid=num-case-input] input").type(`${num_of_cases}`)
     cy.get(`[data-testid="add-${location}"]`).click()
-    cy.get("[data-testid=\"Insert Cases-button\"]").contains("Insert Cases").click()
+    cy.get("[data-testid=insert-cases-insert-button]").contains("Insert Cases").click()
   },
   deleteCase() {
     this.getIndexMenu().should("be.visible")
@@ -105,20 +118,23 @@ export const TableTileElements = {
     cy.get("[data-testid=modal-close-button]").click()
   },
   cancelInsertCasesModal() {
-    cy.get("[data-testid=Cancel-button]").click()
+    cy.get("[data-testid=insert-cases-cancel-button]").click()
   },
   getAttributeHeader() {
     return cy.get("[data-testid^=codap-attribute-button]")
   },
   getAttribute(name: string, collectionIndex = 1) {
-    const sanitizedName = name.trim()
-    return this.getCollection(collectionIndex).find(`[data-testid="codap-attribute-button ${sanitizedName}"]`)
+    return this.getCollection(collectionIndex)
+      .find(`[data-testid^="codap-attribute-button-"]`)
+      .filter(isAttributeNamed(name))
   },
   getAttributeInput(collectionIndex = 1) {
     return this.getCollection(collectionIndex).find("[data-testid=column-name-input]")
   },
   getCaseTableAttribute(name: string) {
-    return this.getTableTile().find(`[data-testid^="codap-attribute-button ${name}"]`)
+    return this.getTableTile()
+      .find(`[data-testid^="codap-attribute-button-"]`)
+      .filter(isAttributeNamed(name))
   },
   openAttributeMenu(name: string, collectionIndex = 1) {
     this.getAttribute(name, collectionIndex).click({force: true})
@@ -126,7 +142,7 @@ export const TableTileElements = {
   closeAttributeMenu() {
     // On CI the menu occasionally closes on its own before the test closes it, for reasons not
     // yet understood, so close it only if it's still open, then make sure it's closed.
-    const kVisibleMenuList = "[data-testid=attribute-menu-list][style*='visibility: visible']"
+    const kVisibleMenuList = "[data-testid^='attribute-header-menu-'][style*='visibility: visible']"
     cy.get("body").then($body => {
       // aria-expanded updates immediately, whereas the menu list stays visible while it animates closed
       if ($body.find(".codap-attribute-button[aria-expanded=true]").length) {
@@ -136,7 +152,7 @@ export const TableTileElements = {
     cy.get(kVisibleMenuList).should("not.exist")
   },
   getAttributeMenuItem(item: string) {
-    return cy.get("[data-testid=attribute-menu-list] [role=menuitem]").contains(item)
+    return cy.get("[data-testid^='attribute-header-menu-'] [role=menuitem]").contains(item)
   },
   selectMenuItemFromAttributeMenu(item: string) {
     this.getAttributeMenuItem(item).click({ force: true })
@@ -159,7 +175,7 @@ export const TableTileElements = {
     cy.get("[data-testid=attr-unit-input]").type(unit)
   },
   selectAttributePrecision(precision: string) {
-    cy.get("[data-testid=attr-precision-select]").click()
+    cy.get("[data-testid^='attr-precision-select-']").click()
     cy.get("[data-testid^=attr-precision-option]").contains(precision).click()
   },
   selectAttributeEditableState(state: string) {
@@ -179,10 +195,10 @@ export const TableTileElements = {
     cy.get("[data-testid=dataset-description-input]").type(description)
   },
   getApplyButton() {
-    return cy.get("[data-testid=Apply-button]")
+    return cy.get("[data-testid=attr-properties-apply-button]")
   },
   getCancelButton() {
-    return cy.get("[data-testid=Cancel-button]")
+    return cy.get("[data-testid=attr-properties-cancel-button]")
   },
   editAttributeProperties(attr: string, name?: OptString, description?: OptString, type?: OptString,
                           unit?: OptString, precision?: OptString, editable?: OptString) {
@@ -222,7 +238,7 @@ export const TableTileElements = {
     if (description != null) {
       this.enterInfoDescription(`{selectAll}{backspace}${description}`)
     }
-    this.getApplyButton().click()
+    this.submitDatasetInfo()
    },
   getGridCell(row: number, column: number, collection = 1) {
     return this.getCollection(collection).find(`[aria-rowindex="${row}"] [aria-colindex="${column}"]`)
@@ -252,16 +268,16 @@ export const TableTileElements = {
     .should("contain", rgbColorStr)
   },
   verifyRowSelected(row: number) {
-    cy.get(`[data-testid=case-table] [aria-rowindex="${row}"]`).invoke("attr", "aria-selected")
+    cy.get(`[data-testid=codap-case-table] [aria-rowindex="${row}"]`).invoke("attr", "aria-selected")
       .should("contain", true)
   },
   verifyRowSelectedWithCellValue(cell: string) {
-    cy.get(`[data-testid=case-table] [aria-selected=true]`).should("contain", cell)
+    cy.get(`[data-testid=codap-case-table] [aria-selected=true]`).should("contain", cell)
   },
   showAllAttributes() {
     cy.get("[data-testid=hide-show-button]").click()
     // The show hidden attributes button is the only one with "Show" in it
-    cy.get("[data-testid=hide-show-menu-list]").find("[role=menuitem]").contains("Show").click()
+    cy.get("[data-testid=inspector-menu-hide-show]").find("[role=menuitem]").contains("Show").click()
   },
   createNewTableFromToolShelf() {
     c.getIconFromToolShelf("table").click()
@@ -273,7 +289,7 @@ export const TableTileElements = {
   },
   openExistingTableFromToolShelf(name: string) {
     c.getIconFromToolShelf("table").click()
-    cy.clickWhenClickable(`[data-testid=tool-shelf-table-${name}]`)
+    cy.clickWhenClickable(`[data-testid^="tool-shelf-table-"][aria-label="${name}"]`)
   },
   deleteDataSetFromToolShelf(index = 0) {
     c.getIconFromToolShelf("table").click()
@@ -299,7 +315,7 @@ export const TableTileElements = {
     return cy.get("[data-testid=dataset-description-input")
   },
   submitDatasetInfo() {
-    cy.get("[data-testid=Apply-button]").click()
+    cy.get("[data-testid=dataset-info-apply-button]").click()
   },
   getResizeButton() {
     return c.getInspectorPanel().find("[data-testid=resize-table-button]")
@@ -308,7 +324,7 @@ export const TableTileElements = {
     return c.getInspectorPanel().find("[data-testid=delete-cases-button]")
   },
   getDeleteMenuItem(item: string) {
-    return cy.get("[data-testid=trash-menu-list] [role=menuitem]").contains(item)
+    return cy.get("[data-testid=inspector-menu-trash] [role=menuitem]").contains(item)
   },
   selectItemFromDeleteMenu(item: string) {
     this.getDeleteMenuItem(item).click({ force: true })
@@ -317,13 +333,13 @@ export const TableTileElements = {
     return c.getInspectorPanel().find("[data-testid=hide-show-button]")
   },
   getHideShowMenuItem(item: string | RegExp) {
-    return cy.get("[data-testid=hide-show-menu-list] [role=menuitem]").contains(item)
+    return cy.get("[data-testid=inspector-menu-hide-show] [role=menuitem]").contains(item)
   },
   getRulerButton() {
     return c.getInspectorPanel().find("[data-testid=ruler-button]")
   },
   getRulerMenuItem(item: string) {
-    return cy.get("[data-testid=ruler-menu-list] [role=menuitem]").contains(item)
+    return cy.get("[data-testid=inspector-menu-ruler] [role=menuitem]").contains(item)
   },
   selectItemFromRulerMenu(item: string) {
     this.getRulerMenuItem(item).click({ force: true })
@@ -365,7 +381,7 @@ export const TableTileElements = {
     return this.getExportDataButtons().contains("Export")
   },
   getCfmModal() {
-    return cy.get("[data-testid=modal-dialog]")
+    return cy.get("[data-testid=cfm-dialog-shell]")
   },
   verifyAttributeValues(attributes: TestAttributes, values: TestValues, collectionIndex = 1) {
     attributes.forEach(a => {
@@ -473,7 +489,7 @@ export const TableTileElements = {
     cy.get("[data-testid=attr-name-input]").invoke("attr", "value").should("eq", attributeName)
     cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
     cy.get("[data-testid=formula-editor-input] .cm-content").realType(formula)
-    cy.get("[data-testid=Apply-button]").click()
+    cy.get("[data-testid=formula-apply-button]").click()
     cy.get("[data-testid=attr-name-input]").should("not.exist")
   },
   clearAttrFormulaInModal(attributeName: string) {
@@ -481,13 +497,13 @@ export const TableTileElements = {
     cy.get("[data-testid=formula-editor-input] .cm-content").should("be.visible").and("have.focus")
     cy.get("[data-testid=formula-editor-input] .cm-content").realPress([metaCtrlKey, "A"])
     cy.get("[data-testid=formula-editor-input] .cm-content").realType("{del}")
-    cy.get("[data-testid=Apply-button]").click()
+    cy.get("[data-testid=formula-apply-button]").click()
     cy.get("[data-testid=attr-name-input]").should("not.exist")
   },
   checkAttrFormulaInModal(attributeName: string, formula: string) {
     cy.get("[data-testid=attr-name-input]").invoke("attr", "value").should("eq", attributeName)
     cy.get("[data-testid=formula-editor-input] .cm-content").should("have.text", formula)
-    cy.get("[data-testid=Cancel-button]").click()
+    cy.get("[data-testid=formula-cancel-button]").click()
     cy.get("[data-testid=attr-name-input]").should("not.exist")
   },
   addFilterFormulaInModal(formula: string) {
@@ -495,7 +511,7 @@ export const TableTileElements = {
     this.getHideShowMenuItem(/(Add|Edit) Filter Formula.../).click()
     fh.clearFormulaInput()
     fh.addFilterFormula(formula)
-    cy.get(".codap-modal-content [data-testid=Apply-button]").should("be.visible").click()
+    cy.get(".codap-modal-content [data-testid=formula-apply-button]").should("be.visible").click()
   },
   verifyFormulaValues(attribute: string, values: Array<any>, collectionIndex = 1) {
     for (let rowIndex = 0; rowIndex < values.length; rowIndex++) {

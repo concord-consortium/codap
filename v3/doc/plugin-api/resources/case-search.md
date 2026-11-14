@@ -84,7 +84,7 @@ Each case is an object:
 | Property | Notes |
 |---|---|
 | `id` | the case's id |
-| `parent` | the id of its parent case; `null` for a case in the top-level collection. v3 currently differs; see [Known limitations](#known-limitations) |
+| `parent` | the id of its parent case; `null` for a case in the top-level collection |
 | `collection` | `{ "name", "id" }` of the collection searched |
 | `values` | the case's values, keyed by attribute name — only the attributes of this collection, not its parents' |
 | `children` | the ids of its child cases; empty for a case in the last collection. New in v3 |
@@ -160,10 +160,6 @@ number or text, so a case created with `"Endangered": true` holds the text `true
 `Endangered==false` finds only the cases with no value. v2 kept the boolean, so `==true` found
 the `true` cases and `==false` the `false` ones, which is the intended behavior. This is a known bug. Until it is fixed, use
 [`caseFormulaSearch`](case-formula-search.md) with `Endangered=true`, which does match.
-
-**A top-level case's `parent` is `undefined`, not `null`.** v2 sent `null`. A plugin that tests
-`parent === null` treats every top-level case as a child; test for a missing parent instead, such
-as `parent == null`. This is a known bug.
 
 ## Notifications
 

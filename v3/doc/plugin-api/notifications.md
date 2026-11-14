@@ -115,7 +115,7 @@ So branch on `resource` first, and only then on `values.operation`, or, for
 | `dragDrop[attribute]` | the user is dragging an attribute |
 | `undoChangeNotice` | something was undone or redone, or the undo history was cleared |
 | `document` | document state, for plugins that asked for it |
-| `documentChangeNotice`, `global`, `logMessageNotice`, `interactiveFrame` | a few notifications each — see [Everything else](#everything-else) |
+| `documentChangeNotice`, `global`, `logMessageNotice`, `interactiveFrame`, `uiNotificationNotice` | a few notifications each — see [Everything else](#everything-else) |
 
 ## Data changes — `dataContextChangeNotice[<context>]`
 
@@ -374,7 +374,7 @@ every such plugin receives it — including ones that did not ask. See
 
 ## Everything else
 
-Four more resources, each with a few notifications.
+Five more resources, each with a few notifications.
 
 <!-- BEGIN GENERATED: notifications-other -->
 | Resource | Operation | Fires when | `values` carries |
@@ -385,7 +385,8 @@ Four more resources, each with a few notifications.
 | `global[<name>]` | none | a global value changes: a slider is dragged or animates, the user enters a slider value or uses the arrow keys, a plugin sets the value with `update` on `global`, or `update document` changes an existing global's value. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. Also sent when a change is undone or redone, and to every plugin, including the one that set the value | `globalValue` |
 | `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the locale itself, such as `pt-BR`. Sent only to plugins that set `handlesLocaleChange`; see [Language and locale](guides/locale.md) | `lang`, `locale` |
 | `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` | `formatStr`, `logMonitor`, `message`, … |
-| `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. Not documented further yet, because the implementation behind them is being replaced | _not readable from the code_ |
+| `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. See the [Tour API](../plugin-tour-api.md) | _not readable from the code_ |
+| `uiNotificationNotice` | none | a UI event (an element appearing or disappearing, a click, a drag, a dialog change and the like) matched a `uiNotificationMonitor` your plugin registered. Carries `monitor` (its `id` and any `clientId`) and the event; see the [interim guide](../plugin-ui-notifications.md) | `monitor`, … |
 <!-- END GENERATED: notifications-other -->
 
 `dataContextCountChanged` and `dataContextDeleted` arrive here rather than on a named context
@@ -410,10 +411,6 @@ name alongside the old one and go through [deprecation](conventions.md#deprecate
 notification per change, each with a `values` array of one. A plugin that iterates over `values`
 sees the same changes, but across several notifications rather than one. This is a known bug; the
 intended behavior is v2's.
-
-**`create` on `dataContextFromURL` sends no notification.** v2 reported the new data context as
-`dataContextCountChanged` on `documentChangeNotice`. CODAP sends nothing, so other plugins do not
-learn of the new data context. This is a known bug; the intended behavior is v2's.
 
 **Formula recalculation rarely sends `dependentCases`.** v2 sent `dependentCases` for formula
 attributes whose values had to be recalculated:
