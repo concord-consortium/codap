@@ -45,21 +45,26 @@ export function PasteDataModal({ isOpen, permissionDenied, returnFocus, onImport
     // Pasting over all of the text replaces it, so the paste becomes the text area's entire content
     const pastingIntoEmpty = !currentValue.trim() || (selectionStart === 0 && selectionEnd === currentValue.length)
     pastedHtml.current = pastingIntoEmpty ? e.clipboardData.getData("text/html") || undefined : undefined
-    // Set by this paste's change, if it makes one, so an earlier paste's text can't match this paste's HTML
+    // Set by this paste's input event, if it fires one, so an earlier paste's text can't match this paste's HTML
     valueAfterPaste.current = undefined
     justPasted.current = true
-    // The browser inserts the pasted text, and fires the resulting change, synchronously after this event.
-    // A paste that inserts nothing (HTML with no plain text) fires no change, so stop waiting for one rather
-    // than mistaking the next keystroke for the paste.
+    // The browser inserts the pasted text, and fires the resulting input event, synchronously after this
+    // event. A paste that inserts nothing (HTML with no plain text) fires no input event, so stop waiting for
+    // one rather than mistaking the next keystroke for the paste.
     setTimeout(() => { justPasted.current = false })
+  }
+
+  // Records the paste's result in onInput rather than onChange, because React skips onChange when the value
+  // doesn't change, as when a paste replaces the text with identical text
+  const handleInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
+    if (justPasted.current) {
+      valueAfterPaste.current = e.currentTarget.value
+      justPasted.current = false
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value)
-    if (justPasted.current) {
-      valueAfterPaste.current = e.target.value
-      justPasted.current = false
-    }
   }
 
   const handleImport = () => {
@@ -88,7 +93,7 @@ export function PasteDataModal({ isOpen, permissionDenied, returnFocus, onImport
             {!isClipboardReadBlockedByPolicy() && <> {t("V3.clipboard.pasteDialog.permissionSettingsHint")}</>}
           </p>}
         <Textarea id="paste-data-text-area" ref={textAreaRef} className="paste-data-text-area"
-          value={value} onPaste={handlePaste} onChange={handleChange} size="sm" rows={8}
+          value={value} onPaste={handlePaste} onInput={handleInput} onChange={handleChange} size="sm" rows={8}
           data-testid="paste-data-text-area" />
       </ModalBody>
       <ModalFooter>

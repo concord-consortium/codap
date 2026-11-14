@@ -20,10 +20,10 @@ describe("PasteDataModal", () => {
     fireEvent.paste(textArea, {
       clipboardData: { getData: (type: string) => type === "text/html" ? html : type === "text/plain" ? text : "" }
     })
-    // jsdom doesn't perform the default paste, so simulate the text area's resulting change: the pasted
-    // text replaces the selection
+    // jsdom doesn't perform the default paste, so simulate the text area's resulting input event: the
+    // pasted text replaces the selection
     const newValue = value.slice(0, selectionStart) + text + value.slice(selectionEnd)
-    fireEvent.change(textArea, { target: { value: newValue } })
+    fireEvent.input(textArea, { target: { value: newValue } })
   }
 
   it("shows the prompt", () => {
@@ -164,6 +164,16 @@ describe("PasteDataModal", () => {
     const user = userEvent.setup()
     const { onImport, textArea, importButton } = renderModal()
     pasteInto(textArea, "<table><tr><td>A</td></tr></table>", "A")
+    ;(textArea as HTMLTextAreaElement).setSelectionRange(0, 1)
+    pasteInto(textArea, kTableHtml, "1")
+    await user.click(importButton)
+    expect(onImport).toHaveBeenCalledWith({ text: "1", html: kTableHtml })
+  })
+
+  it("includes the pasted HTML when the paste replaces the text with identical text", async () => {
+    const user = userEvent.setup()
+    const { onImport, textArea, importButton } = renderModal()
+    pasteInto(textArea, "<table><tr><td>A</td></tr></table>", "1")
     ;(textArea as HTMLTextAreaElement).setSelectionRange(0, 1)
     pasteInto(textArea, kTableHtml, "1")
     await user.click(importButton)
