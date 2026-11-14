@@ -1845,6 +1845,18 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     })
     self.removeCollection(collection)
   },
+  // Puts the items in the given order, which must list every item, set-aside ones included, exactly once
+  setItemOrder(itemIds: string[]) {
+    if (itemIds.every((itemId, index) => itemId === self._itemIds[index])) return
+    const origIndices = itemIds.map(itemId => self.getItemIndex(itemId)!)
+    self.attributes.forEach(attr => attr.orderValues(origIndices))
+    self._itemIds.replace(itemIds)
+    // keep item lookups right until the cases are next validated
+    itemIds.forEach((itemId, index) => {
+      const itemInfo = self.itemInfoMap.get(itemId)
+      if (itemInfo) itemInfo.index = index
+    })
+  },
   sortByAttribute(attributeId: string, direction: "ascending" | "descending" = "ascending") {
     self.validateCases()
 

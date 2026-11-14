@@ -104,6 +104,11 @@ describe("plugin API requests that change the document", () => {
     expect(await undoEntriesAdded("create", "global", { name: "historyTest", value: 3 })).toBe(0)
   })
 
+  it("notify caseByIndex with caseOrder adds no undo entry, as in V2", async () => {
+    const resource = `dataContext[${dataset.name}].collection[collection3].caseByIndex[4]`
+    expect(await undoEntriesAdded("notify", resource, { caseOrder: "first" })).toBe(0)
+  })
+
   it("create dataContextFromURL adds no undo entry", async () => {
     gDataBroker.setSharedModelManager(getSharedModelManager(document)!)
     mockedDownloadCsvFile.mockImplementation((url, onComplete) => {

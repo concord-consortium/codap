@@ -224,6 +224,19 @@ describe("API data changes send dataContextChangeNotice", () => {
     expect([dataset.getValue(dataset.itemIds[0], a3), dataset.getValue(dataset.itemIds[0], a4)]).toEqual(before)
   })
 
+  it("notify caseByIndex and caseByID with caseOrder send moveCases with the moved case, as in V2", async () => {
+    const childCases = () => dataset.getCasesForCollection(dataset.collections[2].id).map(({ __id__ }) => __id__)
+    const movedId = childCases()[4]
+    await request("notify", "collection[collection3].caseByIndex[4]", { caseOrder: 3 })
+    expect(childCases()[3]).toBe(movedId)
+    expect(changes()).toEqual([{ operation: "moveCases", result: { success: true, caseIDs: [toV2Id(movedId)] } }])
+
+    // as in V2, it is sent even when the case is already there
+    broadcastSpy.mockClear()
+    await request("notify", `collection[collection3].caseByID[${toV2Id(movedId)}]`, { caseOrder: 3 })
+    expect(operations()).toEqual(["moveCases"])
+  })
+
   it("create item sends createCases for each collection, then createItems", async () => {
     await request("create", "item", [{ a1: "new", a2: "w", a3: 50, a4: -50 }])
     // a new parent, a new middle case and a new child case

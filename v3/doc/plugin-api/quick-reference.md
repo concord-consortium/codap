@@ -28,8 +28,8 @@ that was never shown returns an error. The resource's own page carries those con
 | `attributeList` | ✓ | — | — | — | — | — | — |
 | `attributeLocation` | — | — | ✓ | — | — | — | — |
 | `case` | — | ✓ | ✓ | — | — | — | — |
-| `caseByID` | ✓ | — | ✓ | ✓ | — | — | — |
-| `caseByIndex` | ✓ | — | ✓ | ✓ | — | — | — |
+| `caseByID` | ✓ | — | ✓ | ✓ | ✓ | — | — |
+| `caseByIndex` | ✓ | — | ✓ | ✓ | ✓ | — | — |
 | `caseCount` | ✓ | — | — | — | — | — | — |
 | `caseFormulaSearch` | ✓ | — | — | — | — | — | — |
 | `caseSearch` | ✓ | — | — | — | — | — | — |

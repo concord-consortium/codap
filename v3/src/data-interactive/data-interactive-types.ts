@@ -97,6 +97,10 @@ export interface DINotification {
 export interface DIItemSearchNotify {
   itemOrder?: "first" | "last" | number[]
 }
+export interface DICaseOrderNotify {
+  // "first", "last", or a position, which may be given as text
+  caseOrder?: "first" | "last" | number | string
+}
 
 export interface DILogMessage {
   formatStr?: string
@@ -152,8 +156,8 @@ export interface DIResources {
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DINotifyAttribute | DIAttributeLocationValues | DICase | DIDataContext |
   DIDocument | DINotifyDataContext | DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase |
-  DIRequestCase | DIUpdateCase | DINotification | DIItemSearchNotify | DILogMessage | DIUpdateConfigurationValue |
-  DIUrl | V2SpecificComponent | DIAdornmentValues | DISelectionExpression
+  DIRequestCase | DIUpdateCase | DINotification | DIItemSearchNotify | DICaseOrderNotify | DILogMessage |
+  DIUpdateConfigurationValue | DIUrl | V2SpecificComponent | DIAdornmentValues | DISelectionExpression
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
