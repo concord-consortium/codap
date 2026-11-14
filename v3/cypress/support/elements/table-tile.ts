@@ -140,7 +140,16 @@ export const TableTileElements = {
     this.getAttribute(name, collectionIndex).click({force: true})
   },
   closeAttributeMenu() {
-    cy.get("[data-testid^='attribute-header-menu-'][style*='visibility: visible']").type("{esc}")
+    // On CI the menu occasionally closes on its own before the test closes it, for reasons not
+    // yet understood, so close it only if it's still open, then make sure it's closed.
+    const kVisibleMenuList = "[data-testid^='attribute-header-menu-'][style*='visibility: visible']"
+    cy.get("body").then($body => {
+      // aria-expanded updates immediately, whereas the menu list stays visible while it animates closed
+      if ($body.find(".codap-attribute-button[aria-expanded=true]").length) {
+        cy.get(kVisibleMenuList).type("{esc}")
+      }
+    })
+    cy.get(kVisibleMenuList).should("not.exist")
   },
   getAttributeMenuItem(item: string) {
     return cy.get("[data-testid^='attribute-header-menu-'] [role=menuitem]").contains(item)
