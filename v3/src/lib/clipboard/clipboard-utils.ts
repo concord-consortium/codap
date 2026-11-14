@@ -1,0 +1,133 @@
+// Low-level wrappers around the browser's clipboard APIs. Callers are expected to catch rejections;
+// the ClipboardManager is the only intended caller.
+
+export type ClipboardReadMethod = "read" | "readText"
+export type ClipboardWriteMethod = "writeText" | "execCommand"
+
+export interface IClipboardContent {
+  html?: string
+  text?: string
+}
+
+export interface IClipboardReadResult {
+  method: ClipboardReadMethod
+  content: IClipboardContent
+}
+
+// Thrown by readClipboard() when the browser has no Clipboard API to read with
+export class ClipboardUnavailableError extends Error {
+  constructor() {
+    super("Clipboard API is not available")
+    this.name = "ClipboardUnavailableError"
+  }
+}
+
+// Returns the element focus should return to after a clipboard dialog closes. When the focused element is
+// an item in a menu, that's the button that opens the menu, since the item itself disappears when the menu
+// closes.
+export function getReturnFocusTarget(): Maybe<HTMLElement> {
+  const active = document.activeElement
+  if (!(active instanceof HTMLElement) || active === document.body) return
+  const menu = active.closest("[role='menu']")
+  return (menu && findMenuButton(menu)) ?? active
+}
+
+// Finds the button that opens `menu`, from either side of the ARIA link between them: the menu's
+// aria-labelledby, or the button's aria-controls (the only link Chakra's menus provide).
+function findMenuButton(menu: Element): Maybe<HTMLElement> {
+  const labelledBy = menu.getAttribute("aria-labelledby")
+  const labelButton = labelledBy ? document.getElementById(labelledBy) : null
+  if (labelButton) return labelButton
+  if (!menu.id) return
+  const controllers = Array.from(document.querySelectorAll<HTMLElement>("[aria-controls]"))
+  return controllers.find(element => element.getAttribute("aria-controls")?.split(/\s+/).includes(menu.id))
+}
+
+// Reading the clipboard fails with "Document is not focused" when focus is elsewhere (e.g. in an iframe).
+// V2 focused the window and blurred the active element before reading; we do the same.
+export function focusDocumentForClipboard() {
+  window.focus()
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur()
+  }
+}
+
+// Makes exactly one clipboard read call. A second call would mean a second iOS Paste callout and more time
+// spent outside user activation. Rejects if the read fails, with a ClipboardUnavailableError if the
+// Clipboard API is missing.
+export async function readClipboard(): Promise<IClipboardReadResult> {
+  const clipboard = navigator.clipboard
+  if (typeof clipboard?.read !== "function" && typeof clipboard?.readText !== "function") {
+    throw new ClipboardUnavailableError()
+  }
+
+  if (typeof clipboard.read === "function") {
+    const content: IClipboardContent = {}
+    const items = await clipboard.read()
+    for (const item of items) {
+      if (content.html == null && item.types.includes("text/html")) {
+        content.html = await (await item.getType("text/html")).text()
+      }
+      if (content.text == null && item.types.includes("text/plain")) {
+        content.text = await (await item.getType("text/plain")).text()
+      }
+    }
+    return { method: "read", content }
+  }
+
+  return { method: "readText", content: { text: await clipboard.readText() } }
+}
+
+// Copies text with the Clipboard API. Resolves false, rather than rejecting, if the API is missing or the
+// browser refuses the write.
+export async function writeWithClipboardApi(text: string): Promise<boolean> {
+  try {
+    if (!navigator.clipboard) return false
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    return false
+  }
+}
+
+// The legacy copy fallback that V2 used when `navigator.clipboard.write()` failed.
+// Returns true only if the browser reports that the copy succeeded. It's called only after the Clipboard API
+// write has failed, so it relies on the click still counting as recent user activity (about 5 seconds in
+// Chrome). Policy refusals of the Clipboard API write are immediate, so that should hold.
+export function writeWithExecCommand(text: string): boolean {
+  const handleCopy = (e: ClipboardEvent) => {
+    e.clipboardData?.setData("text/plain", text)
+    e.preventDefault()
+  }
+  document.addEventListener("copy", handleCopy)
+  try {
+    return typeof document.execCommand === "function" && document.execCommand("copy") === true
+  } catch {
+    return false
+  } finally {
+    document.removeEventListener("copy", handleCopy)
+  }
+}
+
+// True when the permissions policy of the page embedding CODAP doesn't allow reading the clipboard, so no
+// setting the user can change would help. Only Chromium-based browsers expose the policy (as the
+// nonstandard document.featurePolicy); elsewhere this returns false.
+export function isClipboardReadBlockedByPolicy(): boolean {
+  const { featurePolicy } = document as Document & { featurePolicy?: { allowsFeature(name: string): boolean } }
+  try {
+    return featurePolicy?.allowsFeature("clipboard-read") === false
+  } catch {
+    return false
+  }
+}
+
+// True only when the browser reports that clipboard reading is denied for this site. Firefox doesn't
+// support querying "clipboard-read" (the query throws), and some browsers lack the Permissions API.
+export async function isClipboardReadDenied(): Promise<boolean> {
+  try {
+    const status = await navigator.permissions?.query({ name: "clipboard-read" as PermissionName })
+    return status?.state === "denied"
+  } catch {
+    return false
+  }
+}

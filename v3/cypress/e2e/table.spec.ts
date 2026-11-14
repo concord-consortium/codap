@@ -1,4 +1,3 @@
-import { CfmElements as cfm } from "../support/elements/cfm"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { TableTileElements as table } from "../support/elements/table-tile"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
@@ -423,61 +422,6 @@ context("case table ui", () => {
       table.getExportDataCollectionListItems().contains("Tracks").click()
       table.getExportDataExportButton().click()
       table.getCfmModal().should("exist")
-    })
-
-
-    // TODO: The following test frequently fails in CI even when it passes locally. We need to investigate
-    // and stabilize the test. Skipping for now to avoid blocking other work and potentially hitting our test quota.
-    it.skip("can copy data to the clipboard", () => {
-      // The following allows Cypress to copy data to the clipboard
-      // It was taken from: https://github.com/cypress-io/cypress/issues/2752#issuecomment-934864818
-      cy.wrap(Cypress.automation('remote:debugger:protocol', {
-        command: 'Browser.grantPermissions',
-        params: { permissions: ['clipboardReadWrite', 'clipboardSanitizedWrite'], },
-      })).then(() => {
-        cy.log("check copying data from a single collection")
-        c.selectTile("table", 0)
-        table.getRulerButton().click()
-        table.getCopyToClipboardItem().click()
-        table.getCopiedCasesAlert().should("contain", "Copied 27 Cases to the clipboard")
-        table.getCopiedCasesAlertOkButton().click()
-
-        cy.log("check copying data from multiple collections")
-        const queryParams = "?suppressUnsavedWarning&mouseSensor=#file=examples:Four%20Seals"
-        const url = `${Cypress.config("index")}${queryParams}`
-        cy.visit(url)
-        cy.wait(1000)
-        c.selectTile("table", 0)
-        table.getRulerButton().click()
-        table.getCopyToClipboardItem().click()
-        table.getExportDataModalBody().should("contain", "Copy case data from:")
-        table.getExportDataCollectionsButton().click()
-        table.getExportDataCollectionList().should("exist")
-        table.getExportDataCollectionListItems().should("have.length", 3)
-        table.getExportDataCollectionListItems().contains("Tracks").click()
-        table.getExportDataCopyButton().click()
-        table.getCopiedCasesAlert().should("contain", "Copied 4 Tracks to the clipboard")
-        table.getCopiedCasesAlertOkButton().click()
-
-        cy.log("check new table from clipboard")
-        cfm.openExampleDocument("Mammals", { discardChanges: true })
-        cy.wait(1000)  // Wait for document to load
-        c.getComponentTile("table", 0).should("exist")  // Verify first table exists before proceeding
-        c.clickIconFromToolShelf("table")
-        toolbar.getNewCaseTableFromClipboard().click()
-        c.getComponentTitle("table", 1).should("contain", "clipboard data")
-        table.getAttributeHeader().should("contain", "animal id")
-        table.getAttributeHeader().should("contain", "species")
-        // Wait for clipboard data to be fully imported before checking row count
-        // The table should have 6 rows: Header row + 4 data rows + 1 input row
-        // Wait for data cells to appear before checking row count
-        c.getComponentTile("table", 1).find(".rdg-cell").should("have.length.gte", 4)
-        table.getNumOfRows(1, 1).should("eq", "6")
-        c.closeComponent("table", 1)
-
-        // TODO: Add test for importing data from clipboard into existing table.
-        // I couldn't figure out how to confirm in the Importer plugin.
-      })
     })
   })
   describe("case table header attribute menu", () => {

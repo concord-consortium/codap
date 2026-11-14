@@ -90,10 +90,10 @@
     "DG.AppController.createDataSet.name": "New Dataset",
     "DG.AppController.createDataSet.collectionName": "Cases",
     "DG.AppController.caseTableMenu.openCaseTableToolTip": "Open case table for this data set",
-    "DG.AppController.caseTableMenu.newDataSet": "Νew",
+    "DG.AppController.caseTableMenu.newDataSet": "New",
     "DG.AppController.caseTableMenu.newDataSetToolTip": "Create a new data set",
     "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy data set %@",
-    "DG.AppController.caseTableMenu.clipboardDataset": "Νew from clipboard",
+    "DG.AppController.caseTableMenu.clipboardDataset": "New from clipboard",
     "DG.AppController.caseTableMenu.clipboardDatasetToolTip": "Paste data set from clipboard",
 
     "DG.SingleTextDialog.okButton.title": "OK",
@@ -1365,6 +1365,16 @@
     "V3.app.errorDialog.suggestionWithSave": "You may wish to reload this page after you save a copy of your work.",
     "V3.app.errorDialog.suggestion": "You may wish to reload this page.",
     "V3.app.errorDialog.errorDetails": "(Error: %@)",
+    // Clipboard messages are mostly read by students. Say "failed" rather than "blocked" unless the browser
+    // reports that access is denied; never promise a fix or send students to their IT administrators; and
+    // use neutral wording rather than having CODAP refer to itself.
+    "V3.clipboard.pasteDialog.title": "Import from Clipboard",
+    "V3.clipboard.pasteDialog.prompt": "Reading from the clipboard failed. Paste your data here:",
+    "V3.clipboard.pasteDialog.permissionDenied": "Your browser is blocking clipboard access.",
+    "V3.clipboard.pasteDialog.permissionSettingsHint": "You may be able to allow it in site settings.",
+    "V3.clipboard.pasteDialog.importButton": "Import",
+    "V3.clipboard.copyUnavailable": "Copying to the clipboard failed. You can use %@ instead.",
+    "V3.clipboard.emptyClipboard": "The clipboard doesn't contain any data to import.",
     "V3.app.documentDisplayError.title": "Display Error",
     "V3.app.documentDisplayError.suggestion": "Try reloading the page.",
     "V3.app.documentDisplayError.suggestionWithSave": "Try saving a copy of the document and reloading the page.",

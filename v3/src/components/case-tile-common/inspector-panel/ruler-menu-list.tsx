@@ -1,8 +1,8 @@
 import { useDisclosure } from "@chakra-ui/react"
 import { observer } from "mobx-react-lite"
-import { useState } from "react"
 import { useCfmContext } from "../../../hooks/use-cfm-context"
 import { useDataSetContext } from "../../../hooks/use-data-set-context"
+import { clipboardManager } from "../../../lib/clipboard/clipboard-manager"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { IAttribute } from "../../../models/data/attribute"
 import { ICollectionModel } from "../../../models/data/collection"
@@ -10,22 +10,18 @@ import { IDataSet } from "../../../models/data/data-set"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
 import { uiState } from "../../../models/ui-state"
 import { convertDatasetToCsv } from "../../../utilities/csv-export"
-import { initiateImportFromClipboard } from "../../../utilities/clipboard-import"
 import { uniqueName } from "../../../utilities/js-utils"
 import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
 import { rerandomizeAllAttributes } from "../../../models/data/data-set-utils"
-import { CopiedCasesAlert } from "../copied-cases-alert"
 import { ExportDataModal } from "../export-data-modal"
 import { IMenuItem, StdMenuList } from "../std-menu-list"
 
 export const RulerMenuList = observer(function RulerMenuList() {
   const data = useDataSetContext()
   const cfm = useCfmContext()
-  const [copiedCasesString, setCopiedCasesString] = useState("")
   const { isOpen: isExportModalOpen, onClose: onCloseExportModal, onOpen: onOpenExportModal } = useDisclosure()
   const { isOpen: isCopyModalOpen, onClose: onCloseCopyModal, onOpen: onOpenCopyModal } = useDisclosure()
-  const { isOpen: isCopiedAlertOpen, onClose: onCloseCopiedAlert, onOpen: onOpenCopiedAlert } = useDisclosure()
 
   const handleAddNewAttribute = (collectionId: string) => {
     let attribute: IAttribute | undefined
@@ -62,10 +58,9 @@ export const RulerMenuList = observer(function RulerMenuList() {
   }
 
   const copyDataToClipboard = (dataSet: IDataSet, selectedCollection?: ICollectionModel) => {
-    navigator.clipboard.writeText(convertDatasetToCsv(dataSet, selectedCollection))
     const collection = selectedCollection ?? dataSet.childCollection
-    setCopiedCasesString(`${collection.caseIds.length} ${collection.title}`)
-    onOpenCopiedAlert()
+    const description = `${collection.caseIds.length} ${collection.title}`
+    clipboardManager.copyText(convertDatasetToCsv(dataSet, selectedCollection), description)
   }
 
   const menuItems: IMenuItem[] = [
@@ -106,7 +101,7 @@ export const RulerMenuList = observer(function RulerMenuList() {
       itemKey: "DG.Inspector.getCaseDataFromClipboard",
       dataTestId: "ruler-menu-get-case-data-from-clipboard",
       handleClick: () => {
-        if (data) initiateImportFromClipboard(data)
+        if (data) clipboardManager.importData(data)
       }
     }
   ]
@@ -129,11 +124,6 @@ export const RulerMenuList = observer(function RulerMenuList() {
         okTooltip={t("DG.Inspector.caseTable.exportCaseDialog.copyTooltip")}
         onClose={onCloseCopyModal}
         onComplete={copyDataToClipboard}
-      />
-      <CopiedCasesAlert
-        copiedCasesString={copiedCasesString}
-        isOpen={isCopiedAlertOpen}
-        onClose={onCloseCopiedAlert}
       />
     </>
   )
