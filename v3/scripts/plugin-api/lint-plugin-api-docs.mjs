@@ -31,6 +31,7 @@
 import { readFileSync, readdirSync, existsSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, join, relative, normalize } from "node:path"
+import { headingsOf } from "./markdown.mjs"
 import { markerProblems } from "./markers.mjs"
 import { buildPageFor } from "./coverage.mjs"
 import { readInventory } from "./inventory.mjs"
@@ -56,21 +57,11 @@ function allMarkdown(dir, out = []) {
 
 const files = allMarkdown(docsDir).sort()
 
-// The anchors GitHub generates for a page's headings: lowercased, punctuation other than hyphens
-// dropped, spaces turned into hyphens, and repeats numbered -1, -2, ...
+// The anchors GitHub generates for a page's headings.
 const anchorCache = new Map()
 function anchorsOf(path) {
   if (!anchorCache.has(path)) {
-    const seen = new Map()
-    const anchors = new Set()
-    const text = readFileSync(path, "utf8").replace(/```[\s\S]*?```/g, "")
-    for (const [, heading] of text.matchAll(/^#{1,6} +(.+?) *#*$/gm)) {
-      const base = heading.toLowerCase().replace(/[^\p{L}\p{N}_\- ]/gu, "").replace(/ /g, "-")
-      const n = seen.get(base) ?? 0
-      seen.set(base, n + 1)
-      anchors.add(n ? `${base}-${n}` : base)
-    }
-    anchorCache.set(path, anchors)
+    anchorCache.set(path, new Set(headingsOf(readFileSync(path, "utf8")).map(h => h.anchor)))
   }
   return anchorCache.get(path)
 }

@@ -518,6 +518,16 @@ Bring a component to the front, then rescale it:
 }
 ```
 
+Close a component. A case table, case card, calculator or guide is hidden rather than removed —
+see [Known limitations](#known-limitations):
+
+```json
+{
+  "action": "delete",
+  "resource": "component[Height by Weight]"
+}
+```
+
 ## Known limitations
 
 **`autoScale` applies to three types.** Graphs and maps rescale; a case table resizes its

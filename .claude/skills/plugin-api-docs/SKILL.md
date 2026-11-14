@@ -20,9 +20,13 @@ content, and a checker.
 | `npm run plugin-api:generate` | Rewrites generated blocks in the docs, writes the request schema, reports drift |
 | `npm run plugin-api:lint` | Checks the docs against the code and the conventions |
 | `npm run plugin-api:check` | Both of the above in report-only mode — what CI runs |
+| `npm run plugin-api:tester` | Writes the plugin API Tester's `reference-templates.json` from the request examples on the resource pages |
+| `npm run plugin-api:tester:check` | Reports whether the tester's copy is stale, without writing |
 
-`markers.mjs` and `inventory.mjs` are shared helpers, not entry points: the first defines a
-well-formed generated-block marker, the second is the one way both scripts run the extractor.
+`markers.mjs`, `inventory.mjs`, `coverage.mjs` and `markdown.mjs` are shared helpers, not entry
+points: the first defines a well-formed generated-block marker, the second is the one way the
+scripts run the extractor, the third says which page documents which resource, and the fourth
+holds the fenced-code and heading-anchor rules.
 The generator consults `markers.mjs` *before* rewriting a page and skips any page whose markers
 it cannot prove safe; that file explains what a rewrite would otherwise destroy.
 
@@ -41,6 +45,12 @@ the diff. `NEW` means a resource exists in code that nothing documents and that 
 baseline; either document it or add it to the baseline deliberately.
 
 **To see whether anything has drifted, without writing:** `npm run plugin-api:check`.
+
+**After changing a request example on a resource page:** `npm run plugin-api:tester`, then commit
+the regenerated `DataInteractiveAPITester/resources/reference-templates.json` in
+`codap-data-interactives` (base `gh-pages`, which is live as soon as it merges). The tester
+scripts assume that repo is cloned beside `codap`. CI cannot check this file, because it lives
+in the other repo, so run `npm run plugin-api:tester:check` before a release.
 
 ## What is generated and what is not
 
