@@ -76,9 +76,9 @@ export function PasteDataModal({ isOpen, permissionDenied, returnFocus, onImport
 
   return (
     <CodapModal initialRef={textAreaRef} finalFocusRef={returnFocusRef} isOpen={isOpen} onClose={onCancel}
-        closeOnOverlayClick={false} modalWidth="400px" modalHeight="auto">
+        closeOnOverlayClick={false} modalWidth="400px" modalHeight="auto" data-testid="paste-data-modal">
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
-        <div className="codap-modal-icon-container" />
+        <div className="codap-modal-icon-container" aria-hidden="true" />
         <div className="codap-header-title">{t("V3.clipboard.pasteDialog.title")}</div>
         <ModalCloseButton data-testid="modal-close-button" />
       </ModalHeader>
