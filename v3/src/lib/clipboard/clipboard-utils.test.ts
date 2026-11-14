@@ -1,6 +1,6 @@
 import {
-  focusDocumentForClipboard, getReturnFocusTarget, isClipboardReadDenied, readClipboard, writeWithClipboardApi,
-  writeWithExecCommand
+  ClipboardUnavailableError, focusDocumentForClipboard, getReturnFocusTarget, isClipboardReadDenied, readClipboard,
+  writeWithClipboardApi, writeWithExecCommand
 } from "./clipboard-utils"
 
 function mockBlob(content: string) {
@@ -54,9 +54,14 @@ describe("readClipboard", () => {
     expect(readText).not.toHaveBeenCalled()
   })
 
-  it("rejects when the Clipboard API is missing", async () => {
+  it("rejects with ClipboardUnavailableError when the Clipboard API is missing", async () => {
     setClipboard(undefined)
-    await expect(readClipboard()).rejects.toThrow()
+    await expect(readClipboard()).rejects.toBeInstanceOf(ClipboardUnavailableError)
+  })
+
+  it("rejects with ClipboardUnavailableError when the Clipboard API can't read", async () => {
+    setClipboard({ writeText: jest.fn() })
+    await expect(readClipboard()).rejects.toBeInstanceOf(ClipboardUnavailableError)
   })
 })
 

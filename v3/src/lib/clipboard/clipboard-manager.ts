@@ -6,8 +6,9 @@ import { Logger } from "../logger"
 import { ILogMessage, logStringifiedObjectMessage } from "../log-message"
 import { ClipboardImportFormat, importClipboardContent } from "./clipboard-import"
 import {
-  ClipboardReadMethod, ClipboardWriteMethod, focusDocumentForClipboard, getReturnFocusTarget, IClipboardContent,
-  IClipboardReadResult, isClipboardReadDenied, readClipboard, writeWithClipboardApi, writeWithExecCommand
+  ClipboardReadMethod, ClipboardUnavailableError, ClipboardWriteMethod, focusDocumentForClipboard,
+  getReturnFocusTarget, IClipboardContent, IClipboardReadResult, isClipboardReadDenied, readClipboard,
+  writeWithClipboardApi, writeWithExecCommand
 } from "./clipboard-utils"
 
 type ClipboardImportMethod = ClipboardReadMethod | "paste"
@@ -39,8 +40,14 @@ export type ClipboardMessage =
 /**
  * Owns all clipboard access for CODAP. Browsers can refuse the Clipboard API for reasons the user can't
  * fix (an iframe without clipboard permissions, lost focus or user activation, a dismissed iOS Paste
- * callout), so each operation falls back to an alternative, and failures are remembered for the rest of
- * the page session so the user doesn't wait on an attempt that's known to fail.
+ * callout), so each operation falls back to an alternative. Only failures that are likely to last are
+ * remembered for the rest of the page session:
+ * - A failed writeText() is skipped on later copies, so execCommand("copy") runs synchronously within the
+ *   click rather than after an await, when the click may no longer count as user activation. A failed
+ *   execCommand("copy") isn't remembered, since it's often caused by exactly that lost activation.
+ * - A failed read is remembered only if the Clipboard API is missing or the browser reports that reading
+ *   is denied. Other read failures, such as lost focus or a dismissed Paste callout, are often temporary,
+ *   so the next import tries reading again.
  *
  * The manager doesn't ask for clipboard permission up front. Chrome prompts on the first read anyway, and
  * most refusals come from the context rather than a prompt the user could accept, so an extra request would
@@ -51,7 +58,6 @@ export type ClipboardMessage =
  */
 export class ClipboardManager {
   @observable private writeTextFailed = false
-  @observable private execCommandFailed = false
   @observable private readFailed = false
   @observable.ref private _message: Maybe<ClipboardMessage> = undefined
   @observable.ref private _pasteRequest: Maybe<IPasteRequest> = undefined
@@ -81,7 +87,6 @@ export class ClipboardManager {
   @action
   reset() {
     this.writeTextFailed = false
-    this.execCommandFailed = false
     this.readFailed = false
     this._message = undefined
     this._pasteRequest = undefined
@@ -103,17 +108,14 @@ export class ClipboardManager {
       method = "writeText"
     } else {
       failed.push("writeText")
-      this.setFailed("writeText")
+      this.setWriteTextFailed()
     }
 
     if (!method) {
-      if (this.execCommandFailed) {
-        skipped.push("execCommand")
-      } else if (writeWithExecCommand(text)) {
+      if (writeWithExecCommand(text)) {
         method = "execCommand"
       } else {
         failed.push("execCommand")
-        this.setFailed("execCommand")
       }
     }
 
@@ -146,10 +148,10 @@ export class ClipboardManager {
     try {
       focusDocumentForClipboard()
       result = await readClipboard()
-    } catch {
+    } catch (error) {
       if (attempt !== this.readAttempt) return
       this.readStartTime = undefined
-      this.setReadFailed()
+      if (error instanceof ClipboardUnavailableError) this.setReadFailed()
       return this.requestPaste({ dataSet, document, returnFocus }, { failed: "read", skipped: "" })
     }
     if (attempt !== this.readAttempt) return
@@ -193,13 +195,17 @@ export class ClipboardManager {
   }
 
   // Opens the paste dialog right away, then adds the permission note if the permission check reports
-  // that reading is denied. The check runs afterwards so the dialog never waits on it.
+  // that reading is denied. The check runs afterwards so the dialog never waits on it. A denial lasts until
+  // the user changes a setting, so later imports go straight to the paste dialog.
   private async requestPaste(target: Omit<IPasteRequest, "permissionDenied">, pasteLog: IPendingPasteLog) {
     const request: IPasteRequest = { ...target, permissionDenied: false }
     this.pendingPasteLog = pasteLog
     this.setPasteRequest(request)
-    if (await isClipboardReadDenied() && this._pasteRequest === request) {
-      this.setPasteRequest({ ...request, permissionDenied: true })
+    if (await isClipboardReadDenied()) {
+      this.setReadFailed()
+      if (this._pasteRequest === request) {
+        this.setPasteRequest({ ...request, permissionDenied: true })
+      }
     }
   }
 
@@ -221,9 +227,8 @@ export class ClipboardManager {
   }
 
   @action
-  private setFailed(method: ClipboardWriteMethod) {
-    if (method === "writeText") this.writeTextFailed = true
-    else this.execCommandFailed = true
+  private setWriteTextFailed() {
+    this.writeTextFailed = true
   }
 
   @action

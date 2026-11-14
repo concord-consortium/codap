@@ -14,6 +14,14 @@ export interface IClipboardReadResult {
   content: IClipboardContent
 }
 
+// Thrown by readClipboard() when the browser has no Clipboard API to read with
+export class ClipboardUnavailableError extends Error {
+  constructor() {
+    super("Clipboard API is not available")
+    this.name = "ClipboardUnavailableError"
+  }
+}
+
 // Returns the element focus should return to after a clipboard dialog closes. When the focused element is
 // an item in a menu, that's the button that opens the menu, since the item itself disappears when the menu
 // closes.
@@ -45,10 +53,13 @@ export function focusDocumentForClipboard() {
 }
 
 // Makes exactly one clipboard read call. A second call would mean a second iOS Paste callout and more time
-// spent outside user activation. Rejects if the read fails or the Clipboard API is missing.
+// spent outside user activation. Rejects if the read fails, with a ClipboardUnavailableError if the
+// Clipboard API is missing.
 export async function readClipboard(): Promise<IClipboardReadResult> {
   const clipboard = navigator.clipboard
-  if (!clipboard) throw new Error("Clipboard API is not available")
+  if (typeof clipboard?.read !== "function" && typeof clipboard?.readText !== "function") {
+    throw new ClipboardUnavailableError()
+  }
 
   if (typeof clipboard.read === "function") {
     const content: IClipboardContent = {}
@@ -95,6 +106,18 @@ export function writeWithExecCommand(text: string): boolean {
     return false
   } finally {
     document.removeEventListener("copy", handleCopy)
+  }
+}
+
+// True when the permissions policy of the page embedding CODAP doesn't allow reading the clipboard, so no
+// setting the user can change would help. Only Chromium-based browsers expose the policy (as the
+// nonstandard document.featurePolicy); elsewhere this returns false.
+export function isClipboardReadBlockedByPolicy(): boolean {
+  const { featurePolicy } = document as Document & { featurePolicy?: { allowsFeature(name: string): boolean } }
+  try {
+    return featurePolicy?.allowsFeature("clipboard-read") === false
+  } catch {
+    return false
   }
 }
 

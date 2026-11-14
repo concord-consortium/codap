@@ -134,7 +134,7 @@ The last three behaviors also occur with `embeddedServer=yes` alone.
 
 ## Clipboard Access
 
-Browsers only let a cross-origin iframe use the Clipboard API if the embedding page grants it:
+Chromium-based browsers (Chrome, Edge) only let a cross-origin iframe use the Clipboard API if the embedding page grants it:
 
 ```html
 <iframe src="https://codap.concord.org/app/..." allow="clipboard-read; clipboard-write"></iframe>
@@ -145,7 +145,7 @@ Without it, CODAP still works, using fallbacks:
 - **Copy to Clipboard** falls back to `document.execCommand("copy")`. If that fails too, CODAP suggests using Export Case Data instead.
 - **Import from Clipboard** opens a dialog where the user pastes the data with Cmd/Ctrl-V.
 
-Only the embedding page can grant clipboard access, so CODAP's messages don't ask users to fix it.
+Only the embedding page can grant this access. When the embedding page's policy blocks clipboard reading, the paste dialog doesn't suggest changing site settings, since that can't help.
 
 ## iframe-phone Communication
 

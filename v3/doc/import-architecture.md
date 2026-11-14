@@ -97,7 +97,7 @@ initiateImportFromCsv/HTML/Generic(options)
 ```
 User -> Tables menu "New from Clipboard" or ruler menu "Import Case Data from Clipboard..."
    -> clipboardManager.importData(data?)
-      | reading failed earlier this session -> paste dialog
+      | reading was denied earlier this session -> paste dialog
       | otherwise -> readClipboard(): one read() call, or readText() where read() is missing
          | rejects        -> paste dialog
          | resolves       -> importClipboardContent(content, data)
@@ -112,7 +112,7 @@ Paste dialog (PasteDataModal, rendered by the app-level ClipboardHost)
          was the text area's whole content and hasn't been edited
 ```
 
-The Clipboard API is often refused: in an iframe without clipboard permission, when the page has lost focus, or when the user dismisses the iOS Paste callout. The `ClipboardManager` catches every refusal, remembers it for the rest of the page session, and falls back as shown above. See `src/lib/clipboard/`.
+The Clipboard API is often refused: in an iframe without clipboard permission, when the page has lost focus, or when the user dismisses the iOS Paste callout. The `ClipboardManager` catches every refusal and falls back as shown above. It remembers a refusal for the rest of the page session only when it's likely to last: a failed `writeText()`, a missing Clipboard API, or a read the browser reports as denied. See `src/lib/clipboard/`.
 
 ## Type Detection
 

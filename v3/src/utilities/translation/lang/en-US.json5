@@ -1369,7 +1369,8 @@
     // use neutral wording rather than having CODAP refer to itself.
     "V3.clipboard.pasteDialog.title": "Import from Clipboard",
     "V3.clipboard.pasteDialog.prompt": "Reading from the clipboard failed. Paste your data here:",
-    "V3.clipboard.pasteDialog.permissionDenied": "Your browser is blocking clipboard access. You may be able to allow it in site settings.",
+    "V3.clipboard.pasteDialog.permissionDenied": "Your browser is blocking clipboard access.",
+    "V3.clipboard.pasteDialog.permissionSettingsHint": "You may be able to allow it in site settings.",
     "V3.clipboard.pasteDialog.importButton": "Import",
     "V3.clipboard.copyUnavailable": "Copying to the clipboard failed. You can use %@ instead.",
     "V3.clipboard.emptyClipboard": "The clipboard doesn't contain any data to import.",

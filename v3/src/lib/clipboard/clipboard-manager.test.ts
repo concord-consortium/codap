@@ -3,7 +3,9 @@ import { DataSet } from "../../models/data/data-set"
 import { Logger } from "../logger"
 import { importClipboardContent } from "./clipboard-import"
 import { clipboardManager, kClipboardReadBusyMs } from "./clipboard-manager"
-import { focusDocumentForClipboard, isClipboardReadDenied, readClipboard } from "./clipboard-utils"
+import {
+  ClipboardUnavailableError, focusDocumentForClipboard, isClipboardReadDenied, readClipboard
+} from "./clipboard-utils"
 
 jest.mock("./clipboard-utils", () => ({
   ...jest.requireActual("./clipboard-utils"),
@@ -13,7 +15,8 @@ jest.mock("./clipboard-utils", () => ({
 }))
 
 // The current document, replaced by tests that simulate opening another document
-const mockAppState = { document: { name: "first document" } as object }
+const kFirstDocument = { name: "first document" }
+const mockAppState = { document: kFirstDocument as object }
 jest.mock("../../models/app-state", () => ({
   get appState() { return mockAppState }
 }))
@@ -107,20 +110,19 @@ describe("ClipboardManager copy", () => {
       .toEqual({ method: "none", failed: "writeText,execCommand", skipped: "", outcome: "unavailable" })
   })
 
-  it("tries nothing on later copies once both methods have failed", async () => {
+  it("tries execCommand() again on later copies after both methods have failed", async () => {
     writeText.mockRejectedValue(new Error("blocked"))
     execCommand.mockReturnValue(false)
     await clipboardManager.copyText("a,b", "27 Cases")
     writeText.mockClear()
-    execCommand.mockClear()
-    clipboardManager.closeMessage()
+    execCommand.mockClear().mockReturnValue(true)
 
-    await expect(clipboardManager.copyText("c,d", "4 Tracks")).resolves.toBe(false)
+    await expect(clipboardManager.copyText("c,d", "4 Tracks")).resolves.toBe(true)
     expect(writeText).not.toHaveBeenCalled()
-    expect(execCommand).not.toHaveBeenCalled()
-    expect(clipboardManager.message).toEqual({ kind: "copyUnavailable" })
+    expect(execCommand).toHaveBeenCalledWith("copy")
+    expect(clipboardManager.message).toEqual({ kind: "copied", description: "4 Tracks" })
     expect(lastLogArgs(logSpy))
-      .toEqual({ method: "none", failed: "", skipped: "writeText,execCommand", outcome: "unavailable" })
+      .toEqual({ method: "execCommand", failed: "", skipped: "writeText", outcome: "copied" })
   })
 
   it("never logs the copied text", async () => {
@@ -148,6 +150,7 @@ describe("ClipboardManager import", () => {
 
   beforeEach(() => {
     clipboardManager.reset()
+    mockAppState.document = kFirstDocument
     logSpy = jest.spyOn(Logger, "log").mockImplementation(() => null)
     mockFocus.mockReset()
     mockIsDenied.mockReset().mockResolvedValue(false)
@@ -217,21 +220,43 @@ describe("ClipboardManager import", () => {
     })
   })
 
-  it("goes straight to the paste dialog once reading has failed", async () => {
-    await failRead()
+  it("goes straight to the paste dialog once the browser has denied reading", async () => {
+    await failRead(true)
     clipboardManager.cancelPaste()
     mockReadClipboard.mockClear()
 
     await clipboardManager.importData(dataSet)
     expect(mockReadClipboard).not.toHaveBeenCalled()
-    expect(clipboardManager.pasteRequest).toMatchObject({ dataSet, permissionDenied: false })
+    expect(clipboardManager.pasteRequest).toMatchObject({ dataSet, permissionDenied: true })
 
     clipboardManager.cancelPaste()
     expect(clipboardManager.pasteRequest).toBeUndefined()
     expect(mockImportContent).not.toHaveBeenCalled()
     expect(lastLogArgs(logSpy)).toEqual({
-      method: "paste", failed: "", skipped: "read", outcome: "cancelled", format: "", permissionDenied: false
+      method: "paste", failed: "", skipped: "read", outcome: "cancelled", format: "", permissionDenied: true
     })
+  })
+
+  it("goes straight to the paste dialog once the Clipboard API is found to be missing", async () => {
+    mockReadClipboard.mockRejectedValue(new ClipboardUnavailableError())
+    await clipboardManager.importData(dataSet)
+    clipboardManager.cancelPaste()
+    mockReadClipboard.mockClear()
+
+    await clipboardManager.importData(dataSet)
+    expect(mockReadClipboard).not.toHaveBeenCalled()
+    expect(clipboardManager.pasteRequest).toMatchObject({ dataSet })
+  })
+
+  it("tries reading again after a read failure that the browser doesn't report as denied", async () => {
+    await failRead()
+    clipboardManager.cancelPaste()
+    mockReadClipboard.mockReset().mockResolvedValue({ method: "read", content: tableContent })
+
+    await clipboardManager.importData(dataSet)
+    expect(mockReadClipboard).toHaveBeenCalled()
+    expect(mockImportContent).toHaveBeenCalledWith(tableContent, dataSet)
+    expect(clipboardManager.pasteRequest).toBeUndefined()
   })
 
   it("ignores another import while the paste dialog is open", async () => {

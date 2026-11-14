@@ -1,6 +1,6 @@
 import { Button, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Textarea } from "@chakra-ui/react"
 import React, { useEffect, useRef, useState } from "react"
-import { IClipboardContent } from "../../lib/clipboard/clipboard-utils"
+import { IClipboardContent, isClipboardReadBlockedByPolicy } from "../../lib/clipboard/clipboard-utils"
 import { t } from "../../utilities/translation/translate"
 import { CodapModal } from "../codap-modal"
 
@@ -41,7 +41,9 @@ export function PasteDataModal({ isOpen, permissionDenied, returnFocus, onImport
   }, [isOpen])
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    const pastingIntoEmpty = !e.currentTarget.value.trim()
+    const { value: currentValue, selectionStart, selectionEnd } = e.currentTarget
+    // Pasting over all of the text replaces it, so the paste becomes the text area's entire content
+    const pastingIntoEmpty = !currentValue.trim() || (selectionStart === 0 && selectionEnd === currentValue.length)
     pastedHtml.current = pastingIntoEmpty ? e.clipboardData.getData("text/html") || undefined : undefined
     // Set by this paste's change, if it makes one, so an earlier paste's text can't match this paste's HTML
     valueAfterPaste.current = undefined
@@ -80,7 +82,11 @@ export function PasteDataModal({ isOpen, permissionDenied, returnFocus, onImport
           {t("V3.clipboard.pasteDialog.prompt")}
         </label>
         {permissionDenied &&
-          <p className="paste-data-permission-note">{t("V3.clipboard.pasteDialog.permissionDenied")}</p>}
+          <p className="paste-data-permission-note" data-testid="paste-data-permission-note">
+            {t("V3.clipboard.pasteDialog.permissionDenied")}
+            {/* Site settings can't override the policy of the page embedding CODAP */}
+            {!isClipboardReadBlockedByPolicy() && <> {t("V3.clipboard.pasteDialog.permissionSettingsHint")}</>}
+          </p>}
         <Textarea id="paste-data-text-area" ref={textAreaRef} className="paste-data-text-area"
           value={value} onPaste={handlePaste} onChange={handleChange} size="sm" rows={8}
           data-testid="paste-data-text-area" />

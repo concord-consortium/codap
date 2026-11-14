@@ -16,11 +16,14 @@ describe("PasteDataModal", () => {
   }
 
   function pasteInto(textArea: HTMLElement, html: string, text: string) {
+    const { value, selectionStart, selectionEnd } = textArea as HTMLTextAreaElement
     fireEvent.paste(textArea, {
       clipboardData: { getData: (type: string) => type === "text/html" ? html : type === "text/plain" ? text : "" }
     })
-    // jsdom doesn't perform the default paste, so simulate the text area's resulting change
-    fireEvent.change(textArea, { target: { value: (textArea as HTMLTextAreaElement).value + text } })
+    // jsdom doesn't perform the default paste, so simulate the text area's resulting change: the pasted
+    // text replaces the selection
+    const newValue = value.slice(0, selectionStart) + text + value.slice(selectionEnd)
+    fireEvent.change(textArea, { target: { value: newValue } })
   }
 
   it("shows the prompt", () => {
@@ -34,9 +37,30 @@ describe("PasteDataModal", () => {
     expect(screen.queryByText(/blocking clipboard access/)).not.toBeInTheDocument()
     unmount()
     renderModal(true)
-    expect(screen.getByText(
+    expect(screen.getByTestId("paste-data-permission-note")).toHaveTextContent(
       "Your browser is blocking clipboard access. You may be able to allow it in site settings."
-    )).toBeInTheDocument()
+    )
+  })
+
+  it("leaves out the site settings hint when the embedding page's policy blocks reading", () => {
+    const allowsFeature = jest.fn((feature: string) => feature !== "clipboard-read")
+    Object.defineProperty(document, "featurePolicy", { value: { allowsFeature }, configurable: true })
+    try {
+      renderModal(true)
+      expect(screen.getByTestId("paste-data-permission-note"))
+        .toHaveTextContent(/^Your browser is blocking clipboard access\.$/)
+    } finally {
+      delete (document as { featurePolicy?: unknown }).featurePolicy
+    }
+  })
+
+  it("clears the previous text when it reopens", () => {
+    const props = { permissionDenied: false, onImport: jest.fn(), onCancel: jest.fn() }
+    const { rerender } = render(<PasteDataModal isOpen={true} {...props} />)
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "old text" } })
+    rerender(<PasteDataModal isOpen={false} {...props} />)
+    rerender(<PasteDataModal isOpen={true} {...props} />)
+    expect(screen.getByRole("textbox")).toHaveValue("")
   })
 
   it("doesn't close when the overlay is clicked, so pasted text isn't lost", async () => {
@@ -134,6 +158,16 @@ describe("PasteDataModal", () => {
     pasteInto(textArea, "<table><tr><td>B</td></tr></table>", "B")
     await user.click(importButton)
     expect(onImport).toHaveBeenCalledWith({ text: "A\nB" })
+  })
+
+  it("includes the pasted HTML when the paste replaces all of the text", async () => {
+    const user = userEvent.setup()
+    const { onImport, textArea, importButton } = renderModal()
+    pasteInto(textArea, "<table><tr><td>A</td></tr></table>", "A")
+    ;(textArea as HTMLTextAreaElement).setSelectionRange(0, 1)
+    pasteInto(textArea, kTableHtml, "1")
+    await user.click(importButton)
+    expect(onImport).toHaveBeenCalledWith({ text: "1", html: kTableHtml })
   })
 
   it("drops the pasted HTML when text was typed before the paste", async () => {
