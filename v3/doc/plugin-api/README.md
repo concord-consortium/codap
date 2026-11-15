@@ -48,9 +48,10 @@ iframe-phone's two-second timeout for you; see
 
 **This reference replaces the
 [wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).**
-Every resource now has a complete, self-contained page in this folder, except `tourElements`,
-which is not yet documented anywhere, and `uiNotificationMonitor`, which has only an
-[interim guide](../plugin-ui-notifications.md). The wiki page is frozen as the **CODAP v2** reference;
+Every resource now has a complete, self-contained page in this folder, except two that are
+covered by full guides of their own: `tourElements`, documented in the
+[Tour API guide](../plugin-tour-api.md#get-tourelements), and `uiNotificationMonitor`, documented in
+the [UI notifications guide](../plugin-ui-notifications.md). The wiki page is frozen as the **CODAP v2** reference;
 [Where the wiki page's sections went](wiki-section-map.md) maps each of its sections to the page
 that now covers it.
 
@@ -322,8 +323,8 @@ All 39 resources CODAP v3 registers, alphabetically.
 | [`logMessage`](resources/log-message.md) | Write an event to CODAP's log |
 | [`logMessageMonitor`](resources/log-message-monitor.md) | Be told about the events CODAP logs |
 | [`selectionList`](resources/selection-list.md) | The selected cases in a data context |
-| `tourElements` | Not yet documented |
-| `uiNotificationMonitor` | Be told about clicks, drags and dialogs in CODAP's interface; see the [interim guide](../plugin-ui-notifications.md) |
+| [`tourElements`](../plugin-tour-api.md#get-tourelements) | The UI elements a tour or highlight can target, by `tourKey` |
+| [`uiNotificationMonitor`](../plugin-ui-notifications.md) | Be told about clicks, drags and dialogs in CODAP's interface |
 | [`undoChangeNotice`](resources/undo-change-notice.md) | Take part in CODAP's undo history |
 
 ---
