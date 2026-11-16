@@ -203,7 +203,7 @@ export function applyCaseValueChanges(
       if (newValue === undefined) return false
       const newStr = newValue === null ? "" : String(newValue)
       // Coalesce to "" because getStrValue can return undefined in caching mode
-      // (DataSet.getStrValueAtItemIndex returns cachedItem[attributeID]?.toString()).
+      // (DataSet.getStrValueAtFullItemIndex returns cachedItem[attributeID]?.toString()).
       const currentStr = data.getStrValue(aCase.__id__, attrId) ?? ""
       return newStr !== currentStr
     })

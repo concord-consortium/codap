@@ -7,6 +7,7 @@ import {IDataSet} from "../../../models/data/data-set"
 import {getMetadataFromDataSet} from "../../../models/shared/shared-data-utils"
 import {computePointRadius} from "../../data-display/data-display-utils"
 import {MapGridModel} from "./map-grid-model"
+import {MapHotSpotModel} from "./map-hot-spot-model"
 
 export const MapPointDisplayTypes = ["points", "heatmap"] as const
 export type MapPointDisplayType = typeof MapPointDisplayTypes[number]
@@ -19,6 +20,7 @@ export const MapPointLayerModel = MapLayerModel
   .props({
     type: types.optional(types.literal(kMapPointLayerType), kMapPointLayerType),
     gridModel: types.optional(MapGridModel, () => MapGridModel.create()),
+    hotSpotModel: types.optional(MapHotSpotModel, () => MapHotSpotModel.create()),
     pointsAreVisible: true, // This is different than layer visibility
     connectingLinesAreVisible: false,
     displayType: types.optional(types.enumeration([...MapPointDisplayTypes]), "points"),

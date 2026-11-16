@@ -126,21 +126,25 @@ function asString(node) {
 }
 
 // The property names of an object literal. A spread of a factory call, `...makeHandlers()`, is
-// recorded by the factory's name and resolved once every factory has been indexed (resolveProps).
+// recorded by the factory's name and resolved once every factory has been indexed (resolveProps);
+// any other spread is recorded as unresolved, so its properties are reported missing, not guessed.
 function literalProps(literal) {
   const props = new Set()
   const spreads = []
+  const unresolved = []
   for (const m of literal.properties) {
     if (ts.isSpreadAssignment(m)) {
       if (ts.isCallExpression(m.expression) && ts.isIdentifier(m.expression.expression)) {
         spreads.push(m.expression.expression.text)
+      } else {
+        unresolved.push(m.expression.getText())
       }
       continue
     }
     const n = m.name && (ts.isIdentifier(m.name) || ts.isStringLiteralLike(m.name)) ? m.name.text : undefined
     if (n) props.add(n)
   }
-  return { props, spreads }
+  return { props, spreads, unresolved }
 }
 
 // --- pass 2: index every `const X = <object literal>` so handlers can be resolved ---------
@@ -202,32 +206,36 @@ for (const [, sf] of sources) {
   })
 }
 
-// A literal's property names, with those of the factories it spreads (one level of nesting is
-// enough for the handlers today; a deeper chain stops rather than loops).
-function resolveProps({ props, spreads }, depth = 0) {
-  const all = new Set(props)
+// A literal's property names, with those of the factories it spreads, followed up to three
+// spreads deep so a cycle stops rather than loops. `unresolved` lists the spreads not followed.
+function resolveProps({ props, spreads, unresolved }, depth = 0) {
+  const all = { props: new Set(props), unresolved: [...unresolved] }
   for (const factory of spreads) {
     const spread = factoryProps.get(factory)
-    if (spread && depth < 3) resolveProps(spread, depth + 1).forEach(p => all.add(p))
+    if (spread && depth < 3) {
+      const resolved = resolveProps(spread, depth + 1)
+      resolved.props.forEach(p => all.props.add(p))
+      all.unresolved.push(...resolved.unresolved)
+    } else {
+      all.unresolved.push(`${factory}()`)
+    }
   }
   return all
 }
 
-// Actions a handler object defines. Resolves one level of factory indirection; anything
-// deeper is reported rather than guessed.
+// Actions a handler object defines, through a factory that builds it and the spreads resolveProps
+// follows. A spread it can't follow is reported in a note rather than guessed.
 function actionsOf(identName) {
   const entry = objectConsts.get(identName)
   if (!entry) return { actions: null, note: "handler not found" }
-  if (entry.props) {
-    const props = resolveProps(entry)
-    return { actions: ACTIONS.filter(a => props.has(a)) }
+  const viaFactory = entry.props ? undefined : factoryProps.get(entry.factory)
+  if (!entry.props && !viaFactory) return { actions: null, note: `built by ${entry.factory}()` }
+  const { props, unresolved } = resolveProps(entry.props ? entry : viaFactory)
+  return {
+    actions: ACTIONS.filter(a => props.has(a)),
+    ...(unresolved.length && { note: `spread not followed: ${unresolved.join(", ")}` }),
+    ...(viaFactory && { via: `${entry.factory}()` })
   }
-  const viaFactory = factoryProps.get(entry.factory)
-  if (viaFactory) {
-    const props = resolveProps(viaFactory)
-    return { actions: ACTIONS.filter(a => props.has(a)), via: `${entry.factory}()` }
-  }
-  return { actions: null, note: `built by ${entry.factory}()` }
 }
 
 // Does this handler read a data context? Its own file may never mention one and still require

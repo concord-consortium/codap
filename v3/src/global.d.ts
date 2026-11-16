@@ -12,4 +12,7 @@ declare namespace process {
   }
 }
 
+// The URL of the folder the bundle was loaded from, set by webpack at runtime.
+declare const __webpack_public_path__: string | undefined
+
 type Maybe<T> = T | undefined

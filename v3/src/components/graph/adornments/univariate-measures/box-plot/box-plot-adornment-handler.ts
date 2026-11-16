@@ -2,7 +2,9 @@ import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/ado
 import { IAdornmentModel } from "../../adornment-models"
 import { isBoxPlotAdornment } from "./box-plot-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
-import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import {
+  AdornmentData, adornmentMismatchResult, booleanValuesError, cellKeyToCategories
+} from "../../utilities/adornment-handler-utils"
 import { kBoxPlotType } from "./box-plot-adornment-types"
 import { adornmentWriteHandlers } from "../../utilities/adornment-write-handlers"
 
@@ -36,7 +38,10 @@ function get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
   return { data, showICI, showOutliers }
 }
 
-// `showOutliers` and `showICI` (the informal confidence interval), as set in the graph's inspector
+function validate(values: Record<string, unknown>) {
+  return booleanValuesError(values, ["showOutliers", "showICI"])
+}
+
 function applyValues(adornment: IAdornmentModel, values: Record<string, unknown>, graphContent: IGraphContentModel) {
   if (!isBoxPlotAdornment(adornment)) return
   const { showICI, showOutliers } = values
@@ -50,5 +55,5 @@ function applyValues(adornment: IAdornmentModel, values: Record<string, unknown>
 
 export const boxPlotAdornmentHandler: DIAdornmentHandler = {
   get,
-  ...adornmentWriteHandlers({ adornmentType: kBoxPlotType, get, applyValues })
+  ...adornmentWriteHandlers({ adornmentType: kBoxPlotType, get, validate, applyValues })
 }

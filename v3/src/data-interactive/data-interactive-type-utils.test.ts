@@ -1,6 +1,9 @@
 import { DataSet } from "../models/data/data-set"
 import { toV2Id } from "../utilities/codap-utils"
-import { convertDataSetToV2, convertValuesToAttributeSnapshot } from "./data-interactive-type-utils"
+import { setupTestDataset } from "../test/dataset-test-utils"
+import {
+  convertCaseToV2FullCase, convertDataSetToV2, convertValuesToAttributeSnapshot
+} from "./data-interactive-type-utils"
 
 describe("DataInteractiveTypeUtils", () => {
 
@@ -157,5 +160,18 @@ describe("DataInteractiveTypeUtils", () => {
         }
       ]
     })
+  })
+
+  it("converts a top-level case for notifications with null parents, as in V2", () => {
+    const { dataset, c1, c2 } = setupTestDataset()
+    const topCase = dataset.getCasesForCollection(c1.id)[0]
+    const topResult = convertCaseToV2FullCase(topCase, dataset)
+    expect(topResult.parent).toBeNull()
+    expect(topResult.collection?.parent).toBeNull()
+
+    const childCase = dataset.getCasesForCollection(c2.id)[0]
+    const childResult = convertCaseToV2FullCase(childCase, dataset)
+    expect(childResult.parent).toBe(toV2Id(topCase.__id__))
+    expect(childResult.collection?.parent).toEqual({ id: toV2Id(c1.id), name: c1.name })
   })
 })

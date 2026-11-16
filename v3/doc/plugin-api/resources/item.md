@@ -67,7 +67,8 @@ An item is an object mapping attribute names to values, for attributes in any co
 { "Diet": "meat", "Mammal": "Lion", "Mass": 190 }
 ```
 
-Attributes you leave out are empty. A name that matches no attribute is ignored. Text values have
+Attributes you leave out are empty. A name that matches no attribute is tried again with leading
+and trailing spaces removed, as in v2, and ignored if it still matches none. Text values have
 leading and trailing spaces removed, and `null` is stored as an empty value. Formula attributes
 compute their own values, so do not send them.
 
@@ -272,10 +273,6 @@ the cases the change removed in `deletedCases`. (Its `createdCases` was always e
 a known bug. Until it is fixed, a plugin that needs to know the resulting cases should read them
 again, for example with `caseSearch` or `allCases`.
 
-**Attribute names must match exactly.** v2 tried a name in an item object again with leading and
-trailing spaces removed, so `"Mass "` still matched `Mass`. v3 matches the name exactly and
-ignores one that differs. This is a known bug; the intended behavior is v2's.
-
 **A boolean value is stored as text.** An item created with `"Endangered": true` holds the text
 `true`, and `get` returns `"true"`. v2 kept the boolean. This is a known bug; it also affects
 searches, as described on [`caseSearch`](case-search.md#known-limitations).
@@ -299,20 +296,17 @@ lists the id in `changedCases`. v2 accepted only item ids, and failed the reques
 was not one. This is a known bug. Use the ids of items, from `itemSearch` or `itemByCaseID`, and
 use `caseByID` to change a case.
 
-**Other notifications differ from v2.** `create` and `update` do not send `createItems` or
-`updateItems`. These are known bugs, described in
-[the catalog's known limitations](../notifications.md#known-limitations).
-
 ## Notifications
 
 `create` notifies the plugins listening to the data context with `createCases` on
 `dataContextChangeNotice[<context>]`, one notification for each collection in which cases were
-created. `update` without an index sends `updateCases`, which does not list the changed cases,
-as in v2; read the cases again if you need them. `update` with an index sends `updateCases` for
-the item's case in the last collection, followed by `createCases` when the change moves the item
-to a different parent case (v2 sent only the `updateCases`, whose result also listed the cases
-created and deleted), and `delete` sends `deleteCases`. v2 also sent `createItems` and
-`updateItems`, and current deviations are listed under [Known limitations](#known-limitations).
+created, then `createItems`, with the ids of the cases the request created and, alongside each,
+the item it was built from. `update` sends `updateCases` for the items' cases in the last
+collection (for a case id, that case), `createCases` if the change regroups cases, then
+`updateItems`, with the items' ids. v2 sent no `createCases` for a regroup; its `updateCases`
+result listed the cases created and deleted instead. An update that names no known attribute
+sends nothing; v2 changed nothing but still sent `updateCases` and `updateItems`. `delete` sends
+`deleteCases`, then `deleteItems`, with the deleted items' ids; v2 sent no `deleteItems`.
 See [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext)
 for what each carries.
 

@@ -168,8 +168,8 @@ page does not yet cover, except for these:
 |---|---|---|
 | all of the types below, and `Mean`, `Median`, `Standard Deviation`, `Mean Absolute Deviation` and `Normal Curve` | `isVisible` | `update` shows or hides the adornment; `create` always shows it |
 | `Box Plot` | `showOutliers` | shows outliers separately, as the inspector's checkbox does |
-| `Box Plot` | `showICI` | shows the informal confidence interval. The inspector offers this only when CODAP is opened with the `ICI` URL parameter; the API sets it either way |
-| `Standard Error` | `_numStErrs` | the number of standard errors shown, as `get` reports it. A negative value, or one that isn't a finite number, is ignored, as the inspector does |
+| `Box Plot` | `showICI` | shows the informal confidence interval. The inspector offers this only when CODAP is opened with the `ICI` URL parameter, or while it is on; the API sets it either way |
+| `Standard Error` | `_numStErrs` | the number of standard errors shown, as `get` reports it. Any finite value of 0 or more is accepted, as in v2; the inspector shows it rounded to the nearest 0.5. A negative value, or one that isn't a finite number, is ignored |
 | `Movable Line` | `slope`, `intercept` | the line, in every cell of a split graph. Either may be sent alone. While the graph's intercept is locked, `intercept` stays 0. Unlike a drag, nothing keeps the line within the axes |
 | `Movable Point` | `x`, `y` | the point, in every cell of a split graph. Either may be sent alone. `get` reports them under the attributes' names. Nothing keeps the point within the axes |
 | `Plotted Function` | `formula` (or `expression`) | the function of `x` to plot; `""` clears it. `get` reports it as `formula`. The formula is checked just after the request, so the `create` reply's `error` is always empty: send `get` afterward to learn whether the formula is valid |
@@ -183,6 +183,10 @@ it, and a new `Plotted Function` has no formula yet. `create` replies with the s
 has the computed results. A `slope`, `intercept`, `x` or `y` that isn't a finite number, or a
 formula that isn't a string, is refused with `<property> must be a number.` or `<property> must be
 a string.`, and nothing changes.
+
+For every type, `create` and `update` refuse an `isVisible` that isn't `true` or `false` with
+`isVisible must be true or false.`, and change nothing; `Box Plot` does the same for
+`showOutliers` and `showICI`. A `null` value is treated as absent.
 
 ## Examples
 
@@ -267,9 +271,7 @@ Toggling an adornment emits a component notification whose operation is specific
 adornment — `togglePlottedMean`, `toggle connecting line`, `add movable value` and so on. These
 match the v2 operation strings, including v2's inconsistent casing. See
 [the notification catalog](../notifications.md#component-changes--component) for the full list.
-Only changes made in the graph's inspector send them: showing, hiding or setting any of the types
-in the table under [create, update, delete](#create-update-delete) with `create` or `update` sends no
-notification.
+Only changes made in the graph itself send them; no `adornment` request sends a notification.
 
 ## Errors
 
@@ -282,6 +284,7 @@ notification.
 | `The <type> adornment does not currently support <action> requests.` | `create` for a type CODAP doesn't have. (`update` for one replies `Adornment not found.`) |
 | `<property> must be a number.` | `create` or `update` on `Movable Line` or `Movable Point` with a `slope`, `intercept`, `x` or `y` that isn't a finite number. |
 | `<property> must be a string.` | `create` or `update` on `Plotted Function` or `Plotted Value` with a `formula` or `expression` that isn't a string. |
+| `<property> must be true or false.` | `create` or `update` with an `isVisible`, or a `Box Plot`'s `showOutliers` or `showICI`, that isn't a boolean. |
 | `Not a(n) <type> adornment.` | Internal type mismatch between the resolved adornment and its handler. |
 | `Adornment not supported by plot type.` | The adornment cannot be displayed by the graph's current plot type. |
 | `The current plot type does not support Percent.` | `create` with `type: "Percent"` on a plot that cannot show percentages. |

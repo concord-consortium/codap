@@ -41,15 +41,18 @@ export const InsertCasesModal: React.FC<IProps> =
 
   const buttons=[{  label: t("DG.AttrFormView.cancelBtnTitle"),
                     tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
+                    testId: "insert-cases-cancel-button",
                     onClick: () => onClose() },
                  {  label: t("DG.CaseTable.insertCasesDialog.applyBtnTitle"),
                     tooltip: t("DG.CaseTable.insertCasesDialog.applyBtnTooltip"),
+                    testId: "insert-cases-insert-button",
                     onClick: () => onClose({ count: numCasesToInsert, position: insertPosition }),
                     default: true }
                 ]
 
   return (
     <CodapModal
+      data-testid="insert-cases-modal"
       initialRef={numCasesToInsertRef}
       isOpen={isOpen}
       onClose={() => onClose()}
@@ -57,7 +60,7 @@ export const InsertCasesModal: React.FC<IProps> =
       modalHeight={"130px"}
     >
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
-        <div className="codap-modal-icon-container" />
+        <div className="codap-modal-icon-container" aria-hidden="true" />
         <div className="codap-header-title">{t("DG.CaseTable.insertCasesDialog.title")}</div>
         <ModalCloseButton onClick={() => onClose()} data-testid="modal-close-button"
           _focusVisible={{outline: "2px solid #0957d0", outlineOffset: "-4px", borderRadius: "50%"}} />
@@ -98,11 +101,11 @@ export const InsertCasesModal: React.FC<IProps> =
             <Tooltip key={key} label={b.tooltip} h="20px" fontSize="12px"
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               data-testid="modal-tooltip">
-              <Button key={key} size="xs" variant={`${b.default ? "default" : ""}`}
+              <Button key={key} size="xs" variant={`${b.default ? "v3Default" : "v3Clear"}`}
                   _hover={{backgroundColor: "#357f8b", color: "white"}}
                   _focusVisible={{outline: "2px solid #0957d0", outlineOffset: "2px"}}
                   ml="5" onClick={b.onClick}
-                  data-testid={`${b.label}-button`}>
+                  data-testid={b.testId}>
                 {b.label}
               </Button>
             </Tooltip>

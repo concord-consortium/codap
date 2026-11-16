@@ -8,7 +8,7 @@ import { getTileModel } from "../../../models/tiles/tile-model"
 import { t } from "../../../utilities/translation/translate"
 import {isVertical} from "../../axis-graph-shared"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
-import {RectIndices, selectDragRects} from "../axis-types"
+import {placeTestId, RectIndices, selectDragRects} from "../axis-types"
 import { getDomainExtentForPixelWidth, kZoomInFactor, kZoomOutFactor, zoomAxis } from "../axis-utils"
 import {useAxisLayoutContext} from "../models/axis-layout-context"
 import { updateAxisNotification } from "../models/axis-notifications"
@@ -261,12 +261,26 @@ export const NumericAxisDragRects = observer(
 
         dragBehaviors.push(...dragBehavior)
 
+        const placeTestIdVal = placeTestId(place)
+        // Zone index: 0 = lower, 1 = mid, 2 = upper (by fixed role, not render order).
+        const postfixToZone: Record<string, number> = {
+          "lower-dilate": 0,
+          "translate": 1,
+          "upper-dilate": 2,
+        }
         selectDragRects(rectElement)
           ?.data(numbering)// data signify lower, middle, upper rectangles
           .join(
             (enter) =>
               enter.append('rect')
                 .attr('class', (d) => d !== undefined && `dragRect ${classPrefix}-${classPostfixes?.[d] ?? ''}`)
+                .attr('data-role', 'axis-drag-rect')
+                .attr('data-testid', function() {
+                  const cls = this.getAttribute('class') || ''
+                  const postfix = Object.keys(postfixToZone).find(p => cls.includes(`${classPrefix}-${p}`))
+                  const zone = postfix !== undefined ? postfixToZone[postfix] : 1
+                  return `axis-drag-rect-${placeTestIdVal}-${zone}`
+                })
                 .append('title')
                 .text((d?: number) => {
                   if (d === undefined) return ''

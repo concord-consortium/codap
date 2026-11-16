@@ -21,4 +21,13 @@ describe("PersistentState", () => {
     persistentState.setDisableGraphicsAcceleration(false)
     expect(persistentState.disableGraphicsAcceleration).toBe(false)
   })
+  it("can toggle hideWelcome and saves it", () => {
+    applySnapshot(persistentState, { toolbarPosition: persistentState.toolbarPosition })
+    expect(persistentState.hideWelcome).toBeUndefined()
+    persistentState.setHideWelcome(true)
+    expect(persistentState.hideWelcome).toBe(true)
+    expect(JSON.parse(localStorage.getItem("persistentState")!).hideWelcome).toBe(true)
+    persistentState.setHideWelcome(false)
+    expect(persistentState.hideWelcome).toBe(false)
+  })
 })

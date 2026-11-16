@@ -32,8 +32,7 @@ function get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
   return { data, _numStErrs }
 }
 
-// `_numStErrs`, the number of standard errors shown, as `get` reports it and as set in the graph's inspector,
-// which allows no negative value
+// as in v2, any finite number of standard errors of 0 or more; the inspector shows it rounded to the nearest 0.5
 function applyValues(adornment: IAdornmentModel, values: Record<string, unknown>) {
   if (!isStandardErrorAdornment(adornment)) return
   const { _numStErrs } = values
