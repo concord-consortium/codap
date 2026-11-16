@@ -32,8 +32,7 @@ export const MapPointLayerModel = MapLayerModel
   .volatile(() => ({
     // Bumped when the set of plotted cases changes (cases added, removed, hidden, filtered, set aside)
     pointCasesVersion: 0,
-    // Bumped when plotted coordinate values may have changed (value edits, cases added or removed,
-    // lat/long attribute type changes)
+    // Bumped when plotted coordinate values may have changed (value edits, lat/long attribute type changes)
     pointValuesVersion: 0,
     // Whether the latest pointValuesVersion bump came from a value change made while the dataset was
     // caching, in which case only selected cases changed
@@ -145,8 +144,6 @@ export const MapPointLayerModel = MapLayerModel
           disposeActionListener = dataset && onAnyAction(dataset, action => {
             if (isCaseValueChangeAction(action)) {
               self.bumpPointValuesVersion(dataset.isCaching())
-            } else if (["addCases", "removeCases"].includes(action.name)) {
-              self.bumpPointValuesVersion()
             }
           })
         },
