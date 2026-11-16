@@ -36,6 +36,8 @@ interface IProps {
 export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayerModel }: IProps) {
   const leafletMap = useMap()
   const { isVisible, hotSpotModel } = mapPointLayerModel
+  // Hot spots draw even when the points are hidden (pointsAreVisible), but not when the whole layer is hidden.
+  // See plottedLatLongs for which cases contribute.
   const show = isFeatureEnabled("mapHotSpot") && isVisible && hotSpotModel.isVisible
   const { opacity } = hotSpotModel
   const layerRef = useRef<HotSpotCanvasLayer>()
@@ -55,7 +57,7 @@ export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayer
       () => [hotSpotModel.hotSpotSurface, hotSpotModel.lowColor, hotSpotModel.highColor],
       () => redraw(),
       { name: "MapHotSpotLayer.redraw" },
-      mapPointLayerModel
+      hotSpotModel
     )
 
     layer.setDrawFunction((context, region) => {

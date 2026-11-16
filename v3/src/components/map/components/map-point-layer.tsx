@@ -436,6 +436,17 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
     return () => disposer()
   }, [refreshHeatmap, refreshPoints, dataConfiguration])
 
+  useEffect(function setupResponseToChangeInCasesOrValues() {
+    return mstReaction(
+      () => mapLayerModel.pointDataVersion,
+      () => {
+        refreshConnectingLines()
+        refreshHeatmap()
+      }, {name: "MapPointLayer.setupResponseToChangeInCasesOrValues", fireImmediately: true },
+      mapLayerModel
+    )
+  }, [mapLayerModel, refreshHeatmap, refreshConnectingLines])
+
   // The set of plotted cases changed: re-match the renderer's points to the cases, then redraw
   useEffect(function setupResponseToChangeInCases() {
     return mstReaction(
@@ -443,11 +454,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       () => {
         callMatchCirclesToData()
         refreshPoints(false)
-        refreshHeatmap()
       }, { name: "MapPointLayer.setupResponseToChangeInCases", fireImmediately: true },
       mapLayerModel
     )
-  }, [callMatchCirclesToData, mapLayerModel, refreshHeatmap, refreshPoints])
+  }, [callMatchCirclesToData, mapLayerModel, refreshPoints])
 
   // Plotted values changed (value edits, cases added or removed, lat/long attribute type changes).
   useEffect(function setupResponseToChangeInValues() {
@@ -456,12 +466,10 @@ export const MapPointLayer = observer(function MapPointLayer({mapLayerModel, lay
       () => {
         // While the dataset is caching only selected cases change, so only they are restyled.
         refreshPoints(mapLayerModel.pointValuesChangedWhileCaching)
-        refreshConnectingLines()
-        refreshHeatmap()
       }, {name: "MapPointLayer.setupResponseToChangeInValues"},
       mapLayerModel
     )
-  }, [mapLayerModel, refreshConnectingLines, refreshHeatmap, refreshPoints])
+  }, [mapLayerModel, refreshPoints])
 
   // respond to visual item properties change
   useEffect(function respondToDisplayItemVisualPropsAction() {

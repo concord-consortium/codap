@@ -401,6 +401,8 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   // AttributeScale.binCount (V3 has no corresponding model field — see codap-v2-type-utils.ts).
   numberOfLegendQuantiles?: number
   legendQuantilesAreLocked?: boolean
+  // The locked bin edges. V2 writes [min, ...inner edges, padded max] (N+1 values for N bins).
+  // Older versions of V3 wrote only the inner edges. See importLegendLockProps.
   legendQuantiles?: number[] | null[] // null occurs in some documents, presumably as a result of a bug
   pointColor?: string
   strokeColor?: string
@@ -465,11 +467,12 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   } & ICodapV2LegendQuantileV3Extensions
 }
 
-// Legend quantile properties that v3 can write into a v3 extension namespace. For graphs these
-// also appear at the native top level; for maps the v3 namespace is the only place they are stored.
+// Legend quantile properties that v3 writes into a map's v3 extension namespace, because V2 does
+// not save them for maps. For graphs, V3 writes them only at the native top level.
 export interface ICodapV2LegendQuantileV3Extensions {
   numberOfLegendQuantiles?: number
   legendQuantilesAreLocked?: boolean
+  // In the same formats as the graph's native legendQuantiles
   legendQuantiles?: number[] | null[] // null occurs in some documents, presumably as a result of a bug
 }
 

@@ -76,29 +76,29 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
 
   historyService.setDependencies(fullEnvironment)
 
-  // Notify plugins when undo/redo stacks are cleared (canUndo/canRedo transition to false)
-  addDisposer(document, reaction(
-    () => ({ canUndo: document.canUndo, canRedo: document.canRedo }),
-    ({ canUndo, canRedo }, prev) => {
-      if (!document.content) return
-      if (prev?.canUndo && !canUndo) {
-        document.content.broadcastMessage({
-          action: "notify",
-          resource: "undoChangeNotice",
-          values: { operation: "clearUndo", canUndo, canRedo }
-        }, () => {})
-      }
-      if (prev?.canRedo && !canRedo) {
-        document.content.broadcastMessage({
-          action: "notify",
-          resource: "undoChangeNotice",
-          values: { operation: "clearRedo", canUndo, canRedo }
-        }, () => {})
-      }
-    },
-    { name: "createDocumentModel.undoRedoNotification",
-      equals: (a, b) => a.canUndo === b.canUndo && a.canRedo === b.canRedo }
-  ))
+  // clearRedo on each new entry, and undo or redo on document, as in V2 (undo_history.js)
+  document.treeManagerAPI?.undoManager.setHistoryListener(change => {
+    const { canUndo, canRedo } = document
+    if (change === "add") {
+      document.content?.broadcastMessage({
+        action: "notify",
+        resource: "undoChangeNotice",
+        values: { operation: "clearRedo", canUndo, canRedo }
+      }, () => {})
+    } else if (change === "undo") {
+      document.content?.broadcastMessage({
+        action: "notify",
+        resource: "document",
+        values: { operation: "undo", canUndo, canRedo }
+      }, () => {})
+    } else {
+      document.content?.broadcastMessage({
+        action: "notify",
+        resource: "document",
+        values: { operation: "redo", canUndo, canRedo }
+      }, () => {})
+    }
+  })
 
   // In CLUE we handled exceptions thrown by DocumentModel.create and returned a document
   // with a contentError property. This way the document object would be treated like any

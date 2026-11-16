@@ -47,12 +47,12 @@ describe("MapPointLayerModel point-data versions", () => {
     tree.data.endCaching()
   })
 
-  it("bumps both pointCasesVersion and pointValuesVersion when cases are added", () => {
+  it("bumps pointCasesVersion when cases are added", () => {
     const tree = createPointLayerTree()
     const cases = tree.layer.pointCasesVersion, values = tree.layer.pointValuesVersion
     tree.data.addCases(toCanonical(tree.data, [{ __id__: "c4", lat: 10, long: 10 }]))
     expect(tree.layer.pointCasesVersion).toBeGreaterThan(cases)
-    expect(tree.layer.pointValuesVersion).toBeGreaterThan(values)
+    expect(tree.layer.pointValuesVersion).toBe(values)
   })
 
   it("bumps pointValuesVersion and re-filters cases when a lat/long attribute's type changes", () => {

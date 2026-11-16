@@ -9,8 +9,10 @@ import { isCaseValueChangeAction } from "../../../models/data/data-set-actions"
 import { ICaseCreation } from "../../../models/data/data-set-types"
 import { insertCasesWithCustomUndoRedo } from "../../../models/data/data-set-undo"
 import { selectCases, setSelectedCases } from "../../../models/data/data-set-utils"
+import { mod } from "../../../utilities/math-utils"
 import { onAnyAction } from "../../../utilities/mst-utils"
 import { useDataDisplayLayout } from "../../data-display/hooks/use-data-display-layout"
+import { t } from "../../../utilities/translation/translate"
 import PlacedLocationMarker from "../assets/placed-location-marker.svg"
 import { useMapModelContext } from "../hooks/use-map-model-context"
 import { kPinColors, kPinCursors } from "../map-types"
@@ -27,12 +29,15 @@ interface IMapPinProps {
   color?: string
   dataset: IDataSet
   id: string
+  /** Zero-based render-order index. Used as a locale-independent disambiguator
+   *  on `data-testid` and to compose the pin's aria-label. */
+  index: number
   key?: string
   selected?: boolean
   x: number
   y: number
 }
-function MapPin({ color="#0068EA", dataset, id, selected, x, y }: IMapPinProps) {
+function MapPin({ color="#0068EA", dataset, id, index, selected, x, y }: IMapPinProps) {
   const map = useMap()
   const { wrapClickHandler } = useMapClickWithDoubleClickZoom(map)
   const handlePointerEnter = () => map.dragging.disable()
@@ -62,6 +67,8 @@ function MapPin({ color="#0068EA", dataset, id, selected, x, y }: IMapPinProps) 
   return (
     <button
       className={clsx("map-pin", { "selected-pin": selected })}
+      data-testid={`map-pin-${index}`}
+      aria-label={t("V3.Map.pinAriaLabel", { vars: [String(index + 1)] })}
       onClick={handleClick}
       onMouseDown={handleMouseDown}
       onPointerEnter={handlePointerEnter}
@@ -121,7 +128,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
       // Normalize the longitude to be between -180 and 180
       // The first modulo ensures the value is between -360 and 360,
       // the second modulo ensures the value is between 0 and 360
-      const normalizedLng = ((lng + 180) % 360 + 360) % 360 - 180
+      const normalizedLng = mod(lng + 180, 360) - 180
       const color = kPinColors[colorIndex]
       const newItem: ICaseCreation = { [pinLatId]: lat, [pinLongId]: normalizedLng }
       if (colorId) newItem[colorId] = color
@@ -173,6 +180,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
             color={color}
             dataset={dataset}
             id={__id__}
+            index={index}
             key={`pin-${__id__}`}
             selected={dataset?.isCaseSelected(__id__)}
             x={pinX}

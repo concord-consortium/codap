@@ -61,12 +61,14 @@ describe("DataInteractive medianAdornmentHandler", () => {
         subPlotRegionBoundaries: jest.fn(() => [1, 2])
       },
       dataConfiguration: mockDataConfig,
+      getUpdateCategoriesOptions: jest.fn(() => ({ dataConfig: mockDataConfig })),
       plotType: "dotPlot"
     }
     
     mockMedianAdornment = {
       id: "ADRN123",
       isVisible: true,
+      setVisibility: jest.fn(),
       measures: mockMeasuresMap,
       type: kMedianType
     }
@@ -121,12 +123,13 @@ describe("DataInteractive medianAdornmentHandler", () => {
     expect(values.error).toBe("Adornment not found.")
   })
 
-  it("update successfully updates count adornment properties", () => {
+  it("update sets the adornment's visibility", () => {
     mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(mockMedianAdornment)
     const updateValues = {
       isVisible: false
     }
     const result = handler.update?.({ graphContent: mockGraphContent, values: updateValues })
     expect(result?.success).toBe(true)
+    expect(mockMedianAdornment.setVisibility).toHaveBeenCalledWith(false)
   })
 })

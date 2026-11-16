@@ -1,10 +1,10 @@
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIResources } from "../data-interactive-types"
-import { getDocumentContentPropertyFromNode } from "../../utilities/mst-utils"
+import { DIHandler } from "../data-interactive-types"
+import { appState } from "../../models/app-state"
 
 export const diConfigurationListHandler: DIHandler = {
-  get(resources: DIResources) {
-    const gaussianFitEnabled = getDocumentContentPropertyFromNode(resources.interactiveFrame, "gaussianFitEnabled")
+  get() {
+    const gaussianFitEnabled = appState.document.content?.gaussianFitEnabled
     return {
       success: true,
       values: [
