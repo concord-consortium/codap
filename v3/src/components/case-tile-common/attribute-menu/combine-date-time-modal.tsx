@@ -1,0 +1,166 @@
+import {
+  Button, FormControl, FormLabel, Input, Menu, MenuButton, MenuItemOption, MenuList, MenuOptionGroup,
+  ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Text, Tooltip
+} from "@chakra-ui/react"
+import { ChevronDownIcon } from "@chakra-ui/icons"
+import { observer } from "mobx-react-lite"
+import React, { useEffect, useState } from "react"
+import { useDataSet } from "../../../hooks/use-data-set"
+import { logStringifiedObjectMessage } from "../../../lib/log-message"
+import { IAttribute } from "../../../models/data/attribute"
+import {
+  addCombinedDateTimeAttribute, combineDateTimeFormula, defaultCombinedAttributeName, getCombineDateTimePartners,
+  getDateTimeRoles
+} from "../../../models/data/combine-date-time"
+import { createAttributesNotification } from "../../../models/data/data-set-notifications"
+import { t } from "../../../utilities/translation/translate"
+import { CodapModal } from "../../codap-modal"
+import AttributeIcon from "../../../assets/icons/attribute-icon.svg"
+
+import "./attribute-menu.scss"
+
+interface IProps {
+  attributeId: string
+  finalFocusRef?: React.RefObject<HTMLElement>
+  isOpen: boolean
+  onClose: () => void
+}
+
+export const CombineDateTimeModal = observer(function CombineDateTimeModal(
+  { attributeId, finalFocusRef, isOpen, onClose }: IProps
+) {
+  const { data } = useDataSet()
+  const attribute = data?.getAttribute(attributeId)
+  const partners = isOpen && data ? getCombineDateTimePartners(data, attributeId) : []
+  const [partnerId, setPartnerId] = useState<string>()
+  const [newName, setNewName] = useState("")
+  const partner = partners.find(p => p.id === partnerId)
+  const roles = attribute && partner ? getDateTimeRoles(attribute, partner) : undefined
+
+  const updateDefaultName = (_partner?: IAttribute) => {
+    const _roles = data && attribute && _partner ? getDateTimeRoles(attribute, _partner) : undefined
+    setNewName(data && _roles ? defaultCombinedAttributeName(data, _roles) : "")
+  }
+
+  useEffect(() => {
+    // reset the dialog contents on each invocation
+    if (isOpen) {
+      const firstPartner = data ? getCombineDateTimePartners(data, attributeId)[0] : undefined
+      setPartnerId(firstPartner?.id)
+      updateDefaultName(firstPartner)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attributeId, isOpen])
+
+  const handlePartnerChange = (id: string) => {
+    setPartnerId(id)
+    updateDefaultName(partners.find(p => p.id === id))
+  }
+
+  const applyChanges = () => {
+    if (data && roles) {
+      let newAttr: IAttribute | undefined
+      data.applyModelChange(() => {
+        newAttr = addCombinedDateTimeAttribute(data, roles, newName)
+      }, {
+        notify: () => createAttributesNotification(newAttr ? [newAttr] : [], data),
+        undoStringKey: "DG.Undo.caseTable.createAttribute",
+        redoStringKey: "DG.Redo.caseTable.createAttribute",
+        log: logStringifiedObjectMessage("Combine date and time: %@", {
+          name: newAttr?.name,
+          date: roles.dateAttr.name,
+          time: roles.timeAttr.name,
+          formula: newAttr?.formula?.display
+        }, "data")
+      })
+    }
+    onClose()
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    e.stopPropagation()
+    if (e.key === "Escape") {
+      onClose()
+    }
+    if (e.key === "Enter") {
+      applyChanges()
+    }
+  }
+
+  const buttons = [
+    {
+      label: t("DG.AttrFormView.cancelBtnTitle"), tooltip: t("DG.AttrFormView.cancelBtnTooltip"), onClick: onClose
+    },
+    { label: t("DG.AttrFormView.applyBtnTitle"), onClick: applyChanges, default: true, isDisabled: !roles }
+  ]
+
+  return (
+    <CodapModal
+      finalFocusRef={finalFocusRef}
+      isOpen={isOpen}
+      onClose={onClose}
+      modalWidth={"300px"}
+      modalHeight={"230px"}
+    >
+      <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
+        <div className="codap-modal-icon-container">
+          <AttributeIcon className="codap-modal-icon" />
+        </div>
+        <div className="codap-header-title">{t("V3.CaseTable.combineDateTime.title")}</div>
+        <ModalCloseButton onClick={onClose} data-testid="modal-close-button"/>
+      </ModalHeader>
+      <ModalBody>
+        <FormControl display="flex" flexDirection="column">
+          <FormLabel className="edit-attribute-form-row" mr={5}>
+            {t("V3.CaseTable.combineDateTime.combineWith", { vars: [attribute?.name ?? ""] })}
+            <Menu>
+              <MenuButton as={Button} className="attr-menu-select" ml={5} data-testid="combine-date-time-partner"
+                  rightIcon={<ChevronDownIcon />}>
+                {partner?.name || " "}
+              </MenuButton>
+              <MenuList>
+                <MenuOptionGroup type="radio" value={partnerId}
+                    onChange={(value) => handlePartnerChange(value as string)}>
+                  {partners.map(p => (
+                    <MenuItemOption key={p.id} value={p.id} data-testid="combine-date-time-partner-option">
+                      {p.name}
+                    </MenuItemOption>
+                  ))}
+                </MenuOptionGroup>
+              </MenuList>
+            </Menu>
+          </FormLabel>
+          <FormLabel className="edit-attribute-form-row">
+            {t("DG.CaseTable.attributeEditor.name")}
+            <Input size="xs" ml={5} value={newName} onFocus={(e) => e.target.select()}
+                onChange={event => setNewName(event.target.value)} onKeyDown={handleKeyDown}
+                data-testid="combine-date-time-name-input"
+            />
+          </FormLabel>
+          {roles &&
+            <Text fontSize="xs" data-testid="combine-date-time-formula">
+              {t("V3.CaseTable.combineDateTime.formula")}{" "}
+              <code>{combineDateTimeFormula(roles.dateAttr.name, roles.timeAttr.name)}</code>
+            </Text>
+          }
+        </FormControl>
+      </ModalBody>
+      <ModalFooter mt="-5">
+        {buttons.map((b, i) => {
+          const key = `${i}-${b.label}`
+          return (
+            <Tooltip key={key} label={b.tooltip} h="20px" fontSize="12px"
+              color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
+              data-testid="modal-tooltip">
+              <Button size="xs" variant={`${b.default ? "default" : ""}`} ml="5" onClick={b.onClick}
+                  isDisabled={b.isDisabled}
+                  _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={`${b.label}-button`}>
+                {b.label}
+              </Button>
+            </Tooltip>
+          )
+        })}
+      </ModalFooter>
+    </CodapModal>
+  )
+})

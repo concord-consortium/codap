@@ -9,6 +9,7 @@ import {
   deleteCollectionNotification, dependentCasesNotification, hideAttributeNotification, removeAttributesNotification
 } from "../../../models/data/data-set-notifications"
 import { IAttributeChangeResult } from "../../../models/data/data-set-types"
+import { getCombineDateTimePartners } from "../../../models/data/combine-date-time"
 import { sortItemsWithCustomUndoRedo } from "../../../models/data/data-set-undo"
 import { getTileModel } from "../../../models/tiles/tile-model"
 import { uiState } from "../../../models/ui-state"
@@ -20,6 +21,7 @@ import { resizeColumnNotification } from "../../case-table/case-table-notificati
 import { kCellPadding } from "../../case-table/case-table-types"
 import { useCaseTableModel } from "../../case-table/use-case-table-model"
 import { findLongestContentWidth } from "../attribute-format-utils"
+import { CombineDateTimeModal } from "./combine-date-time-modal"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 
 interface IProps {
@@ -35,6 +37,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
   const metadata = useDataSetMetadata()
   const tableModel = useCaseTableModel()
   const { isOpen, onClose, onOpen } = useDisclosure()
+  const combineDateTime = useDisclosure()
 
   const handleMenuItemFocus = useMenuItemScrollIntoView()
 
@@ -51,6 +54,16 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
 
   const handleEditPropertiesClose = () => {
     onClose()
+    onModalOpen(false)
+  }
+
+  const handleCombineDateTimeOpen = () => {
+    combineDateTime.onOpen()
+    onModalOpen(true)
+  }
+
+  const handleCombineDateTimeClose = () => {
+    combineDateTime.onClose()
     onModalOpen(false)
   }
 
@@ -156,6 +169,11 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
       }
     },
     {
+      itemKey: "V3.CaseTable.headerMenuItems.combineDateTime",
+      isEnabled: () => !!data && getCombineDateTimePartners(data, attributeId).length > 0,
+      handleClick: handleCombineDateTimeOpen
+    },
+    {
       itemKey: "DG.TableController.headerMenuItems.sortAscending",
       handleClick: handleSortCases
     },
@@ -242,6 +260,8 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
       </MenuList>
       <EditAttributePropertiesModal attributeId={attributeId} finalFocusRef={finalFocusRef}
         isOpen={isOpen} onClose={handleEditPropertiesClose} />
+      <CombineDateTimeModal attributeId={attributeId} finalFocusRef={finalFocusRef}
+        isOpen={combineDateTime.isOpen} onClose={handleCombineDateTimeClose} />
     </>
   )
 })

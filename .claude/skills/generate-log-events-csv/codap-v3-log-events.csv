@@ -46,6 +46,7 @@ Changed stroke color,,,,User changes the point stroke color in the format inspec
 Clear formula for attribute %@,name,,{ name: string },User chooses the delete-formula menu item to remove an attribute's formula.
 Close calculator,,,{ type: string },When the user closes the calculator tile using its title-bar close button.
 Close component: %@,tileType,,{ tileType: string },User closes a component tile from the workspace.
+Combine date and time: %@,"{ name, date, time, formula }",,"{ name: string, date: string, time: string, formula: string }",User combines a date attribute and a time attribute into a new formula attribute using the combine date/time dialog.
 Create %@ cases in table,count,,{ count: number },When the user creates one or more new cases via the case-table input row.
 Create caseTable component,,,,User opens (or re-shows) the table/card for an existing dataset from the table tool-shelf menu.
 "Create collection: name: %@, attribute: %@","name, attribute",,"{ name: string, attribute: string }",When the user drags an attribute in the case card to create a new collection.
