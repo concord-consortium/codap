@@ -43,6 +43,11 @@ export const MapPointLayerModel = MapLayerModel
     // Changes whenever either version changes, for consumers that don't care which kind of change happened
     get pointDataVersion() {
       return self.pointCasesVersion + self.pointValuesVersion
+    },
+    get pointAttributes() {
+      const latId = self.dataConfiguration.attributeID('lat')
+      const longId = self.dataConfiguration.attributeID('long')
+      return latId && longId ? { latId, longId } : undefined
     }
   }))
   .actions(self => ({
@@ -71,14 +76,9 @@ export const MapPointLayerModel = MapLayerModel
     }
   }))
   .views(self => ({
-    get pointAttributes() {
-      const latId = self.dataConfiguration.attributeID('lat')
-      const longId = self.dataConfiguration.attributeID('long')
-      return latId && longId ? { latId, longId } : undefined
-    },
     getCaseLatLong(caseID: string) {
       const { dataset } = self.dataConfiguration
-      const attrs = this.pointAttributes
+      const attrs = self.pointAttributes
       return dataset && attrs ? getCaseLatLong(dataset, caseID, attrs.latId, attrs.longId) : undefined
     },
     getPointRadius(use: 'normal' | 'hover-drag' | 'select' = 'normal') {

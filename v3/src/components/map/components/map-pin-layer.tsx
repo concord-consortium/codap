@@ -9,6 +9,7 @@ import { isCaseValueChangeAction } from "../../../models/data/data-set-actions"
 import { ICaseCreation } from "../../../models/data/data-set-types"
 import { insertCasesWithCustomUndoRedo } from "../../../models/data/data-set-undo"
 import { selectCases, setSelectedCases } from "../../../models/data/data-set-utils"
+import { mod } from "../../../utilities/math-utils"
 import { onAnyAction } from "../../../utilities/mst-utils"
 import { useDataDisplayLayout } from "../../data-display/hooks/use-data-display-layout"
 import PlacedLocationMarker from "../assets/placed-location-marker.svg"
@@ -121,7 +122,7 @@ export const MapPinLayer = observer(function MapPinLayer({ mapLayerModel }: IMap
       // Normalize the longitude to be between -180 and 180
       // The first modulo ensures the value is between -360 and 360,
       // the second modulo ensures the value is between 0 and 360
-      const normalizedLng = ((lng + 180) % 360 + 360) % 360 - 180
+      const normalizedLng = mod(lng + 180, 360) - 180
       const color = kPinColors[colorIndex]
       const newItem: ICaseCreation = { [pinLatId]: lat, [pinLongId]: normalizedLng }
       if (colorId) newItem[colorId] = color
