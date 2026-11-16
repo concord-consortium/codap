@@ -173,12 +173,16 @@ page does not yet cover, except for these:
 |---|---|---|
 | `Mean`, `Median`, `Standard Deviation`, `Mean Absolute Deviation`, `Normal Curve`, `Standard Error`, `Box Plot` | `isVisible` | `update` shows or hides the adornment; `create` always shows it |
 | `Box Plot` | `showOutliers` | shows outliers separately, as the inspector's checkbox does |
-| `Box Plot` | `showICI` | shows the informal confidence interval. The inspector offers this only when CODAP is opened with the `ICI` URL parameter; the API sets it either way |
-| `Standard Error` | `_numStErrs` | the number of standard errors shown, as `get` reports it. A negative value, or one that isn't a finite number, is ignored, as the inspector does |
+| `Box Plot` | `showICI` | shows the informal confidence interval. The inspector offers this only when CODAP is opened with the `ICI` URL parameter, or while it is on; the API sets it either way |
+| `Standard Error` | `_numStErrs` | the number of standard errors shown, as `get` reports it. Any finite value of 0 or more is accepted, as in v2; the inspector shows it rounded to the nearest 0.5. A negative value, or one that isn't a finite number, is ignored |
 
 For these types, `create` on a graph whose plot cannot show the adornment returns
 `Adornment not supported by plot type.`, and creating one that already exists shows it again.
 `create` replies with the same values as `get`.
+
+For every type, `create` and `update` refuse an `isVisible` that isn't `true` or `false` with
+`isVisible must be true or false.`, and change nothing; `Box Plot` does the same for
+`showOutliers` and `showICI`. A `null` value is treated as absent.
 
 ## Examples
 
@@ -263,9 +267,7 @@ Toggling an adornment emits a component notification whose operation is specific
 adornment — `togglePlottedMean`, `toggle connecting line`, `add movable value` and so on. These
 match the v2 operation strings, including v2's inconsistent casing. See
 [the notification catalog](../notifications.md#component-changes--component) for the full list.
-Only changes made in the graph's inspector send them: showing, hiding or configuring `Mean`,
-`Median`, `Standard Deviation`, `Mean Absolute Deviation`, `Normal Curve`, `Standard Error` or
-`Box Plot` with `create` or `update` sends no notification.
+Only changes made in the graph itself send them; no `adornment` request sends a notification.
 
 ## Errors
 
@@ -275,7 +277,8 @@ Only changes made in the graph's inspector send them: showing, hiding or configu
 | `Adornment not found.` | `get`, `update` or `delete` for a type the graph has never displayed, or an id that matches nothing. |
 | `Adornment list not found.` | `adornmentList` on a component whose adornment list could not be resolved. |
 | `Unsupported adornment type` | The adornment exists but has no registered handler. |
-| `The <type> adornment does not currently support <action> requests.` | `create` or `update` for one of the read-only types above. |
+| `The <type> adornment does not currently support <action> requests.` | `create` or `update` for `Movable Line`, `Movable Point` or `Plotted Function`. |
+| `<property> must be true or false.` | `create` or `update` with an `isVisible`, or a `Box Plot`'s `showOutliers` or `showICI`, that isn't a boolean. |
 | `Not a(n) <type> adornment.` | Internal type mismatch between the resolved adornment and its handler. |
 | `Adornment not supported by plot type.` | The adornment cannot be displayed by the graph's current plot type. |
 | `The current plot type does not support Percent.` | `create` with `type: "Percent"` on a plot that cannot show percentages. |

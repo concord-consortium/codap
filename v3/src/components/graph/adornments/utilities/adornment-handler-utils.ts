@@ -45,3 +45,9 @@ export const normalizeCellKey = (requestCellKey: string, dataConfig: IDataConfig
 
   return cellKeyToString(normalizedCellKey)
 }
+
+// An error for the first of `keys` in `values` that is present but not a boolean
+export const booleanValuesError = (values: Record<string, unknown>, keys: string[]) => {
+  const key = keys.find(_key => values[_key] != null && typeof values[_key] !== "boolean")
+  if (key) return errorResult(t("V3.DI.Error.adornmentValueNotBoolean", { vars: [key] }))
+}

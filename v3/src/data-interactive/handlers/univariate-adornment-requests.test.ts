@@ -5,10 +5,9 @@ import { IDataSet } from "../../models/data/data-set"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { processAction } from "../data-interactive-request-processor"
 
-// Box Plot, Mean Absolute Deviation, Normal Curve and Standard Error can be shown and configured through
-// the API, as Mean, Median and Standard Deviation already could (CODAP-1551)
 describe("create and update on the univariate adornments", () => {
   const { document } = appState
+  let testData: IDataSet
   let dotPlot: string
   let scatterPlot: string
 
@@ -28,9 +27,9 @@ describe("create and update on the univariate adornments", () => {
   }
 
   beforeAll(async () => {
-    const dataset = createDataSet()
-    dotPlot = await createGraph(dataset, { xAttributeName: "a3" })
-    scatterPlot = await createGraph(dataset, { xAttributeName: "a3", yAttributeName: "a4" })
+    testData = createDataSet()
+    dotPlot = await createGraph(testData, { xAttributeName: "a3" })
+    scatterPlot = await createGraph(testData, { xAttributeName: "a3", yAttributeName: "a4" })
   })
 
   // a3 is 1 through 6: mean 3.5, mean absolute deviation 1.5
@@ -45,7 +44,7 @@ describe("create and update on the univariate adornments", () => {
     expect(created.values).toMatchObject({ type, isVisible: true })
     expect(created.values.data[0]).toMatchObject(data)
     expect(Object.values(created.values.data[0]).every(value => Number.isFinite(value))).toBe(true)
-    expect(created.values).toEqual({ ...await getAdornment(dotPlot, type), id: created.values.id })
+    expect(created.values).toEqual(await getAdornment(dotPlot, type))
 
     expect((await request("update", `${dotPlot}.adornment`, { type, isVisible: false })).success).toBe(true)
     expect((await getAdornment(dotPlot, type)).isVisible).toBe(false)
@@ -62,11 +61,12 @@ describe("create and update on the univariate adornments", () => {
   })
 
   it("Box Plot: create and update set showOutliers and showICI", async () => {
-    await request("create", `${dotPlot}.adornment`, { type: "Box Plot", showOutliers: true })
-    expect(await getAdornment(dotPlot, "Box Plot")).toMatchObject({ showOutliers: true, showICI: false })
+    const graph = await createGraph(testData, { xAttributeName: "a3" })
+    await request("create", `${graph}.adornment`, { type: "Box Plot", showOutliers: true })
+    expect(await getAdornment(graph, "Box Plot")).toMatchObject({ showOutliers: true, showICI: false })
 
-    await request("update", `${dotPlot}.adornment`, { type: "Box Plot", showOutliers: false, showICI: true })
-    expect(await getAdornment(dotPlot, "Box Plot")).toMatchObject({ showOutliers: false, showICI: true })
+    await request("update", `${graph}.adornment`, { type: "Box Plot", showOutliers: false, showICI: true })
+    expect(await getAdornment(graph, "Box Plot")).toMatchObject({ showOutliers: false, showICI: true })
   })
 
   it("Box Plot: showOutliers moves the whisker, even while the box plot is hidden", async () => {
@@ -83,24 +83,59 @@ describe("create and update on the univariate adornments", () => {
     expect(await upper()).toBe(6)
     await request("update", `${graph}.adornment`, { type: "Box Plot", showOutliers: false })
     expect(await upper()).toBe(100)
+    expect((await getAdornment(graph, "Box Plot")).isVisible).toBe(false)
   })
 
   it("Standard Error: create and update set the number of standard errors", async () => {
+    const graph = await createGraph(testData, { xAttributeName: "a3" })
     // by the type's space-free alias
-    const created = await request("create", `${dotPlot}.adornment`, { type: "StandardError", _numStErrs: 2 })
+    const created = await request("create", `${graph}.adornment`, { type: "StandardError", _numStErrs: 2 })
     expect(created.values._numStErrs).toBe(2)
     // the interval is the mean plus or minus that many standard errors
     const [{ standardError, min, max }] = created.values.data
     expect(max - min).toBeCloseTo(4 * standardError)
 
-    await request("update", `${dotPlot}.adornment`, { type: "Standard Error", _numStErrs: 1.5 })
-    const updated = await getAdornment(dotPlot, "Standard Error")
+    await request("update", `${graph}.adornment`, { type: "Standard Error", _numStErrs: 1.5 })
+    const updated = await getAdornment(graph, "Standard Error")
     expect(updated._numStErrs).toBe(1.5)
+    expect(updated.isVisible).toBe(true)
     expect(updated.data[0].max - updated.data[0].min).toBeCloseTo(3 * standardError)
     // a negative value, or one that isn't a finite number, is ignored
-    for (const _numStErrs of ["three", -2, NaN, Infinity]) {
-      await request("update", `${dotPlot}.adornment`, { type: "Standard Error", _numStErrs })
+    for (const _numStErrs of ["three", "2", null, -2, NaN, Infinity]) {
+      await request("update", `${graph}.adornment`, { type: "Standard Error", _numStErrs })
     }
-    expect((await getAdornment(dotPlot, "Standard Error"))._numStErrs).toBe(1.5)
+    expect((await getAdornment(graph, "Standard Error"))._numStErrs).toBe(1.5)
+  })
+
+  const isVisibleError = { success: false, values: { error: "isVisible must be true or false." } }
+
+  it.each([
+    ["Mean", "dot"], ["Median", "dot"], ["Standard Deviation", "dot"], ["Box Plot", "dot"],
+    ["Mean Absolute Deviation", "dot"], ["Normal Curve", "dot"], ["Standard Error", "dot"], ["Count", "dot"],
+    ["Movable Value", "dot"], ["Plotted Value", "dot"], ["Region of Interest", "dot"], ["LSRL", "scatter"]
+  ])("%s: create and update refuse an isVisible that isn't a boolean", async (type, plot) => {
+    const graph = await createGraph(testData,
+      plot === "dot" ? { xAttributeName: "a3" } : { xAttributeName: "a3", yAttributeName: "a4" })
+    expect(await request("create", `${graph}.adornment`, { type, isVisible: "true" })).toEqual(isVisibleError)
+    expect((await request("get", `${graph}.adornmentList`)).values).toEqual([])
+
+    expect((await request("create", `${graph}.adornment`, { type, isVisible: null })).success).toBe(true)
+    for (const isVisible of ["no", 0, 1, "false"]) {
+      expect(await request("update", `${graph}.adornment`, { type, isVisible })).toEqual(isVisibleError)
+    }
+    expect((await getAdornment(graph, type)).isVisible).toBe(true)
+  })
+
+  it("Box Plot: create and update refuse a showOutliers or showICI that isn't a boolean", async () => {
+    const graph = await createGraph(testData, { xAttributeName: "a3" })
+    expect(await request("create", `${graph}.adornment`, { type: "Box Plot", showOutliers: "yes" })).toEqual({
+      success: false, values: { error: "showOutliers must be true or false." }
+    })
+    expect((await request("get", `${graph}.adornmentList`)).values).toEqual([])
+
+    await request("create", `${graph}.adornment`, { type: "Box Plot" })
+    expect(await request("update", `${graph}.adornment`, { type: "Box Plot", isVisible: false, showICI: 1 }))
+      .toEqual({ success: false, values: { error: "showICI must be true or false." } })
+    expect(await getAdornment(graph, "Box Plot")).toMatchObject({ isVisible: true, showICI: false })
   })
 })

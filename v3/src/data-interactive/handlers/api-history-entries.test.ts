@@ -82,7 +82,9 @@ describe("plugin API requests that change the document", () => {
   // update shows the deleted adornment again and changes a setting
   it.each([
     ["Count", { percentType: "cell" }], ["Mean", {}], ["Median", {}], ["Standard Deviation", {}],
-    ["Plotted Value", {}], ["Region of Interest", { primary: { position: 1, extent: 2 } }]
+    ["Plotted Value", {}], ["Region of Interest", { primary: { position: 1, extent: 2 } }],
+    ["Mean Absolute Deviation", {}], ["Normal Curve", {}], ["Box Plot", { showOutliers: true }],
+    ["Standard Error", { _numStErrs: 2 }]
   ])("create, delete and update adornment %s add no undo entries", async (type, updateValues) => {
     expect(await undoEntriesAdded("create", `${graph}.adornment`, { type })).toBe(0)
     expect(await undoEntriesAdded("delete", `${graph}.adornment`, { type })).toBe(0)
