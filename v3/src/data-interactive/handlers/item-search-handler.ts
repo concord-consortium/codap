@@ -2,12 +2,22 @@ import { moveCasesNotification } from "../../models/data/data-set-notifications"
 import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { getV2ItemResult } from "../data-interactive-type-utils"
-import { ICase } from "../../models/data/data-set-types"
 import { DIHandler, DIItemSearchNotify, DIResources, DIValues } from "../data-interactive-types"
 import {
   couldNotParseQueryResult, dataContextNotFoundResult, fieldRequiredResult, valuesRequiredResult
 } from "./di-results"
 import { deleteItemsNotifications } from "./handler-functions"
+
+// The index at which v2 inserted an item for an `itemOrder` position: "first" and "last" are the ends, and
+// anything else is read as Array.prototype.splice reads its start: converted to a number and truncated, with
+// a negative position counting from the end and text that isn't a number meaning the start
+function itemOrderIndex(position: unknown, length: number) {
+  if (position === "first") return 0
+  if (position === "last") return length
+  const index = Math.trunc(Number(position))
+  if (isNaN(index)) return 0
+  return index < 0 ? Math.max(length + index, 0) : Math.min(index, length)
+}
 
 export const diItemSearchHandler: DIHandler = {
   delete(resources: DIResources) {
@@ -46,27 +56,27 @@ export const diItemSearchHandler: DIHandler = {
     const priorItemIds = Array.from(dataContext._itemIds)
     dataContext.applyModelChange(() => {
       const itemIds = itemSearch.map(({ __id__ }) => __id__)
-      if (Array.isArray(itemOrder)) {
-        // When itemOrder is an array, move each item to the specified index in order
-        // Note that this means later items can impact the position of earlier items
-        itemIds.forEach((id, index) => {
-          const itemIndex = itemOrder[index] != null ? Number(itemOrder[index]) : NaN
-          const item = dataContext.getItem(id) as ICase
-          if (item && isFinite(itemIndex)) {
-            dataContext.removeCases([id])
-            const before = dataContext.itemIds[itemIndex]
-            dataContext.addCases([item], { before })
-            dataContext.validateCases()
-          }
-        })
-      } else {
-        // Otherwise, move all the items to the beginning or end. "first" anchors on the first item
-        // not being moved among all items, set-aside and filtered-out ones included, as v2 does.
+      if (itemOrder === "first" || itemOrder === "last") {
+        // Move all the items to the beginning or end. "first" anchors on the first item not being moved
+        // among all items, set-aside and filtered-out ones included, as v2 does.
         const movingItemIds = new Set(itemIds)
         const before = itemOrder === "first"
           ? dataContext._itemIds.find(id => !movingItemIds.has(id))
           : undefined
         dataContext.moveItems(itemIds, { before })
+      } else {
+        // As in v2, each item moves in turn to its position (the array entry at its index, or the single
+        // value for every item), so a later move can shift an earlier one. Positions count all items,
+        // set-aside and filtered-out ones included, and an item with no position stays where it is.
+        const order = Array.from(dataContext._itemIds)
+        itemIds.forEach((id, index) => {
+          const position = Array.isArray(itemOrder) ? itemOrder[index] : itemOrder
+          const from = position != null ? order.indexOf(id) : -1
+          if (from < 0) return
+          order.splice(from, 1)
+          order.splice(itemOrderIndex(position, order.length), 0, id)
+        })
+        dataContext.setItemOrder(order)
       }
       dataContext.validateCases()
     }, {

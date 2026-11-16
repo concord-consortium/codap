@@ -652,8 +652,67 @@ test("DataSet case hiding/showing (set aside)", () => {
 
   data.moveItems(["item0"])
   expect(data.itemIds).toEqual(["item1", "item2", "item3", "item4", "item5", "item0"])
+  // a second move before the cases are validated still moves each item's values with it
   data.moveItems(["item1", "item2"])
   expect(data.itemIds).toEqual(["item3", "item4", "item5", "item0", "item1", "item2"])
+  expect(data.itemIds.map(id => data.getStrValue(id, childAttr.id))).toEqual(["3", "4", "5", "0", "1", "2"])
+})
+
+test("moveItems moves a very large number of items at once", () => {
+  const data = DataSet.create({ name: "data" })
+  const value = data.addAttribute({ id: "Value", name: "Value" })
+  const count = 200000
+  // added in chunks, since addCases itself spreads its ids into a call
+  for (let start = 0; start < count; start += 50000) {
+    data.addCases(Array.from({ length: 50000 }, (_, i) => ({ __id__: `i${start + i}`, [value.id]: start + i })))
+  }
+  data.validateCases()
+
+  // every item but the first moves ahead of it
+  data.moveItems(data.itemIds.slice(1), { before: "i0" })
+  data.validateCases()
+  expect(data.itemIds.length).toBe(count)
+  expect(data.itemIds[0]).toBe("i1")
+  expect(data.itemIds[count - 1]).toBe("i0")
+  expect(data.getNumeric("i0", value.id)).toBe(0)
+  expect(data.getNumeric("i1", value.id)).toBe(1)
+  expect(data.getNumeric(`i${count - 1}`, value.id)).toBe(count - 1)
+})
+
+test("moveItems moves items to the end when the item to move before is missing", () => {
+  const data = DataSet.create({ name: "data" })
+  const letter = data.addAttribute({ id: "Letter", name: "Letter" })
+  data.addCases(["a", "b", "c"].map(id => ({ __id__: id, [letter.id]: id })))
+  data.validateCases()
+  data.moveItems(["a"], { before: "missing" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["b", "c", "a"])
+  expect(data.items.map(({ __id__ }) => data.getStrValue(__id__, letter.id))).toEqual(["b", "c", "a"])
+})
+
+test("moveItems keeps the items' order, and places them after an item", () => {
+  const data = DataSet.create({ name: "data" })
+  const letter = data.addAttribute({ id: "Letter", name: "Letter" })
+  data.addCases(["a", "b", "c", "d", "e"].map(id => ({ __id__: id, [letter.id]: id })))
+  data.validateCases()
+  const letterValues = () => data.items.map(({ __id__ }) => data.getStrValue(__id__, letter.id))
+  // the items keep their current order, whatever order they're passed in
+  data.moveItems(["d", "b"], { after: "e" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["a", "c", "e", "b", "d"])
+  expect(letterValues()).toEqual(["a", "c", "e", "b", "d"])
+})
+
+test("moveItems moves values correctly right after a sort, before the cases are validated", () => {
+  const data = DataSet.create({ name: "data" })
+  const value = data.addAttribute({ id: "Value", name: "Value" })
+  data.addCases([3, 1, 2].map(v => ({ __id__: `i${v}`, [value.id]: v })))
+  data.validateCases()
+  data.sortByAttribute(value.id)
+  data.moveItems(["i3"], { before: "i1" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["i3", "i1", "i2"])
+  expect(data.itemIds.map(id => data.getNumeric(id, value.id))).toEqual([3, 1, 2])
 })
 
 test("moveItems moves the right items when some items are set aside", () => {

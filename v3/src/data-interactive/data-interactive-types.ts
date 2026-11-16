@@ -95,7 +95,7 @@ export interface DINotification {
   cursorMode?: boolean | string
 }
 export interface DIItemSearchNotify {
-  itemOrder?: "first" | "last" | number[]
+  itemOrder?: "first" | "last" | number | number[]
 }
 
 export interface DILogMessage {
