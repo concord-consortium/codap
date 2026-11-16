@@ -96,13 +96,18 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
 
   const buttons = [
     {
-      label: t("DG.AttrFormView.cancelBtnTitle"), tooltip: t("DG.AttrFormView.cancelBtnTooltip"), onClick: onClose
+      label: t("DG.AttrFormView.cancelBtnTitle"), tooltip: t("DG.AttrFormView.cancelBtnTooltip"), onClick: onClose,
+      testId: "combine-date-time-cancel-button"
     },
-    { label: t("V3.CaseTable.combineDateTime.create"), onClick: applyChanges, default: true, isDisabled: !roles }
+    {
+      label: t("V3.CaseTable.combineDateTime.create"), onClick: applyChanges, default: true, isDisabled: !roles,
+      testId: "combine-date-time-create-button"
+    }
   ]
 
   return (
     <CodapModal
+      data-testid="combine-date-time-modal"
       finalFocusRef={finalFocusRef}
       isOpen={isOpen}
       onClose={onClose}
@@ -110,7 +115,7 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
       modalHeight={"auto"}
     >
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
-        <div className="codap-modal-icon-container">
+        <div className="codap-modal-icon-container" aria-hidden="true">
           <AttributeIcon className="codap-modal-icon" />
         </div>
         <div className="codap-header-title">{t("V3.CaseTable.combineDateTime.title")}</div>
@@ -127,7 +132,7 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
                 data-testid="combine-date-time-partner" rightIcon={<ChevronDownIcon />}>
               {partner?.name || "\u00A0"}
             </MenuButton>
-            <MenuList>
+            <MenuList data-testid="combine-date-time-partner-menu-list">
               <MenuOptionGroup type="radio" value={partnerId}
                   onChange={(value) => handlePartnerChange(value as string)}>
                 {partners.map(p => (
@@ -162,7 +167,7 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
               data-testid="modal-tooltip">
               <Button size="xs" variant={`${b.default ? "default" : ""}`} ml="5" onClick={b.onClick}
                   isDisabled={b.isDisabled}
-                  _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={`${b.label}-button`}>
+                  _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={b.testId}>
                 {b.label}
               </Button>
             </Tooltip>
