@@ -34,6 +34,7 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
 
   describe("with undo monitoring enabled", () => {
     let tile: ITileModel
+    let broadcastSpy: jest.SpyInstance | undefined
 
     beforeEach(() => {
       tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
@@ -41,6 +42,8 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
     })
 
     afterEach(() => {
+      broadcastSpy?.mockRestore()
+      broadcastSpy = undefined
       appState.document.treeMonitor!.disableMonitoring()
     })
 
@@ -99,7 +102,7 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
 
     it("undoableActionPerformed without an interactiveFrame, as from the host page, targets the host page",
         async () => {
-      const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+      broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
 
       const result = await handler.notify?.({}, { operation: "undoableActionPerformed" })
       expect(result?.success).toBe(true)
@@ -113,12 +116,10 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
         ([msg]) => msg.resource === "undoChangeNotice" && msg.values?.operation === "undoAction"
       )
       expect(undoCall?.[2]).toBe(kHostPageId)
-
-      broadcastSpy.mockRestore()
     })
 
     it("undo sends undoAction message to the originating plugin", async () => {
-      const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+      broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
 
       await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
       await waitForHistoryEntry()
@@ -133,12 +134,10 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
       expect(undoCall).toBeDefined()
       // Should target only the originating plugin tile
       expect(undoCall?.[2]).toBe(tile.id)
-
-      broadcastSpy.mockRestore()
     })
 
     it("redo sends redoAction message to the originating plugin", async () => {
-      const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+      broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
 
       await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
       await waitForHistoryEntry()
@@ -154,8 +153,6 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
       )
       expect(redoCall).toBeDefined()
       expect(redoCall?.[2]).toBe(tile.id)
-
-      broadcastSpy.mockRestore()
     })
 
   })

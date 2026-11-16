@@ -124,8 +124,8 @@ numbered and unnumbered placeholders in one `formatStr`, and do not use `%{`.
 
 ## Notifications
 
-This resource sends no notification of its own. A log message that matches a monitor some plugin
-registered is sent to that plugin as a `logMessageNotice`; see
+This resource sends no notification of its own. A log message that matches a monitor is sent, as
+a `logMessageNotice`, to the plugin or the host page that registered the monitor; see
 [`logMessageMonitor`](log-message-monitor.md#notifications).
 
 ## Errors

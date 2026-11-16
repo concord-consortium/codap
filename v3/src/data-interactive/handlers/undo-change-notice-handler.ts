@@ -35,7 +35,8 @@ function sendUndoRedoMessage(tileId: string, operation: "undoAction" | "redoActi
   }, (response: any) => {
     // as in V2, only an explicit `success: false` is a failure
     if (response?.success === false) {
-      console.warn(`Plugin ${tileId} failed to handle ${operation}:`, response)
+      const requester = tileId === kHostPageId ? "The host page" : `Plugin ${tileId}`
+      console.warn(`${requester} failed to handle ${operation}:`, response)
       // as in V2 (data_interactive_phone_handler.js:2308-2312)
       appState.alert(t(operation === "undoAction" ? "DG.Undo.exceptionOccurred" : "DG.Redo.exceptionOccurred"),
         undefined)
@@ -83,8 +84,7 @@ export const diUndoChangeNoticeHandler: DIAsyncHandler = {
 
     switch (operation) {
       case "undoableActionPerformed": {
-        // a request from the host page has no frame, so its entry goes on the document and its
-        // undoAction and redoAction go back to the host page, as in V2
+        // the host page has no frame: its entry goes on the document, and undo or redo notifies kHostPageId, as in V2
         if (interactiveFrame) {
           if (!isWebViewModel(interactiveFrame.content)) {
             return errorResult("Interactive frame content not found")

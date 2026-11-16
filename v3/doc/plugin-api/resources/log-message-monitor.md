@@ -58,9 +58,9 @@ see [Known limitations](#known-limitations).
 both `topic` and `formatPrefix` matches an event with that topic, and also one whose `formatStr`
 has that prefix. See [Known limitations](#known-limitations).
 
-Only events a plugin logs with `logMessage` can have a `topic`. Events from CODAP's own interface
-have none, so `topic` and `topicPrefix` never match them. Their names and wording are CODAP's own
-and can differ between versions; see
+Only events a plugin, or the host page, logs with `logMessage` can have a `topic`. Events from
+CODAP's own interface have none, so `topic` and `topicPrefix` never match them. Their names and
+wording are CODAP's own and can differ between versions; see
 [the catalog's known limitations](../notifications.md#known-limitations).
 
 `register` replies with the new monitor, as `logMonitor`, alongside `success`:
@@ -189,8 +189,8 @@ is a known bug. Until it is fixed, read it as `replaceArgs ?? []`.
 
 ## Notifications
 
-When CODAP logs an event that matches a monitor, it sends the plugin that registered the monitor
-a notification on `logMessageNotice`. It has no `operation`:
+When CODAP logs an event that matches a monitor, it sends the plugin, or the host page, that
+registered the monitor a notification on `logMessageNotice`. It has no `operation`:
 
 ```json
 {
@@ -224,7 +224,7 @@ event twice. v2 also added which of the monitor's properties had matched; v3 doe
 
 | Error | Condition |
 |---|---|
-| `clientId and filter values are required` | `register` with no `values` |
+| `A values object is required for this request.` | `register` with no `values` |
 | `id or clientId required` | `unregister` with neither `id` nor `clientId` |
 
 v2 reported a `register` with none of the five properties with an error naming them, and an

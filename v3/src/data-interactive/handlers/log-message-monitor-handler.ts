@@ -2,13 +2,14 @@ import { kHostPageId } from "../../lib/embedded-mode/embedded-mode-registry"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
 import { logMonitorManager, LogMonitorFilter } from "../log-monitor-manager"
+import { valuesRequiredResult } from "./di-results"
 
 export const diLogMessageMonitorHandler: DIHandler = {
   register(resources: DIResources, values?: DIValues) {
     // a monitor registered by the host page, which has no frame, sends its notices to the host page
     const clientId = resources.interactiveFrame?.id ?? kHostPageId
     if (!values) {
-      return { success: false, values: { error: "clientId and filter values are required" } }
+      return valuesRequiredResult
     }
     const filter = values as unknown as LogMonitorFilter
     const monitor = logMonitorManager.register(clientId, filter)

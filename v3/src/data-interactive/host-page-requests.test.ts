@@ -12,6 +12,7 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { processAction } from "./data-interactive-request-processor"
 import { DIAction, DISuccessResult } from "./data-interactive-types"
 import { logMonitorManager } from "./log-monitor-manager"
+import { valuesRequiredResult } from "./handlers/di-results"
 import "./register-handlers"
 
 // requests from the page CODAP is embedded in arrive with no tile, as from the embedded server
@@ -60,29 +61,25 @@ describe("requests from the host page", () => {
     it("puts the host page's action on the history and sends its undoAction and redoAction to it", async () => {
       const notify = (operation: string) =>
         hostRequest({ action: "notify", resource: "undoChangeNotice", values: { operation } })
+      const undoRedoOperations = (spy: jest.Mock | jest.SpyInstance) =>
+        received(spy, "undoChangeNotice").map(m => m.values.operation)
+          .filter(operation => operation === "undoAction" || operation === "redoAction")
 
       const performed = await notify("undoableActionPerformed")
-      expect(performed.success).toBe(true)
+      expect(performed).toEqual({ success: true, values: { canUndo: true, canRedo: false } })
       await waitForHistoryEntry()
-      expect(appState.document.canUndo).toBe(true)
 
       const undone = await notify("undoButtonPress")
-      expect(undone.success).toBe(true)
-      expect(undone.values).toEqual({ canUndo: expect.any(Boolean), canRedo: true })
+      expect(undone).toEqual({ success: true, values: { canUndo: false, canRedo: true } })
       await waitForHistoryEntry()
-      expect(received(hostPage.broadcastMessage, "undoChangeNotice").map(m => m.values.operation))
-        .toContain("undoAction")
+      expect(undoRedoOperations(hostPage.broadcastMessage)).toEqual(["undoAction"])
 
       const redone = await notify("redoButtonPress")
-      expect(redone.success).toBe(true)
+      expect(redone).toEqual({ success: true, values: { canUndo: true, canRedo: false } })
       await waitForHistoryEntry()
-      expect(received(hostPage.broadcastMessage, "undoChangeNotice").map(m => m.values.operation))
-        .toContain("redoAction")
+      expect(undoRedoOperations(hostPage.broadcastMessage)).toEqual(["undoAction", "redoAction"])
 
-      // the plugin is not told to undo or redo the host page's action
-      const pluginOperations = received(pluginSpy, "undoChangeNotice").map(m => m.values.operation)
-      expect(pluginOperations).not.toContain("undoAction")
-      expect(pluginOperations).not.toContain("redoAction")
+      expect(undoRedoOperations(pluginSpy)).toEqual([])
     })
   })
 
@@ -121,14 +118,25 @@ describe("requests from the host page", () => {
       expect(received(pluginSpy, "logMessageNotice")).toHaveLength(0)
     })
 
+    let logSpy: jest.SpyInstance | undefined
+
+    it("fails a register from the host page with no values", async () => {
+      const result = await hostRequest({ action: "register", resource: "logMessageMonitor" })
+      expect(result).toEqual(valuesRequiredResult)
+    })
+
+    afterEach(() => {
+      logSpy?.mockRestore()
+      logSpy = undefined
+    })
+
     it("logs a message from the host page", async () => {
-      const logSpy = jest.spyOn(Logger, "log").mockImplementation(() => null)
+      logSpy = jest.spyOn(Logger, "log").mockImplementation(() => null)
       const result = await hostRequest({
         action: "notify", resource: "logMessage", values: { formatStr: "Host page did %@", replaceArgs: ["this"] }
       })
       expect(result.success).toBe(true)
       expect(logSpy).toHaveBeenCalledWith("Host page did this", { 0: "this" }, undefined)
-      logSpy.mockRestore()
     })
   })
 
