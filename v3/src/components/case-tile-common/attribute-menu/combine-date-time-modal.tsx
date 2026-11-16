@@ -9,8 +9,8 @@ import { useDataSet } from "../../../hooks/use-data-set"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { IAttribute } from "../../../models/data/attribute"
 import {
-  addCombinedDateTimeAttribute, combineDateTimeFormula, defaultCombinedAttributeName, getCombineDateTimePartners,
-  getDateTimeRoles
+  addCombinedDateTimeAttribute, defaultCombinedAttributeName, getCombineDateTimePartners, getCombineDateTimePreview,
+  getDateTimeRoles, isTimeOnlyAttribute
 } from "../../../models/data/combine-date-time"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
 import { t } from "../../../utilities/translation/translate"
@@ -36,6 +36,13 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
   const [newName, setNewName] = useState("")
   const partner = partners.find(p => p.id === partnerId)
   const roles = attribute && partner ? getDateTimeRoles(attribute, partner) : undefined
+  const preview = roles ? getCombineDateTimePreview(roles) : undefined
+  // the attribute the menu was opened from is fixed; the dialog chooses the attribute for the other role
+  const isAttributeTime = !!attribute && isTimeOnlyAttribute(attribute)
+  const dateLabel = t("V3.CaseTable.combineDateTime.dateColumn")
+  const timeLabel = t("V3.CaseTable.combineDateTime.timeColumn")
+  const fixedLabel = isAttributeTime ? timeLabel : dateLabel
+  const partnerLabel = isAttributeTime ? dateLabel : timeLabel
 
   const updateDefaultName = (_partner?: IAttribute) => {
     const _roles = data && attribute && _partner ? getDateTimeRoles(attribute, _partner) : undefined
@@ -91,7 +98,7 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
     {
       label: t("DG.AttrFormView.cancelBtnTitle"), tooltip: t("DG.AttrFormView.cancelBtnTooltip"), onClick: onClose
     },
-    { label: t("DG.AttrFormView.applyBtnTitle"), onClick: applyChanges, default: true, isDisabled: !roles }
+    { label: t("V3.CaseTable.combineDateTime.create"), onClick: applyChanges, default: true, isDisabled: !roles }
   ]
 
   return (
@@ -99,8 +106,8 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
       finalFocusRef={finalFocusRef}
       isOpen={isOpen}
       onClose={onClose}
-      modalWidth={"300px"}
-      modalHeight={"230px"}
+      modalWidth={"340px"}
+      modalHeight={"auto"}
     >
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
         <div className="codap-modal-icon-container">
@@ -109,41 +116,42 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
         <div className="codap-header-title">{t("V3.CaseTable.combineDateTime.title")}</div>
         <ModalCloseButton onClick={onClose} data-testid="modal-close-button"/>
       </ModalHeader>
-      <ModalBody>
-        <FormControl display="flex" flexDirection="column">
-          <FormLabel className="edit-attribute-form-row" mr={5}>
-            {t("V3.CaseTable.combineDateTime.combineWith", { vars: [attribute?.name ?? ""] })}
-            <Menu>
-              <MenuButton as={Button} className="attr-menu-select" ml={5} data-testid="combine-date-time-partner"
-                  rightIcon={<ChevronDownIcon />}>
-                {partner?.name || " "}
-              </MenuButton>
-              <MenuList>
-                <MenuOptionGroup type="radio" value={partnerId}
-                    onChange={(value) => handlePartnerChange(value as string)}>
-                  {partners.map(p => (
-                    <MenuItemOption key={p.id} value={p.id} data-testid="combine-date-time-partner-option">
-                      {p.name}
-                    </MenuItemOption>
-                  ))}
-                </MenuOptionGroup>
-              </MenuList>
-            </Menu>
-          </FormLabel>
-          <FormLabel className="edit-attribute-form-row">
-            {t("DG.CaseTable.attributeEditor.name")}
-            <Input size="xs" ml={5} value={newName} onFocus={(e) => e.target.select()}
-                onChange={event => setNewName(event.target.value)} onKeyDown={handleKeyDown}
-                data-testid="combine-date-time-name-input"
-            />
-          </FormLabel>
-          {roles &&
-            <Text fontSize="xs" data-testid="combine-date-time-formula">
-              {t("V3.CaseTable.combineDateTime.formula")}{" "}
-              <code>{combineDateTimeFormula(roles.dateAttr.name, roles.timeAttr.name)}</code>
-            </Text>
-          }
+      <ModalBody className="combine-date-time-body">
+        <Text className="combine-date-time-fixed" data-testid="combine-date-time-fixed">
+          {t("V3.CaseTable.combineDateTime.fixedColumn", { vars: [fixedLabel, attribute?.name ?? ""] })}
+        </Text>
+        <FormControl>
+          <FormLabel className="combine-date-time-label">{partnerLabel}</FormLabel>
+          <Menu matchWidth>
+            <MenuButton as={Button} className="attr-menu-select combine-date-time-select"
+                data-testid="combine-date-time-partner" rightIcon={<ChevronDownIcon />}>
+              {partner?.name || "\u00A0"}
+            </MenuButton>
+            <MenuList>
+              <MenuOptionGroup type="radio" value={partnerId}
+                  onChange={(value) => handlePartnerChange(value as string)}>
+                {partners.map(p => (
+                  <MenuItemOption key={p.id} value={p.id} data-testid="combine-date-time-partner-option">
+                    {p.name}
+                  </MenuItemOption>
+                ))}
+              </MenuOptionGroup>
+            </MenuList>
+          </Menu>
         </FormControl>
+        <FormControl>
+          <FormLabel className="combine-date-time-label">{t("V3.CaseTable.combineDateTime.newName")}</FormLabel>
+          <Input size="sm" className="combine-date-time-input" value={newName} onFocus={(e) => e.target.select()}
+              onChange={event => setNewName(event.target.value)} onKeyDown={handleKeyDown}
+              data-testid="combine-date-time-name-input"
+          />
+        </FormControl>
+        {preview &&
+          <Text className="combine-date-time-preview" data-testid="combine-date-time-preview">
+            {t("V3.CaseTable.combineDateTime.preview",
+              { vars: [preview.dateValue, preview.timeValue, preview.result] })}
+          </Text>
+        }
       </ModalBody>
       <ModalFooter mt="-5">
         {buttons.map((b, i) => {

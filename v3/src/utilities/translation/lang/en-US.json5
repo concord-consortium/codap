@@ -1465,9 +1465,13 @@
     "V3.CaseCardTable.Inspector.Data": "Data",
     "V3.CaseCardTable.Inspector.Delete": "Delete",
     "V3.CaseTable.headerMenuItems.combineDateTime": "Combine with Another Date/Time Attribute...",
-    "V3.CaseTable.combineDateTime.title": "Combine Date and Time",
-    "V3.CaseTable.combineDateTime.combineWith": "Combine %@ with", /* %@ replaced with the attribute name */
-    "V3.CaseTable.combineDateTime.formula": "Formula:",
+    "V3.CaseTable.combineDateTime.title": "Combine date and time",
+    "V3.CaseTable.combineDateTime.dateColumn": "Date column",
+    "V3.CaseTable.combineDateTime.timeColumn": "Time column",
+    "V3.CaseTable.combineDateTime.fixedColumn": "%@1: %@2", /* %@1 replaced with "Date column" or "Time column", %@2 with the attribute name */
+    "V3.CaseTable.combineDateTime.newName": "New attribute name",
+    "V3.CaseTable.combineDateTime.preview": "Preview: %@1 + %@2 → %@3", /* %@1 replaced with a date value, %@2 with a time value, %@3 with the combined result */
+    "V3.CaseTable.combineDateTime.create": "Create",
     // the next four strings replace their V2 counterparts
     "V3.CaseTable.collectionTitleText": "%@1 (%@2 cases)", /* %@1 replaced with case table title, %@2 replaced with case count */
     "V3.CaseTable.collectionTitleTextWithHidden": "%@1 (%@2 cases, %@3 hidden)", /* %@1 replaced with case table title, %@2 replaced with case count, %@3 with hidden count */

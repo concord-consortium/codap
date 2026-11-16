@@ -1,5 +1,7 @@
 import { isTimeOfDayString } from "../../utilities/date-parser"
+import { formatDate } from "../../utilities/date-utils"
 import { uniqueName } from "../../utilities/js-utils"
+import { dateFunctions } from "../formula/functions/date-functions"
 import { asFormulaIdentifier } from "../formula/utils/name-mapping-utils"
 import { IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
@@ -57,6 +59,34 @@ export function combineDateTimeFormula(dateName: string, timeName: string) {
   const d = asFormulaIdentifier(dateName)
   const tm = asFormulaIdentifier(timeName)
   return `date(year(${d}), month(${d}), dayOfMonth(${d}), hours(${tm}), minutes(${tm}), seconds(${tm}))`
+}
+
+export interface ICombineDateTimePreview {
+  dateValue: string
+  timeValue: string
+  result: string
+}
+
+/**
+ * Returns an example of the combination, using the first case that has both a date and a time value.
+ * It evaluates the same functions as the generated formula, so it matches what the new attribute will show.
+ */
+export function getCombineDateTimePreview(roles: IDateTimeRoles): ICombineDateTimePreview | undefined {
+  const { dateAttr, timeAttr } = roles
+  const index = dateAttr.strValues.findIndex((value, i) => !!value && !!timeAttr.strValues[i])
+  if (index < 0) return
+
+  const dateValue = dateAttr.strValues[index]
+  const timeValue = timeAttr.strValues[index]
+  const { date, year, month, dayOfMonth, hours, minutes, seconds } = dateFunctions
+  const combined = date.evaluate(
+    year.evaluate(dateValue), month.evaluate(dateValue), dayOfMonth.evaluate(dateValue),
+    hours.evaluate(timeValue), minutes.evaluate(timeValue), seconds.evaluate(timeValue)
+  )
+  if (!(combined instanceof Date)) return
+
+  const result = formatDate(combined, combined.getSeconds() ? "second" : "minute")
+  return result ? { dateValue, timeValue, result } : undefined
 }
 
 export function uniqueAttributeName(data: IDataSet, baseName: string) {

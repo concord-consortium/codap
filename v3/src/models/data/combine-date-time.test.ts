@@ -1,6 +1,6 @@
 import {
   addCombinedDateTimeAttribute, combineDateTimeFormula, defaultCombinedAttributeName, getCombineDateTimePartners,
-  getDateTimeRoles, isDateOrTimeAttribute, isTimeOnlyAttribute
+  getCombineDateTimePreview, getDateTimeRoles, isDateOrTimeAttribute, isTimeOnlyAttribute
 } from "./combine-date-time"
 import { DataSet, IDataSet, toCanonical } from "./data-set"
 
@@ -113,5 +113,27 @@ describe("combine date/time", () => {
     const newAttr = addCombinedDateTimeAttribute(data, roles, "when")!
     expect(data.getCollectionForAttribute(newAttr.id)?.id).toBe(childCollection.id)
     expect(childCollection.attributes.map(a => a?.name)).toEqual(["name", "time", "when", "stamp", "clock"])
+  })
+
+  describe("getCombineDateTimePreview", () => {
+    it("previews the first case that has both a date and a time", () => {
+      const data = createData()
+      const preview = getCombineDateTimePreview(getDateTimeRoles(attr(data, "day"), attr(data, "clock")))
+      expect(preview).toEqual({ dateValue: "2026-10-27", timeValue: "1:45 PM", result: "10/27/2026, 1:45 PM" })
+    })
+
+    it("skips cases with a missing time", () => {
+      const data = createData()
+      data.setCaseValues([{ __id__: data.items[0].__id__, time: "" }])
+      data.setCaseValues([{ __id__: data.items[1].__id__, time: "08:05:30" }])
+      const preview = getCombineDateTimePreview(getDateTimeRoles(attr(data, "day"), attr(data, "time")))
+      expect(preview).toEqual({ dateValue: "2026-10-28", timeValue: "08:05:30", result: "10/28/2026, 8:05:30 AM" })
+    })
+
+    it("returns undefined when no case has both values", () => {
+      const data = createData()
+      data.setCaseValues(data.items.map(item => ({ __id__: item.__id__, time: "" })))
+      expect(getCombineDateTimePreview(getDateTimeRoles(attr(data, "day"), attr(data, "time")))).toBeUndefined()
+    })
   })
 })
