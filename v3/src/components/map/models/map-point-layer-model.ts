@@ -32,7 +32,7 @@ export const MapPointLayerModel = MapLayerModel
   .volatile(() => ({
     // Bumped when the set of plotted cases changes (cases added, removed, hidden, filtered, set aside)
     pointCasesVersion: 0,
-    // Bumped when plotted coordinate values may have changed (value edits, lat/long attribute type changes).
+    // Bumped when plotted coordinate values may have changed (value edits, lat/long attribute type or id changes).
     // This is needed because dataConfiguration.caseDataHash hashes only which cases are plotted, not their
     // values, so it doesn't change when a lat/long value is edited.
     pointValuesVersion: 0,

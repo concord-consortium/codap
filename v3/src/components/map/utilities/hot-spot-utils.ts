@@ -20,7 +20,7 @@ export const kKernelCutoff = 3
  * computing a grid 4× the viewport's area.
  */
 export const kHotSpotPadding = 0.5
-/** Bandwidth used when the points have no spread */
+/** Bandwidth used when the points have no spread or there is no mean center */
 export const kFallbackBandwidthMeters = 10000
 /** Radius of the sphere used by Leaflet's Web Mercator projection (EPSG:3857) */
 export const kWebMercatorRadiusMeters = 6378137
@@ -83,8 +83,8 @@ export interface IKernel {
 }
 
 /**
- * Unnormalized Gaussian kernel, truncated outside a square window of half-width kKernelCutoff · h. Both
- * computeMaxDensity and computeDensityGrid truncate with this same window (see kKernelCutoff).
+ * Unnormalized Gaussian kernel, truncated outside a square window of half-width kKernelCutoff · h.
+ * Both computeMaxDensity and computeDensityGrid truncate with this same window (see kKernelCutoff).
  */
 export function kernelWeight(dx: number, dy: number, h: number) {
   const r = kKernelCutoff * h
@@ -92,15 +92,15 @@ export function kernelWeight(dx: number, dy: number, h: number) {
   return Math.exp(-(dx * dx + dy * dy) / (2 * h * h))
 }
 
-/** Wraps a horizontal world-coordinate difference into [−128, 128], the short way across the antimeridian */
+/** Wraps a horizontal world-coordinate difference into [−128, 128), the short way across the antimeridian */
 export function wrapWorldDelta(dx: number) {
   return dx - kWorldSize * Math.round(dx / kWorldSize)
 }
 
 /**
  * Buckets world-coordinate kernels so that every kernel whose window contains a location is in that location's
- * bucket or one of its eight neighbors. Buckets are at least kKernelCutoff · (largest h) wide. Columns wrap
- * around the antimeridian.
+ * bucket or one of its eight neighbors. Buckets are at least kKernelCutoff · (largest h) wide (unless that exceeds
+ * the world size, in which case size is 1). Columns wrap around the antimeridian.
  */
 class WorldKernelIndex {
   private size: number
@@ -156,8 +156,8 @@ const kMeanShiftTolerance = 1e-6
 
 /**
  * Returns the maximum of the density surface of world-coordinate kernels. The maximum usually lies between
- * points, so this climbs from each point to its local maximum with mean-shift, which always moves uphill on a
- * sum of Gaussians. The density at each starting point is included too, so the result is never less than
+ * points, so this climbs from each point to its local maximum with mean-shift, which always goes in an uphill direction
+ * on a sum of Gaussians. The density at each starting point is included too, so the result is never less than
  * evaluating at the points alone.
  */
 export function computeMaxDensity(kernels: IKernel[]) {
