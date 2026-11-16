@@ -178,7 +178,6 @@ the string is what reaches your plugin.
 | `Unsupported component type <value>` | — |
 | `Unsupported dateUnit <value>` | — |
 | `Unsupported scaleType <value>` | — |
-| `clientId and filter values are required` | `diLogMessageMonitorHandler` |
 | `error creating global value` | — |
 | `eventTypes entries must be strings` | — |
 | `eventTypes must be an array` | — |
