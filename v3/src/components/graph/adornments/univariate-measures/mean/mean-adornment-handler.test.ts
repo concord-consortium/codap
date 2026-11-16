@@ -67,6 +67,7 @@ describe("DataInteractive meanAdornmentHandler", () => {
     mockMeanAdornment = {
       id: "ADRN123",
       isVisible: true,
+      setVisibility: jest.fn(),
       measures: mockMeasuresMap,
       type: kMeanType
     }
@@ -121,12 +122,13 @@ describe("DataInteractive meanAdornmentHandler", () => {
     expect(values.error).toBe("Adornment not found.")
   })
 
-  it("update successfully updates count adornment properties", () => {
+  it("update sets the adornment's visibility", () => {
     mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(mockMeanAdornment)
     const updateValues = {
       isVisible: false
     }
     const result = handler.update?.({ graphContent: mockGraphContent, values: updateValues })
     expect(result?.success).toBe(true)
+    expect(mockMeanAdornment.setVisibility).toHaveBeenCalledWith(false)
   })
 })
