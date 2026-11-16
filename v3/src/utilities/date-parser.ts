@@ -200,6 +200,36 @@ export function fixHour(hr: string, amPm?: string) {
   return newHr
 }
 
+export interface ITimeOfDay {
+  hours: number
+  minutes: number
+  seconds: number
+}
+
+// h:mm, h:mm:ss, h:mm:ss.SSS, each optionally followed by am/pm, e.g. "13:45", "1:45 PM", "09:05:30"
+const timeOfDayRE = /^(\d\d?):(\d\d)(?::(\d\d)(?:[.,]\d+)?)?(?: ?(am|pm))?$/i
+
+/**
+ * Parses a string containing only a time of day (no date).
+ * Returns undefined for anything else, including full date/time strings and out-of-range values.
+ */
+export function parseTimeOfDay(value: unknown): ITimeOfDay | undefined {
+  if (typeof value !== "string") return
+  const match = value.trim().match(timeOfDayRE)
+  if (!match) return
+  const [, hourStr, minStr, secStr, amPm] = match
+  const rawHours = Number(hourStr)
+  const minutes = Number(minStr)
+  const seconds = Number(secStr ?? "0")
+  const isHourValid = amPm ? rawHours >= 1 && rawHours <= 12 : rawHours <= 23
+  if (!isHourValid || minutes > 59 || seconds > 59) return
+  return { hours: fixHour(hourStr, amPm), minutes, seconds }
+}
+
+export function isTimeOfDayString(value: unknown) {
+  return parseTimeOfDay(value) != null
+}
+
 export function fixMonth(m: string) {
   if (!isNaN(Number(m))) {
     return Number(m)
