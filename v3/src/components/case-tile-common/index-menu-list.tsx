@@ -8,6 +8,7 @@ import { isItemEditable } from "../../utilities/plugin-utils"
 import { ICaseCreation } from "../../models/data/data-set-types"
 import { kInputRowKey } from "../case-table/case-table-types"
 import { useCollectionTableModel } from "../case-table/use-collection-table-model"
+import { IMenuItem } from "./std-menu-list"
 
 interface IProps {
   caseId: string
@@ -65,21 +66,17 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
     onCloseInsertCasesModal()
   }
 
-  interface IMenuItem {
-    itemKey: string
-    // defaults to true if not implemented
-    isEnabled?: (item: IMenuItem) => boolean
-    handleClick?: (item: IMenuItem) => void
-  }
-
+  const isSingleDelete = deletableSelectedItems.length === 1
   const menuItems: IMenuItem[] = [
     {
       itemKey: "DG.CaseTable.indexMenu.moveEntryRow",
+      dataTestId: "index-menu-move-entry-row",
       isEnabled: () => tableIndex !== -1,
       handleClick: () => collectionTable?.setInputRowIndex(tableIndex)
     },
     {
       itemKey: "DG.CaseTable.indexMenu.insertCase",
+      dataTestId: "index-menu-insert-case",
       isEnabled: () => !disableEdits,
       handleClick: () => {
         if (isInputRow) {
@@ -91,11 +88,13 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
     },
     {
       itemKey: "DG.CaseTable.indexMenu.insertCases",
+      dataTestId: "index-menu-insert-cases",
       isEnabled: () => !disableEdits,
       handleClick: () => onOpenInsertCasesModal()
     },
     {
-      itemKey: `DG.CaseTable.indexMenu.delete${deletableSelectedItems.length === 1 ? "Case" : "Cases" }`,
+      itemKey: `DG.CaseTable.indexMenu.delete${isSingleDelete ? "Case" : "Cases" }`,
+      dataTestId: isSingleDelete ? "index-menu-delete-case" : "index-menu-delete-cases",
       isEnabled: () => deletableSelectedItems.length >= 1,
       handleClick: () => {
         if (deletableSelectedItems && data) {
@@ -112,7 +111,8 @@ export const IndexMenuList = ({caseId, index}: IProps) => {
           menuItems.map(item => {
             const isDisabled = !item.handleClick || item.isEnabled?.(item) === false
             return (
-              <MenuItem key={item.itemKey} isDisabled={isDisabled} onClick={() => item.handleClick?.(item)}>
+              <MenuItem key={item.itemKey} isDisabled={isDisabled} onClick={() => item.handleClick?.(item)}
+                  data-testid={item.dataTestId}>
                 {`${t(item.itemKey)}${item.handleClick ? "" : " 🚧"}`}
               </MenuItem>
             )

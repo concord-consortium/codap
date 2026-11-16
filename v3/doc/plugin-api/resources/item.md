@@ -67,7 +67,8 @@ An item is an object mapping attribute names to values, for attributes in any co
 { "Diet": "meat", "Mammal": "Lion", "Mass": 190 }
 ```
 
-Attributes you leave out are empty. A name that matches no attribute is ignored. Text values have
+Attributes you leave out are empty. A name that matches no attribute is tried again with leading
+and trailing spaces removed, as in v2, and ignored if it still matches none. Text values have
 leading and trailing spaces removed, and `null` is stored as an empty value. Formula attributes
 compute their own values, so do not send them.
 
@@ -271,10 +272,6 @@ are always empty, even when a changed value moves an item to a different parent 
 the cases the change removed in `deletedCases`. (Its `createdCases` was always empty too.) This is
 a known bug. Until it is fixed, a plugin that needs to know the resulting cases should read them
 again, for example with `caseSearch` or `allCases`.
-
-**Attribute names must match exactly.** v2 tried a name in an item object again with leading and
-trailing spaces removed, so `"Mass "` still matched `Mass`. v3 matches the name exactly and
-ignores one that differs. This is a known bug; the intended behavior is v2's.
 
 **A boolean value is stored as text.** An item created with `"Endangered": true` holds the text
 `true`, and `get` returns `"true"`. v2 kept the boolean. This is a known bug; it also affects

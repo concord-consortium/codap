@@ -7,11 +7,20 @@ import { LatLongProjector } from "./map-utils"
 
 /** Grid cell side length, in CSS pixels */
 export const kHotSpotCellSize = 2
-/** Kernels are truncated outside a square window of this many bandwidths in each direction */
+/**
+ * Kernels are truncated outside a square window of this many bandwidths in each direction (3 keeps ≥ 99.7% of a
+ * Gaussian's mass). The window is square rather than circular because computeDensityGrid's separable accumulation
+ * naturally covers a square. computeMaxDensity uses the same window, through kernelWeight, so the maximum used for
+ * normalization is consistent with the grid. The corners add at most exp(−4.5) ≈ 0.011 per point.
+ */
 export const kKernelCutoff = 3
-/** Extra canvas margin around the viewport, as a fraction of each dimension, on each side */
+/**
+ * Extra canvas margin around the viewport, as a fraction of each dimension, on each side. Leaflet's L.Canvas uses
+ * 0.1. The larger margin means pans and zooms reveal fewer undrawn edges before the moveend redraw, at the cost of
+ * computing a grid 4× the viewport's area.
+ */
 export const kHotSpotPadding = 0.5
-/** Bandwidth used when the points have no spread */
+/** Bandwidth used when the points have no spread or there is no mean center */
 export const kFallbackBandwidthMeters = 10000
 /** Radius of the sphere used by Leaflet's Web Mercator projection (EPSG:3857) */
 export const kWebMercatorRadiusMeters = 6378137
@@ -43,6 +52,11 @@ const kMinSpreadMeters = 0.001
  * Returns the default bandwidth in meters, using the default search radius of ArcGIS's Kernel Density tool:
  * 0.9 · min(SD, √(1/ln 2) · Dm) · n^(−0.2), where SD is the standard distance of the points from their mean center
  * and Dm is their median distance from it.
+ *
+ * Despite the median term, a far outlier does inflate the bandwidth: it moves the mean center, which increases
+ * every point's distance, including the median. (A 3 × 3 cluster plus one point on another continent gives a
+ * bandwidth 27× larger.) A median center would be robust to this, but was considered and rejected in favor of
+ * matching ArcGIS's formula. Revisit if the default proves poor.
  */
 export function computeDefaultBandwidth(latLongs: ILatLong[]) {
   const center = computeMeanCenter(latLongs)
@@ -94,22 +108,25 @@ export interface IKernel {
   h: number
 }
 
-/** Unnormalized Gaussian kernel, truncated outside a square window of half-width kKernelCutoff · h */
+/**
+ * Unnormalized Gaussian kernel, truncated outside a square window of half-width kKernelCutoff · h.
+ * Both computeMaxDensity and computeDensityGrid truncate with this same window (see kKernelCutoff).
+ */
 export function kernelWeight(dx: number, dy: number, h: number) {
   const r = kKernelCutoff * h
   if (Math.abs(dx) > r || Math.abs(dy) > r) return 0
   return Math.exp(-(dx * dx + dy * dy) / (2 * h * h))
 }
 
-/** Wraps a horizontal world-coordinate difference into [−128, 128], the short way across the antimeridian */
+/** Wraps a horizontal world-coordinate difference into [−128, 128), the short way across the antimeridian */
 export function wrapWorldDelta(dx: number) {
   return dx - kWorldSize * Math.round(dx / kWorldSize)
 }
 
 /**
  * Buckets world-coordinate kernels so that every kernel whose window contains a location is in that location's
- * bucket or one of its eight neighbors. Buckets are at least kKernelCutoff · (largest h) wide. Columns wrap
- * around the antimeridian.
+ * bucket or one of its eight neighbors. Buckets are at least kKernelCutoff · (largest h) wide (unless that exceeds
+ * the world size, in which case size is 1). Columns wrap around the antimeridian.
  */
 class WorldKernelIndex {
   private size: number
@@ -165,8 +182,8 @@ const kMeanShiftTolerance = 1e-6
 
 /**
  * Returns the maximum of the density surface of world-coordinate kernels. The maximum usually lies between
- * points, so this climbs from each point to its local maximum with mean-shift, which always moves uphill on a
- * sum of Gaussians. The density at each starting point is included too, so the result is never less than
+ * points, so this climbs from each point to its local maximum with mean-shift, which always goes in an uphill direction
+ * on a sum of Gaussians. The density at each starting point is included too, so the result is never less than
  * evaluating at the points alone.
  */
 export function computeMaxDensity(kernels: IKernel[]) {
@@ -204,6 +221,11 @@ export interface IHotSpotPoint extends IKernel {
 export interface IHotSpotSurface {
   points: IHotSpotPoint[]
   bandwidthMeters: number
+  /**
+   * The maximum density over all the points, not just those in the viewport, so a location's color doesn't change
+   * as the map pans or zooms. Densities are in zoom-0 world coordinates, so the value at a location is the same at
+   * every zoom level and this is computed once per data or bandwidth change.
+   */
   maxDensity: number
 }
 
@@ -238,6 +260,10 @@ export interface IDensityGridRegion {
  *
  * Horizontal distances wrap around the world, whose width (one world copy) is worldWidth pixels.
  * Each cell gets each kernel's weight exactly once, from the kernel's nearest copy.
+ *
+ * Known limitation: when a kernel is narrower than a cell (h < cellSize, e.g. when the map is zoomed far out),
+ * sampling at cell centers can miss it. With the default bandwidth this happens only when the data covers a small
+ * part of the visible map. A fix would be a binning fallback, which would also help performance with many points.
  */
 export function computeDensityGrid(kernels: IKernel[], region: IDensityGridRegion, worldWidth: number) {
   const { originX, originY, cols, rows, cellSize } = region
@@ -295,23 +321,40 @@ export function computeDensityGrid(kernels: IKernel[], region: IDensityGridRegio
   return grid
 }
 
-const kColorLUTSize = 256
+export const kHotSpotFadeFloor = 0.02
+export const kHotSpotFadeFull = 0.35
+
+/**
+ * Returns the opacity multiplier for a cell with the given normalized density (density / maxDensity):
+ * 0 at or below kHotSpotFadeFloor, 1 at or above kHotSpotFadeFull, and smoothstep in between.
+ */
+export function hotSpotFade(normalizedDensity: number) {
+  const x = Math.min(1, Math.max(0,
+    (normalizedDensity - kHotSpotFadeFloor) / (kHotSpotFadeFull - kHotSpotFadeFloor)))
+  return x * x * (3 - 2 * x)
+}
+
+export const kColorLUTSize = 256
 
 /**
  * Returns a lookup table of kColorLUTSize RGBA colors (4 bytes each) running from lowColor to highColor, sampled
- * with getChoroplethColors so the gradient matches CODAP's legend gradients. Future multi-stop gradients,
- * binning (getChoroplethColors with the bin count), and density-based opacity all plug in here.
+ * with getChoroplethColors so the gradient matches CODAP's legend gradients. Each entry's alpha is multiplied by
+ * hotSpotFade of its normalized density, so low densities fade to transparent. Future multi-stop gradients and
+ * binning (getChoroplethColors with the bin count) plug in here.
  */
 export function buildColorLUT(lowColor: string, highColor: string) {
   const lut = new Uint8ClampedArray(kColorLUTSize * 4)
   getChoroplethColors(lowColor, highColor, kColorLUTSize, { format: "rgba" }).forEach(({ r, g, b, a }, i) => {
+    const fade = hotSpotFade(i / (kColorLUTSize - 1))
     // Uint8ClampedArray rounds the unrounded channels
-    lut.set([r, g, b, a * 255], i * 4)
+    lut.set([r, g, b, a * fade * 255], i * 4)
   })
   return lut
 }
 
-/** Writes each grid cell's RGBA color to out, scaling density so 0 → the LUT's first entry and maxDensity → its last */
+/**
+ * Writes each grid cell's RGBA color to out, scaling density so 0 → the LUT's first entry and maxDensity → its last.
+ */
 export function colorizeDensityGrid(
   grid: Float32Array, maxDensity: number, lut: Uint8ClampedArray, out: Uint8ClampedArray
 ) {

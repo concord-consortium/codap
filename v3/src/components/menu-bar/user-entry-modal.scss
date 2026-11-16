@@ -44,8 +44,7 @@
       margin: 10px;
 
       &:focus-visible {
-        outline: 3px solid vars.$focus-outline-color;
-        outline-offset: 2px;
+        @include vars.button-focus-outline;
       }
       &:hover {
         background: vars.$accent-light-2;

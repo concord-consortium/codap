@@ -53,7 +53,8 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
       style={{ ...thumbProps.style, left: thumbPos, position: "relative", transform: "none" }}
     >
       <ThumbIcon />
-      <input {...mergeProps(inputProps, focusProps)} ref={inputRef} className="codap-visually-hidden" />
+      <input {...mergeProps(inputProps, focusProps)} ref={inputRef} className="codap-visually-hidden"
+        data-testid="slider-thumb-input" />
     </div>
   )
 })
