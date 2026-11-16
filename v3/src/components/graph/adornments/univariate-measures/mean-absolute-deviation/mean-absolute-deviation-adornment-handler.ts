@@ -5,7 +5,7 @@ import { IAdornmentModel } from "../../adornment-models"
 import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
 import { isMeanAbsoluteDeviationAdornment } from "./mean-absolute-deviation-adornment-model"
 import { kMeanAbsoluteDeviationType } from "./mean-absolute-deviation-adornment-types"
-import { univariateMeasureAdornmentWriteHandlers } from "../univariate-measure-adornment-base-handler"
+import { adornmentWriteHandlers } from "../../utilities/adornment-write-handlers"
 
 function get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
   if (!isMeanAbsoluteDeviationAdornment(adornment)) return adornmentMismatchResult(kMeanAbsoluteDeviationType)
@@ -33,5 +33,5 @@ function get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
 
 export const meanAbsoluteDeviationAdornmentHandler: DIAdornmentHandler = {
   get,
-  ...univariateMeasureAdornmentWriteHandlers({ adornmentType: kMeanAbsoluteDeviationType, get })
+  ...adornmentWriteHandlers({ adornmentType: kMeanAbsoluteDeviationType, get })
 }

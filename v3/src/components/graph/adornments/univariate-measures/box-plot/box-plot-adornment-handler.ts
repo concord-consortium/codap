@@ -6,7 +6,7 @@ import {
   AdornmentData, adornmentMismatchResult, booleanValuesError, cellKeyToCategories
 } from "../../utilities/adornment-handler-utils"
 import { kBoxPlotType } from "./box-plot-adornment-types"
-import { univariateMeasureAdornmentWriteHandlers } from "../univariate-measure-adornment-base-handler"
+import { adornmentWriteHandlers } from "../../utilities/adornment-write-handlers"
 
 function get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
   if (!isBoxPlotAdornment(adornment)) return adornmentMismatchResult(kBoxPlotType)
@@ -55,5 +55,5 @@ function applyValues(adornment: IAdornmentModel, values: Record<string, unknown>
 
 export const boxPlotAdornmentHandler: DIAdornmentHandler = {
   get,
-  ...univariateMeasureAdornmentWriteHandlers({ adornmentType: kBoxPlotType, get, validate, applyValues })
+  ...adornmentWriteHandlers({ adornmentType: kBoxPlotType, get, validate, applyValues })
 }

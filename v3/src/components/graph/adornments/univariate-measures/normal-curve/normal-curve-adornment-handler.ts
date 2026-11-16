@@ -4,7 +4,7 @@ import { isNormalCurveAdornment } from "./normal-curve-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
 import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
 import { kNormalCurveType } from "./normal-curve-adornment-types"
-import { univariateMeasureAdornmentWriteHandlers } from "../univariate-measure-adornment-base-handler"
+import { adornmentWriteHandlers } from "../../utilities/adornment-write-handlers"
 
 function get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
   if (!isNormalCurveAdornment(adornment)) return adornmentMismatchResult(kNormalCurveType)
@@ -32,5 +32,5 @@ function get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
 
 export const normalCurveAdornmentHandler: DIAdornmentHandler = {
   get,
-  ...univariateMeasureAdornmentWriteHandlers({ adornmentType: kNormalCurveType, get })
+  ...adornmentWriteHandlers({ adornmentType: kNormalCurveType, get })
 }

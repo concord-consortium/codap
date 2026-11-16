@@ -64,6 +64,7 @@ describe("DataInteractive standardDeviationAdornmentHandler", () => {
         subPlotRegionBoundaries: jest.fn(() => [1, 2])
       },
       dataConfiguration: mockDataConfig,
+      getUpdateCategoriesOptions: jest.fn(() => ({ dataConfig: mockDataConfig })),
       plotType: "dotPlot"
     }
     

@@ -1673,6 +1673,8 @@
     "V3.DI.Error.adornmentNotSupportedByPlotType": "Adornment not supported by plot type.",
     "V3.DI.Error.adornmentRequestNotSupported": "The %@1 adornment does not currently support %@2 requests.",
     "V3.DI.Error.adornmentValueNotBoolean": "%@ must be true or false.",
+    "V3.DI.Error.adornmentValueNotNumber": "%@ must be a number.",
+    "V3.DI.Error.adornmentValueNotString": "%@ must be a string.",
     "V3.DI.Error.countAdornmentPercentNotSupported": "The current plot type does not support Percent.",
     "V3.DI.Error.invalidCellKey": "%@1 contains an invalid attribute name or ID.",
     "V3.DI.Error.componentDoesNotSupportRescale": "Component does not support rescale",
