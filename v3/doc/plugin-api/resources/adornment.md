@@ -88,7 +88,7 @@ falls back to hiding, so it works everywhere.
 | `Movable Value` (alias `MovableValue`) | ✓ | ✓ | ✓ | ✓ |
 | `Normal Curve` (alias `NormalCurve`) | ✓ | ✓ | ✓ | hides |
 | `Plotted Function` (alias `PlottedFunction`) | ✓ | ✓ | ✓ | hides |
-| `Plotted Value` (alias `PlottedValue`) | ✓ | ✓ | ✓ | ✓ |
+| `Plotted Value` (alias `PlottedValue`) | ✓ | ✓ | ✓ | hides |
 | `Region of Interest` (alias `RegionofInterest`) | ✓ | ✓ | ✓ | hides |
 | `Standard Deviation` (alias `StandardDeviation`) | ✓ | ✓ | ✓ | hides |
 | `Standard Error` (alias `StandardError`) | ✓ | ✓ | ✓ | hides |
@@ -170,23 +170,29 @@ page does not yet cover, except for these:
 | `Box Plot` | `showOutliers` | shows outliers separately, as the inspector's checkbox does |
 | `Box Plot` | `showICI` | shows the informal confidence interval. The inspector offers this only when CODAP is opened with the `ICI` URL parameter, or while it is on; the API sets it either way |
 | `Standard Error` | `_numStErrs` | the number of standard errors shown, as `get` reports it. Any finite value of 0 or more is accepted, as in v2; the inspector shows it rounded to the nearest 0.5. A negative value, or one that isn't a finite number, is ignored |
-| `Movable Line` | `slope`, `intercept` | the line, in every cell of a split graph. Either may be sent alone. While the graph's intercept is locked, `intercept` stays 0. Unlike a drag, nothing keeps the line within the axes |
-| `Movable Point` | `x`, `y` | the point, in every cell of a split graph. Either may be sent alone. `get` reports them under the attributes' names. Nothing keeps the point within the axes |
-| `Plotted Function` | `formula` (or `expression`) | the function of `x` to plot; `""` clears it. `get` reports it as `formula`. The formula is checked just after the request, so the `create` reply's `error` is always empty: send `get` afterward to learn whether the formula is valid |
-| `Plotted Value` | `formula` (or `expression`) | the value to plot; `""` clears it. `get` reports it as `formula`. Its value is computed just after the request, so the `create` reply's `plottedValue` can be `NaN` |
+| `Movable Line` | `slope`, `intercept` | the line, in every cell the graph has at the time of the request; a cell added later starts where the inspector puts it. Either may be sent alone. While the graph's intercept is locked, `intercept` stays 0. Unlike a drag, nothing keeps the line within the axes |
+| `Movable Point` | `x`, `y` | the point, in every cell the graph has at the time of the request; a cell added later starts where the inspector puts it. Either may be sent alone. `get` reports them under the attributes' names. Nothing keeps the point within the axes |
+| `Plotted Function` | `formula` (or `expression`) | the function of `x` to plot; `""` clears it. `get` reports `formula` JSON-encoded (`2*x` comes back as `"\"2*x\""`), so a plugin `JSON.parse`s it before sending it back |
+| `Plotted Value` | `formula` (or `expression`) | the value to plot; `""` clears it. `get` reports `formula` JSON-encoded, so a plugin `JSON.parse`s it before sending it back |
 
 For these types, `create` on a graph whose plot cannot show the adornment returns
 `Adornment not supported by plot type.`, and creating one that already exists shows it again.
 Without these properties, a new `Movable Line` or `Movable Point` starts where the inspector puts
-it, and a new `Plotted Function` has no formula yet. `create` replies with the same values as a
-`get` sent at once, though for `Plotted Function` and `Plotted Value` a `get` sent a moment later
-has the computed results. A `slope`, `intercept`, `x` or `y` that isn't a finite number, or a
-formula that isn't a string, is refused with `<property> must be a number.` or `<property> must be
-a string.`, and nothing changes.
+it, and a new `Plotted Function` or `Plotted Value` has no formula yet. `create` replies with the
+same values as `get`. The formula of a `Plotted Function` or `Plotted Value` is evaluated after
+the request, so the `create` reply's `error` and `plottedValue` may not reflect the formula just
+sent; on an adornment the graph already has, they can be the previous formula's. Send `get`
+afterward.
 
-For every type, `create` and `update` refuse an `isVisible` that isn't `true` or `false` with
-`isVisible must be true or false.`, and change nothing; `Box Plot` does the same for
-`showOutliers` and `showICI`. A `null` value is treated as absent.
+If both `formula` and `expression` are sent, `formula` is used; a `null` value is treated as
+absent, so `{ "formula": null, "expression": "3*x" }` uses the expression and `{ "slope": null }`
+changes nothing.
+
+`create` and `update` refuse a value of the wrong type, and change nothing: for every type, an
+`isVisible` that isn't `true` or `false`; for `Box Plot`, a `showOutliers` or `showICI` that isn't
+either; for `Movable Line` and `Movable Point`, a `slope`, `intercept`, `x` or `y` that isn't a
+finite number; and for `Plotted Function` and `Plotted Value`, a formula that isn't a string. The
+error names the property, as in `isVisible must be true or false.`
 
 ## Examples
 

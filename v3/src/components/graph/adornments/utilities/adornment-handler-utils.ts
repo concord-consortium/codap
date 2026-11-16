@@ -58,7 +58,7 @@ export const numberValuesError = (values: Record<string, unknown>, keys: string[
   if (key) return errorResult(t("V3.DI.Error.adornmentValueNotNumber", { vars: [key] }))
 }
 
-// A plotted function's or plotted value's formula, sent as `formula` (the key `get` reports) or `expression`
+// A plotted function's or plotted value's formula, sent as `formula` or, if that's absent, `expression`
 export const formulaValue = (values: Record<string, unknown>) => {
   const key = values.formula != null ? "formula" : values.expression != null ? "expression" : undefined
   if (!key) return {}

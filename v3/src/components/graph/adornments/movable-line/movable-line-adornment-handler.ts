@@ -34,8 +34,8 @@ function get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
   return { data }
 }
 
-// `slope` and `intercept` set the line in every cell, as one value for the whole graph. A locked intercept
-// stays at 0, as in the graph's inspector.
+// `slope` and `intercept` set the line in every cell the graph has at the time of the request. A locked
+// intercept stays at 0, as in the graph's inspector.
 function applyValues(adornment: IAdornmentModel, values: Record<string, unknown>, graphContent: IGraphContentModel) {
   if (!isMovableLineAdornment(adornment)) return
   const { slope, intercept } = values as { slope?: number, intercept?: number }

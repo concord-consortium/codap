@@ -40,7 +40,7 @@ function get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
   return { data }
 }
 
-// `x` and `y` set the point in every cell, as one value for the whole graph
+// `x` and `y` set the point in every cell the graph has at the time of the request
 function applyValues(adornment: IAdornmentModel, values: Record<string, unknown>, graphContent: IGraphContentModel) {
   if (!isMovablePointAdornment(adornment)) return
   const { x, y } = values as { x?: number, y?: number }
