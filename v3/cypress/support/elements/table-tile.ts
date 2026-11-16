@@ -147,6 +147,8 @@ export const TableTileElements = {
       // aria-expanded updates immediately, whereas the menu list stays visible while it animates closed
       if ($body.find(".codap-attribute-button[aria-expanded=true]").length) {
         cy.get(kVisibleMenuList).type("{esc}")
+      } else {
+        cy.log("attribute menu already closed")
       }
     })
     cy.get(kVisibleMenuList).should("not.exist")
