@@ -40,6 +40,15 @@ beforeEach(() => {
   cy.intercept("GET", "**/notifications/v3-announcement-banner.json", { statusCode: 404 })
 })
 
+// Hide the About dialog's welcome view, which opens on every load and would cover what tests interact with.
+// Tests of the welcome view set Cypress.env("showWelcome", true) first.
+Cypress.on("window:before:load", (win) => {
+  if (Cypress.env("showWelcome")) return
+  const kPersistentStateKey = "persistentState"
+  const stored = JSON.parse(win.localStorage.getItem(kPersistentStateKey) || "{}")
+  win.localStorage.setItem(kPersistentStateKey, JSON.stringify({ ...stored, hideWelcome: true }))
+})
+
 // Capture console.log/warn/error from the application and display in Cypress command log
 // This is useful for debugging CI-specific test failures
 Cypress.on("window:before:load", (win) => {

@@ -191,10 +191,6 @@ send `values: {}` to get the defaults.
 value restricts it to multiples of some number, v2 rounded a value a plugin set to the nearest
 multiple. v3 stores the value as sent. This is a known bug.
 
-**`create` adds an entry to the undo history.** v2 did not, and the intended behavior is that it
-does not; see [Undo and redo](../guides/undo-and-redo.md#known-limitations). `update` adds no
-entry, as in v2.
-
 ## Notifications
 
 When a global value changes, CODAP sends a notification on `global[<name>]`, where `<name>` is

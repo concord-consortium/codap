@@ -12,7 +12,7 @@ const newSliderValue = "0.6"
 context("Slider UI", () => {
   beforeEach(function () {
     cy.visit(Cypress.config("index"))
-    cy.get('[data-testid="Create New Document-button"]').click()
+    cy.get('[data-testid=new-document-button]').click()
     cfm.openExampleDocument("Mammals")
     cy.wait(2500)
     // Close only the Mammals Sample Guide component
@@ -421,7 +421,7 @@ context("Slider UI", () => {
 context("Slider keyboard accessibility", () => {
   beforeEach(function () {
     cy.visit(`${Cypress.config("index")}?suppressUnsavedWarning`)
-    cy.get('[data-testid="Create New Document-button"]').click()
+    cy.get('[data-testid=new-document-button]').click()
     c.getIconFromToolShelf("slider").click()
     slider.getSliderTile().should("be.visible")
   })
@@ -524,25 +524,25 @@ context("Slider keyboard accessibility", () => {
     cy.log("Escape closes Playback palette and restores focus to inspector button")
     c.selectTile("slider", 0)
     slider.getInspectorIcon().click()
-    cy.get("[data-testid=codap-inspector-palette]").should("exist")
-    cy.get("[data-testid=codap-inspector-palette]").find("input").first().type("{esc}")
-    cy.get("[data-testid=codap-inspector-palette]").should("not.exist")
+    cy.get("[data-testid=inspector-palette-slider]").should("exist")
+    cy.get("[data-testid=inspector-palette-slider]").find("input").first().type("{esc}")
+    cy.get("[data-testid=inspector-palette-slider]").should("not.exist")
     slider.getInspectorIcon().should("be.focused")
 
     cy.log("Escape closes Scale palette and restores focus to inspector button")
     // Navigate down to the Scale button, then press Enter to open the Scale palette.
     cy.realPress("ArrowDown")
     cy.realPress("Enter")
-    cy.get("[data-testid=codap-inspector-palette]").should("exist")
-    cy.get("[data-testid=codap-inspector-palette]").find("input").first().type("{esc}")
-    cy.get("[data-testid=codap-inspector-palette]").should("not.exist")
+    cy.get("[data-testid=inspector-palette-slider]").should("exist")
+    cy.get("[data-testid=inspector-palette-slider]").find("input").first().type("{esc}")
+    cy.get("[data-testid=inspector-palette-slider]").should("not.exist")
     slider.getRulerIcon().should("be.focused")
   })
   it("inspector palette focus trap cycles Tab within the palette", () => {
     cy.log("Full Tab cycle through Scale palette: scale-type button → min → max → wraps to scale-type")
     c.selectTile("slider", 0)
     slider.getRulerIcon().click()
-    cy.get("[data-testid=codap-inspector-palette]").should("exist")
+    cy.get("[data-testid=inspector-palette-slider]").should("exist")
     // Scale palette has 3 focusable elements: scale-type button, min input, max input.
     // Start at the scale-type button and Tab through the full cycle.
     cy.get("[data-testid=slider-scale-type-button]").focus()
@@ -566,7 +566,7 @@ context("Slider keyboard accessibility", () => {
 
     cy.log("Tab wraps within the Playback palette")
     slider.clickInspectorPanel()
-    cy.get("[data-testid=codap-inspector-palette]").should("exist")
+    cy.get("[data-testid=inspector-palette-slider]").should("exist")
     // The Playback palette has: multiples input, animation rate input, direction button, mode button.
     // Focus the last button and Tab — should wrap back to the first input.
     cy.get("[data-testid=slider-animation-repetition]").focus()
@@ -580,7 +580,7 @@ context("Slider keyboard accessibility", () => {
     cy.log("scale palette opens and shows min/max inputs")
     c.selectTile("slider", 0)
     slider.getRulerIcon().click()
-    cy.get("[data-testid=codap-inspector-palette]").should("exist")
+    cy.get("[data-testid=inspector-palette-slider]").should("exist")
     cy.get("[data-testid=slider-minimum]").should("be.visible")
     cy.get("[data-testid=slider-maximum]").should("be.visible")
 

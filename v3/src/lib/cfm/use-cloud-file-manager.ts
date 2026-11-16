@@ -7,6 +7,7 @@ import { codapResourcesUrl } from "../../constants"
 import { appState } from "../../models/app-state"
 import { isCodapDocument } from "../../models/codap/create-codap-document"
 import { persistentState } from "../../models/persistent-state"
+import { uiState } from "../../models/ui-state"
 import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { hasInteractiveApiContext, removeDevUrlParams } from "../../utilities/url-params"
@@ -16,6 +17,7 @@ import { handleLogLaraData } from "./cfm-log-utils"
 import { clientConnect, createCloudFileManager, renderRoot } from "./cfm-utils"
 import { handleCFMEvent, kCFMAutoSaveInterval } from "./handle-cfm-event"
 
+import AboutIcon from "../../assets/cfm/about-icon.nosvgr.svg"
 import CODAPLogo from "../../assets/cfm/codap-logo.nosvgr.svg"
 import CODAPLogoFocus from "../../assets/cfm/codap-logo-focus.nosvgr.svg"
 import CODAPProjectIcon from "../../assets/cfm/codap-project-icon.nosvgr.svg"
@@ -212,7 +214,7 @@ function getHelpUrl() {
   return translatedHelpURLs[gLocale.current] || helpURL
 }
 
-function getMenuBar(cfm: CloudFileManager) {
+export function getMenuBar(cfm: CloudFileManager) {
   const isToolbarTop = persistentState.toolbarPosition === "Top"
   const isAccelOn = !persistentState.disableGraphicsAcceleration
   return {
@@ -245,6 +247,15 @@ function getMenuBar(cfm: CloudFileManager) {
             icon: PrivacyPolicyIcon,
             name: t("DG.AppController.optionMenuItems.toPrivacyPage"),
             action: () => window.open(privacyPolicyURL, "_blank")
+          },
+          { separator: true },
+          {
+            icon: AboutIcon,
+            name: t("DG.AppController.optionMenuItems.about"),
+            action: () => {
+              // the menu item is gone once the menu closes, so return focus to the Help menu button
+              uiState.openAboutDialog("about", document.querySelector<HTMLElement>(".help-menu .menu-anchor"))
+            }
           }
         ]
       },
