@@ -295,12 +295,13 @@ export function computeDensityGrid(kernels: IKernel[], region: IDensityGridRegio
   return grid
 }
 
+export const kHotSpotFadeFloor = 0.02
+export const kHotSpotFadeFull = 0.35
+
 /**
  * Returns the opacity multiplier for a cell with the given normalized density (density / maxDensity):
  * 0 at or below kHotSpotFadeFloor, 1 at or above kHotSpotFadeFull, and smoothstep in between.
  */
-export const kHotSpotFadeFloor = 0.02
-export const kHotSpotFadeFull = 0.35
 export function hotSpotFade(normalizedDensity: number) {
   const x = Math.min(1, Math.max(0,
     (normalizedDensity - kHotSpotFadeFloor) / (kHotSpotFadeFull - kHotSpotFadeFloor)))
