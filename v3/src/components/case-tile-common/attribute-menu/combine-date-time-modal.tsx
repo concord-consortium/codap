@@ -13,6 +13,7 @@ import {
   getDateTimeRoles, isTimeOnlyAttribute
 } from "../../../models/data/combine-date-time"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
+import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
 import AttributeIcon from "../../../assets/icons/attribute-icon.svg"
@@ -31,7 +32,8 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
 ) {
   const { data } = useDataSet()
   const attribute = data?.getAttribute(attributeId)
-  const partners = isOpen && data ? getCombineDateTimePartners(data, attributeId) : []
+  const canAddToCollection = (collectionId: string) => !preventCollectionReorg(data, collectionId)
+  const partners = isOpen && data ? getCombineDateTimePartners(data, attributeId, canAddToCollection) : []
   const [partnerId, setPartnerId] = useState<string>()
   const [newName, setNewName] = useState("")
   const partner = partners.find(p => p.id === partnerId)
@@ -52,7 +54,7 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
   useEffect(() => {
     // reset the dialog contents on each invocation
     if (isOpen) {
-      const firstPartner = data ? getCombineDateTimePartners(data, attributeId)[0] : undefined
+      const firstPartner = data ? getCombineDateTimePartners(data, attributeId, canAddToCollection)[0] : undefined
       setPartnerId(firstPartner?.id)
       updateDefaultName(firstPartner)
     }
@@ -73,7 +75,8 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
         notify: () => createAttributesNotification(newAttr ? [newAttr] : [], data),
         undoStringKey: "DG.Undo.caseTable.createAttribute",
         redoStringKey: "DG.Redo.caseTable.createAttribute",
-        log: logStringifiedObjectMessage("Combine date and time: %@", {
+        // a function, so the message is built after the action has created the attribute
+        log: () => logStringifiedObjectMessage("Combine date and time: %@", {
           name: newAttr?.name,
           date: roles.dateAttr.name,
           time: roles.timeAttr.name,

@@ -6,18 +6,33 @@ import { asFormulaIdentifier } from "../formula/utils/name-mapping-utils"
 import { IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
 
+interface ITimeOnlyCacheEntry {
+  changeCount: number
+  strValues: string[]
+  isTimeOnly: boolean
+}
+const timeOnlyCache = new WeakMap<IAttribute, ITimeOnlyCacheEntry>()
+
 /**
  * True if the attribute has at least one value and every non-empty value is a time of day with no date,
  * e.g. "13:45" or "1:45 PM".
+ * Reads `changeCount` and `strValues` so observers react to value edits, and caches the result until either
+ * changes, so repeated calls (e.g. on each render of the dialog) don't rescan the values.
  */
 export function isTimeOnlyAttribute(attr: IAttribute) {
+  const { changeCount, strValues } = attr
+  const cached = timeOnlyCache.get(attr)
+  if (cached?.changeCount === changeCount && cached.strValues === strValues) return cached.isTimeOnly
+
   let count = 0
-  const isEveryValueTimeOrEmpty = attr.strValues.every(value => {
+  const isEveryValueTimeOrEmpty = strValues.every(value => {
     if (value == null || value === "") return true
     ++count
     return isTimeOfDayString(value)
   })
-  return isEveryValueTimeOrEmpty && count > 0
+  const isTimeOnly = isEveryValueTimeOrEmpty && count > 0
+  timeOnlyCache.set(attr, { changeCount, strValues, isTimeOnly })
+  return isTimeOnly
 }
 
 /** True if the attribute holds dates (with or without times) or times of day. */
@@ -26,17 +41,34 @@ export function isDateOrTimeAttribute(attr: IAttribute) {
 }
 
 /**
+ * Returns the collection a combined attribute is added to: the more deeply nested of the two source
+ * collections, so the formula can reference both sources.
+ */
+export function getCombinedAttributeCollection(data: IDataSet, attr1: IAttribute, attr2: IAttribute) {
+  const index1 = data.getCollectionIndexForAttribute(attr1.id) ?? 0
+  const index2 = data.getCollectionIndexForAttribute(attr2.id) ?? 0
+  return data.collections[Math.max(index1, index2)]
+}
+
+/**
  * Returns the attributes that can be combined with the specified attribute: the other date/time attributes
- * in the data set, excluding pairs in which both attributes are times of day (there would be no date).
+ * in the data set, excluding pairs in which both attributes are times of day (there would be no date) and,
+ * if `canAddToCollection` is provided, pairs whose combined attribute would go in a collection it rejects
+ * (e.g. one a plugin prevents from being reorganized).
  * Returns an empty array if the specified attribute isn't itself a date/time attribute.
  */
-export function getCombineDateTimePartners(data: IDataSet, attrId: string): IAttribute[] {
+export function getCombineDateTimePartners(
+  data: IDataSet, attrId: string, canAddToCollection?: (collectionId: string) => boolean
+): IAttribute[] {
   const attr = data.getAttribute(attrId)
   if (!attr || !isDateOrTimeAttribute(attr)) return []
   const isAttrTimeOnly = isTimeOnlyAttribute(attr)
   return data.attributes.filter(other => {
     if (!other || other.id === attrId || !isDateOrTimeAttribute(other)) return false
-    return !(isAttrTimeOnly && isTimeOnlyAttribute(other))
+    if (isAttrTimeOnly && isTimeOnlyAttribute(other)) return false
+    if (!canAddToCollection) return true
+    const collection = getCombinedAttributeCollection(data, attr, other)
+    return !!collection && canAddToCollection(collection.id)
   })
 }
 
@@ -104,9 +136,7 @@ export function defaultCombinedAttributeName(data: IDataSet, roles: IDateTimeRol
  */
 export function addCombinedDateTimeAttribute(data: IDataSet, roles: IDateTimeRoles, name: string) {
   const { dateAttr, timeAttr } = roles
-  const dateCollectionIndex = data.getCollectionIndexForAttribute(dateAttr.id) ?? 0
-  const timeCollectionIndex = data.getCollectionIndexForAttribute(timeAttr.id) ?? 0
-  const collection = data.collections[Math.max(dateCollectionIndex, timeCollectionIndex)]
+  const collection = getCombinedAttributeCollection(data, dateAttr, timeAttr)
   if (!collection) return
 
   const attrIds = collection.attributes.map(attr => attr?.id)

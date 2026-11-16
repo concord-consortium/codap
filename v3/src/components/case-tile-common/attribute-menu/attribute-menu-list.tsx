@@ -175,7 +175,8 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
     {
       itemKey: "V3.CaseTable.headerMenuItems.combineDateTime",
       dataTestId: "attribute-menu-combine-date-time",
-      isEnabled: () => !!data && getCombineDateTimePartners(data, attributeId).length > 0,
+      isEnabled: () => !!data && getCombineDateTimePartners(data, attributeId,
+        collectionId => !preventCollectionReorg(data, collectionId)).length > 0,
       handleClick: handleCombineDateTimeOpen
     },
     {

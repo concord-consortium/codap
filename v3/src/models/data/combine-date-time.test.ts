@@ -52,6 +52,28 @@ describe("combine date/time", () => {
     expect(ids("missing")).toEqual([])
   })
 
+  it("excludes partners whose combined attribute would go in a rejected collection", () => {
+    const data = createData()
+    // move "Obs Date" to a new parent collection; pairs with it land in the child collection
+    data.moveAttributeToNewCollection("day")
+    const parentId = data.getCollectionForAttribute("day")!.id
+    const childId = data.getCollectionForAttribute("time")!.id
+    const ids = (attrId: string, rejectedId: string) =>
+      getCombineDateTimePartners(data, attrId, collectionId => collectionId !== rejectedId).map(a => a.id)
+    expect(ids("day", parentId)).toEqual(["time", "stamp", "clock"])
+    expect(ids("day", childId)).toEqual([])
+  })
+
+  it("updates the time-only check when values change", () => {
+    const data = createData()
+    const time = attr(data, "time")
+    expect(isTimeOnlyAttribute(time)).toBe(true)
+    data.setCaseValues([{ __id__: data.items[0].__id__, time: "not a time" }])
+    expect(isTimeOnlyAttribute(time)).toBe(false)
+    data.setCaseValues([{ __id__: data.items[0].__id__, time: "13:45" }])
+    expect(isTimeOnlyAttribute(time)).toBe(true)
+  })
+
   it("has no partners when there is only one date/time attribute", () => {
     const data = DataSet.create({ name: "data" })
     data.addAttribute({ id: "day", name: "day" })
