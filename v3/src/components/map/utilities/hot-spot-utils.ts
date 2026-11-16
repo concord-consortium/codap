@@ -7,9 +7,18 @@ import { LatLongProjector } from "./map-utils"
 
 /** Grid cell side length, in CSS pixels */
 export const kHotSpotCellSize = 2
-/** Kernels are truncated outside a square window of this many bandwidths in each direction */
+/**
+ * Kernels are truncated outside a square window of this many bandwidths in each direction (3 keeps ≥ 99.7% of a
+ * Gaussian's mass). The window is square rather than circular because computeDensityGrid's separable accumulation
+ * naturally covers a square. computeMaxDensity uses the same window, through kernelWeight, so the maximum used for
+ * normalization is consistent with the grid. The corners add at most exp(−4.5) ≈ 0.011 per point.
+ */
 export const kKernelCutoff = 3
-/** Extra canvas margin around the viewport, as a fraction of each dimension, on each side */
+/**
+ * Extra canvas margin around the viewport, as a fraction of each dimension, on each side. Leaflet's L.Canvas uses
+ * 0.1. The larger margin means pans and zooms reveal fewer undrawn edges before the moveend redraw, at the cost of
+ * computing a grid 4× the viewport's area.
+ */
 export const kHotSpotPadding = 0.5
 /** Bandwidth used when the points have no spread */
 export const kFallbackBandwidthMeters = 10000
@@ -43,6 +52,11 @@ const kMinSpreadMeters = 0.001
  * Returns the default bandwidth in meters, using the default search radius of ArcGIS's Kernel Density tool:
  * 0.9 · min(SD, √(1/ln 2) · Dm) · n^(−0.2), where SD is the standard distance of the points from their mean center
  * and Dm is their median distance from it.
+ *
+ * Despite the median term, a far outlier does inflate the bandwidth: it moves the mean center, which increases
+ * every point's distance, including the median. (A 3 × 3 cluster plus one point on another continent gives a
+ * bandwidth 27× larger.) A median center would be robust to this, but was considered and rejected in favor of
+ * matching ArcGIS's formula. Revisit if the default proves poor.
  */
 export function computeDefaultBandwidth(latLongs: ILatLong[]) {
   const center = computeMeanCenter(latLongs)
@@ -68,7 +82,10 @@ export interface IKernel {
   h: number
 }
 
-/** Unnormalized Gaussian kernel, truncated outside a square window of half-width kKernelCutoff · h */
+/**
+ * Unnormalized Gaussian kernel, truncated outside a square window of half-width kKernelCutoff · h. Both
+ * computeMaxDensity and computeDensityGrid truncate with this same window (see kKernelCutoff).
+ */
 export function kernelWeight(dx: number, dy: number, h: number) {
   const r = kKernelCutoff * h
   if (Math.abs(dx) > r || Math.abs(dy) > r) return 0
@@ -178,6 +195,11 @@ export interface IHotSpotPoint extends IKernel {
 export interface IHotSpotSurface {
   points: IHotSpotPoint[]
   bandwidthMeters: number
+  /**
+   * The maximum density over all the points, not just those in the viewport, so a location's color doesn't change
+   * as the map pans or zooms. Densities are in zoom-0 world coordinates, so the value at a location is the same at
+   * every zoom level and this is computed once per data or bandwidth change.
+   */
   maxDensity: number
 }
 
@@ -212,6 +234,10 @@ export interface IDensityGridRegion {
  *
  * Horizontal distances wrap around the world, whose width (one world copy) is worldWidth pixels.
  * Each cell gets each kernel's weight exactly once, from the kernel's nearest copy.
+ *
+ * Known limitation: when a kernel is narrower than a cell (h < cellSize, e.g. when the map is zoomed far out),
+ * sampling at cell centers can miss it. With the default bandwidth this happens only when the data covers a small
+ * part of the visible map. A fix would be a binning fallback, which would also help performance with many points.
  */
 export function computeDensityGrid(kernels: IKernel[], region: IDensityGridRegion, worldWidth: number) {
   const { originX, originY, cols, rows, cellSize } = region
