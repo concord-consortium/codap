@@ -1,6 +1,5 @@
 import { joinNotification } from "../../components/case-table/case-table-notifications"
-import { safeSymbolName } from "../formula/utils/name-mapping-utils"
-import { escapeBacktickString } from "../formula/utils/string-utils"
+import { asFormulaIdentifier } from "../formula/utils/name-mapping-utils"
 import { ITileModel } from "../tiles/tile-model"
 import { IAttribute } from "./attribute"
 import { ICollectionModel } from "./collection"
@@ -8,13 +7,6 @@ import { IDataSet } from "./data-set"
 import { createAttributesNotification, dependentCasesNotification } from "./data-set-notifications"
 import { uniqueName } from "../../utilities/js-utils"
 import { t } from "../../utilities/translation/translate"
-
-// Wraps an attribute name in backticks if it contains characters that aren't valid in
-// a bare formula identifier (spaces, leading digit, punctuation, etc.). Any backticks
-// or backslashes in the name are escaped so the wrapped form parses correctly.
-function asFormulaIdentifier(name: string) {
-  return name === safeSymbolName(name) ? name : `\`${escapeBacktickString(name)}\``
-}
 
 export interface IJoinSourceToDestCollectionParams {
   /** The source dataset containing the attributes to join */
