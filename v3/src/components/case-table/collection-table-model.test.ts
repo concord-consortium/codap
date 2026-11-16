@@ -142,5 +142,19 @@ describe("CollectionTableModel", () => {
       metadata.setIsCollapsed(aCase.__id__, true)
       expect(childModel.getCollapsedAncestor(firstChildCase.__id__)).toBe(aCase.__id__)
     })
+
+    it("ignores collapsed ancestors in collections that aren't rendered when reporting collapse state", () => {
+      const { metadata, aCase, axCase, gCollection, pCollection } = setup()
+      const parentModel = new CollectionTableModel(pCollection.id, metadata)
+      metadata.setIsCollapsed(aCase.__id__, true)
+      expect(parentModel.isCaseOrAncestorCollapsed(axCase.__id__)).toBe(true)
+
+      gCollection.attributes.forEach(attr => attr && metadata.setIsHidden(attr.id, true))
+      expect(parentModel.isCaseOrAncestorCollapsed(axCase.__id__)).toBe(false)
+
+      // the case's own collapse state still counts
+      metadata.setIsCollapsed(axCase.__id__, true)
+      expect(parentModel.isCaseOrAncestorCollapsed(axCase.__id__)).toBe(true)
+    })
   })
 })

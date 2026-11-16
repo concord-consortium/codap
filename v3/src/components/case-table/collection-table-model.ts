@@ -100,6 +100,11 @@ export class CollectionTableModel {
     return this.metadata?.getCollapsedAncestor(caseId, collectionId => this.isCollectionRendered(collectionId))
   }
 
+  // returns true if the case or one of its rendered ancestors is collapsed
+  isCaseOrAncestorCollapsed(caseId: string) {
+    return !!this.metadata?.isCollapsed(caseId) || !!this.getCollapsedAncestor(caseId)
+  }
+
   /**
    * Returns rows for the given cases of this collection. Each row is grouped and numbered within
    * its shown parent case, which is its parent case unless the collections between them aren't

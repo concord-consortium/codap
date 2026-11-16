@@ -119,6 +119,12 @@ describe("Case Table aria-live announcements", () => {
       const tile = TileModel.create({ content: getSnapshot(CaseTableModel.create()) })
       tableModel = tile.content as ICaseTableModel
 
+      // The tile isn't in a document, so give the collection table models the metadata a document
+      // would provide (they use it to determine collapse state).
+      data.collections.forEach(collection => {
+        tableModel.getCollectionTableModel(collection.id).metadata = tree.metadata
+      })
+
       // Pre-populate the child collection table model's rows so individual
       // expand/collapse buttons render (RDG doesn't populate rows in jsdom).
       const childCollection = data.collections[1]

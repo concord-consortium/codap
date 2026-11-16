@@ -148,7 +148,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 
   if (!data || !parentCases) return null
 
-  const everyCaseIsCollapsed = parentCases.every((value) => metadata?.isCaseOrAncestorCollapsed(value.__id__))
+  const everyCaseIsCollapsed = parentCases.every(value => parentTableModel?.isCaseOrAncestorCollapsed(value.__id__))
 
   // Keep for now in case of accessibility application (wider area of input)
   // function handleAreaClick(e: React.MouseEvent) {
@@ -181,7 +181,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
   }
 
   function handleExpandCollapseClick(parentCaseId: string) {
-    const wasCollapsed = !!metadata?.isCaseOrAncestorCollapsed(parentCaseId)
+    const wasCollapsed = !!parentTableModel?.isCaseOrAncestorCollapsed(parentCaseId)
     // collapse the parent case
     metadata?.applyModelChange(() => {
       metadata?.setIsCollapsed(parentCaseId, !wasCollapsed)
@@ -277,7 +277,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
                 if (id !== kInputRowKey) {
                   const buttonHeight = Math.min(24, parentTableModel.rowHeight)
                   const topOffset = (parentTableModel.rowHeight - buttonHeight) / 2
-                  return <ExpandCollapseButton key={id} isCollapsed={!!metadata?.isCaseOrAncestorCollapsed(id)}
+                  return <ExpandCollapseButton key={id} isCollapsed={!!parentTableModel.isCaseOrAncestorCollapsed(id)}
                     onClick={() => handleExpandCollapseClick(id)}
                     styles={{
                       left: '-4px',
