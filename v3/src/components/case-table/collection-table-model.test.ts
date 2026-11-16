@@ -62,6 +62,24 @@ describe("CollectionTableModel", () => {
     expect(m.scrollBehaviorForTarget(0, { scrollBehavior: "auto" })).toBe("auto")
   })
 
+  it("aligns with its parent table using the last child of the last visible parent", () => {
+    // parent rows G1, G2, G3, sized so that only G1 and G2 are visible
+    const parentModel = new CollectionTableModel("parent")
+    parentModel.setRowHeight(parentModel.gridBodyHeight / 2)
+    parentModel.resetRows(["G1", "G2", "G3"].map(id => ({ __id__: id })))
+    expect(parentModel.lastVisibleTargetRow?.__id__).toBe("G2")
+
+    // child rows: G1 has rows 0-2, G2 has rows 3-6, G3 has rows 7-9 (all visible)
+    const childModel = new CollectionTableModel("child")
+    const childParents = ["G1", "G1", "G1", "G2", "G2", "G2", "G2", "G3", "G3", "G3"]
+    childModel.resetRows(childParents.map((parent, i) => ({ __id__: `C${i}`, [symShownParent]: parent })))
+    const scrollRowToBottom = jest.spyOn(childModel, "scrollRowToBottom").mockImplementation(() => null)
+
+    // G2's last child (row 6) is aligned with the bottom of the parent's visible rows
+    childModel.scrollToAlignWithParent(parentModel)
+    expect(scrollRowToBottom).toHaveBeenCalledWith(6)
+  })
+
   describe("when an intervening collection isn't rendered", () => {
     // grandparent "G" > parent "P" > child "C", one attribute per collection
     const setup = () => {

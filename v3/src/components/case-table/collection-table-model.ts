@@ -440,7 +440,7 @@ export class CollectionTableModel {
       if (this.rows[i][symShownParent] === lastParentRow?.__id__) {
         lastChildOfLastParent = this.rows[i].__id__
       }
-      if (lastChildOfLastParent && (this.rows[i][symShownParent] !== firstParentRow?.__id__)) {
+      if (lastChildOfLastParent && (this.rows[i][symShownParent] !== lastParentRow?.__id__)) {
         break
       }
     }
