@@ -4,7 +4,7 @@ import {
 } from "@chakra-ui/react"
 import { ChevronDownIcon } from "@chakra-ui/icons"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useId, useState } from "react"
 import { useDataSet } from "../../../hooks/use-data-set"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { IAttribute } from "../../../models/data/attribute"
@@ -45,6 +45,9 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
   const timeLabel = t("V3.CaseTable.combineDateTime.timeColumn")
   const fixedLabel = isAttributeTime ? timeLabel : dateLabel
   const partnerLabel = isAttributeTime ? dateLabel : timeLabel
+  // the partner MenuButton isn't a form field, so FormLabel can't label it; use aria-labelledby instead
+  const partnerLabelId = useId()
+  const partnerValueId = useId()
 
   const updateDefaultName = (_partner?: IAttribute) => {
     const _roles = data && attribute && _partner ? getDateTimeRoles(attribute, _partner) : undefined
@@ -129,11 +132,12 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
           {t("V3.CaseTable.combineDateTime.fixedColumn", { vars: [fixedLabel, attribute?.name ?? ""] })}
         </Text>
         <FormControl>
-          <FormLabel className="combine-date-time-label">{partnerLabel}</FormLabel>
+          <FormLabel id={partnerLabelId} className="combine-date-time-label">{partnerLabel}</FormLabel>
           <Menu matchWidth>
             <MenuButton as={Button} className="attr-menu-select combine-date-time-select"
+                aria-labelledby={`${partnerLabelId} ${partnerValueId}`}
                 data-testid="combine-date-time-partner" rightIcon={<ChevronDownIcon />}>
-              {partner?.name || "\u00A0"}
+              <span id={partnerValueId}>{partner?.name || "\u00A0"}</span>
             </MenuButton>
             <MenuList data-testid="combine-date-time-partner-menu-list">
               <MenuOptionGroup type="radio" value={partnerId}
