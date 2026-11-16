@@ -38,6 +38,7 @@
     "moduleNameMapper": {
       "\\.(csv|jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
       "\\.(css|less|sass|scss)$": "identity-obj-proxy",
+      "^@concord-consortium/coachmarks/styles/": "identity-obj-proxy",
       "^mobx-state-tree$": "@concord-consortium/mobx-state-tree"
     },
     "moduleFileExtensions": [
@@ -206,7 +207,8 @@
     "@codemirror/commands": "^6.10.3",
     "@codemirror/language": "^6.12.3",
     "@codemirror/view": "^6.41.1",
-    "@concord-consortium/cloud-file-manager": "~2.2.13",
+    "@concord-consortium/cloud-file-manager": "~2.3.2",
+    "@concord-consortium/coachmarks": "0.0.1-pre.13",
     "@concord-consortium/log-monitor": "^1.0.0",
     "@concord-consortium/mobx-state-tree": "^6.0.0-cc.1",
     "@concord-consortium/slate-editor": "^0.12.0",
@@ -225,7 +227,6 @@
     "d3": "^7.9.0",
     "d3-format": "^3.1.2",
     "d3-v6-tip": "^1.0.9",
-    "driver.js": "^1.4.0",
     "escape-string-regexp": "^5.0.0",
     "html-to-image": "^1.11.13",
     "iframe-phone": "^1.4.0",

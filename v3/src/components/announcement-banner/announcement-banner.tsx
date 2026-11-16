@@ -77,7 +77,8 @@ export function AnnouncementBanner() {
         {parseMessageWithLinks(message).map((segment, i) =>
           segment.url
             ? (
-              <ExternalLink key={i} href={segment.url} onClick={() => handleLinkClick(segment.url)}>
+              <ExternalLink key={i} href={segment.url} onClick={() => handleLinkClick(segment.url)}
+                data-testid={`announcement-banner-link-${i}`}>
                 {segment.text}
               </ExternalLink>
             )

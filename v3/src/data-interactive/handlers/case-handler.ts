@@ -6,7 +6,7 @@ import { isValueNonEmpty } from "../../utilities/math-utils"
 import { toV2Id, toV3CaseId } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
-import { DIFullCase } from "../data-interactive-data-set-types"
+import { DIRequestCase } from "../data-interactive-data-set-types"
 import { attrNamesToIds } from "../data-interactive-utils"
 import { t } from "../../utilities/translation/translate"
 import { updateCasesBy } from "./handler-functions"
@@ -55,7 +55,7 @@ export const diCaseHandler: DIHandler = {
 
     const newCaseData: ICaseCreation[] = []
     const reusedItemUpdates: ICase[] = []
-    const cases = (Array.isArray(values) ? values : [values]) as Array<Maybe<DIFullCase>>
+    const cases = (Array.isArray(values) ? values : [values]) as Array<Maybe<DIRequestCase>>
     const oldCaseIds = new Set(dataContext.caseInfoMap.keys())
     const newCaseIds: string[] = []
     const reusedCaseIds: string[] = []
@@ -63,7 +63,7 @@ export const diCaseHandler: DIHandler = {
     dataContext.applyModelChange(() => {
       cases.forEach(aCase => {
         // as in V2, a case with no values is created empty
-        const caseValues = aCase?.values ? attrNamesToIds(aCase.values, dataContext) : {}
+        const caseValues = aCase?.values ? attrNamesToIds(aCase.values, dataContext, collection) : {}
         if (!parentCollection) {
           // a top-level case has no parent, so any parent given is ignored (V2 used it if it named a case,
           // and otherwise failed)

@@ -54,7 +54,7 @@ object on its own. v3 accepts one for `update` too, but v2 did not, so send an a
 
 | Property | Type | Notes |
 |---|---|---|
-| `values` | Object | The new case's values, keyed by the names of this collection's attributes. Attributes you leave out are empty, and a case object with no `values` creates an empty case, as does a `null` entry in the array (v2 failed the request for one). A name that matches none of them is ignored |
+| `values` | Object or Array | The new case's values, keyed by the names of this collection's attributes, or an array (see below). Attributes you leave out are empty, and a case object with no `values` creates an empty case, as does a `null` entry in the list of case objects (v2 failed the request for one) |
 | `parent` | number | The id of the parent case. Required when the collection has a parent collection, and the parent case must already exist in that collection. A case in the top collection ignores it; v2 used it if it named a case, and otherwise failed |
 
 The new case takes its parent's values for the attributes of the collections above, so `values`
@@ -62,6 +62,16 @@ needs only this collection's attributes. A parent case created on its own starts
 case beneath it; the first child case you create under it fills that case rather than adding
 another, as in v2. This holds at each level, so building a parent, a child and a grandchild from
 the top down makes one item.
+
+On both actions, as in v2, a name that matches no attribute is tried again with leading and
+trailing spaces removed. `create` ignores a name that still matches none; for `update`, see below.
+
+As in v2, `values` may be an array instead of an object. An array's values are set in the order of
+the named collection's attributes: extra values are ignored, attributes past the end of a shorter
+array are left alone, and `null` or `undefined` clears its attribute. Formula attributes keep their
+place in the order but are not set, since they compute their own values (v2 wrote to them anyway).
+Each case object may use either form; for `update`, v2 used the form of the first one for the whole
+request.
 
 A case object whose `parent` is missing or names no case in the parent collection is skipped, and
 the others are still created. If every case object is skipped, the request fails with
@@ -79,7 +89,7 @@ necessarily list the cases in the order you sent them.
 | Property | Type | Notes |
 |---|---|---|
 | `id` | number | The id of the case to change. A case id is unique within its data context |
-| `values` | Object | The values to change, keyed by attribute name. Attributes you leave out keep their values |
+| `values` | Object or Array | The values to change, keyed by attribute name, or an array in the order of the named collection's attributes (see above). Attributes you leave out keep their values |
 
 A case object whose `id` matches no case is skipped, and the rest are still updated. `update`
 replies with `caseIDs`, the ids of the cases it found. A case is listed even when none of its
@@ -190,20 +200,10 @@ their values, so a new case whose values in that collection match an existing ca
 parent, including two cases with no values, becomes part of that case rather than a separate one,
 and is missing from the reply. v2 kept them separate.
 
-**Attribute names must match exactly.** On both actions, v2 tried a name in `values` again with
-leading and trailing spaces removed, so `"Age "` still matched `Age`. v3 matches the name exactly
-and ignores one that differs, and `update` replies `success: false`. This is a known bug; the
-intended behavior is v2's.
-
 **`create` also sets attributes of the collections below.** v2 ignored names in `values` that
 were not attributes of the named collection. v3 also sets the attributes of the collections below
 it. (Attributes of the collections above take the parent's values.) This differs from v2, and a
 plugin should not rely on it.
-
-**`values` given as an array is not applied.** v2 also accepted `values` as an array of values in
-the collection's attribute order, on both actions. v3 does not: `create` makes a case with no
-values, and `update` changes nothing and replies `success: false`. This is a known bug; until it is fixed, key `values` by
-attribute name.
 
 ## Notifications
 

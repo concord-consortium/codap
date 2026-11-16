@@ -22,9 +22,13 @@ import { kCellPadding } from "../../case-table/case-table-types"
 import { useCaseTableModel } from "../../case-table/use-case-table-model"
 import { findLongestContentWidth } from "../attribute-format-utils"
 import { CombineDateTimeModal } from "./combine-date-time-modal"
+import { IMenuItem } from "../std-menu-list"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 
 interface IProps {
+  /** Stable suffix used in the `attribute-header-menu-*` testid. May be a numeric index
+   *  or a fallback identifier when the attribute has no positional index. */
+  attrTestIdSuffix: string
   attributeId: string
   finalFocusRef?: React.RefObject<HTMLElement>
   onRenameAttribute: () => void
@@ -32,7 +36,7 @@ interface IProps {
 }
 
 const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
-    ({ attributeId, finalFocusRef, onRenameAttribute, onModalOpen }, ref) => {
+    ({ attrTestIdSuffix, attributeId, finalFocusRef, onRenameAttribute, onModalOpen }, ref) => {
   const data = useDataSetContext()
   const metadata = useDataSetMetadata()
   const tableModel = useCaseTableModel()
@@ -81,21 +85,16 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
     e.stopPropagation()
   }
 
-  interface IMenuItem {
-    itemKey: string
-    // defaults to true if not implemented
-    isEnabled?: (item: IMenuItem) => boolean
-    handleClick?: (item: IMenuItem) => void
-  }
-
   const menuItems: IMenuItem[] = [
     {
       itemKey: "DG.TableController.headerMenuItems.renameAttribute",
+      dataTestId: "attribute-menu-rename",
       isEnabled: () => !metadata?.isRenameProtected(attributeId),
       handleClick: onRenameAttribute
     },
     {
       itemKey: "DG.TableController.headerMenuItems.resizeColumn",
+      dataTestId: "attribute-menu-resize",
       handleClick: () => {
         data?.applyModelChange(() => {
           if (attribute) {
@@ -113,14 +112,17 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
     },
     {
       itemKey: "DG.TableController.headerMenuItems.editAttribute",
+      dataTestId: "attribute-menu-edit",
       handleClick: handleEditPropertiesOpen
     },
     {
       itemKey: "DG.TableController.headerMenuItems.editFormula",
+      dataTestId: "attribute-menu-edit-formula",
       handleClick: handleEditFormulaOpen
     },
     {
       itemKey: "DG.TableController.headerMenuItems.deleteFormula",
+      dataTestId: "attribute-menu-delete-formula",
       isEnabled: () => !metadata?.isEditProtected(attributeId) && !!attribute?.hasFormula,
       handleClick: () => {
         data?.applyModelChange(() => {
@@ -139,6 +141,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
     },
     {
       itemKey: "DG.TableController.headerMenuItems.recoverFormula",
+      dataTestId: "attribute-menu-recover-formula",
       isEnabled: () => !metadata?.isEditProtected(attributeId) &&
           !attribute?.hasFormula &&
           !!metadata?.getAttributeDeletedFormula(attributeId),
@@ -158,6 +161,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
     },
     {
       itemKey: "DG.TableController.headerMenuItems.randomizeAttribute",
+      dataTestId: "attribute-menu-randomize",
       isEnabled: () => !!attribute?.formula?.isRandomFunctionPresent,
       handleClick: () => {
         data?.applyModelChange(() => {
@@ -175,14 +179,17 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
     },
     {
       itemKey: "DG.TableController.headerMenuItems.sortAscending",
+      dataTestId: "attribute-menu-sort-asc",
       handleClick: handleSortCases
     },
     {
       itemKey: "DG.TableController.headerMenuItems.sortDescending",
+      dataTestId: "attribute-menu-sort-desc",
       handleClick: handleSortCases
     },
     {
       itemKey: "DG.TableController.headerMenuItems.hideAttribute",
+      dataTestId: "attribute-menu-hide",
       isEnabled: () => {
         // can't hide last attribute of collection
         const visibleAttributes = collection?.attributes
@@ -205,6 +212,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
     },
     {
       itemKey: "DG.TableController.headerMenuItems.deleteAttribute",
+      dataTestId: "attribute-menu-delete",
       isEnabled: () => {
         if (metadata?.isDeleteProtected(attributeId) || !data) return false
 
@@ -250,10 +258,11 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
 
   return (
     <>
-      <MenuList ref={ref} data-testid="attribute-menu-list"
+      <MenuList ref={ref} data-testid={`attribute-header-menu-${attrTestIdSuffix}`}
           onKeyDown={handleMenuKeyDown} onFocus={handleMenuItemFocus}>
         {menuItems.map(item => (
-          <MenuItem key={item.itemKey} isDisabled={!isItemEnabled(item)} onClick={() => item.handleClick?.(item)}>
+          <MenuItem key={item.itemKey} isDisabled={!isItemEnabled(item)} onClick={() => item.handleClick?.(item)}
+              data-testid={item.dataTestId}>
             {`${t(item.itemKey)}${item.handleClick ? "" : " 🚧"}`}
           </MenuItem>
         ))}

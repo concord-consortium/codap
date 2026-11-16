@@ -54,8 +54,8 @@ of responses, one per envelope:
 ```
 
 A failure does not stop the rest: each envelope succeeds or fails on its own, and the ones before
-a failure are not undone. One kind of failure currently breaks this; see
-[Known limitations](#known-limitations).
+a failure are not undone, as in v2. An envelope that fails unexpectedly gets
+`An error occurred while processing the request.` in its place; v2 put the exception's text there.
 
 An array request is a convenience, not a transaction. It saves round trips, but each envelope is
 still a separate change.
@@ -107,7 +107,7 @@ never combined.
 
 A plugin that keeps data in step with another source — a collaborative plugin, for example —
 risks overwriting a value the user is typing. Setting `blockAPIRequestsWhileEditing` on
-`interactiveFrame` prevents that:
+`interactiveFrame` keeps your plugin from doing that:
 
 ```json
 {
@@ -119,15 +119,22 @@ risks overwriting a value the user is typing. Setting `blockAPIRequestsWhileEdit
 
 It takes effect for data contexts your plugin manages, which it names with `managingController`
 on [`dataContext`](../resources/data-context.md). While the user edits a case table cell in one of
-those data contexts, CODAP holds back plugin requests until the edit ends, then processes them in
-order. Nothing is dropped.
+those data contexts, CODAP holds back your plugin's requests until the edit ends, then processes
+them in order. Nothing is dropped.
 
 The hold starts only once the user has actually changed the cell's value, and ends when the cell
-editor closes. It applies only to case table cells, not to the case card or to attribute names.
+editor closes. It follows the data context: if another plugin becomes its `managingController`
+during the edit, the hold moves to that plugin, if it sets `blockAPIRequestsWhileEditing`, and
+your plugin's waiting requests are processed. Turning the setting off ends the hold at once. It
+applies only to case table cells, not to the case card or to attribute names.
 
-**The hold applies to every plugin, not only yours.** While it lasts, requests from all plugins
-wait, including `get`s, so a plugin that polls sees its responses arrive late while the user
-types. See [Known limitations](#known-limitations).
+**The hold applies only to your plugin.** While it lasts, all of your plugin's requests wait,
+including `get`s, so if your plugin polls, it sees its responses arrive late while the user types.
+Requests from other plugins, and from the page CODAP is
+[embedded in](embedded-server.md), are processed as usual, so they can change the data under the
+cell being edited. If one changes that cell, the value the user typed replaces the change when the
+edit is committed. If one deletes the edited case, or a case above it in the table, the editor
+closes and the typed text is lost.
 
 The setting defaults to `false` and is new in v3. It is saved with the document, but the
 `managingController` it depends on is not: after the document is reopened, nothing is held until
@@ -136,20 +143,10 @@ loads.
 
 ## Known limitations
 
-**An array request that fails partway can reply with a single error.** If processing throws
-inside one envelope, CODAP stops there and replies with one error object,
-`An error occurred while processing the request.`, rather than an array. The envelopes before it
-have taken effect, the later ones have not, and the reply does not say which. v2 reported the
-error in that envelope's place and went on with the rest, which is the intended behavior. This is
-a known bug. Until it is fixed, check whether the reply is an array before reading it.
-
 **Data notifications are not combined as v2 combined them.** v2 sent one data-change notification
 per request, whose `values` was an array of every change the request made. CODAP sends one
 notification per change, each with a `values` array of one. This is a known bug; the intended
 behavior is v2's. See [the notification catalog](../notifications.md#known-limitations).
-
-**`blockAPIRequestsWhileEditing` holds back every plugin.** Only the plugin that manages the data
-context needs to wait while its data is being edited, but requests from all plugins wait.
 
 ## See also
 
