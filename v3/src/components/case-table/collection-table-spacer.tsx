@@ -10,7 +10,7 @@ import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDataSet } from "../../models/data/data-set"
-import { isAnyChildSelected } from "../../models/data/data-set-utils"
+import { getDescendantCaseIds, isAnyChildSelected } from "../../models/data/data-set-utils"
 import { getStringCssVariable } from "../../utilities/css-utils"
 import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
@@ -191,10 +191,12 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
       log: logMessageWithReplacement("%@ case %@",
               { state: metadata?.isCollapsed(parentCaseId) ? "Expand" : "Collapse", parentCaseId}, "table")
     })
-    // scroll to the first expanded/collapsed child case (if necessary)
-    const parentCase = data?.caseInfoMap.get(parentCaseId)
-    const childCount = parentCase?.childCaseIds?.length || parentCase?.childItemIds?.length || 0
-    const firstChildId = parentCase?.childCaseIds?.[0] || parentCase?.childItemIds?.[0]
+    // scroll to the first expanded/collapsed child case (if necessary); the child cases are the
+    // parent's descendants in this collection, which may be further down the hierarchy than its
+    // immediate children when the collections between them aren't rendered
+    const childCaseIds = data ? getDescendantCaseIds(data, parentCaseId, childCollectionId) : []
+    const childCount = childCaseIds.length
+    const firstChildId = childCaseIds[0]
     const rowIndex = (firstChildId ? childTableModel?.getRowIndexOfCase(firstChildId) : -1) ?? -1
     ;(rowIndex >= 0) && childTableModel?.scrollRowIntoView(rowIndex)
     announce(t(wasCollapsed

@@ -1,7 +1,7 @@
 import { useCallback } from "react"
 import { useDataSet } from "../../hooks/use-data-set"
 import { OnTableScrollFn } from "./case-table-types"
-import { getRenderedCollections } from "./case-table-utils"
+import { getRenderedCollections } from "./rendered-collections"
 import { useCaseTableModel } from "./use-case-table-model"
 
 export function useSyncScrolling() {

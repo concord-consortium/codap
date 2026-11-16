@@ -5,8 +5,8 @@ import { IAttribute } from "./attribute"
 import { CollectionModel, ICollectionModel } from "./collection"
 import { DataSet, IDataSet, toCanonical } from "./data-set"
 import {
-  getCaseNameForCount, getCollectionAttrs, getNextCase, getPreviousCase, moveAttribute, rerandomizeAllAttributes,
-  selectAndDeselectCases
+  getCaseNameForCount, getCollectionAttrs, getDescendantCaseIds, getNextCase, getPreviousCase, moveAttribute,
+  rerandomizeAllAttributes, selectAndDeselectCases
 } from "./data-set-utils"
 
 jest.mock("../tiles/tile-environment", () => {
@@ -169,6 +169,31 @@ describe("DataSetUtils", () => {
     // Last parent case selected, parent collection
     expect(getNextCase(dataset, c2, c2CaseLast.__id__)).toBeUndefined()
     expect(getPreviousCase(dataset, c2, c2CaseLast.__id__)).toBe(c2Case3)
+  })
+
+  it("getDescendantCaseIds finds a case's descendants in a given collection", () => {
+    const data = DataSet.create({ name: "data", collections: [{ name: "G" }, { name: "P" }, { name: "C" }] })
+    const [gCollection, pCollection, cCollection] = data.collections
+    data.addAttribute({ name: "g" }, { collection: gCollection.id })
+    data.addAttribute({ name: "p" }, { collection: pCollection.id })
+    data.addAttribute({ name: "c" }, { collection: cCollection.id })
+    data.addCases(toCanonical(data, [
+      { g: "a", p: "x", c: 1 }, { g: "a", p: "y", c: 2 }, { g: "a", p: "x", c: 3 }, { g: "b", p: "x", c: 4 }
+    ]))
+    data.validateCases()
+    const [aCase] = gCollection.cases
+    const [axCase] = pCollection.cases
+    // child cases are ordered by group: (a,x): 1, 3; (a,y): 2; (b,x): 4
+    const childCaseIds = cCollection.cases.map(({ __id__ }) => __id__)
+
+    expect(getDescendantCaseIds(data, axCase.__id__, cCollection.id)).toEqual(childCaseIds.slice(0, 2))
+    expect(getDescendantCaseIds(data, aCase.__id__, cCollection.id)).toEqual(childCaseIds.slice(0, 3))
+    const parentCaseIds = pCollection.cases.map(({ __id__ }) => __id__)
+    expect(getDescendantCaseIds(data, aCase.__id__, pCollection.id)).toEqual(parentCaseIds.slice(0, 2))
+    // a case is its own descendant in its own collection
+    expect(getDescendantCaseIds(data, aCase.__id__, gCollection.id)).toEqual([aCase.__id__])
+    // there are no descendants in an ancestor collection
+    expect(getDescendantCaseIds(data, axCase.__id__, gCollection.id)).toEqual([])
   })
 })
 

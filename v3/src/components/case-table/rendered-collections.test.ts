@@ -1,5 +1,5 @@
 import { DataSet } from "../../models/data/data-set"
-import { getRenderedCollections } from "./case-table-utils"
+import { getRenderedCollections } from "./rendered-collections"
 
 describe("getRenderedCollections", () => {
   // three-level hierarchy: grandparent > parent > child, one attribute per collection
@@ -29,14 +29,14 @@ describe("getRenderedCollections", () => {
     expect(rendered(gAttr.id)).toEqual(["parent", "child"])
   })
 
-  it("omits consecutive collections at both ends whose attributes are all hidden", () => {
+  it("omits any combination of collections whose attributes are all hidden", () => {
     expect(rendered(gAttr.id, cAttr.id)).toEqual(["parent"])
     expect(rendered(gAttr.id, pAttr.id)).toEqual(["child"])
     expect(rendered(pAttr.id, cAttr.id)).toEqual(["grandparent"])
   })
 
-  it("still renders a middle collection whose attributes are all hidden", () => {
-    expect(rendered(pAttr.id)).toEqual(["grandparent", "parent", "child"])
+  it("omits a middle collection whose attributes are all hidden", () => {
+    expect(rendered(pAttr.id)).toEqual(["grandparent", "child"])
   })
 
   it("renders only the childmost collection when every attribute is hidden", () => {

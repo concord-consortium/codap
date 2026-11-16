@@ -205,10 +205,15 @@ export const DataSetMetadata = SharedModel
       }, [] as string[])
       return hashStringSet(caseIds)
     },
-    getCollapsedAncestor(caseId: Maybe<string>) {
+    // returns the outermost collapsed ancestor of the case, optionally considering only ancestors
+    // in collections for which `isCollectionIncluded` returns true
+    getCollapsedAncestor(caseId: Maybe<string>, isCollectionIncluded?: (collectionId: string) => boolean) {
       let collapsedAncestorId: Maybe<string>
       while (caseId && (caseId = self.data?.getParentCaseId(caseId))) {
-        if (this.isCollapsed(caseId)) collapsedAncestorId = caseId
+        if (this.isCollapsed(caseId) &&
+            (!isCollectionIncluded || isCollectionIncluded(self.data?.caseInfoMap.get(caseId)?.collectionId ?? ""))) {
+          collapsedAncestorId = caseId
+        }
       }
       return collapsedAncestorId
     },

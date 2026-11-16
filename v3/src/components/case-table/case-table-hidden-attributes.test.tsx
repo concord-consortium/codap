@@ -90,12 +90,11 @@ describe("Case Table with all attributes hidden in a collection", () => {
     expect(sharedMetadata.isHidden(attrIds[1])).toBe(true)
   })
 
-  it("renders a middle collection whose attributes are all hidden with only the index column", () => {
+  it("omits a middle collection whose attributes are all hidden", () => {
     const { data, attrIds, sharedMetadata } = createHierarchicalData(["groups", "subgroups", "cases"])
     sharedMetadata.setIsHidden(attrIds[1], true)
     renderTable(data)
-    expect(renderedGridNames()).toEqual([gridName("groups"), gridName("subgroups"), gridName("cases")])
-    expect(screen.getByRole("grid", { name: gridName("subgroups") })).toHaveAttribute("aria-colcount", "1")
+    expect(renderedGridNames()).toEqual([gridName("groups"), gridName("cases")])
   })
 
   it("renders only the childmost collection, index-only, when every attribute is hidden", () => {

@@ -425,6 +425,30 @@ describe("DataSetMetadata", () => {
     expect(hash2).toBe(hash0)
   })
 
+  it("can limit the collapsed ancestor to cases in particular collections", () => {
+    // (["aId"], ["bId"], ["cId"])
+    const cCollection = tree.data.childCollection
+    const bCollection = tree.data.moveAttributeToNewCollection("bId")!
+    const aCollection = tree.data.moveAttributeToNewCollection("aId", bCollection.id)!
+    tree.data.validateCases()
+    const aCaseId = aCollection.cases[0].__id__
+    const bCaseId = bCollection.cases[0].__id__
+    const cCaseId = cCollection.cases[0].__id__
+    const excludingB = (collectionId: string) => collectionId !== bCollection.id
+
+    // a collapsed case in an excluded collection is ignored
+    tree.metadata.setIsCollapsed(bCaseId, true)
+    expect(tree.metadata.getCollapsedAncestor(cCaseId)).toBe(bCaseId)
+    expect(tree.metadata.getCollapsedAncestor(cCaseId, excludingB)).toBeUndefined()
+
+    // the outermost collapsed ancestor in an included collection is returned
+    tree.metadata.setIsCollapsed(aCaseId, true)
+    expect(tree.metadata.getCollapsedAncestor(cCaseId)).toBe(aCaseId)
+    expect(tree.metadata.getCollapsedAncestor(cCaseId, excludingB)).toBe(aCaseId)
+    expect(tree.metadata.getCollapsedAncestor(cCaseId, collectionId => collectionId === cCollection.id))
+      .toBeUndefined()
+  })
+
   it("recognizes SetIsCollapsedActions", () => {
     const counter = jest.fn()
     onAnyAction(tree.metadata, action => {

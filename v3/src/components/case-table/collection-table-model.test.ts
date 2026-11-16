@@ -1,6 +1,9 @@
 import { autorun } from "mobx"
+import { DataSet, toCanonical } from "../../models/data/data-set"
+import { createDataSetMetadata } from "../../models/shared/data-set-metadata"
+import { symFirstChild, symIndex } from "../../models/data/data-set-types"
+import { symShownParent, TRow } from "./case-table-types"
 import { CollectionTableModel } from "./collection-table-model"
-import { TRow } from "./case-table-types"
 
 describe("CollectionTableModel", () => {
   it("rowCache changes are shallowly observable", () => {
@@ -57,5 +60,87 @@ describe("CollectionTableModel", () => {
     // an explicitly requested behavior always wins
     expect(m.scrollBehaviorForTarget(page * 10, { scrollBehavior: "smooth" })).toBe("smooth")
     expect(m.scrollBehaviorForTarget(0, { scrollBehavior: "auto" })).toBe("auto")
+  })
+
+  describe("when an intervening collection isn't rendered", () => {
+    // grandparent "G" > parent "P" > child "C", one attribute per collection
+    const setup = () => {
+      const data = DataSet.create({ name: "data", collections: [{ name: "G" }, { name: "P" }, { name: "C" }] })
+      const [gCollection, pCollection, cCollection] = data.collections
+      data.addAttribute({ name: "g" }, { collection: gCollection.id })
+      const pAttr = data.addAttribute({ name: "p" }, { collection: pCollection.id })
+      data.addAttribute({ name: "c" }, { collection: cCollection.id })
+      // child cases are ordered by group: (a,x): 1, 3; (a,y): 2; (b,x): 4
+      data.addCases(toCanonical(data, [
+        { g: "a", p: "x", c: 1 }, { g: "a", p: "y", c: 2 }, { g: "a", p: "x", c: 3 }, { g: "b", p: "x", c: 4 }
+      ]))
+      data.validateCases()
+      const metadata = createDataSetMetadata(data)
+      const childModel = new CollectionTableModel(cCollection.id, metadata)
+      const [aCase, bCase] = gCollection.cases
+      const [axCase, ayCase, bxCase] = pCollection.cases
+      const childRows = () => childModel.createRows(data.getCasesForCollection(cCollection.id))
+      return { data, metadata, pAttr, childModel, childRows, aCase, bCase, axCase, ayCase, bxCase,
+                gCollection, pCollection, cCollection }
+    }
+
+    it("identifies the rendered parent collection", () => {
+      const { metadata, pAttr, childModel, gCollection, pCollection, cCollection } = setup()
+      expect(childModel.renderedCollectionIds).toEqual([gCollection.id, pCollection.id, cCollection.id])
+      expect(childModel.shownParentCollectionId).toBe(pCollection.id)
+
+      metadata.setIsHidden(pAttr.id, true)
+      expect(childModel.renderedCollectionIds).toEqual([gCollection.id, cCollection.id])
+      expect(childModel.shownParentCollectionId).toBe(gCollection.id)
+    })
+
+    it("groups and numbers rows by their parent when every collection is rendered", () => {
+      const { childRows, axCase, ayCase, bxCase } = setup()
+      const rows = childRows()
+      expect(rows.map(row => row[symShownParent])).toEqual([axCase.__id__, axCase.__id__, ayCase.__id__, bxCase.__id__])
+      expect(rows.map(row => row[symIndex])).toEqual([0, 1, 0, 0])
+      expect(rows.map(row => !!row[symFirstChild])).toEqual([true, false, true, true])
+    })
+
+    it("groups and numbers rows by their rendered ancestor", () => {
+      const { metadata, pAttr, childModel, childRows, aCase, bCase } = setup()
+      metadata.setIsHidden(pAttr.id, true)
+      const rows = childRows()
+      expect(rows.map(row => row[symShownParent])).toEqual([aCase.__id__, aCase.__id__, aCase.__id__, bCase.__id__])
+      expect(rows.map(row => row[symIndex])).toEqual([0, 1, 2, 0])
+      expect(rows.map(row => !!row[symFirstChild])).toEqual([true, false, false, true])
+
+      // the relationship lines connect each rendered ancestor to its descendants
+      // (the last group is extended to include the input row)
+      childModel.resetRows(rows)
+      expect(childModel.parentIndexRanges).toEqual([
+        { id: aCase.__id__, firstChildIndex: 0, lastChildIndex: 2 },
+        { id: bCase.__id__, firstChildIndex: 3, lastChildIndex: 4 }
+      ])
+    })
+
+    it("numbers rows straight through when no parent collection is rendered", () => {
+      const { data, metadata, gCollection, pCollection } = setup()
+      gCollection.attributes.forEach(attr => attr && metadata.setIsHidden(attr.id, true))
+      const parentModel = new CollectionTableModel(pCollection.id, metadata)
+      expect(parentModel.shownParentCollectionId).toBeUndefined()
+      const rows = parentModel.createRows(data.getCasesForCollection(pCollection.id))
+      expect(rows.map(row => row[symShownParent])).toEqual([undefined, undefined, undefined])
+      expect(rows.map(row => row[symIndex])).toEqual([0, 1, 2])
+      expect(rows.map(row => !!row[symFirstChild])).toEqual([false, false, false])
+    })
+
+    it("ignores collapsed cases in collections that aren't rendered", () => {
+      const { metadata, pAttr, childModel, data, aCase, axCase, cCollection } = setup()
+      const [firstChildCase] = data.getCasesForCollection(cCollection.id)
+      metadata.setIsCollapsed(axCase.__id__, true)
+      expect(childModel.getCollapsedAncestor(firstChildCase.__id__)).toBe(axCase.__id__)
+
+      metadata.setIsHidden(pAttr.id, true)
+      expect(childModel.getCollapsedAncestor(firstChildCase.__id__)).toBeUndefined()
+
+      metadata.setIsCollapsed(aCase.__id__, true)
+      expect(childModel.getCollapsedAncestor(firstChildCase.__id__)).toBe(aCase.__id__)
+    })
   })
 })
