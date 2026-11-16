@@ -386,7 +386,7 @@ Five more resources, each with a few notifications.
 | `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the locale itself, such as `pt-BR`. Sent only to plugins that set `handlesLocaleChange`; see [Language and locale](guides/locale.md) | `lang`, `locale` |
 | `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` | `formatStr`, `logMonitor`, `message`, … |
 | `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. See the [Tour API](../plugin-tour-api.md) | _not readable from the code_ |
-| `uiNotificationNotice` | none | a UI event (an element appearing or disappearing, a click, a drag, a dialog change and the like) matched a `uiNotificationMonitor` your plugin registered. Carries `monitor` (its `id` and any `clientId`) and the event; see the [interim guide](../plugin-ui-notifications.md) | `monitor`, … |
+| `uiNotificationNotice` | none | a UI event (an element appearing or disappearing, a click, a drag, a dialog change and the like) matched a `uiNotificationMonitor` your plugin registered. Carries `monitor` (its `id` and any `clientId`) and the event; see the [UI notifications guide](../plugin-ui-notifications.md) | `monitor`, … |
 <!-- END GENERATED: notifications-other -->
 
 `dataContextCountChanged` and `dataContextDeleted` arrive here rather than on a named context
