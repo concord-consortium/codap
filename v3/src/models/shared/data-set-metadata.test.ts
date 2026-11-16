@@ -152,8 +152,8 @@ describe("DataSetMetadata", () => {
     expect(tree.metadata.isHidden("aId")).toBe(false)
     expect(tree.metadata.attributes.get("aId")?.hidden).toBeUndefined()
 
-    // hiding every attribute in a collection leaves them all hidden (CODAP-1375): the case
-    // table renders such a collection's grid with only the index column rather than auto-showing them.
+    // hiding every attribute in a collection leaves them all hidden rather than auto-showing them;
+    // the case table decides whether to render such a collection.
     tree.metadata.setIsHidden("aId", true)
     tree.metadata.setIsHidden("bId", true)
     expect(tree.metadata.isHidden("aId")).toBe(true)

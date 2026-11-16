@@ -479,9 +479,9 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
       <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}
             onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} collectionIndex={collectionIndex}/>
-        {/* A collection with all attributes hidden still renders its grid showing just the index
-            column (matching V2), so the parent/child relationship lines have cells to connect to.
-            Guard against the rare case of no columns at all (e.g. index column also hidden). */}
+        {/* A rendered collection with all attributes hidden (see getRenderedCollections) shows just
+            the index column, so the relationship lines have cells to connect to. Guard against the
+            rare case of no columns at all (e.g. index column also hidden). */}
         <If condition={columns.length > 0}>
           <VisuallyHidden id={gridInstructionsId}>
             {t("V3.CaseTable.gridEditInstructions")}
