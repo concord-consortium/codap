@@ -48,20 +48,20 @@ describe("MapHotSpotResolutionSlider", () => {
     await user.keyboard("{End}")
     expect(hotSpotModel.bandwidth).toBeCloseTo(hotSpotModel.defaultBandwidth / kResolutionRangeFactor)
     expect(hotSpotModel.dynamicBandwidth).toBeUndefined()
-    // 10 km / √10
-    expect(slider).toHaveAttribute("aria-valuetext", "3.2 km")
+    // 10 km / 10^0.6
+    expect(slider).toHaveAttribute("aria-valuetext", "2.5 km")
   })
 
   it("widens the range to include a bandwidth outside the usual range", () => {
     const pointLayer = createPointLayer()
-    // 100 km is √10² = 10 times the 10 km default, so it's at resolution -2
-    pointLayer.hotSpotModel.setBandwidth(100000)
+    // the 10 km default times the range factor squared (10^1.2, about 160 km) is at resolution -2
+    pointLayer.hotSpotModel.setBandwidth(10000 * kResolutionRangeFactor ** 2)
     render(<MapHotSpotResolutionSlider mapPointLayerModel={pointLayer}/>)
 
     const slider = screen.getByRole("slider")
     expect(slider).toHaveAttribute("min", "-2")
     expect(slider).toHaveAttribute("max", "2")
     expect(Number(slider.getAttribute("value"))).toBeCloseTo(-2)
-    expect(slider).toHaveAttribute("aria-valuetext", "100 km")
+    expect(slider).toHaveAttribute("aria-valuetext", "160 km")
   })
 })
