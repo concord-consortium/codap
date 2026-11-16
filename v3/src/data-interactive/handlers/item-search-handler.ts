@@ -1,5 +1,4 @@
-import { deleteCasesNotification, moveCasesNotification } from "../../models/data/data-set-notifications"
-import { getGroupedCases } from "../../models/data/data-set-utils"
+import { moveCasesNotification } from "../../models/data/data-set-notifications"
 import { toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { getV2ItemResult } from "../data-interactive-type-utils"
@@ -8,6 +7,7 @@ import { DIHandler, DIItemSearchNotify, DIResources, DIValues } from "../data-in
 import {
   couldNotParseQueryResult, dataContextNotFoundResult, fieldRequiredResult, valuesRequiredResult
 } from "./di-results"
+import { deleteItemsNotifications } from "./handler-functions"
 
 export const diItemSearchHandler: DIHandler = {
   delete(resources: DIResources) {
@@ -19,7 +19,7 @@ export const diItemSearchHandler: DIHandler = {
     dataContext.applyModelChange(() => {
       dataContext.removeCases(itemIds)
     }, {
-      notify: deleteCasesNotification(dataContext, getGroupedCases(dataContext, itemIds))
+      notify: deleteItemsNotifications(dataContext, itemIds)
     })
 
     return { success: true, values: itemIds.map(itemId => toV2Id(itemId)) }

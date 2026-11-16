@@ -1,6 +1,7 @@
 import { colord } from "colord"
 import { SetOptional } from "type-fest"
 import { toJS } from "mobx"
+import { getSnapshot } from "mobx-state-tree"
 import { kPolygonNames } from "../../models/boundaries/boundary-types"
 import { AttributeType } from "../../models/data/attribute-types"
 import { toV2Id } from "../../utilities/codap-utils"
@@ -14,8 +15,9 @@ import { exportV3Properties } from "../../v2/codap-v2-type-utils"
 import { IDataDisplayLayerModel } from "../data-display/models/data-display-layer-model"
 import { BaseMapKey, kLatNames, kLongNames, kMapPointLayerType, kMapPolygonLayerType } from "./map-types"
 import { isMapContentModel } from "./models/map-content-model"
+import { isDefaultHotSpotModel } from "./models/map-hot-spot-model"
 import { IMapLayerModel } from "./models/map-layer-model"
-import { IMapPointLayerModel } from "./models/map-point-layer-model"
+import { IMapPointLayerModel, isMapPointLayerModel } from "./models/map-point-layer-model"
 import { IMapPolygonLayerModel } from "./models/map-polygon-layer-model"
 
 // These two constants are just for testing.
@@ -58,6 +60,9 @@ function exportMapBaseLayerStorage(layer: IMapLayerModel): ICodapV2MapLayerBaseS
                                 : 0
   const legendCollection = legendAttributeId && dataset
             ? dataset.getCollectionForAttribute(legendAttributeId) : undefined
+  // Only include a hot spot when it's for a point layer and it differs from the default.
+  const hotSpot = isMapPointLayerModel(layer) && !isDefaultHotSpotModel(layer.hotSpotModel)
+    ? getSnapshot(layer.hotSpotModel) : undefined
   return {
     _links_: {
       // shouldn't ever get here without a dataset
@@ -69,8 +74,11 @@ function exportMapBaseLayerStorage(layer: IMapLayerModel): ICodapV2MapLayerBaseS
     isVisible: isVisible ?? false,
     legendRole: 0,
     legendAttributeType,
-    // legend quantiles aren't serialized for maps in v2, so we treat them as v3 extensions
-    ...exportV3Properties(dataConfiguration, { includeLegendQuantiles: true })
+    // legend quantiles and hot spots aren't serialized for maps in v2, so we treat them as v3 extensions
+    ...exportV3Properties(dataConfiguration, {
+      includeLegendQuantiles: true,
+      hotSpot
+    })
   }
 }
 

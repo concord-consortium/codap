@@ -76,9 +76,8 @@ parameter. A request sent right away can find a document that is still empty.
 ## Sending requests
 
 Requests from the host page work as they do from a plugin. They are processed in order, one at a
-time, each with exactly one response, in a queue of the host page's own. If a plugin has turned
-on `blockAPIRequestsWhileEditing`, the host page's requests are held along with every plugin's
-while the user edits that plugin's data; see
+time, each with exactly one response, in a queue of the host page's own. A plugin's
+`blockAPIRequestsWhileEditing` holds back only that plugin's requests, never the host page's; see
 [Requests while the user is editing](request-processing.md#requests-while-the-user-is-editing).
 See [How CODAP processes requests](request-processing.md) for the rest.
 

@@ -154,8 +154,8 @@ context("Keyboard Navigation", () => {
     it("opens the Tiles menu", () => {
       // Ctrl+' should open the tiles list menu
       cy.realPress(["Control", "'"])
-      cy.get("[data-testid=tiles-list-menu]").should("be.visible")
-      cy.get("[data-testid=tiles-list-menu-item]").should("have.length.greaterThan", 0)
+      cy.get("[data-testid=tool-shelf-tiles-menu-list]").should("be.visible")
+      cy.get('[data-testid^="tool-shelf-tiles-menu-item-"]').should("have.length.greaterThan", 0)
     })
   })
 

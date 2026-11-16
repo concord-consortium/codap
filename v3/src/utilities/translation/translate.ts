@@ -1,3 +1,4 @@
+import { createElement, Fragment, ReactNode } from "react"
 import { translations } from "./languages"
 import { gLocale } from "./locale"
 
@@ -50,6 +51,27 @@ export function translate (key: string, options?: ITranslateOptions) {
 }
 
 export const t = translate
+
+const kPlaceholderRegExp = /%{\s*([^}\s]*)\s*}/g
+
+// Translates a string and replaces its %{name} placeholders with React elements, so a translated
+// sentence can contain links or other markup without putting markup in the string itself.
+export function translateToElements(key: string, elements: Record<string, ReactNode>): ReactNode[] {
+  // Pass each placeholder through translate() unchanged. translate() still handles the language
+  // fallback, and it removes (with a warning) any placeholder that has no matching element.
+  const vars = Object.fromEntries(Object.keys(elements).map(name => [name, `%{${name}}`]))
+  const translation = translate(key, { vars })
+  const result: ReactNode[] = []
+  let textStart = 0
+  for (const match of translation.matchAll(kPlaceholderRegExp)) {
+    const [placeholder, name] = match
+    if (match.index > textStart) result.push(translation.slice(textStart, match.index))
+    result.push(createElement(Fragment, { key: result.length }, elements[name]))
+    textStart = match.index + placeholder.length
+  }
+  if (textStart < translation.length) result.push(translation.slice(textStart))
+  return result
+}
 
 // Non-roman character languages require special styling so we add a class to
 // components that use these languages.

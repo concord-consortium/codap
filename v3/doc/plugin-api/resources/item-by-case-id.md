@@ -58,8 +58,9 @@ own data context — see [the index](../README.md#the-default-data-context).
 ### What `update` accepts
 
 `values` is an object of the values to change, keyed by attribute name. It is not nested, unlike
-`update` on a case. Attributes you leave out keep their values, and a name that matches no
-attribute is ignored.
+`update` on a case. Attributes you leave out keep their values. A name that matches no attribute
+is tried again with leading and trailing spaces removed, as in v2, and ignored if it still matches
+none.
 
 `update` changes one item, even when the selector names a parent case. Changing a parent
 collection's attribute through it changes that one item, which then moves to a different parent
@@ -150,10 +151,6 @@ one, such as a parent case left with no items, v2 listed its id in `deletedCases
 replies with an empty `deletedCases`. This is a known bug. Until it is fixed, a plugin that
 tracks case ids should read them again after changing a parent collection's attribute.
 
-**Attribute names in `values` must match exactly.** v2 tried a name again with leading and
-trailing spaces removed, so `"Mass "` still matched `Mass`. v3 ignores a name that differs. This
-is a known bug.
-
 **A boolean value is stored as text.** An item updated with `true` reads back as the text
 `"true"`. v2 kept the boolean. This is a known bug.
 
@@ -163,9 +160,10 @@ This resource takes no `notify` requests of its own.
 
 `update` and `delete` notify other plugins on `dataContextChangeNotice[<context>]` with
 `updateCases` or `deleteCases` for the item's case in the last collection, as the same change made
-in a case table does. An `update` that moves the item to a different parent case also sends
-`createCases` for the cases it creates; v2 sent only the `updateCases`, whose result also listed
-the cases created and deleted.
+in a case table does, followed by `updateItems` or `deleteItems` with the item's id. v2 sent
+`updateItems` but no `deleteItems`. An `update` that moves the item to a different parent case
+also sends `createCases` for the cases it creates, before `updateItems`; v2 did not, and its
+`updateCases` result listed the cases created and deleted instead.
 
 ## Errors
 

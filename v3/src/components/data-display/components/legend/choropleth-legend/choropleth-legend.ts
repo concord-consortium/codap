@@ -65,12 +65,29 @@ export function getScaleThresholds(scale: ChoroplethScale) {
       : scale.domain()
 }
 
+// The legend's bin boundaries: [min, ...inner edges, max]. The min and max are the caller's
+// legendMin and legendMax (the legend's display range) where given, else the extent of the scale's
+// domain (a quantile scale's domain is its training samples, so its extent can differ from the
+// user-set range). Undefined when neither gives a min and max. The legend's labels and the
+// inspector's Min/Max inputs both use this, so their number formats match.
+export function getLegendBoundaries(scale: ChoroplethScale, legendMin?: number, legendMax?: number) {
+  const lo = legendMin ?? min(scale.domain())
+  const hi = legendMax ?? max(scale.domain())
+  if (lo == null || hi == null || isNaN(lo) || isNaN(hi)) return undefined
+  return [lo, ...getScaleThresholds(scale), hi]
+}
+
 export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElement, props: ChoroplethLegendProps) {
   // Handle invalid or not enough cases:
   // - Quantile legends: the domain length will be 0
   // - Quantize legends: the domain will be [NaN, NaN]
+  // - Threshold legends with no inner edges: the domain length will be 0. This is a valid one-bin
+  //   legend when the caller gives both legendMin and legendMax (a locked one-bin legend). Without
+  //   them (a degenerate log legend) there is nothing to show.
   const domain = scale.domain()
-  if (domain.length === 0 || isNaN(domain[0])) {
+  const isValidOneBinThreshold = !isScaleQuantile(scale) && !isScaleQuantize(scale) &&
+    scale.range().length === 1 && props.legendMin != null && props.legendMax != null
+  if (domain.length === 0 ? !isValidOneBinThreshold : isNaN(domain[0])) {
     select(choroplethElt).selectAll("*").remove()
     return
   }
@@ -79,11 +96,7 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
       isDate, useGrouping = false, logarithmic = false, transform = '', width = 320,
       marginTop = 0, marginRight = 0, marginLeft = 0,
       ticks = 5, legendMin, legendMax, binDataExtents, clickHandler, casesInBinSelectedHandler
-    } = props,
-    // Prefer the caller-provided effective range; fall back to the scale domain's extent (a quantile
-    // scale's domain is its training samples, so its extent can differ from the user-set range).
-    minValue = legendMin ?? min(scale.domain()) ?? 0,
-    maxValue = legendMax ?? max(scale.domain()) ?? 0
+    } = props
 
   select(choroplethElt).selectAll("*").remove()
   const svg = select(choroplethElt).append("svg")
@@ -93,7 +106,10 @@ export function choroplethLegend(scale: ChoroplethScale, choroplethElt: SVGGElem
     .style("display", "block")
 
   const thresholds = getScaleThresholds(scale),
-    fullBoundaries = [minValue, ...thresholds, maxValue],
+    // The checks above make sure a min and max exist; [0, ..., 0] only keeps the types simple.
+    fullBoundaries = getLegendBoundaries(scale, legendMin, legendMax) ?? [0, ...thresholds, 0],
+    minValue = fullBoundaries[0],
+    maxValue = fullBoundaries[fullBoundaries.length - 1],
     dateLevels = isDate ? determineLevels(minValue, maxValue) : {increment: 1, outerLevel: 0, innerLevel: 0},
     datePrecision = isDate ? mapLevelToPrecision(dateLevels.innerLevel + 1) : kDatePrecisionNone,
     // Format every boundary (tick labels, tooltips, and the min/max endpoint labels) with a single,
