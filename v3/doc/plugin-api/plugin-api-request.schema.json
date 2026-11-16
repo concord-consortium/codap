@@ -204,6 +204,11 @@
         "tourElements": [
           "get"
         ],
+        "uiNotificationMonitor": [
+          "update",
+          "delete",
+          "notify"
+        ],
         "undoChangeNotice": [
           "notify"
         ]
@@ -235,7 +240,8 @@
         "itemSearch",
         "logMessage",
         "tourElements",
-        "type"
+        "type",
+        "uiNotificationMonitor"
       ]
     }
   }

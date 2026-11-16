@@ -5,6 +5,7 @@ import { diLogMessageHandler } from "./log-message-handler"
 import { diLogMessageMonitorHandler } from "./log-message-monitor-handler"
 import { logMonitorManager } from "../log-monitor-manager"
 import { appState } from "../../models/app-state"
+import { kHostPageId } from "../../lib/embedded-mode/embedded-mode-registry"
 import { IWebViewModel } from "../../components/web-view/web-view-model"
 
 describe("DataInteractive LogMessageHandler", () => {
@@ -73,11 +74,12 @@ describe("DataInteractive LogMessageMonitorHandler", () => {
     expect((result as any).values.logMonitor.clientId).toBe("plugin-1")
   })
 
-  it("returns error when no clientId available", () => {
+  it("registers a monitor for the host page when there is no interactiveFrame", () => {
     const resources = {} as any
     const values = { message: "*" } as any
     const result = handler.register!(resources, values)
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
+    expect((result as any).values.logMonitor.clientId).toBe(kHostPageId)
   })
 
   it("returns error when no values provided", () => {

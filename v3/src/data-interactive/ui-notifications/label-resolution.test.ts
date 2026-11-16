@@ -1,0 +1,73 @@
+import { kMaxLabelLength, resolveLabel } from "./label-resolution"
+
+describe("resolveLabel", () => {
+  beforeEach(() => { document.body.innerHTML = "" })
+
+  it("returns aria-label when present", () => {
+    const el = document.createElement("button")
+    el.setAttribute("aria-label", "Close")
+    expect(resolveLabel(el)).toBe("Close")
+  })
+
+  it("returns aria-labelledby textContent when aria-label absent", () => {
+    document.body.innerHTML = `
+      <span id="lbl">Open file</span>
+      <button aria-labelledby="lbl" id="btn"></button>`
+    expect(resolveLabel(document.getElementById("btn"))).toBe("Open file")
+  })
+
+  it("concatenates multiple aria-labelledby ids with spaces", () => {
+    document.body.innerHTML = `
+      <span id="a">Open</span>
+      <span id="b">file</span>
+      <button aria-labelledby="a b" id="btn"></button>`
+    expect(resolveLabel(document.getElementById("btn"))).toBe("Open file")
+  })
+
+  it("skips missing ids in aria-labelledby list", () => {
+    document.body.innerHTML = `
+      <span id="a">Open</span>
+      <button aria-labelledby="a missing-id" id="btn"></button>`
+    expect(resolveLabel(document.getElementById("btn"))).toBe("Open")
+  })
+
+  it("returns own textContent trimmed when 2+ chars with alphanumeric", () => {
+    const el = document.createElement("button")
+    el.textContent = "  OK  "
+    expect(resolveLabel(el)).toBe("OK")
+  })
+
+  it("omits single-char glyphs like ×, +", () => {
+    const x = document.createElement("button")
+    x.textContent = "×"
+    expect(resolveLabel(x)).toBeUndefined()
+    const p = document.createElement("button")
+    p.textContent = "+"
+    expect(resolveLabel(p)).toBeUndefined()
+  })
+
+  it("omits non-alphanumeric 2-char strings", () => {
+    const el = document.createElement("button")
+    el.textContent = "!!"
+    expect(resolveLabel(el)).toBeUndefined()
+  })
+
+  it("returns undefined when empty", () => {
+    const el = document.createElement("button")
+    expect(resolveLabel(el)).toBeUndefined()
+  })
+
+  it("truncates a long own-text label", () => {
+    const el = document.createElement("div")
+    el.textContent = "word ".repeat(200)
+    const label = resolveLabel(el)!
+    expect(label.length).toBeLessThanOrEqual(kMaxLabelLength)
+    expect(label.endsWith("…")).toBe(true)
+  })
+
+  it("truncates a long aria-label", () => {
+    const el = document.createElement("button")
+    el.setAttribute("aria-label", "x".repeat(500))
+    expect(resolveLabel(el)!.length).toBeLessThanOrEqual(kMaxLabelLength)
+  })
+})

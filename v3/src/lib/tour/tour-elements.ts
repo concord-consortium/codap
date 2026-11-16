@@ -91,7 +91,7 @@ export const tourElements = {
       ].join(" ")
     },
     calculator: {
-      selector: '[data-testid="tool-shelf-button-calc"]',
+      selector: '[data-testid="tool-shelf-button-calculator"]',
       title: "Calculator",
       description: "Click Calc to open or close the calculator for quick computations."
     },
@@ -104,7 +104,7 @@ export const tourElements = {
       ].join(" ")
     },
     webPage: {
-      selector: '[data-testid="tool-shelf-button-web page"]',
+      selector: '[data-testid="tool-shelf-button-web-view"]',
       title: "Web Page",
       description: "Click Web Page to embed a live website directly in your CODAP document."
     },
@@ -154,8 +154,11 @@ export type TourElementKey = {
 }[keyof typeof tourElements]
 
 /** Resolve a dotted key to its element metadata */
-export function resolveElement(key: TourElementKey): ITourElement {
-  const parts = key.split(".") as [keyof typeof tourElements, string]
-  const [ns, name] = parts
-  return (tourElements[ns] as Record<string, ITourElement>)[name]
+// Keys come from plugins, so only the registry's own entries resolve; anything else is undefined.
+export function resolveElement(key: TourElementKey): ITourElement | undefined {
+  const [ns, name] = key.split(".")
+  const hasOwn = (obj: object, prop: string) => Object.prototype.hasOwnProperty.call(obj, prop)
+  if (!hasOwn(tourElements, ns)) return undefined
+  const namespace = tourElements[ns as keyof typeof tourElements] as Record<string, ITourElement>
+  return hasOwn(namespace, name) ? namespace[name] : undefined
 }

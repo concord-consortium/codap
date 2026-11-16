@@ -7,11 +7,11 @@ import { t } from "../../utilities/translation/translate"
 import "./copied-cases-alert.scss"
 
 interface ICopiedCasesAlertProps {
-  copiedCasesString: string
+  message: string
   isOpen: boolean
   onClose: () => void
 }
-export function CopiedCasesAlert({ copiedCasesString, isOpen, onClose }: ICopiedCasesAlertProps) {
+export function CopiedCasesAlert({ message, isOpen, onClose }: ICopiedCasesAlertProps) {
   const okRef = useRef<HTMLButtonElement>(null)
 
   return (
@@ -23,7 +23,7 @@ export function CopiedCasesAlert({ copiedCasesString, isOpen, onClose }: ICopied
       <AlertDialogOverlay className="copied-cases-alert-overlay">
         <AlertDialogContent className="copied-cases-alert-content" style={{ width: 500 }}>
           <AlertDialogBody>
-            {t("DG.Inspector.caseTable.exportCaseDialog.copiedData", { vars: [copiedCasesString] })}
+            {message}
           </AlertDialogBody>
           <AlertDialogFooter>
             <Button ref={okRef} onClick={onClose} colorScheme="blue">

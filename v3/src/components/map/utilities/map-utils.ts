@@ -3,7 +3,7 @@ import {singular} from "pluralize"
 import {kPolygonNames} from "../../../models/boundaries/boundary-types"
 import { IAttribute } from "../../../models/data/attribute"
 import {IDataSet} from "../../../models/data/data-set"
-import {isFiniteNumber} from "../../../utilities/math-utils"
+import {isFiniteNumber, mod} from "../../../utilities/math-utils"
 import {translate} from "../../../utilities/translation/translate"
 import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
 import {ILatLong, kPinColors} from "../map-types"
@@ -21,7 +21,7 @@ export const isBoundaryAttribute = (attribute: IAttribute) => {
 // into the modulo branch and produces NaN.
 const canonicalizeLongitude = (lng: number) => {
   if (lng >= -180 && lng <= 180) return lng
-  return ((lng + 180) % 360 + 360) % 360 - 180
+  return mod(lng + 180, 360) - 180
 }
 
 /**

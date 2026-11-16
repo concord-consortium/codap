@@ -84,7 +84,7 @@ describe("AnnouncementBanner", () => {
         message: "Visit [our site](https://example.com) for more."
       })
       render(<AnnouncementBanner />)
-      const link = await screen.findByRole("link", { name: "our site" })
+      const link = await screen.findByRole("link", { name: "our site (opens in a new tab)" })
       expect(link).toHaveAttribute("href", "https://example.com")
       expect(link).toHaveAttribute("target", "_blank")
       expect(link).toHaveAttribute("rel", "noopener noreferrer")
@@ -274,7 +274,7 @@ describe("AnnouncementBanner", () => {
     it("logs a click on a link in the message with its url", async () => {
       mockFetchResolve({ ...validConfig, message: "Take [our survey](https://example.com/survey)." })
       render(<AnnouncementBanner />)
-      fireEvent.click(await screen.findByRole("link", { name: "our survey" }))
+      fireEvent.click(await screen.findByRole("link", { name: "our survey (opens in a new tab)" }))
       expect(logSpy).toHaveBeenLastCalledWith("Announcement banner link clicked",
         { bannerId: validConfig.id, url: "https://example.com/survey" }, "banner",
         { analyticsArgs: ["bannerId", "url"] })

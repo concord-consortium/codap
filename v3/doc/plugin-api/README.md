@@ -48,8 +48,10 @@ iframe-phone's two-second timeout for you; see
 
 **This reference replaces the
 [wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).**
-Every resource now has a complete, self-contained page in this folder, except `tourElements`,
-which is not yet documented anywhere. The wiki page is frozen as the **CODAP v2** reference;
+Every resource now has a complete, self-contained page in this folder, except two that are
+covered by full guides of their own: `tourElements`, documented in the
+[Tour API guide](../plugin-tour-api.md#get-tourelements), and `uiNotificationMonitor`, documented in
+the [UI notifications guide](../plugin-ui-notifications.md). The wiki page is frozen as the **CODAP v2** reference;
 [Where the wiki page's sections went](wiki-section-map.md) maps each of its sections to the page
 that now covers it.
 
@@ -70,7 +72,7 @@ The wiki page used these interchangeably. This reference does not — use the ca
 | **plugin** | data interactive, DI, interactive | The iframe'd application talking to CODAP. "Data interactive" is the older term and survives in API names like `interactiveFrame`. |
 | **data context** | data set, dataContext | The container for a set of related cases. `dataContext` is the API spelling; "data set" is the UI term for the same thing. |
 | **collection** | — | A level in a data context's hierarchy. A data context has one or more. |
-| **attribute** | column, field | A property of a case. May carry an explicit `type`; if it does not, CODAP infers one — numeric, date, color, boundary or categorical — from the attribute's current values, and the inferred type can change as those values change. |
+| **attribute** | column, field | A property of a case. May carry an explicit `type`; if it does not, CODAP infers one — numeric, date, color, boundary or categorical — from the attribute's current values, and the inferred type can change as those values change. See [Data types](guides/data-types.md). |
 | **case** | row | A grouping of items at one collection level. Each case is *in* exactly one collection. |
 | **item** | — | A flat row of values, and the source of truth — cases are constructed by grouping items. A case in the child-most collection corresponds one-to-one with an item, **but the two still have different ids**, so `caseByID` and `itemByID` are not interchangeable. See [`../hierarchical-data.md`](../hierarchical-data.md). |
 | **component** | tile | A thing in the CODAP workspace — a graph, table, map, slider, or a plugin itself. |
@@ -113,8 +115,8 @@ Every request a plugin sends has the same envelope:
 ```
 
 A request may also be an array of envelopes. CODAP processes them in order and replies with an
-array of responses, one per envelope, except in one known case; see
-[How CODAP processes requests](guides/request-processing.md#known-limitations).
+array of responses, one per envelope; see
+[How CODAP processes requests](guides/request-processing.md#array-requests).
 
 ### Response shape
 
@@ -215,7 +217,7 @@ Some resources are exceptions and return their internal string id directly:
 | Resource | Id it returns |
 |---|---|
 | `adornment`, `adornmentList` | The adornment's `ADRN...` string. The selector matches on it, so round-tripping works. |
-| `logMessageMonitor` | `clientId` is intended to be the plugin's own value, as in v2. v3 currently reports the plugin's tile id string instead, a known bug; see [`logMessageMonitor`](resources/log-message-monitor.md#known-limitations). |
+| `logMessageMonitor` | `clientId` is intended to be the plugin's own value, as in v2. v3 currently reports the plugin's tile id string instead, or `"__hostPage__"` for a monitor the host page registered, a known bug; see [`logMessageMonitor`](resources/log-message-monitor.md#known-limitations). |
 
 This is why "pass back what you were given" is the reliable rule: it holds for both cases,
 whereas "ids are numbers" does not. Do not parse an id, construct one, or assume its type.
@@ -267,7 +269,7 @@ Two more things to know:
 - Defaulting does **not** apply to these, which are not scoped to a data context:
   `component`, `componentList`, `dataContextList`, `dataDisplay`, `document`, `formulaEngine`,
   `global`, `globalList`, `interactiveApi`, `interactiveFrame`, `logMessage`,
-  `logMessageMonitor`, `undoableActionPerformed`, `undoChangeNotice`. Note that
+  `logMessageMonitor`, `uiNotificationMonitor`, `undoableActionPerformed`, `undoChangeNotice`. Note that
   `undoableActionPerformed` is an *operation* of the `undoChangeNotice` resource rather than a
   resource of its own; it appears in CODAP's exemption list all the same. v2's list differed
   slightly: it also exempted `configuration` and `configurationList`, and did not have
@@ -281,7 +283,7 @@ Naming the data context explicitly avoids depending on which data context is you
 
 ## Resources
 
-All 38 resources CODAP v3 registers, alphabetically. `tourElements` is not yet documented.
+All 39 resources CODAP v3 registers, alphabetically.
 
 | Resource | What it is for |
 |---|---|
@@ -321,7 +323,8 @@ All 38 resources CODAP v3 registers, alphabetically. `tourElements` is not yet d
 | [`logMessage`](resources/log-message.md) | Write an event to CODAP's log |
 | [`logMessageMonitor`](resources/log-message-monitor.md) | Be told about the events CODAP logs |
 | [`selectionList`](resources/selection-list.md) | The selected cases in a data context |
-| `tourElements` | Not yet documented |
+| [`tourElements`](../plugin-tour-api.md#get-tourelements) | The UI elements a tour or highlight can target, by `tourKey` |
+| [`uiNotificationMonitor`](../plugin-ui-notifications.md) | Be told about clicks, drags and dialogs in CODAP's interface |
 | [`undoChangeNotice`](resources/undo-change-notice.md) | Take part in CODAP's undo history |
 
 ---
@@ -329,7 +332,7 @@ All 38 resources CODAP v3 registers, alphabetically. `tourElements` is not yet d
 ## Guides
 
 Narrative chapters covering behavior that spans resources — how CODAP processes requests, undo
-and redo, language and locale, and embedding CODAP in a page — live in
+and redo, data types, language and locale, and embedding CODAP in a page — live in
 **[`guides/`](guides/README.md)**.
 
 The notifications CODAP sends to plugins are cataloged in **[`notifications.md`](notifications.md)**.

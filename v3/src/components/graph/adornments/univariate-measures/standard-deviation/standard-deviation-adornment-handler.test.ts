@@ -64,6 +64,7 @@ describe("DataInteractive standardDeviationAdornmentHandler", () => {
         subPlotRegionBoundaries: jest.fn(() => [1, 2])
       },
       dataConfiguration: mockDataConfig,
+      getUpdateCategoriesOptions: jest.fn(() => ({ dataConfig: mockDataConfig })),
       plotType: "dotPlot"
     }
     
@@ -71,6 +72,7 @@ describe("DataInteractive standardDeviationAdornmentHandler", () => {
       computeMeasureRange: jest.fn(() => { return {min: 0, max: 20} }),
       id: "ADRN123",
       isVisible: true,
+      setVisibility: jest.fn(),
       measures: mockMeasuresMap,
       type: kStandardDeviationType
     }
@@ -125,12 +127,13 @@ describe("DataInteractive standardDeviationAdornmentHandler", () => {
     expect(values.error).toBe("Adornment not found.")
   })
 
-  it("update successfully updates count adornment properties", () => {
+  it("update sets the adornment's visibility", () => {
     mockGraphContent.adornmentsStore.findAdornmentOfType.mockReturnValue(mockStandardDeviationAdornment)
     const updateValues = {
       isVisible: false
     }
     const result = handler.update?.({ graphContent: mockGraphContent, values: updateValues })
     expect(result?.success).toBe(true)
+    expect(mockStandardDeviationAdornment.setVisibility).toHaveBeenCalledWith(false)
   })
 })

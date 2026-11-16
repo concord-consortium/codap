@@ -44,10 +44,11 @@ every connected plugin. The exceptions:
   [`document`](resources/document.md). `localeChanged` requires `handlesLocaleChange`; see
   [Everything else](#everything-else). A `logMessageNotice` requires registering a
   monitor; see [`logMessageMonitor`](resources/log-message-monitor.md).
-- **Sent to one plugin only.**
-  - `undoAction` and `redoAction` go only to the plugin that reported the undoable action. See
-    [Undo and redo](#undo-and-redo--undochangenotice).
-  - A `logMessageNotice` goes only to the plugin that registered the matching monitor.
+- **Sent to one recipient only.**
+  - `undoAction` and `redoAction` go only to the plugin, or the host page, that reported the
+    undoable action. See [Undo and redo](#undo-and-redo--undochangenotice).
+  - A `logMessageNotice` goes only to the plugin, or the host page, that registered the matching
+    monitor.
   - `drag`, `dragenter`, `dragleave` and `drop` go only to the plugin under the pointer. See
     [Attribute drag](#attribute-drag--dragdropattribute).
 
@@ -115,7 +116,7 @@ So branch on `resource` first, and only then on `values.operation`, or, for
 | `dragDrop[attribute]` | the user is dragging an attribute |
 | `undoChangeNotice` | something was undone or redone, or the undo history was cleared |
 | `document` | document state, for plugins that asked for it |
-| `documentChangeNotice`, `global`, `logMessageNotice`, `interactiveFrame` | a few notifications each — see [Everything else](#everything-else) |
+| `documentChangeNotice`, `global`, `logMessageNotice`, `interactiveFrame`, `uiNotificationNotice` | a few notifications each — see [Everything else](#everything-else) |
 
 ## Data changes — `dataContextChangeNotice[<context>]`
 
@@ -339,9 +340,14 @@ Sent while a user drags an attribute, so a plugin can offer a drop target or rea
 |---|---|---|
 | `undoAction` | the user undoes an action your plugin reported as undoable | — |
 | `redoAction` | the user redoes an action your plugin reported as undoable | — |
-| `clearUndo` | the undo history is emptied, for example by a change that cannot be undone. Sent to every plugin. v3 sends it at different moments; see [Known limitations](#known-limitations) | `canRedo`, `canUndo` |
-| `clearRedo` | an action is added to the history, which empties the redo history. Sent to every plugin. v3 sends it at different moments; see [Known limitations](#known-limitations) | `canRedo`, `canUndo` |
+| `clearRedo` | an action is added to the history, even when there was nothing to redo. Sent to every plugin. Undoing or redoing sends `undo` or `redo` on `document` instead | `canRedo`, `canUndo` |
 <!-- END GENERATED: notifications-undo -->
+
+`clearUndo` is also part of the contract, carrying `canUndo` and `canRedo`: v2 sent it, with
+`clearRedo`, when the undo history was erased, which happened whenever a change could not be
+undone and after an `update document`. CODAP keeps the history after a change that cannot be
+undone, so it does not send `clearUndo` for that. It does not yet erase the history after an
+`update document` either, and sends `clearRedo` with `canUndo: true` instead. This is a known bug.
 
 **`undoAction` and `redoAction` answer your own reports.** CODAP cannot undo a change inside your
 plugin, so it does not tell you about undo in general. Instead, when your plugin makes a change
@@ -360,23 +366,16 @@ CODAP adds an entry to its undo history. When the user undoes or redoes that ent
 | Operation | Fires when | `values` carries |
 |---|---|---|
 | `newDocumentState` | CODAP has assembled the document, in reply to a `get document` | `state` |
+| `undo`, `redo` | the user, or a plugin's `undoButtonPress` or `redoButtonPress`, undoes or redoes anything. Sent to every plugin, not only subscribers. v2 sent them only for changes that had no notification of their own; CODAP has no such changes yet, so it always sends them. `canUndo` and `canRedo` are new in v3 | `canRedo`, `canUndo` |
 <!-- END GENERATED: notifications-document -->
 
-This one is opt-in: only plugins whose `subscribeToDocuments` is `true` receive it, and every
-such plugin receives it — including ones that did not ask. See
+`newDocumentState` is opt-in: only plugins whose `subscribeToDocuments` is `true` receive it, and
+every such plugin receives it — including ones that did not ask. See
 [`document`](resources/document.md).
-
-These operations are part of the contract, but CODAP does not send them yet; see
-[Known limitations](#known-limitations):
-
-| Operation | Should fire when |
-|---|---|
-| `undo` | the user undoes anything. Sent to every plugin |
-| `redo` | the user redoes anything. Sent to every plugin |
 
 ## Everything else
 
-Four more resources, each with a few notifications.
+Five more resources, each with a few notifications.
 
 <!-- BEGIN GENERATED: notifications-other -->
 | Resource | Operation | Fires when | `values` carries |
@@ -387,7 +386,8 @@ Four more resources, each with a few notifications.
 | `global[<name>]` | none | a global value changes: a slider is dragged or animates, the user enters a slider value or uses the arrow keys, a plugin sets the value with `update` on `global`, or `update document` changes an existing global's value. `<name>` is the slider's global value name, and `globalValue` is the new value. This is how a plugin follows a slider continuously. Also sent when a change is undone or redone, and to every plugin, including the one that set the value | `globalValue` |
 | `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the locale itself, such as `pt-BR`. Sent only to plugins that set `handlesLocaleChange`; see [Language and locale](guides/locale.md) | `lang`, `locale` |
 | `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` | `formatStr`, `logMonitor`, `message`, … |
-| `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. Not documented further yet, because the implementation behind them is being replaced | _not readable from the code_ |
+| `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. See the [Tour API](../plugin-tour-api.md) | _not readable from the code_ |
+| `uiNotificationNotice` | none | a UI event (an element appearing or disappearing, a click, a drag, a dialog change and the like) matched a `uiNotificationMonitor` your plugin registered. Carries `monitor` (its `id` and any `clientId`) and the event; see the [UI notifications guide](../plugin-ui-notifications.md) | `monitor`, … |
 <!-- END GENERATED: notifications-other -->
 
 `dataContextCountChanged` and `dataContextDeleted` arrive here rather than on a named context
@@ -412,10 +412,6 @@ name alongside the old one and go through [deprecation](conventions.md#deprecate
 notification per change, each with a `values` array of one. A plugin that iterates over `values`
 sees the same changes, but across several notifications rather than one. This is a known bug; the
 intended behavior is v2's.
-
-**`create` on `dataContextFromURL` sends no notification.** v2 reported the new data context as
-`dataContextCountChanged` on `documentChangeNotice`. CODAP sends nothing, so other plugins do not
-learn of the new data context. This is a known bug; the intended behavior is v2's.
 
 **Formula recalculation rarely sends `dependentCases`.** v2 sent `dependentCases` for formula
 attributes whose values had to be recalculated:
@@ -446,15 +442,6 @@ component notification on undo or redo. This is a known bug.
 **`delete` on `component` hides a case table rather than deleting it.** v2 deleted the table, as it
 did any component a plugin deleted (`close-component.js`), and undoing that brought it back. v3
 hides the table, as its close box does, except in the mosaic layout. The notice is the same.
-
-**Undo and redo are not announced on `document`.** v3 does not send v2's `undo` and `redo`
-notifications on `document`. This is a known bug; see
-[Undo and redo](guides/undo-and-redo.md#known-limitations).
-
-**`clearUndo` and `clearRedo` are sent at different moments from v2.** In particular, v3 sends
-nothing when an action is added to an empty redo history, so a plugin does not hear that undo
-has become possible. This is a known bug; see
-[Undo and redo](guides/undo-and-redo.md#known-limitations).
 
 **Log event names do not match v2's.** About 27 event tokens were renamed in v3, and about 11
 payloads reshaped — `addAxisAttribute`, `attributeRemoved`, `dragEnd`, the `toggle*` family and

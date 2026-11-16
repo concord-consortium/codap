@@ -32,8 +32,9 @@ export const MapPointLayerModel = MapLayerModel
   .volatile(() => ({
     // Bumped when the set of plotted cases changes (cases added, removed, hidden, filtered, set aside)
     pointCasesVersion: 0,
-    // Bumped when plotted coordinate values may have changed (value edits, cases added or removed,
-    // lat/long attribute type changes)
+    // Bumped when plotted coordinate values may have changed (value edits, lat/long attribute type or id changes).
+    // This is needed because dataConfiguration.caseDataHash hashes only which cases are plotted, not their
+    // values, so it doesn't change when a lat/long value is edited.
     pointValuesVersion: 0,
     // Whether the latest pointValuesVersion bump came from a value change made while the dataset was
     // caching, in which case only selected cases changed
@@ -43,6 +44,11 @@ export const MapPointLayerModel = MapLayerModel
     // Changes whenever either version changes, for consumers that don't care which kind of change happened
     get pointDataVersion() {
       return self.pointCasesVersion + self.pointValuesVersion
+    },
+    get pointAttributes() {
+      const latId = self.dataConfiguration.attributeID('lat')
+      const longId = self.dataConfiguration.attributeID('long')
+      return latId && longId ? { latId, longId } : undefined
     }
   }))
   .actions(self => ({
@@ -71,14 +77,9 @@ export const MapPointLayerModel = MapLayerModel
     }
   }))
   .views(self => ({
-    get pointAttributes() {
-      const latId = self.dataConfiguration.attributeID('lat')
-      const longId = self.dataConfiguration.attributeID('long')
-      return latId && longId ? { latId, longId } : undefined
-    },
     getCaseLatLong(caseID: string) {
       const { dataset } = self.dataConfiguration
-      const attrs = this.pointAttributes
+      const attrs = self.pointAttributes
       return dataset && attrs ? getCaseLatLong(dataset, caseID, attrs.latId, attrs.longId) : undefined
     },
     getPointRadius(use: 'normal' | 'hover-drag' | 'select' = 'normal') {
@@ -94,7 +95,12 @@ export const MapPointLayerModel = MapLayerModel
     }
   }))
   .views(self => ({
-    /** The coordinates of the plotted cases that have valid lat/long values */
+    /**
+     * The coordinates of the plotted cases that have valid lat/long values. Like the points, this excludes hidden,
+     * set-aside, and filtered-out cases, and respects "display only selected cases". It doesn't depend on
+     * pointsAreVisible or legend grouping, so hot spots built from it draw even when the points are hidden and
+     * combine all legend categories.
+     */
     get plottedLatLongs(): ILatLong[] {
       // Update when pointDataVersion changes.
       void self.pointDataVersion
@@ -145,8 +151,6 @@ export const MapPointLayerModel = MapLayerModel
           disposeActionListener = dataset && onAnyAction(dataset, action => {
             if (isCaseValueChangeAction(action)) {
               self.bumpPointValuesVersion(dataset.isCaching())
-            } else if (["addCases", "removeCases"].includes(action.name)) {
-              self.bumpPointValuesVersion()
             }
           })
         },
