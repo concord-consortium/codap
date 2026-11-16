@@ -1,5 +1,7 @@
+import { ComponentElements as c } from "../support/elements/component-elements"
 import { TableTileElements as table } from "../support/elements/table-tile"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
+import { testPluginWindow, visitWithTestPlugin } from "../support/helpers/test-plugin"
 import hierarchical from '../fixtures/hierarchical.json'
 type HierarchicalTest = typeof hierarchical.tests[number] & { only?: boolean }
 
@@ -159,5 +161,73 @@ context("hierarchical collections", () => {
     // Input row should stay at the same position (inserted after)
     table.getIndexCellInRow(5, 2).should("have.class", "input-row")
   })
+})
 
+context("hierarchical collections whose attributes are all hidden", () => {
+  // Only a plugin (or a saved document) can hide every attribute of a collection --
+  // the table won't hide a collection's last visible attribute -- so the data is created via the API.
+  function codapRequest(request: Record<string, unknown>) {
+    return testPluginWindow().then(async (w: any) => {
+      const reply = await w.codapRequest(request)
+      expect(reply?.success, `${request.action} ${request.resource}`).to.equal(true)
+    })
+  }
+
+  beforeEach(() => {
+    visitWithTestPlugin()
+    // Diets > Habitats > Animals, with the only Habitats attribute hidden
+    codapRequest({
+      action: "create", resource: "dataContext",
+      values: {
+        name: "Animals",
+        collections: [
+          { name: "Diets", attrs: [{ name: "Diet" }] },
+          { name: "Habitats", attrs: [{ name: "Habitat", hidden: true }] },
+          { name: "Animals", attrs: [{ name: "Animal" }] }
+        ]
+      }
+    })
+    codapRequest({
+      action: "create", resource: "dataContext[Animals].item",
+      values: [
+        { Diet: "plants", Habitat: "land", Animal: "Elephant" },
+        { Diet: "plants", Habitat: "land", Animal: "Giraffe" },
+        { Diet: "plants", Habitat: "land", Animal: "Rabbit" },
+        { Diet: "meat", Habitat: "land", Animal: "Lion" },
+        { Diet: "meat", Habitat: "land", Animal: "Wolf" },
+        { Diet: "meat", Habitat: "water", Animal: "Seal" },
+        { Diet: "meat", Habitat: "water", Animal: "Orca" },
+        { Diet: "both", Habitat: "land", Animal: "Bear" }
+      ]
+    })
+    codapRequest({ action: "create", resource: "component", values: { type: "caseTable", dataContext: "Animals" } })
+  })
+
+  it("omits a middle collection whose attributes are all hidden", () => {
+    table.getTableTile().find(".collection-table").should("have.length", 2)
+    table.getCollectionTitle(1).should("contain", "Diets")
+    table.getCollectionTitle(2).should("contain", "Animals")
+
+    cy.log("cases are numbered within their diet rather than their hidden habitat")
+    // plants: rows 2-4; meat: rows 5-8, where row 7 is the first water-dwelling meat eater
+    table.getIndexCellInRow(5, 2).should("have.text", "1")
+    table.getIndexCellInRow(7, 2).should("have.text", "3")
+
+    cy.log("each diet's expand/collapse button collapses all of its cases")
+    table.getRowExpandCollapseButton(3, 2).click()
+    table.verifyRowCollapsedButton(3, 2)
+    table.getIndexCellInRow(5, 2).should("contain", "4")
+    // 3 plant eaters + 1 collapsed row for the 4 meat eaters + 1 that eats both, +2 for the header and input rows
+    table.getNumOfRows(2).should("contain", 3 + 1 + 1 + 2)
+    table.getRowExpandCollapseButton(3, 2).click()
+    table.verifyRowExpandedButton(3, 2)
+    table.getNumOfRows(2).should("contain", 8 + 2)
+
+    cy.log("showing the hidden attribute restores the Habitats collection")
+    c.selectTile("table", 0)
+    table.showAllAttributes()
+    table.getTableTile().find(".collection-table").should("have.length", 3)
+    table.getCollectionTitle(2).should("contain", "Habitats")
+    table.getIndexCellInRow(7, 3).should("have.text", "1")
+  })
 })
