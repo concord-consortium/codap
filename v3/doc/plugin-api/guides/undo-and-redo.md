@@ -191,7 +191,8 @@ whatever the operation is called. v2 erased the undo history, and sent `clearUnd
 change could not be undone and after an `update document`. CODAP keeps the history after a change
 that cannot be undone, so it does not send `clearUndo` for that. It does not yet erase the history
 after an `update document` either, and sends `clearRedo` with `canUndo: true` instead. This is a
-known bug.
+known bug. Unlike v2, CODAP also sends `clearRedo` to the page it is embedded in, if any, so that
+page can keep its own buttons in step.
 
 Undoing or redoing sends neither. Instead, CODAP sends every plugin a notification on
 [`document`](../resources/document.md) with operation `undo` or `redo`, as v2 did. It also carries
