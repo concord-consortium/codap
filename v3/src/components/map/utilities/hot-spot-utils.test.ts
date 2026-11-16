@@ -3,9 +3,9 @@ import { greatCircleDistance } from "../../../utilities/geo-utils"
 import {
   bandwidthToResolution, bandwidthToWorldUnits, buildColorLUT, colorizeDensityGrid, computeDefaultBandwidth,
   computeDensityGrid, computeHotSpotSurface, computeMaxDensity, hotSpotFade, IDensityGridRegion, IKernel,
-  kColorLUTSize, kernelWeight, kFallbackBandwidthMeters, kHotSpotFadeFloor, kHotSpotFadeFull, kMaxMercatorLatitude,
-  kResolutionRangeFactor, kWebMercatorRadiusMeters, kWorldSize, latLongToWorldPoint, projectHotSpotKernels,
-  renderHotSpotSurface, resolutionLimit, resolutionToBandwidth, wrapWorldDelta
+  kColorLUTSize, kDefaultBandwidthDivisor, kernelWeight, kFallbackBandwidthMeters, kHotSpotFadeFloor, kHotSpotFadeFull,
+  kMaxMercatorLatitude, kResolutionRangeFactor, kWebMercatorRadiusMeters, kWorldSize, latLongToWorldPoint,
+  projectHotSpotKernels, renderHotSpotSurface, resolutionLimit, resolutionToBandwidth, wrapWorldDelta
 } from "./hot-spot-utils"
 import { createLatLongProjector } from "./map-utils"
 
@@ -82,7 +82,8 @@ describe("computeDefaultBandwidth", () => {
   it("uses the standard distance when it is smaller than the median term", () => {
     // mean center (0, 0); distances [d, 0, d]; SD = √(2/3)·d < √(1/ln 2)·d
     const latLongs = [{ lat: 0, long: -1 }, { lat: 0, long: 0 }, { lat: 0, long: 1 }]
-    expect(computeDefaultBandwidth(latLongs)).toBeCloseTo(0.9 * Math.sqrt(2 / 3) * oneDegree * 3 ** -0.2, 3)
+    expect(computeDefaultBandwidth(latLongs))
+      .toBeCloseTo(0.9 * Math.sqrt(2 / 3) * oneDegree * 3 ** -0.2 / kDefaultBandwidthDivisor, 3)
   })
 
   it("uses the median term when it is smaller than the standard distance", () => {
@@ -91,7 +92,8 @@ describe("computeDefaultBandwidth", () => {
       { lat: 0, long: 0 }, { lat: 0, long: 0.1 }, { lat: 0, long: -0.1 }, { lat: 0, long: 5 }, { lat: 0, long: -5 }
     ]
     const median = greatCircleDistance(0, 0, 0, 0.1)
-    expect(computeDefaultBandwidth(latLongs)).toBeCloseTo(0.9 * Math.sqrt(1 / Math.LN2) * median * 5 ** -0.2, 3)
+    expect(computeDefaultBandwidth(latLongs))
+      .toBeCloseTo(0.9 * Math.sqrt(1 / Math.LN2) * median * 5 ** -0.2 / kDefaultBandwidthDivisor, 3)
   })
 
   it("uses the standard distance when more than half the points are at the mean center", () => {
@@ -99,7 +101,8 @@ describe("computeDefaultBandwidth", () => {
     const latLongs = [
       { lat: 0, long: 0 }, { lat: 0, long: 0 }, { lat: 0, long: 0 }, { lat: 0, long: 1 }, { lat: 0, long: -1 }
     ]
-    expect(computeDefaultBandwidth(latLongs)).toBeCloseTo(0.9 * Math.sqrt(2 / 5) * oneDegree * 5 ** -0.2, 3)
+    expect(computeDefaultBandwidth(latLongs))
+      .toBeCloseTo(0.9 * Math.sqrt(2 / 5) * oneDegree * 5 ** -0.2 / kDefaultBandwidthDivisor, 3)
   })
 
   it("falls back when there is no spread", () => {

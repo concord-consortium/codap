@@ -47,11 +47,13 @@ export function bandwidthToWorldUnits(bandwidthMeters: number, lat: number) {
 
 // Spreads smaller than this are floating-point error from coincident points
 const kMinSpreadMeters = 0.001
+/** ArcGIS's default search radius (see computeDefaultBandwidth) is divided by this to give the default bandwidth */
+export const kDefaultBandwidthDivisor = Math.sqrt(10)
 
 /**
- * Returns the default bandwidth in meters, using the default search radius of ArcGIS's Kernel Density tool:
+ * Returns the default bandwidth in meters, based on the default search radius of ArcGIS's Kernel Density tool,
  * 0.9 · min(SD, √(1/ln 2) · Dm) · n^(−0.2), where SD is the standard distance of the points from their mean center
- * and Dm is their median distance from it.
+ * and Dm is their median distance from it, divided by kDefaultBandwidthDivisor.
  *
  * Despite the median term, a far outlier does inflate the bandwidth: it moves the mean center, which increases
  * every point's distance, including the median. (A 3 × 3 cluster plus one point on another continent gives a
@@ -72,14 +74,14 @@ export function computeDefaultBandwidth(latLongs: ILatLong[]) {
   const spread = medianDistance < kMinSpreadMeters
     ? standardDistance
     : Math.min(standardDistance, Math.sqrt(1 / Math.LN2) * medianDistance)
-  return 0.9 * spread * n ** -0.2
+  return 0.9 * spread * n ** -0.2 / kDefaultBandwidthDivisor
 }
 
 /**
  * The resolution slider spans bandwidths from the default divided by this factor (resolution 1) to the default
  * multiplied by it (resolution -1), on a log scale with the default at resolution 0.
  */
-export const kResolutionRangeFactor = 10
+export const kResolutionRangeFactor = Math.sqrt(10)
 const kLogResolutionRangeFactor = Math.log(kResolutionRangeFactor)
 
 /** Converts a bandwidth to a resolution, the slider's log-scale position. Higher resolution is a smaller bandwidth. */

@@ -2,6 +2,7 @@ import { act, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { AppHistoryService } from "../../../../models/history/app-history-service"
 import { MapPointLayerModel } from "../../models/map-point-layer-model"
+import { kResolutionRangeFactor } from "../../utilities/hot-spot-utils"
 import { formatBandwidth, MapHotSpotResolutionSlider } from "./map-hot-spot-resolution-slider"
 
 jest.mock("../../../../utilities/translation/translate", () => ({
@@ -45,21 +46,22 @@ describe("MapHotSpotResolutionSlider", () => {
     expect(screen.getByTestId("map-hot-spot-resolution-slider")).not.toHaveAttribute("data-disabled")
     act(() => slider.focus())
     await user.keyboard("{End}")
-    expect(hotSpotModel.bandwidth).toBeCloseTo(hotSpotModel.defaultBandwidth / 10)
+    expect(hotSpotModel.bandwidth).toBeCloseTo(hotSpotModel.defaultBandwidth / kResolutionRangeFactor)
     expect(hotSpotModel.dynamicBandwidth).toBeUndefined()
-    expect(slider).toHaveAttribute("aria-valuetext", "1 km")
+    // 10 km / √10
+    expect(slider).toHaveAttribute("aria-valuetext", "3.2 km")
   })
 
   it("widens the range to include a bandwidth outside the usual range", () => {
     const pointLayer = createPointLayer()
-    // 1000 km is 100 times the 10 km default, so it's at resolution -2
-    pointLayer.hotSpotModel.setBandwidth(1000000)
+    // 100 km is √10² = 10 times the 10 km default, so it's at resolution -2
+    pointLayer.hotSpotModel.setBandwidth(100000)
     render(<MapHotSpotResolutionSlider mapPointLayerModel={pointLayer}/>)
 
     const slider = screen.getByRole("slider")
     expect(slider).toHaveAttribute("min", "-2")
     expect(slider).toHaveAttribute("max", "2")
     expect(Number(slider.getAttribute("value"))).toBeCloseTo(-2)
-    expect(slider).toHaveAttribute("aria-valuetext", "1,000 km")
+    expect(slider).toHaveAttribute("aria-valuetext", "100 km")
   })
 })
