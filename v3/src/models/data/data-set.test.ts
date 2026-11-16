@@ -1478,3 +1478,18 @@ test("addCases inserts after a case whose last item is the first item", () => {
 
   expect(data.itemIds).toEqual(["i0", "iX", "i1"])
 })
+
+test("setItemOrder moves values correctly right after a sort, before the cases are validated", () => {
+  const data = DataSet.create({ name: "data" })
+  const value = data.addAttribute({ id: "Value", name: "Value" })
+  data.addCases([3, 1, 2].map(v => ({ __id__: `i${v}`, [value.id]: v })))
+  data.validateCases()
+  data.sortByAttribute(value.id)
+  data.setItemOrder(["i3", "i1", "i2"])
+  data.validateCases()
+  expect(data.itemIds).toEqual(["i3", "i1", "i2"])
+  expect(data.itemIds.map(id => data.getNumeric(id, value.id))).toEqual([3, 1, 2])
+  // a list that doesn't name every item is ignored
+  data.setItemOrder(["i1", "i2"])
+  expect(data.itemIds).toEqual(["i3", "i1", "i2"])
+})

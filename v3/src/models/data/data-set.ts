@@ -1847,8 +1847,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   },
   // Puts the items in the given order, which must list every item, set-aside ones included, exactly once
   setItemOrder(itemIds: string[]) {
+    if (itemIds.length !== self._itemIds.length) return
     if (itemIds.every((itemId, index) => itemId === self._itemIds[index])) return
-    const origIndices = itemIds.map(itemId => self.getItemIndex(itemId)!)
+    // current positions come from _itemIds itself, since itemInfoMap can be stale (e.g. after a sort)
+    const currentIndex = new Map(self._itemIds.map((itemId, index) => [itemId, index]))
+    const origIndices = itemIds.map(itemId => currentIndex.get(itemId)!)
     self.attributes.forEach(attr => attr.orderValues(origIndices))
     self._itemIds.replace(itemIds)
     // keep item lookups right until the cases are next validated
