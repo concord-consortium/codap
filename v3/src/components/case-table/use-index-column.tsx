@@ -10,7 +10,7 @@ import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
 import { symIndex } from "../../models/data/data-set-types"
 import {
-  getCaseNameForCount, getCollectionAttrs, selectCases, setSelectedCases
+  getCaseNameForCount, getCollectionAttrs, getDescendantCaseIds, selectCases, setSelectedCases
 } from "../../models/data/data-set-utils"
 import { IDataSetMetadata } from "../../models/shared/data-set-metadata"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
@@ -66,7 +66,7 @@ export const useIndexColumn = () => {
                     : _index != null ? _index : data?.getItemIndex(__id__)
     const collapsedAncestorId = collectionTableModel?.getCollapsedAncestor(__id__)
     const collapsedCases = data && collapsedAncestorId
-                            ? metadata?.getDescendantCaseIds(collapsedAncestorId, __id__) ?? []
+                            ? getDescendantCaseIds(data, collapsedAncestorId, collectionId)
                             : []
     const collapsedCaseCount = collapsedCases.length
 
@@ -93,7 +93,7 @@ export const useIndexColumn = () => {
         <RowDivider rowId={__id__}/>
       </div>
     )
-  }, [metadata, data, disableMenu, collectionTableModel])
+  }, [data, collectionId, disableMenu, collectionTableModel])
   const indexColumn = useRef<TColumn | undefined>()
 
   useEffect(() => {

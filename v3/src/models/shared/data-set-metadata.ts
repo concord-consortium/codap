@@ -230,35 +230,6 @@ export const DataSetMetadata = SharedModel
       }
       return false
     },
-    // given an ancestorCaseId, returns the set of collapsed case ids (if any)
-    // at the same collection level as the provided descendant case id
-    getDescendantCaseIds(ancestorCaseId: string, descendantCaseId: string): string[] {
-      self.data?.validateCases()
-      const ancestorCollectionId = self.data?.caseInfoMap.get(ancestorCaseId)?.collectionId
-      const descendantCollectionId = self.data?.caseInfoMap.get(descendantCaseId)?.collectionId
-      if (!ancestorCollectionId || !descendantCollectionId) return []
-      let caseIds = [ancestorCaseId]
-      let parentCollectionId: Maybe<string> = ancestorCollectionId
-      while (parentCollectionId) {
-        // replace case ids with child case ids
-        caseIds = caseIds.reduce((ids, caseId) => {
-          const caseInfo = self.data?.caseInfoMap.get(caseId)
-          if (caseInfo?.childCaseIds?.length) {
-            ids.push(...caseInfo.childCaseIds)
-          }
-          return ids
-        }, [] as string[])
-
-        // if this is the correct descendant collection, return the case ids
-        const childCollectionId: Maybe<string> = self.data?.getChildCollection(parentCollectionId)?.id
-        if (childCollectionId === descendantCollectionId) {
-          return caseIds
-        }
-        // otherwise, advance to the next child collection
-        parentCollectionId = childCollectionId
-      }
-      return []
-    },
     isEditable(attrId: string) {
       return !self.attributes.get(attrId)?.editProtected && !self.getAttribute(attrId)?.hasFormula
     },

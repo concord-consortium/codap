@@ -114,8 +114,7 @@ export class CollectionTableModel {
     let prevShownParent: string | undefined
     let index = -1
     return cases.map(({ __id__, [symParent]: parent }) => {
-      // without a data set (e.g. in tests), rows are grouped by their parent case
-      const shownParent = this.data ? this.getShownParentId(__id__) : parent
+      const shownParent = this.getShownParentId(__id__)
       const isFirstChild = !!shownParent && shownParent !== prevShownParent
       index = isFirstChild ? 0 : index + 1
       prevShownParent = shownParent
