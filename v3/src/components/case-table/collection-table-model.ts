@@ -292,6 +292,10 @@ export class CollectionTableModel {
 
   @action setElement(element: HTMLDivElement) {
     this.element = element
+    // A newly attached grid has its own scroll position (e.g. a collection that was hidden and shown
+    // again gets a new grid scrolled to the top), so the cached scroll state must match it.
+    this.scrollTop = this.targetScrollTop = element.scrollTop
+    this.scrollStep = this.lastScrollStep = 0
   }
 
   @action setInputRowIndex(inputRowIndex: number) {

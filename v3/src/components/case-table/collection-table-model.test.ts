@@ -62,6 +62,18 @@ describe("CollectionTableModel", () => {
     expect(m.scrollBehaviorForTarget(0, { scrollBehavior: "auto" })).toBe("auto")
   })
 
+  it("adopts a newly attached grid's scroll position", () => {
+    // e.g. a collection that was scrolled, hidden, and shown again gets a new grid scrolled to the top
+    const m = new CollectionTableModel("id")
+    m.syncScrollTopFromEvent({ currentTarget: { scrollTop: 200 } } as React.UIEvent<HTMLDivElement, UIEvent>)
+    m.setTargetScrollTop(200)
+    expect(m.scrollTop).toBe(200)
+
+    m.setElement({ scrollTop: 0 } as HTMLDivElement)
+    expect(m.scrollTop).toBe(0)
+    expect(m.targetScrollTop).toBe(0)
+  })
+
   it("aligns with its parent table using the last child of the last visible parent", () => {
     // parent rows G1, G2, G3, sized so that only G1 and G2 are visible
     const parentModel = new CollectionTableModel("parent")
