@@ -40,7 +40,7 @@ import {useGraphContentModelContext} from "../hooks/use-graph-content-model-cont
 import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {useGraphModel} from "../hooks/use-graph-model"
-import { graphAttributeChangeNotification } from "../graph-notifications"
+import { graphAttributeChangeNotification, treatAsAttributeNotification } from "../graph-notifications"
 import {GraphController} from "../models/graph-controller"
 import { attrChangeNotificationValues, IAttrChangeValues } from "../models/graph-notification-utils"
 import { BarChart } from "../plots/bar-chart/bar-chart"
@@ -339,6 +339,7 @@ export const Graph = observer(function Graph({
       }
       graphController?.handleAttributeAssignment()
     }, {
+      notify: () => treatAsAttributeNotification(getTileModel(graphModel), place, _attrId, treatAs),
       undoStringKey: "V3.Undo.attributeTreatAs",
       redoStringKey: "V3.Redo.attributeTreatAs",
       log: logStringifiedObjectMessage(

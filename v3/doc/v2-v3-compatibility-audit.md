@@ -495,7 +495,7 @@ too — line numbers drift, and only the rows touched in this pass had theirs re
 | `Change plotted function: "%@1" to "%@2"` | `Change plotted function: %@` (single slot) | `plotted-function-adornment-banner.tsx:46` |
 | `Change plotted value: "%@1" to "%@2"` | `Change plotted value from %@ to %@` (different verb: `: "x" to "y"` vs `from x to y`) | `plotted-value-adornment-banner.tsx:43` |
 | `Change bar chart function: "%@1" to "%@2"` | `Change computed bar length function: %@` | `bar-chart.tsx:216` |
-| `plotAxisAttributeChangeType: { axis: %@, attribute: %@, numeric: %@ }` | `plotAxisAttributeChangeType: %@` (only one slot — `axis` is substituted, attribute/numeric dropped from message but in args) | `graph.tsx:322` |
+| `plotAxisAttributeChangeType: { axis: %@, attribute: %@, numeric: %@ }` | `plotAxisAttributeChangeType: %@` (only one slot — `axis` is substituted, attribute/numeric dropped from message but in args) | `graph.tsx:345` |
 | `deleteSelectedCases: %@` | `Delete %@ cases` (different verb) | `data-set-undo.ts:353` |
 | `selectAll` / `deselectAll` | (no V3 equivalent) | — |
 | `caseSelected: %@` / `caseDeselected: %@` | (no V3 equivalent) | — |

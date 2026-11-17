@@ -1,3 +1,4 @@
+import { AttributeType } from "../../models/data/attribute-types"
 import { AttributeBinningType } from "../../models/shared/data-set-metadata"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
@@ -6,6 +7,7 @@ import { PointShape } from "../../utilities/point-shape-utils"
 import { GraphPlace } from "../axis-graph-shared"
 import { V2AxisOrientation } from "./data-display-types"
 import { removeAttributeLabel } from "./remove-attribute-label"
+import { treatAsLabel } from "./treat-as-label"
 
 // Shared notification helpers for the graph and map tiles (the V3 "data-display" tiles).
 // Callers are responsible for invoking these only where contextually appropriate — these
@@ -138,4 +140,10 @@ export function legendMenuAttributeChangeNotification(
   }, tile)
   if (notification) notification.message.values.type = "DG.GraphView"
   return notification
+}
+
+// As in V2, "Treat as Categorical" and the other "Treat as" items in a legend's menu send the menu
+// change's `attributeChange`, named by the item's title.
+export function legendTreatAsNotification(tile: ITileModel | undefined, attributeId: string, treatAs: AttributeType) {
+  return legendMenuAttributeChangeNotification(tile, attributeId, treatAsLabel(treatAs))
 }
