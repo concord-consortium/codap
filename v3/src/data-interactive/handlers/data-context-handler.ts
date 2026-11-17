@@ -18,7 +18,7 @@ import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
 import { DIUpdateDataContext, DIDataContext, DINotifyDataContext } from "../data-interactive-data-set-types"
 import { basicDataSetInfo, convertDataSetToV2 } from "../data-interactive-type-utils"
-import { getAttribute } from "../data-interactive-utils"
+import { getAttribute, toPluginValue } from "../data-interactive-utils"
 import { findTileFromNameOrId } from "../resource-parser-utils"
 import { createCollection } from "./di-handler-utils"
 import { attributeNotFoundResult, dataContextNotFoundResult, errorResult, fieldRequiredResult } from "./di-results"
@@ -86,7 +86,13 @@ export const diDataContextHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
 
-    return { success: true, values: convertDataSetToV2(dataContext) }
+    const values = convertDataSetToV2(dataContext)
+    // set-aside items read back as other items do; the document's v2 export keeps the stored text
+    const setAsideItems = values.setAsideItems?.map(({ id, values: itemValues }) => ({
+      id,
+      values: Object.fromEntries(Object.entries(itemValues).map(([name, value]) => [name, toPluginValue(value)]))
+    }))
+    return { success: true, values: { ...values, setAsideItems } }
   },
 
   notify(resources: DIResources, values?: DIValues) {
