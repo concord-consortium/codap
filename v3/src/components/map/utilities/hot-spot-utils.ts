@@ -48,11 +48,11 @@ export function bandwidthToWorldUnits(bandwidthMeters: number, lat: number) {
 // Spreads smaller than this are floating-point error from coincident points
 const kMinSpreadMeters = 0.001
 /**
- * ArcGIS's default search radius (see computeDefaultBandwidth) is divided by this (≈ 2.5) to give the default
- * bandwidth. Together with kResolutionRangeFactor, this makes the slider span from about 1.6 times ArcGIS's default
- * (10^0.2) down to a tenth of it, with the default in the center.
+ * ArcGIS's default search radius (see computeDefaultBandwidth) is divided by this (≈ 3.3) to give the default
+ * bandwidth. Together with kResolutionRangeFactor, this makes the slider span from about 0.69 times ArcGIS's default
+ * (10^−0.16) down to about 0.13 times it (10^−0.88), with the default in the center.
  */
-export const kDefaultBandwidthDivisor = 10 ** 0.4
+export const kDefaultBandwidthDivisor = 10 ** 0.52
 
 /**
  * Returns the default bandwidth in meters, based on the default search radius of ArcGIS's Kernel Density tool,
@@ -82,10 +82,10 @@ export function computeDefaultBandwidth(latLongs: ILatLong[]) {
 }
 
 /**
- * The resolution slider spans bandwidths from the default divided by this factor (≈ 4) (resolution 1) to the default
+ * The resolution slider spans bandwidths from the default divided by this factor (≈ 2.3) (resolution 1) to the default
  * multiplied by it (resolution -1), on a log scale with the default at resolution 0. See kDefaultBandwidthDivisor.
  */
-export const kResolutionRangeFactor = 10 ** 0.6
+export const kResolutionRangeFactor = 10 ** 0.36
 const kLogResolutionRangeFactor = Math.log(kResolutionRangeFactor)
 
 /** Converts a bandwidth to a resolution, the slider's log-scale position. Higher resolution is a smaller bandwidth. */
