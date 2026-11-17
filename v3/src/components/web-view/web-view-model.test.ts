@@ -129,4 +129,11 @@ describe("WebViewContentModel", () => {
     const snapshot = getSnapshot(webView)
     expect(snapshot.state).toBe(state)
   })
+
+  it("reads the game context flag of documents saved before CODAP-1712 as the linked data context's id", () => {
+    const webView = WebViewModel.create({ dataContextId: "DATA1", hasV2GameContext: true } as any)
+    expect(webView.v2GameContextId).toBe("DATA1")
+    expect((getSnapshot(webView) as any).hasV2GameContext).toBeUndefined()
+    expect(WebViewModel.create({ dataContextId: "DATA1" }).v2GameContextId).toBeUndefined()
+  })
 })

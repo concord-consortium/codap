@@ -4,9 +4,10 @@ import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
+import { toV2Id } from "../../utilities/codap-utils"
 import { hasOwnProperty, safeJsonParse } from "../../utilities/js-utils"
 import { CodapV2Document } from "../../v2/codap-v2-document"
-import { exportV2Component } from "../../v2/codap-v2-tile-exporters"
+import { exportV2Component, GameContextMetadataMap } from "../../v2/codap-v2-tile-exporters"
 import { importV2Component } from "../../v2/codap-v2-tile-importers"
 import {
   ICodapV2DocumentJson, ICodapV2GameViewStorage, ICodapV2GuideViewStorage, ICodapV2ImageComponentStorage,
@@ -169,6 +170,18 @@ describe("WebView registration", () =>  {
     // Note: we do not convert the URL back to the relative one that is used by CODAPv2
     // this seems OK to do.
     expect(contentStorage.currentGameUrl).toBe(`${kCodapResourcesUrl}/plugins/data-games/Markov/index.html`)
+
+    // The game's data context stays the game context when a bare create moves the plugin's default, as in V2.
+    // The component's link follows the plugin's default.
+    const gameContextId = content!.dataContextId!
+    expect(content!.v2GameContextId).toBe(gameContextId)
+    content!.setDataContextId("DATANEW")
+    const gameContextMetadataMap: GameContextMetadataMap = {}
+    const movedExport = exportV2Component({ tile, row, sharedModelManager, gameContextMetadataMap })
+    expect(Object.keys(gameContextMetadataMap)).toEqual([gameContextId])
+    expect(gameContextMetadataMap[gameContextId].gameName).toBe("Markov")
+    const movedStorage = movedExport?.componentStorage as ICodapV2GameViewStorage
+    expect(movedStorage._links_?.context?.id).toBe(toV2Id("DATANEW"))
   })
 
   it("imports/exports v2 guide view components with external url", () => {

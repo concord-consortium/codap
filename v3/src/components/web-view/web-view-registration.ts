@@ -104,8 +104,8 @@ const exportFn: V2TileExportFn = ({ tile, row, gameContextMetadataMap }) => {
     const _links_ = webViewContent.dataContextId
       ? { _links_: { context: guidLink("DG.DataContextRecord", toV2Id(webViewContent.dataContextId)) } }
       : undefined
-    if (gameContextMetadataMap && webViewContent.hasV2GameContext && webViewContent.dataContextId) {
-      gameContextMetadataMap[webViewContent.dataContextId] = {
+    if (gameContextMetadataMap && webViewContent.v2GameContextId) {
+      gameContextMetadataMap[webViewContent.v2GameContextId] = {
         gameName: tile.name || undefined,
         gameUrl: url || undefined,
         gameState: state ?? undefined
@@ -239,7 +239,7 @@ function importGameView(args: V2TileImportArgs) {
     preventBringToFront,
     preventDataContextReorg,
     preventTopLevelReorg,
-    hasV2GameContext: linkedGameContext ? true : undefined
+    v2GameContextId: linkedGameContext && linkedDataContextId ? toV3DataSetId(linkedDataContextId) : undefined
   })
 }
 registerV2TileImporter("DG.GameView", importGameView)
