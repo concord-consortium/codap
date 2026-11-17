@@ -152,8 +152,8 @@ describe("DataSetMetadata", () => {
     expect(tree.metadata.isHidden("aId")).toBe(false)
     expect(tree.metadata.attributes.get("aId")?.hidden).toBeUndefined()
 
-    // hiding every attribute in a collection leaves them all hidden (CODAP-1375): the case
-    // table renders such a collection's grid with only the index column rather than auto-showing them.
+    // hiding every attribute in a collection leaves them all hidden rather than auto-showing them;
+    // the case table decides whether to render such a collection.
     tree.metadata.setIsHidden("aId", true)
     tree.metadata.setIsHidden("bId", true)
     expect(tree.metadata.isHidden("aId")).toBe(true)
@@ -398,23 +398,13 @@ describe("DataSetMetadata", () => {
     expect(tree.metadata.getCollapsedAncestor(bCases[0].__id__)).toBe(aCases[0].__id__)
     expect(tree.metadata.isFirstCaseOfAncestor(bCases[0].__id__, aCases[0].__id__)).toBe(true)
     expect(tree.metadata.isFirstCaseOfAncestor(bCases[1].__id__, aCases[0].__id__)).toBe(false)
-    const abDescendantIds = tree.metadata.getDescendantCaseIds(aCases[0].__id__, bCases[0].__id__)
-    expect(abDescendantIds.length).toBe(3)
-    expect(abDescendantIds).toEqual([bCases[0].__id__, bCases[1].__id__, bCases[2].__id__])
     expect(tree.metadata.isCollapsed(cCases[0].__id__)).toBe(false)
     expect(tree.metadata.isCaseOrAncestorCollapsed(cCases[0].__id__)).toBe(true)
     expect(tree.metadata.getCollapsedAncestor(cCases[0].__id__)).toBe(aCases[0].__id__)
     expect(tree.metadata.isFirstCaseOfAncestor(cCases[0].__id__, aCases[0].__id__)).toBe(true)
     expect(tree.metadata.isFirstCaseOfAncestor(cCases[1].__id__, aCases[0].__id__)).toBe(false)
-    const acDescendantIds = tree.metadata.getDescendantCaseIds(aCases[0].__id__, cCases[0].__id__)
-    expect(acDescendantIds.length).toBe(9)
-    expect(acDescendantIds.includes(cCases[0].__id__)).toBe(true)
-    expect(acDescendantIds.includes(cCases[8].__id__)).toBe(true)
-    expect(acDescendantIds.includes(cCases[9].__id__)).toBe(false)
     // edge cases
     expect(tree.metadata.isFirstCaseOfAncestor(aCases[0].__id__, cCases[0].__id__)).toBe(false)
-    const caDescendantIds = tree.metadata.getDescendantCaseIds(cCases[0].__id__, aCases[0].__id__)
-    expect(caDescendantIds).toEqual([])
     // expanding a child case expands its parents/ancestors
     tree.metadata.setIsCollapsed(cCases[0].__id__, false)
     expect(tree.metadata.isCollapsed(aCases[0].__id__)).toBe(false)
@@ -423,6 +413,30 @@ describe("DataSetMetadata", () => {
     const hash2 = tree.metadata.collapsedCaseIdsHash
     expect(hash2).not.toBe(hash1)
     expect(hash2).toBe(hash0)
+  })
+
+  it("can limit the collapsed ancestor to cases in particular collections", () => {
+    // (["aId"], ["bId"], ["cId"])
+    const cCollection = tree.data.childCollection
+    const bCollection = tree.data.moveAttributeToNewCollection("bId")!
+    const aCollection = tree.data.moveAttributeToNewCollection("aId", bCollection.id)!
+    tree.data.validateCases()
+    const aCaseId = aCollection.cases[0].__id__
+    const bCaseId = bCollection.cases[0].__id__
+    const cCaseId = cCollection.cases[0].__id__
+    const excludingB = (collectionId: string) => collectionId !== bCollection.id
+
+    // a collapsed case in an excluded collection is ignored
+    tree.metadata.setIsCollapsed(bCaseId, true)
+    expect(tree.metadata.getCollapsedAncestor(cCaseId)).toBe(bCaseId)
+    expect(tree.metadata.getCollapsedAncestor(cCaseId, excludingB)).toBeUndefined()
+
+    // the outermost collapsed ancestor in an included collection is returned
+    tree.metadata.setIsCollapsed(aCaseId, true)
+    expect(tree.metadata.getCollapsedAncestor(cCaseId)).toBe(aCaseId)
+    expect(tree.metadata.getCollapsedAncestor(cCaseId, excludingB)).toBe(aCaseId)
+    expect(tree.metadata.getCollapsedAncestor(cCaseId, collectionId => collectionId === cCollection.id))
+      .toBeUndefined()
   })
 
   it("recognizes SetIsCollapsedActions", () => {

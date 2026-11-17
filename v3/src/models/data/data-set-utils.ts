@@ -58,6 +58,17 @@ export function isAnyChildSelected(data: IDataSet, caseId: string): boolean {
           : childItemIds?.some(childItemId => data.isCaseSelected(childItemId))
 }
 
+// returns the ids of the given ancestor case's descendants in the specified collection
+export function getDescendantCaseIds(data: IDataSet, ancestorCaseId: string, collectionId: string) {
+  let caseIds = [ancestorCaseId]
+  let currCollectionId = data.caseInfoMap.get(ancestorCaseId)?.collectionId
+  while (currCollectionId && currCollectionId !== collectionId) {
+    caseIds = caseIds.flatMap(caseId => data.caseInfoMap.get(caseId)?.childCaseIds ?? [])
+    currCollectionId = data.getChildCollection(currCollectionId)?.id
+  }
+  return currCollectionId ? caseIds : []
+}
+
 /**
  * Returns the collection containing the attribute from the given array that is closest to the
  * root of the data set. If there is an attribute that is not in any collection, then we return undefined
