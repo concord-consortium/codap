@@ -1,4 +1,6 @@
-import { t } from "./translate"
+import { render, screen } from "@testing-library/react"
+import { createElement, ReactNode } from "react"
+import { t, translateToElements } from "./translate"
 
 jest.mock("./lang/en-US.json5", () => ({
   HELLO: "Hello",
@@ -6,7 +8,10 @@ jest.mock("./lang/en-US.json5", () => ({
   INDEXED: "Replace %@1 with %@2",
   REVERSED: "Replace %@2 with %@1",
   POSITIONED: "Replace %@ with %@",
-  EMPTY_NAMED: "Replace %{foo} with %{}"
+  EMPTY_NAMED: "Replace %{foo} with %{}",
+  SENTENCE: "Read the %{link} before %{action}.",
+  EDGES: "%{action}, then read the %{link}",
+  PLAIN: "No placeholders here"
 }))
 
 jest.mock("./lang/es.json", () => ({
@@ -60,6 +65,40 @@ describe("English strings", () => {
     expect(t("POSITIONED", { vars: [] })).toBe("Replace  with ")
     expect(t("POSITIONED", { vars: {} })).toBe("Replace  with ")
     expect(spy).toHaveBeenCalledTimes(6)
+    spy.mockRestore()
+  })
+})
+
+describe("translateToElements", () => {
+  const link = createElement("a", { href: "https://example.com" }, "guide")
+  const action = createElement("strong", null, "starting")
+
+  function showInParagraph(content: ReactNode[]) {
+    render(createElement("p", { "data-testid": "text" }, ...content))
+    return screen.getByTestId("text")
+  }
+
+  it("replaces placeholders with elements and keeps the surrounding text", () => {
+    const paragraph = showInParagraph(translateToElements("SENTENCE", { link, action }))
+    expect(paragraph).toHaveTextContent("Read the guide before starting.")
+    expect(screen.getByRole("link", { name: "guide" })).toHaveAttribute("href", "https://example.com")
+    expect(screen.getByText("starting", { selector: "strong" })).toBeInTheDocument()
+  })
+
+  it("handles placeholders at the start and end of the string", () => {
+    const paragraph = showInParagraph(translateToElements("EDGES", { link, action }))
+    expect(paragraph).toHaveTextContent("starting, then read the guide")
+  })
+
+  it("returns the plain string when there are no placeholders", () => {
+    expect(translateToElements("PLAIN", {})).toEqual(["No placeholders here"])
+  })
+
+  it("renders a placeholder with no matching element as empty and warns", () => {
+    const spy = jest.spyOn(global.console, "warn").mockImplementation(() => null)
+    const paragraph = showInParagraph(translateToElements("SENTENCE", { link }))
+    expect(paragraph).toHaveTextContent("Read the guide before .")
+    expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
 })

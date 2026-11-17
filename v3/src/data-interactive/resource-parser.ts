@@ -4,6 +4,7 @@ import { IAdornmentModel } from "../components/graph/adornments/adornment-models
 import { isCountAdornment } from "../components/graph/adornments/count/count-adornment-model"
 import { kCountType, kPercentType } from "../components/graph/adornments/count/count-adornment-types"
 import { isGraphContentModel } from "../components/graph/models/graph-content-model"
+import { isWebViewModel } from "../components/web-view/web-view-model"
 import { appState } from "../models/app-state"
 import { IAttribute } from "../models/data/attribute"
 import { isCollectionModel } from "../models/data/collection"
@@ -13,7 +14,7 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { toV3CaseId, toV3GlobalId, toV3ItemId } from "../utilities/codap-utils"
 import { resolveAdornmentType } from "./data-interactive-adornment-base-types"
 import { ActionName, DIResources, DIResourceSelector, DIParsedOperand } from "./data-interactive-types"
-import { getAttribute, getCollection } from "./data-interactive-utils"
+import { getAttribute, getCollection, toPluginValue } from "./data-interactive-utils"
 import { evaluateCaseFormula, findTileFromNameOrId, parseSearchQuery } from "./resource-parser-utils"
 
 /**
@@ -82,7 +83,12 @@ export function resolveResources(
     }
     const dataSets = getSharedDataSets(document).map(sharedDataSet => sharedDataSet.dataSet)
     if (selector === '#default') {
-      return dataSets[0]
+      // The plugin's linked data context, else one named for it; no other fallback (as in V2)
+      const webView = isWebViewModel(interactiveFrame?.content) ? interactiveFrame.content : undefined
+      const linkedId = webView?.dataContextId
+      const linked = linkedId ? dataSets.find(dataSet => dataSet.id === linkedId) : undefined
+      const pluginName = interactiveFrame?.name
+      return linked ?? (pluginName ? dataSets.find(dataSet => dataSet.name === pluginName) : undefined)
     }
     return dataSets.find(dataSet => dataSet.matchTitleOrNameOrId(selector))
   }
@@ -96,8 +102,8 @@ export function resolveResources(
 
   if (!resourceSelector.type || [
     'component', 'componentList', 'dataContextList', 'dataDisplay', 'document', 'formulaEngine', 'global', 'globalList',
-    'interactiveApi', 'interactiveFrame', 'logMessage', 'logMessageMonitor', 'undoableActionPerformed',
-    'undoChangeNotice'
+    'interactiveApi', 'interactiveFrame', 'logMessage', 'logMessageMonitor', 'uiNotificationMonitor',
+    'undoableActionPerformed', 'undoChangeNotice'
   ].indexOf(resourceSelector.type) < 0) {
     // if no data context provided, and we are not creating one, the
     // default data context is implied
@@ -123,6 +129,10 @@ export function resolveResources(
   if (resourceSelector.dataDisplay) {
     const { dataDisplay } = resourceSelector
     result.component = findTileFromNameOrId(dataDisplay)
+  }
+
+  if (resourceSelector.uiNotificationMonitor) {
+    result.uiNotificationMonitor = resourceSelector.uiNotificationMonitor
   }
 
   if (resourceSelector.global) {
@@ -222,7 +232,7 @@ export function resolveResources(
   }
 
   const getOperandValue = (itemIndex?: number, operand?: DIParsedOperand) => {
-    if (operand?.attr && itemIndex != null) return operand.attr.value(itemIndex)
+    if (operand?.attr && itemIndex != null) return toPluginValue(operand.attr.value(itemIndex))
 
     return operand?.value
   }

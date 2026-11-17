@@ -1,5 +1,6 @@
 
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
+import { IWebViewModel } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
 import { gDataBroker } from "../../models/data/data-broker"
@@ -140,6 +141,33 @@ describe("DataInteractive DataContextHandler", () => {
     expect(notify({ dataContext }, { request: "restoreSetasides" }).success).toBe(true)
     dataContext.validateCases()
     expect(dataContext.isCaseOrItemHidden(caseId)).toBe(false)
+  })
+
+  it("bare create links the new data context to the plugin as its default", () => {
+    gDataBroker.setSharedModelManager(getSharedModelManager(appState.document)!)
+    const interactiveFrame = createDefaultTileOfType(kWebViewTileType)!
+    appState.document.content?.insertTileInDefaultRow(interactiveFrame)
+    const webView = interactiveFrame.content as IWebViewModel
+    const create = (name: string, isDefaultDataContext?: boolean) =>
+      handler.create?.({ interactiveFrame, isDefaultDataContext }, { name })
+
+    // `create dataContext[name]` doesn't change the link
+    expect(create("named")?.success).toBe(true)
+    expect(webView.dataContextId).toBeUndefined()
+
+    // a bare create links the new data context, and a later one replaces the link
+    expect(create("first", true)?.success).toBe(true)
+    expect(webView.dataContextId).toBe(gDataBroker.getDataSetByName("first")?.id)
+    expect(create("second", true)?.success).toBe(true)
+    expect(webView.dataContextId).toBe(gDataBroker.getDataSetByName("second")?.id)
+
+    // a bare create that names an existing data context doesn't change the link
+    expect(create("named", true)?.success).toBe(true)
+    expect(webView.dataContextId).toBe(gDataBroker.getDataSetByName("second")?.id)
+
+    for (const name of ["named", "first", "second"]) {
+      handler.delete?.({ dataContext: gDataBroker.getDataSetByName(name) })
+    }
   })
 
   it("update works", () => {

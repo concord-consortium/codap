@@ -379,7 +379,7 @@ export class FormulaManager implements IFormulaManager {
     const disposeLocalAttributeObservers = observeLocalAttributes(dependencies, dataSet, recalculate)
     const disposeBoundaryObservers = observeBoundaries(dependencies, this.boundaryManager, recalculate)
     const disposeGlobalValueObservers = observeGlobalValues(dependencies, this.globalValueManager, recalculate)
-    const disposeLookupObservers = observeLookupDependencies(dependencies, this.dataSets, recalculate)
+    const disposeLookupObservers = observeLookupDependencies(dependencies, this.dataSets, recalculate, dataSet.id)
     const disposeNameChangeObservers = observeSymbolNameChanges(this.dataSets, this.globalValueManager, updateDisplay)
     const disposeAdapterSpecificObservers = adapter.setupFormulaObservers?.(formulaContext, extraMetadata)
 

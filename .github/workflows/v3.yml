@@ -139,6 +139,9 @@ jobs:
       - name: Run Tests
         working-directory: v3
         run: npm run test:coverage -- --maxWorkers=${{ steps.cpu-cores.outputs.count }}
+      - name: Run Date Parser Tests in a Non-UTC Time Zone
+        working-directory: v3
+        run: TZ=Asia/Kolkata npx jest src/utilities/date-parser
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:

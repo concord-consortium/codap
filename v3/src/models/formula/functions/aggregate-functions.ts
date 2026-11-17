@@ -3,7 +3,7 @@ import { checkNumber } from "../../../utilities/math-utils"
 import { XYValues } from "../../../utilities/stats-utils"
 import { IValueType } from "../../data/attribute-types"
 import { CurrentScope, FValue, FValueOrArray } from "../formula-types"
-import { UNDEF_RESULT, evaluateNode, getRootScope, isNumber, isValueNonEmpty, isValueTruthy } from "./function-utils"
+import { UNDEF_RESULT, evaluateNode, getRootScope, isNumber, isValueNonEmpty, passesFilter } from "./function-utils"
 import { FormulaMathJsScope } from "../formula-mathjs-scope"
 
 // Almost every aggregate function can be cached in the same way.
@@ -39,7 +39,7 @@ export const aggregateNumericFnWithFilterFactory = (fn: (values: number[]) => FV
     }
     expressionValues = expressionValues.filter((v: FValue, i: number) =>
       // Numeric aggregate functions should ignore non-numeric values.
-      isNumber(v) && (filterValues ? isValueTruthy(filterValues[i]) : true)
+      isNumber(v) && (filterValues ? passesFilter(filterValues[i]) : true)
     )
     return expressionValues.length > 0 ? fn(expressionValues) : UNDEF_RESULT
   }
@@ -69,7 +69,7 @@ export const aggregateBivariateNumericFnWithFilterFactory = (fn: (xyValues: XYVa
     for (let i = 0; i < count; ++i) {
       const [isXValid, x] = checkNumber(xValues[i])
       const [isYValid, y] = checkNumber(yValues[i])
-      if (isXValid && isYValid && (filterValues ? isValueTruthy(filterValues[i]) : true)) {
+      if (isXValid && isYValid && (filterValues ? passesFilter(filterValues[i]) : true)) {
         xyValues.push({ x, y })
       }
     }
@@ -92,34 +92,8 @@ export const aggregateFnWithFilterFactory = (fn: ClientFn) => {
       filterValues = [ filterValues ]
     }
     expressionValues = expressionValues.filter((v: FValue, i: number) =>
-      isValueNonEmpty(v) && (filterValues ? isValueTruthy(filterValues[i]) : true)
+      isValueNonEmpty(v) && (filterValues ? passesFilter(filterValues[i]) : true)
     )
-    return expressionValues.length > 0 ? fn(expressionValues, args, scope) : UNDEF_RESULT
-  }
-}
-
-// Calls the client function with a filtered array of numeric/NaN values.
-export const aggregateNumericOrEmptyFnWithFilterFactory = (fn: ClientFn) => {
-  return (args: MathNode[], mathjs: any, currentScope: CurrentScope) => {
-    const scope = getRootScope(currentScope)
-    const [ expression, filter ] = args
-    let expressionValues = evaluateNode(expression, scope)
-    if (!Array.isArray(expressionValues)) {
-      expressionValues = [ expressionValues ]
-    }
-    let filterValues = !!filter && evaluateNode(filter, scope)
-    if (!!filter && !Array.isArray(filterValues)) {
-      filterValues = [ filterValues ]
-    }
-    // filter out values that don't pass the filter
-    expressionValues = expressionValues.filter((v: FValue, i: number) =>
-      filterValues ? isValueTruthy(filterValues[i]) : true
-    )
-    // replace non-numeric values with empty (NaN) values
-    expressionValues = expressionValues.map((v: FValue, i: number) => {
-      const [isValid, numValue] = checkNumber(v)
-      return isValid ? numValue : NaN // indicate empty values with NaN
-    })
     return expressionValues.length > 0 ? fn(expressionValues, args, scope) : UNDEF_RESULT
   }
 }

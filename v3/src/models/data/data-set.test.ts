@@ -234,11 +234,11 @@ test("DataSet basic functionality", () => {
   expect(mockConsoleWarn1).toHaveBeenCalledTimes(0)
   mockConsole1.mockRestore()
   expect(dataset.getValue("bogus", "bogus")).toBeUndefined()
-  expect(dataset.getValueAtItemIndex(-1, "bogus")).toBeUndefined()
+  expect(dataset.getValueAtFullItemIndex(-1, "bogus")).toBeUndefined()
   expect(dataset.getStrValue("bogus", "bogus")).toBe("")
-  expect(dataset.getStrValueAtItemIndex(-1, "bogus")).toBe("")
+  expect(dataset.getStrValueAtFullItemIndex(-1, "bogus")).toBe("")
   expect(dataset.getNumeric("bogus", "bogus")).toBeUndefined()
-  expect(dataset.getNumericAtItemIndex(-1, "bogus")).toBeUndefined()
+  expect(dataset.getNumericAtFullItemIndex(-1, "bogus")).toBeUndefined()
   // adding a case "before" a non-existent case appends the case to the end
   dataset.addCases(toCanonical(dataset, [{ str: "d", num: 4 }]), { before: "bogus" })
   dataset.validateCases()
@@ -255,8 +255,6 @@ test("DataSet basic functionality", () => {
   dataset.addCases(toCanonical(dataset, [{ str: "d", num: 4 }]), { after: cCaseId })
   expect(dataset.getItemAtIndex(0)).toEqualExcludingIds({ [strAttrID]: "d", [numAttrID]: 4 })
   const caseD4ID = dataset.items[0].__id__
-  expect(dataset.itemIDFromIndex(0)).toBe(caseD4ID)
-  expect(dataset.itemIDFromIndex(-1)).toBeUndefined()
   expect(dataset.getItemAtIndex(-1)).toBeUndefined()
   expect(dataset.getItemAtIndex(0, { canonical: false })).toEqual({ __id__: caseD4ID, str: "d", num: 4 })
   expect(dataset.getItem(caseD4ID, { canonical: false })).toEqual({ __id__: caseD4ID, str: "d", num: 4 })
@@ -266,9 +264,9 @@ test("DataSet basic functionality", () => {
   expect(dataset.attributes[1].value(0)).toBe(4)
   expect(dataset.attributes[1].numValue(0)).toBe(4)
   expect(dataset.getNumeric(caseD4ID, numAttrID)).toBe(4)
-  expect(dataset.getNumericAtItemIndex(0, numAttrID)).toBe(4)
-  expect(dataset.getValueAtItemIndex(0, numAttrID)).toBe(4)
-  expect(dataset.getStrValueAtItemIndex(0, numAttrID)).toBe("4")
+  expect(dataset.getNumericAtFullItemIndex(0, numAttrID)).toBe(4)
+  expect(dataset.getValueAtFullItemIndex(0, numAttrID)).toBe(4)
+  expect(dataset.getStrValueAtFullItemIndex(0, numAttrID)).toBe("4")
 
   // add new case before first case
   dataset.addCases([{ str: "c", num: 3 }], { before: caseD4ID, canonicalize: true })
@@ -276,16 +274,14 @@ test("DataSet basic functionality", () => {
   expect(dataset.items.length).toBe(2)
   expect(caseC3ID).toBeDefined()
   expect(caseC3ID).not.toBe(caseD4ID)
-  expect(dataset.itemIDFromIndex(0)).toBe(caseC3ID)
-  expect(dataset.nextItemID("")).toBeUndefined()
-  expect(dataset.nextItemID(caseC3ID)).toBe(caseD4ID)
+  expect(dataset.itemIds[0]).toBe(caseC3ID)
   expect(dataset.items[1].__id__).toBe(caseD4ID)
   expect(dataset.attributes[0].value(0)).toBe("c")
   expect(dataset.attributes[1].value(0)).toBe(3)
   expect(dataset.attributes[1].numValue(0)).toBe(3)
   expect(dataset.getNumeric(caseC3ID, numAttrID)).toBe(3)
-  expect(dataset.getNumericAtItemIndex(0, numAttrID)).toBe(3)
-  expect(dataset.getValueAtItemIndex(0, numAttrID)).toBe(3)
+  expect(dataset.getNumericAtFullItemIndex(0, numAttrID)).toBe(3)
+  expect(dataset.getValueAtFullItemIndex(0, numAttrID)).toBe(3)
 
   // add multiple new cases before specified case
   dataset.addCases([{ str: "a", num: 1 }, { str: "b", num: 2 }], { before: caseC3ID, canonicalize: true })
@@ -483,8 +479,6 @@ test("Canonical case functionality", () => {
   expect(dataset.items.length).toBe(2)
   expect(caseC3ID).toBeDefined()
   expect(caseC3ID).not.toBe(caseD4ID)
-  expect(dataset.nextItemID("")).toBeUndefined()
-  expect(dataset.nextItemID(caseC3ID)).toBe(caseD4ID)
   expect(dataset.items[1].__id__).toBe(caseD4ID)
   expect(dataset.attributes[0].value(0)).toBe("c")
   expect(dataset.attributes[1].value(0)).toBe(3)
@@ -662,6 +656,44 @@ test("DataSet case hiding/showing (set aside)", () => {
   expect(data.itemIds).toEqual(["item3", "item4", "item5", "item0", "item1", "item2"])
 })
 
+test("moveItems moves the right items when some items are set aside", () => {
+  const data = DataSet.create({ name: "data" })
+  const letter = data.addAttribute({ id: "Letter", name: "Letter" })
+  const letters = ["a", "b", "c", "d", "e", "f"]
+  data.addCases(letters.map(value => ({ __id__: value, [letter.id]: value })))
+  data.validateCases()
+  data.hideCasesOrItems(["b"])
+  data.validateCases()
+  const letterValues = () => data.items.map(({ __id__ }) => data.getStrValue(__id__, letter.id))
+
+  data.moveItems(["e"], { before: "a" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["e", "a", "c", "d", "f"])
+  expect(letterValues()).toEqual(["e", "a", "c", "d", "f"])
+
+  // the last item, whose index is past the end of the items shown
+  data.moveItems(["f"], { before: "e" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["f", "e", "a", "c", "d"])
+  expect(letterValues()).toEqual(["f", "e", "a", "c", "d"])
+
+  data.moveItems(["e", "c"])
+  data.validateCases()
+  expect(data.itemIds).toEqual(["f", "a", "d", "e", "c"])
+  expect(letterValues()).toEqual(["f", "a", "d", "e", "c"])
+
+  // an id passed more than once moves only that item
+  data.moveItems(["d", "d"], { before: "f" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["d", "f", "a", "e", "c"])
+  expect(letterValues()).toEqual(["d", "f", "a", "e", "c"])
+
+  data.showHiddenCasesAndItems()
+  data.validateCases()
+  expect(data._itemIds).toEqual(["d", "f", "a", "b", "e", "c"])
+  expect(letterValues()).toEqual(["d", "f", "a", "b", "e", "c"])
+})
+
 test("sortByAttribute with a flat DataSet", () => {
   const data = DataSet.create({ name: "data" })
   const a = data.addAttribute({ id: "AttrA", name: "A" })
@@ -753,6 +785,27 @@ test("Caching mode", () => {
 
   ds.endCaching(true)
   expect(ds.isCaching()).toBe(false)
+})
+
+test("Caching mode reads each item's own cached values when an earlier item is set aside", () => {
+  const ds = DataSet.create({ name: "data" })
+  ds.addAttribute({ name: "num" })
+  const numAttrID = ds.attributes[0].id
+  ds.addCases(toCanonical(ds, [{ num: 1 }, { num: 2 }, { num: 3 }]))
+  const [aId, bId, cId] = ds.items.map(item => item.__id__)
+  ds.hideCasesOrItems([aId])
+  ds.validateCases()
+
+  ds.beginCaching()
+  ds.setCaseValues([{ __id__: cId, [numAttrID]: 100 }])
+  expect(ds.getValue(cId, numAttrID)).toBe(100)
+  expect(ds.getStrValue(cId, numAttrID)).toBe("100")
+  expect(ds.getNumeric(cId, numAttrID)).toBe(100)
+  // B isn't cached, so it keeps its own value rather than C's
+  expect(ds.getValue(bId, numAttrID)).toBe(2)
+  expect(ds.getStrValue(bId, numAttrID)).toBe("2")
+  expect(ds.getNumeric(bId, numAttrID)).toBe(2)
+  ds.endCaching(false)
 })
 
 test("getNumeric parses blank cached values as NaN (does not coerce '' to 0)", () => {

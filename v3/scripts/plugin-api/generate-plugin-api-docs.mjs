@@ -124,8 +124,8 @@ function renderScope(resourceNames) {
            "`dataContext` therefore changes what this resource returns only when the selector\n" +
            "contains such a segment."
   }
-  return "This resource is scoped to a data context. Omitting one selects `#default`, the first data\n" +
-         "context in the document — see [the index](../README.md#the-default-data-context)."
+  return "This resource is scoped to a data context. Omitting one selects `#default`, your plugin's\n" +
+         "own data context — see [the index](../README.md#the-default-data-context)."
 }
 
 function renderAdornmentTypes() {
@@ -199,8 +199,8 @@ function renderSelectorGrammar() {
     "that costs depends on which segment it was.",
     "",
     "- **A misspelled `dataContext`** is the dangerous one. With no data context named, CODAP",
-    "  supplies `#default`, so the request runs against the first data context in the document and",
-    "  reports success — against data you did not ask for.",
+    "  supplies `#default`, so the request runs against the default data context and reports",
+    "  success — against data you did not ask for.",
     "- **A misspelled `collection`** leaves the resource to resolve without one. For `attribute`",
     "  the search widens to the whole data context and usually finds the attribute anyway;",
     "  `attributeList` returns an empty list; the case resources report not found.",
@@ -213,7 +213,7 @@ function renderSelectorGrammar() {
     "reads the attributes of one collection of one data context.",
     "",
     "**Data-context defaulting.** When a selector omits `dataContext`, CODAP supplies `#default`,",
-    "which resolves to the first data context in the document. That does not apply to these",
+    "which resolves to the plugin's own data context (see the index). That does not apply to these",
     `resource types: ${exempt}. Nor does it apply when creating a data context, since there is`,
     "nothing to default to yet. Note that some resources have a data context resolved and ignore",
     "it; each resource's page says which."
@@ -281,10 +281,11 @@ const notificationKey = n => `${n.resource}\u0000${n.operation ?? ""}`
 // be reported, even though another area's table lists that operation.
 const placedNotifications = new Set()
 
-// "—" means no values beyond the operation; unreadable keys say so rather than guess.
+// "—" means no values beyond the operation, and "…" values the extractor couldn't name;
+// unreadable keys say so rather than guess.
 function notificationValues(n) {
   if (!n.valueKeys) return "_not readable from the code_"
-  if (!n.valueKeys.length) return "—"
+  if (!n.valueKeys.length) return n.valueKeysPartial ? "…" : "—"
   return n.valueKeys.map(k => `\`${k}\``).join(", ") + (n.valueKeysPartial ? ", …" : "")
 }
 
@@ -355,8 +356,12 @@ function renderNotificationTable(entries, body, { withResource = false, valuesHe
   if (withResource) head.unshift("Resource")
   const line = (r, i) => `| ${[...(withResource ? [r.resource] : []), r.operation, r.fires,
                                ...(shared ? [] : [cells[i]])].join(" | ")} |`
+  // A data context change notice's values is an array of changes, each carrying the shared property.
+  const isDataChange = entries.length > 0 && entries.every(n => n.resource?.startsWith("dataContextChangeNotice"))
+  const sharedLine = isDataChange ? `Every change in \`values\` carries ${shared}.`
+    : `Every one carries ${shared} in \`values\`.`
   return [`| ${head.join(" | ")} |`, `|${head.map(() => "---").join("|")}|`, ...rows.map(line),
-    ...(shared ? ["", `Every one carries ${shared} in \`values\`.`] : [])].join("\n")
+    ...(shared ? ["", sharedLine] : [])].join("\n")
 }
 
 function renderNotifications(block, body) {

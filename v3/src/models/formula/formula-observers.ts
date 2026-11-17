@@ -66,47 +66,39 @@ export const getLookupCasesToRecalculate = (cases: ICase[], dependency: ILookupD
   cases.some(c => isAttrDefined(c, dependency.attrId) || isAttrDefined(c, dependency.otherAttrId)) ? "ALL_CASES" : []
 
 export const observeLookupDependencies = (formulaDependencies: IFormulaDependency[], dataSets: Map<string, IDataSet>,
-  recalculateCallback: (casesToRecalculate: CaseList) => void) => {
+  recalculateCallback: (casesToRecalculate: CaseList) => void, localDataSetId?: string) => {
   const lookupDependencies: ILookupDependency[] =
     formulaDependencies.filter(d => d.type === "lookup")
 
-  const disposeLookupObserver = lookupDependencies.map(dependency => {
-    const externalDataSet = dataSets.get(dependency.dataSetId)
-    if (!externalDataSet) {
-      return
-    }
-    return onAnyAction(externalDataSet, mstAction => {
-      let casesToRecalculate: CaseList = []
-      switch (mstAction.name) {
-        // TODO: these rules are very broad, think if there are some ways to optimize and narrow them down.
-        case "addCases": {
-          casesToRecalculate = "ALL_CASES"
-          break
-        }
-        case "removeCases": {
-          casesToRecalculate = "ALL_CASES"
-          break
-        }
-        case "setCaseValues": {
-          // Recalculate for user-initiated value changes only.
-          // Formula-to-formula cascading (setComputedCaseValues) is handled by
-          // FormulaManager.recalculateDownstreamFormulas() using the static dependency graph.
-          if (isSetCaseValuesAction(mstAction)) {
-            casesToRecalculate = getLookupCasesToRecalculate(mstAction.args[0] || [], dependency)
-          }
-          break
-        }
-        default:
-          break
-      }
+  // lookupByIndex and lookupByKey read the shown items in order, and wordListMatches reads the shown items, so
+  // adding, removing, setting aside, showing, filtering or reordering items can change their results. One reaction
+  // per data set is enough, and observeLocalAttributes already reacts to the formula's own data set.
+  const lookupDataSetIds = new Set(lookupDependencies.map(d => d.dataSetId).filter(id => id !== localDataSetId))
+  const disposeItemsObservers = Array.from(lookupDataSetIds).map(dataSetId => {
+    const externalDataSet = dataSets.get(dataSetId)
+    return externalDataSet && mstReaction(
+      () => externalDataSet.itemIdsOrderedHash,
+      () => recalculateCallback("ALL_CASES"),
+      { name: "FormulaObservers.lookupItemsReaction" }, externalDataSet
+    )
+  })
 
-      if (casesToRecalculate.length > 0) {
-        recalculateCallback(casesToRecalculate)
+  const disposeActionsObservers = lookupDependencies.map(dependency => {
+    const externalDataSet = dataSets.get(dependency.dataSetId)
+    return externalDataSet && onAnyAction(externalDataSet, mstAction => {
+      // Recalculate for user-initiated value changes only.
+      // Formula-to-formula cascading (setComputedCaseValues) is handled by
+      // FormulaManager.recalculateDownstreamFormulas() using the static dependency graph.
+      if (isSetCaseValuesAction(mstAction)) {
+        const casesToRecalculate = getLookupCasesToRecalculate(mstAction.args[0] || [], dependency)
+        if (casesToRecalculate.length > 0) {
+          recalculateCallback(casesToRecalculate)
+        }
       }
     })
   })
 
-  return () => disposeLookupObserver.forEach(dispose => dispose?.())
+  return () => [...disposeItemsObservers, ...disposeActionsObservers].forEach(dispose => dispose?.())
 }
 
 export const observeBoundaries = (formulaDependencies: IFormulaDependency[],

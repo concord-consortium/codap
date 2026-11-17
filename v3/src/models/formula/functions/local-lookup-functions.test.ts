@@ -256,3 +256,24 @@ describe("local lookup functions", () => {
     expect(scope.getLocalValue).toHaveBeenCalledTimes(27 * 2)
   })
 })
+
+describe("local lookup filter arguments with 0/1 and \"true\"/\"false\" values", () => {
+  // Each filter selects the same cases as `Diet = 'both'`, so each formula should give the same result.
+  const filters = [
+    "if(Diet = 'both', 1, 0)",
+    "if(Diet = 'both', '1', '0')",
+    "if(Diet = 'both', 'true', 'false')"
+  ]
+
+  it.each(filters)("filters first() and last() with %s", filter => {
+    expect(evaluate(`first(LifeSpan, ${filter})`)).toBe(evaluate("first(LifeSpan, Diet = 'both')"))
+    expect(evaluate(`last(LifeSpan, ${filter})`)).toBe(evaluate("last(LifeSpan, Diet = 'both')"))
+  })
+
+  it.each(filters)("filters prev() and next() with %s", filter => {
+    expect(evaluateForAllCases(`prev(LifeSpan, 0, ${filter})`))
+      .toEqual(evaluateForAllCases("prev(LifeSpan, 0, Diet = 'both')"))
+    expect(evaluateForAllCases(`next(LifeSpan, 0, ${filter})`))
+      .toEqual(evaluateForAllCases("next(LifeSpan, 0, Diet = 'both')"))
+  })
+})

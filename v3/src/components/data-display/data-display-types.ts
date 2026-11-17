@@ -95,6 +95,9 @@ export const attrRoleToGraphPlace: Partial<Record<GraphAttrRole, GraphPlace>> = 
   legend: "legend"
 }
 
+// V2's axis orientations (graph_types.js:41-48), which V2 reports as `axisOrientation` in `attributeChange`
+export type V2AxisOrientation = "none" | "horizontal" | "vertical" | "vertical2" | "top" | "right"
+
 export const axisPlaceToAttrRole: Record<AxisPlace, GraphAttrRole> = {
   bottom: "x",
   left: "y",

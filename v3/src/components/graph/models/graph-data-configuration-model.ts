@@ -819,6 +819,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       }
     },
     setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
+      const previousLegend = self.legendAttributeAndType
       // For 'x' and 'y' roles, if the given attribute is already present on the other axis, then
       // move whatever attribute is assigned to the given role to that axis.
       if (['x', 'y'].includes(role)) {
@@ -843,6 +844,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       self.invalidateCases()
       self.numericValuesForAttribute.invalidate(role, self.attributeType(role))
       self.cellMap.invalidateAll()
+      if (role === "legend") self.recomputeLockedLegend(previousLegend)
     },
     addYAttribute(desc: IAttributeDescriptionSnapshot, index?: number) {
       if (index != null && index >= 0) {
@@ -873,12 +875,14 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       }
     },
     setAttributeType(role: GraphAttrRole, type: AttributeType, plotNumber = 0) {
+      const previousLegend = self.legendAttributeAndType
       if (role === 'y') {
         self._yAttributeDescriptions[plotNumber]?.setType(type)
       } else {
         self._attributeDescriptions.get(role)?.setType(type)
       }
       self._setAttributeType(type, plotNumber)
+      if (role === "legend") self.recomputeLockedLegend(previousLegend)
     }
   }))
   .actions(self => ({

@@ -1,3 +1,4 @@
+import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet } from "../../models/data/data-set"
@@ -17,7 +18,7 @@ import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
 import { DIUpdateDataContext, DIDataContext, DINotifyDataContext } from "../data-interactive-data-set-types"
 import { basicDataSetInfo, convertDataSetToV2 } from "../data-interactive-type-utils"
-import { getAttribute } from "../data-interactive-utils"
+import { getAttribute, toPluginValue } from "../data-interactive-utils"
 import { findTileFromNameOrId } from "../resource-parser-utils"
 import { createCollection } from "./di-handler-utils"
 import { attributeNotFoundResult, dataContextNotFoundResult, errorResult, fieldRequiredResult } from "./di-results"
@@ -25,7 +26,7 @@ import { attributeNotFoundResult, dataContextNotFoundResult, errorResult, fieldR
 const requestRequiredResult = fieldRequiredResult("Notify", "dataContext", "request")
 
 export const diDataContextHandler: DIHandler = {
-  create(_resources: DIResources, _values?: DIValues) {
+  create(resources: DIResources, _values?: DIValues) {
     const values = _values as DIDataContext
     const { collections, description, metadata, name: _name, title } = values
     const name = _name || gDataBroker.newDataSetName
@@ -45,6 +46,11 @@ export const diDataContextHandler: DIHandler = {
       sharedMetadata.setImportDate(metadata?.importDate)
       sharedMetadata.setSource(metadata?.source)
       sharedMetadata.setDescription(metadata?.description ?? description)
+
+      // A bare `create dataContext` makes the new data context the plugin's default
+      const { interactiveFrame, isDefaultDataContext } = resources
+      const webView = isWebViewModel(interactiveFrame?.content) ? interactiveFrame.content : undefined
+      if (isDefaultDataContext) webView?.setDataContextId(dataSet.id)
 
       if (collections?.length) {
         // remove the default collection
@@ -80,7 +86,13 @@ export const diDataContextHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
 
-    return { success: true, values: convertDataSetToV2(dataContext) }
+    const values = convertDataSetToV2(dataContext)
+    // set-aside items read back as other items do; the document's v2 export keeps the stored text
+    const setAsideItems = values.setAsideItems?.map(({ id, values: itemValues }) => ({
+      id,
+      values: Object.fromEntries(Object.entries(itemValues).map(([name, value]) => [name, toPluginValue(value)]))
+    }))
+    return { success: true, values: { ...values, setAsideItems } }
   },
 
   notify(resources: DIResources, values?: DIValues) {

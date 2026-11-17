@@ -5,8 +5,8 @@
 
 The interactive frame is the plugin's own component — the tile the plugin is running inside.
 A plugin uses this resource to learn about its environment (which CODAP version, which locale,
-how big its frame is), to save state into the CODAP document, and to set the permissions that
-govern what a user may do to the data while the plugin is running.
+how big its frame is), to read the state it saved with the document, and to set the permissions
+that govern what a user may do to the data while the plugin is running.
 
 Every plugin reads this resource at startup. Its selector names no target — a plugin can only
 ever address its own frame, never another plugin's.
@@ -99,10 +99,13 @@ honors fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAva
 | `cannotClose` | no | yes |
 | `handlesLocaleChange` | no | yes |
 
+A number given as `name` or `title` is used as text, as in v2. `cannotClose` may be any value;
+CODAP stores whether it is truthy.
+
 ### Holding requests while the user edits
 
-`blockAPIRequestsWhileEditing` makes CODAP hold back plugin requests while the user edits a case
-table cell in a data context this plugin manages, and process them when the edit ends. It
+`blockAPIRequestsWhileEditing` makes CODAP hold back this plugin's requests while the user edits
+a case table cell in a data context this plugin manages, and process them when the edit ends. It
 defaults to `false`. See
 [How CODAP processes requests](../guides/request-processing.md#requests-while-the-user-is-editing)
 for when it applies, what it holds back, and why to send it on every load.
@@ -203,11 +206,6 @@ Tell CODAP the plugin is working, then that it has finished:
 indistinguishable from one that worked, and there is no way to ask which requests this CODAP
 supports.
 
-**`cannotClose: false` does not take effect.** Sending it should make a protected frame closeable
-again, as it did in v2. CODAP applies this property only when the value is truthy, unlike the
-other booleans on this resource, so `false` leaves the frame exactly as it was. This is a known
-bug; `true` works.
-
 **`name` and `title` are ignored once the user has renamed the tile.** Both are applied only
 while the title is still CODAP's own. A plugin that renames itself in response to its own state
 will stop being able to after any manual rename, and gets no error.
@@ -237,8 +235,7 @@ unrecognized one.
 | `indicateIdle` | Clears the busy indicator |
 
 CODAP also accepts a set of requests for highlighting UI elements and running guided tours.
-They are **not documented here yet** because the implementation behind them is being replaced,
-and their values will change.
+They are documented in the [Tour API](../../plugin-tour-api.md).
 
 For notifications CODAP sends *to* a plugin, see
 [the notification catalog](../notifications.md).

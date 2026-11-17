@@ -15,7 +15,15 @@ export interface IUndoManager {
   redoEntry : HistoryEntryType | undefined
   undo() : IUndoInformation
   redo() : IUndoInformation
+  setHistoryListener(listener?: UndoHistoryListener): void
+  clearHistory(): void
 }
+
+// Called after the undo history changes: an undoable entry is added ("add"), an entry is undone
+// or redone, or the entries that could be undone ("clearUndo") or redone ("clearRedo") are erased.
+// Lets the app notify plugins of each change as it happens.
+export type UndoHistoryChange = "add" | "undo" | "redo" | "clearUndo" | "clearRedo"
+export type UndoHistoryListener = (change: UndoHistoryChange) => void
 
 // Information that is returned by undo and redo calls
 export interface IUndoInformation {
@@ -28,6 +36,9 @@ export const UndoStore = types
   history: types.array(types.reference(HistoryEntry)),
   undoIdx: 0
 })
+.volatile(() => ({
+  historyListener: undefined as UndoHistoryListener | undefined
+}))
 .views((self) => ({
   get undoLevels() {
     return self.undoIdx
@@ -139,6 +150,19 @@ export const UndoStore = types
   })
 
   return {
+    setHistoryListener(listener?: UndoHistoryListener) {
+      self.historyListener = listener
+    },
+
+    // erase the whole history, the undo side first, as V2's clearUndoRedoHistory did (undo_history.js:248-251)
+    clearHistory() {
+      self.history.splice(0, self.undoIdx)
+      self.undoIdx = 0
+      self.historyListener?.("clearUndo")
+      self.history.clear()
+      self.historyListener?.("clearRedo")
+    },
+
     addHistoryEntry(entry: Instance<typeof HistoryEntry>) {
       // Find if there is already an HistoryEntry with this
       // historyEntryId. This action is called each time a new
@@ -167,6 +191,7 @@ export const UndoStore = types
       // are being added to an existing entry these are still user triggered
       // patches. So this needs to prevent the ability to redo.
       self.undoIdx = self.history.length
+      self.historyListener?.("add")
     },
 
     // TODO: The MST undo manager that this code is based on, used atomic
@@ -182,6 +207,7 @@ export const UndoStore = types
       }
 
       const entryToUndo = self.history[self.undoIdx -1]
+      let patchesApplied: Promise<unknown> | undefined
 
       if (entryToUndo.customPatches?.length) {
         const manager: Instance<typeof TreeManager> = getParent(self)
@@ -201,10 +227,13 @@ export const UndoStore = types
         //
         // TODO: we aren't actually calling this as an action and we
         // aren't waiting for it to finish before returning
-        applyPatchesToTrees(entryToUndo, HistoryOperation.Undo)
+        patchesApplied = applyPatchesToTrees(entryToUndo, HistoryOperation.Undo)
       }
 
       self.undoIdx--
+      // tell the listener once the patches have been applied, as V2 did after the command's undo
+      if (patchesApplied) patchesApplied.then(() => self.historyListener?.("undo"))
+      else self.historyListener?.("undo")
       return {
         id: entryToUndo.id,
         action: entryToUndo.action
@@ -216,6 +245,7 @@ export const UndoStore = types
       }
 
       const entryToRedo = self.history[self.undoIdx]
+      let patchesApplied: Promise<unknown> | undefined
 
       if (entryToRedo.customPatches?.length) {
         const manager: Instance<typeof TreeManager> = getParent(self)
@@ -236,10 +266,13 @@ export const UndoStore = types
         // TODO: we aren't actually calling this as an action and we
         // aren't waiting for it to finish before returning
         //
-        applyPatchesToTrees(entryToRedo, HistoryOperation.Redo)
+        patchesApplied = applyPatchesToTrees(entryToRedo, HistoryOperation.Redo)
       }
 
       self.undoIdx++
+      // tell the listener once the patches have been applied, as V2 did after the command's redo
+      if (patchesApplied) patchesApplied.then(() => self.historyListener?.("redo"))
+      else self.historyListener?.("redo")
       return {
         id: entryToRedo.id,
         action: entryToRedo.action

@@ -102,12 +102,12 @@ export const diInteractiveFrameHandler: DIHandler = {
       if (allowEmptyAttributeDeletion != null) {
         webViewContent?.setAllowEmptyAttributeDeletion(allowEmptyAttributeDeletion)
       }
-      if (cannotClose) interactiveFrame.setCannotClose(cannotClose)
+      if (cannotClose != null) interactiveFrame.setCannotClose(!!cannotClose)
       if (dimensions) {
         appState.document.content?.setTileDimensions(interactiveFrame.id, dimensions)
       }
       if (name && !interactiveFrame.userSetTitle) {
-        interactiveFrame.setTitle(name)
+        interactiveFrame.setTitle(String(name))
       }
       if (blockAPIRequestsWhileEditing != null) {
         webViewContent?.setBlockAPIRequestsWhileEditing(blockAPIRequestsWhileEditing)
@@ -123,7 +123,7 @@ export const diInteractiveFrameHandler: DIHandler = {
         webViewContent?.setSubscribeToDocuments(subscribeToDocuments)
       }
       if (title && !interactiveFrame.userSetTitle) {
-        interactiveFrame.setTitle(title)
+        interactiveFrame.setTitle(String(title))
       }
       if (version) webViewContent?.setVersion(version)
       if (handlesLocaleChange != null) webViewContent?.setHandlesLocaleChange(handlesLocaleChange)

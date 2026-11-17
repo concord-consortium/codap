@@ -161,6 +161,7 @@ function LinkDialog({ editor, isOpen, onClose, onSave, editLink }: ILinkDialogPr
 
   return (
     <CodapModal
+      data-testid="link-dialog-modal"
       isOpen={isOpen}
       onClose={onClose}
       onKeyDown={handleKeyDown}
@@ -168,7 +169,7 @@ function LinkDialog({ editor, isOpen, onClose, onSave, editLink }: ILinkDialogPr
       modalHeight={"221px"}
     >
       <ModalHeader h="34px" className="codap-modal-header-v3" fontSize="md" data-testid="codap-modal-header">
-        <div className="codap-modal-icon-container-v3">
+        <div className="codap-modal-icon-container-v3" aria-hidden="true">
           <AddLinkIcon />
         </div>
         <div className="codap-header-title-v3">Insert Link</div>
