@@ -1,22 +1,51 @@
-import {FormatLocaleDefinition, format, formatLocale} from "d3-format"
+import { FormatLocaleDefinition, format, formatLocale } from "d3-format"
 import {
   between,
   binBoundaryDecimalPlaces,
   binBoundarySignificantFigures,
   checkNumber,
   chooseDecimalPlaces,
+  degreesToRadians,
   equalFrequencyBins,
   extractNumeric,
   fitGaussianLM,
   isFiniteNumber,
   isNumber,
-  isValueNonEmpty, normal
+  isValueNonEmpty, mod, normal,
+  radiansToDegrees
 } from "./math-utils"
 
 // default formatting except uses ASCII minus sign
 const asciiLocale = formatLocale({ minus: "-" } as FormatLocaleDefinition)
 
 describe("math-utils", () => {
+
+  describe("degreesToRadians", () => {
+    it("converts degrees to radians", () => {
+      expect(degreesToRadians(0)).toBe(0)
+      expect(degreesToRadians(180)).toBeCloseTo(Math.PI)
+      expect(degreesToRadians(-90)).toBeCloseTo(-Math.PI / 2)
+      expect(degreesToRadians(360)).toBeCloseTo(2 * Math.PI)
+    })
+  })
+
+  describe("radiansToDegrees", () => {
+    it("converts radians to degrees", () => {
+      expect(radiansToDegrees(0)).toBe(0)
+      expect(radiansToDegrees(Math.PI)).toBeCloseTo(180)
+      expect(radiansToDegrees(-Math.PI / 2)).toBeCloseTo(-90)
+    })
+  })
+
+  describe("mod", () => {
+    it("returns a result in [0, m), even for negative numbers", () => {
+      expect(mod(5, 3)).toBe(2)
+      expect(mod(-1, 3)).toBe(2)
+      expect(mod(-3, 3)).toBe(0)
+      expect(mod(0, 3)).toBe(0)
+      expect(mod(-0.5, 256)).toBeCloseTo(255.5)
+    })
+  })
 
   describe("d3-format", () => {
     const defaultFormat = format("")

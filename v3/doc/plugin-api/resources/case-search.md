@@ -84,7 +84,7 @@ Each case is an object:
 | Property | Notes |
 |---|---|
 | `id` | the case's id |
-| `parent` | the id of its parent case; `null` for a case in the top-level collection. v3 currently differs; see [Known limitations](#known-limitations) |
+| `parent` | the id of its parent case; `null` for a case in the top-level collection |
 | `collection` | `{ "name", "id" }` of the collection searched |
 | `values` | the case's values, keyed by attribute name — only the attributes of this collection, not its parents' |
 | `children` | the ids of its child cases; empty for a case in the last collection. New in v3 |
@@ -160,10 +160,6 @@ text `true` typed into a table, imported from a file, or set by a checkbox match
 compared it as text and did not match. This is a deliberate difference. As in v2,
 `Endangered==false` also finds the cases with no value or `0`. Unlike v2, `Endangered==1` finds
 the `true` cases too, because the comparison converts between types.
-
-**A top-level case's `parent` is `undefined`, not `null`.** v2 sent `null`. A plugin that tests
-`parent === null` treats every top-level case as a child; test for a missing parent instead, such
-as `parent == null`. This is a known bug.
 
 ## Notifications
 

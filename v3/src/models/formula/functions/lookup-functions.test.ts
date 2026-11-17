@@ -51,6 +51,21 @@ describe("lookupByIndex", () => {
     expect(evaluate("lookupByIndex('Cats', 'PadColor', 5)")).toEqual("pink")
   })
 
+  it("counts only the items shown", () => {
+    const formula = "lookupByIndex('Mammals', 'Mammal', 1)"
+    // with the first mammal set aside, index 1 is the second mammal
+    expect(evaluate(formula, undefined, undefined, ({ dataSetsByName: { Mammals } }) => {
+      Mammals.hideCasesOrItems([Mammals.itemIds[0]])
+      Mammals.validateCases()
+    })).toEqual("Asian Elephant")
+
+    // items a filter formula hides are skipped too
+    expect(evaluate(formula, undefined, undefined, ({ dataSetsByName: { Mammals } }) => {
+      Mammals.updateFilterFormulaResults([{ itemId: Mammals.itemIds[0], result: false }], {})
+      Mammals.validateCases()
+    })).toEqual("Asian Elephant")
+  })
+
   it("returns the value at the given evaluated index (1-based)", () => {
     expect(evaluate("lookupByIndex('Mammals', 'Mammal', caseIndex)", 1)).toEqual("Asian Elephant")
     expect(evaluate("lookupByIndex('Mammals', 'Mass', caseIndex)", 1)).toEqual(5000)

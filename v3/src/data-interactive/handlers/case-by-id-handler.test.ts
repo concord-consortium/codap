@@ -20,6 +20,11 @@ describe("DataInteractive CaseByIDHandler", () => {
     const caseResult = handler.get?.({ dataContext, caseByID: aCase })?.values as DIGetCaseResult
     expect(caseResult.case.id).toBe(maybeToV2Id(caseId))
     expect(caseResult.case.children?.length).toBe(2)
+
+    // as in V2, a top-level case's parent is null
+    const topCase = dataContext.getCasesForCollection(dataContext.collections[0].id)[0]
+    const topResult = handler.get?.({ dataContext, caseByID: topCase })?.values as DIGetCaseResult
+    expect(topResult.case.parent).toBeNull()
   })
 
   it("update works as expected", () => {
@@ -33,6 +38,15 @@ describe("DataInteractive CaseByIDHandler", () => {
 
     expect(handler.update?.(caseResources, { values: { a3: 10 } }).success).toBe(true)
     expect(a3.numValues[dataContext.getItemIndex(itemId)!]).toBe(10)
+
+    // as in V2, values given as an array are in the order of the collection's attributes
+    const collection = dataContext.childCollection
+    expect(handler.update?.({ ...caseResources, collection }, { values: [12] }).success).toBe(true)
+    expect(a3.numValues[dataContext.getItemIndex(itemId)!]).toBe(12)
+
+    // as in V2, a name that matches no attribute makes the reply report failure, but the other values are set
+    expect(handler.update?.(caseResources, { values: { a3: 11, noSuchAttribute: 1 } }).success).toBe(false)
+    expect(a3.numValues[dataContext.getItemIndex(itemId)!]).toBe(11)
 
     expect(handler.update?.({ dataContext, caseByID: aCase }, { values: { a3: 100 } }).success).toBe(true)
     dataContext.caseInfoMap.get(caseId)?.childItemIds.forEach(id => {

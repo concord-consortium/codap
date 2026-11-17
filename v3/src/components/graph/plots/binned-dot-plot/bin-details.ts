@@ -23,7 +23,7 @@ export class BinDetails {
     this.binAlignmentPrecision = Math.min(this.binWidthPrecision + 2, getPrecisionForValue(this.binAlignment))
     // edge precision is the max of width and alignment precisions
     this.binEdgePrecision = Math.max(this.binWidthPrecision ?? 0, this.binAlignmentPrecision ?? 0)
-    // bin values are rounded to two more decimal places when determining bin assignments
+    // bin midpoints are rounded to two more decimal places than bin edges
     this.binValuePrecision = this.binEdgePrecision + 2
     this.minBinEdge = this.getMinBinEdge() ?? 0
     this.maxBinEdge = this.getMaxBinEdge() ?? 0
@@ -80,14 +80,12 @@ export class BinDetails {
 
   getMaxBinEdge(): number | undefined {
     if (this.binWidth == null || this.minBinEdge == null) return undefined
-    let maxBinEdge = this.roundToBinEdgePrecision(
-      this.minBinEdge + Math.ceil((this.maxValue - this.minBinEdge) / this.binWidth) * this.binWidth
-    )
-    // if the maxValue is exactly on a bin edge, add another bin to include it
-    if (this.maxValue === maxBinEdge) {
-      maxBinEdge = this.roundToBinEdgePrecision(maxBinEdge + this.binWidth)
+    let numberOfBins = Math.ceil((this.maxValue - this.minBinEdge) / this.binWidth)
+    // if the maxValue is on the last bin edge, add another bin to include it
+    if ((this.getBinForValue(this.maxValue) ?? 0) >= numberOfBins) {
+      ++numberOfBins
     }
-    return maxBinEdge
+    return this.roundToBinEdgePrecision(this.minBinEdge + numberOfBins * this.binWidth)
   }
 
   getTotalNumberOfBins(): number {
@@ -102,7 +100,13 @@ export class BinDetails {
 
   getBinForValue(value: number): number | undefined {
     if (!this.binWidth || this.minBinEdge == null) return undefined
-    return Math.floor(this.roundToBinValuePrecision((value - this.minBinEdge) / this.binWidth))
+    const binIndex = (value - this.minBinEdge) / this.binWidth
+    // Numbers in JS carry about 16 significant digits, so binIndex can be off by an error proportional to the size
+    // of the values relative to the bin width. A tolerance of 1e-14 of that ratio is comfortably above the error
+    // and far below any meaningful difference in the data, so values within it of a bin edge are treated as on it.
+    const tolerance = 1e-14 * (Math.abs(value) + Math.abs(this.minBinEdge)) / this.binWidth
+    const nearestEdge = Math.round(binIndex)
+    return Math.abs(binIndex - nearestEdge) <= tolerance ? nearestEdge : Math.floor(binIndex)
   }
 
   getBinMidpoint(binNumber?: number): number | undefined {

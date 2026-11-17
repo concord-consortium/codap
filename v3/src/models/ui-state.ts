@@ -1,8 +1,10 @@
 import { action, makeObservable, observable } from "mobx"
+import { RefObject } from "react"
 import { scrollTileIntoView } from "../utilities/dom-utils"
 import { booleanParam, hasInteractiveApiContext, urlParams } from "../utilities/url-params"
+import { persistentState } from "./persistent-state"
 import { ITileModel } from "./tiles/tile-model"
-import { RulerState, RulerStateKey } from "./ui-state-types"
+import { AboutDialogView, RulerState, RulerStateKey } from "./ui-state-types"
 
 /*
   UIState represents globally accessible user-interface state that is not undoable, is not
@@ -35,6 +37,14 @@ export class UIState {
   private _hideSplashScreen = false
   @observable
   private _hideUserEntryModal = false
+  private _suppressWelcome = false
+  // the About dialog is open whenever this is set; it's the view the dialog opened on
+  // Undefined is required so the field exists when makeObservable() runs in CI Cypress tests.
+  @observable
+  private _initialAboutDialogView: Maybe<AboutDialogView> = undefined
+  // Where focus goes when the About dialog closes. When undefined, Chakra decides what should have focus.
+  // Not observable, since MobX shouldn't wrap a DOM element.
+  private _aboutDialogReturnFocusRef: Maybe<RefObject<HTMLElement>>
   // the focused tile is a singleton; in theory there can be multiple selected tiles
   @observable
   private focusTileId = ""
@@ -60,10 +70,11 @@ export class UIState {
   @observable
   private _isEditingCell = false
 
-  // True if the user is currently editing a table that blocks API requests,
-  // preventing the table from changing out from under the user.
-  @observable
-  private _isEditingBlockingCell = false
+  // While the user edits a cell, returns the tile id of the plugin whose requests wait so the table
+  // doesn't change under the user: the edited data set's managing plugin, if it sets
+  // blockAPIRequestsWhileEditing. A function, so the hold follows the data set if its plugin changes.
+  @observable.ref
+  private _getEditingBlockedPluginId: (() => string | undefined) | undefined = undefined
 
   // True if _isEditingCell was true before being interrupted (e.g. by API processing).
   @observable
@@ -100,6 +111,10 @@ export class UIState {
     // the modal on the CFM `willOpenFile` event.
     this._hideUserEntryModal = !!sample || booleanParam(dashboard) || !!di ||
       booleanParam(noEntryModal) || !!url || hasInteractiveApiContext()
+    // Suppress the welcome view for launches that go straight into a specific experience
+    // (a data interactive, a sample data set, or the dashboard) as well as embedded contexts.
+    this._suppressWelcome = !!sample || booleanParam(dashboard) || !!di ||
+      booleanParam(noEntryModal) || hasInteractiveApiContext()
 
     // Initialize standalone mode
     this._standaloneMode = booleanParam(standalone)
@@ -235,9 +250,36 @@ export class UIState {
     return this._hideUserEntryModal || this.minimalChrome
   }
 
+  // Whether the About dialog should open on its welcome view when CODAP loads. It still opens when a document
+  // opens automatically, but not for di, sample, or dashboard launches, in embedded contexts, when startup dialogs
+  // are suppressed, or when the user has asked not to see it again.
+  get shouldShowWelcome() {
+    return !persistentState.hideWelcome && !this.minimalChrome && !this.standaloneMode && !this._suppressWelcome
+  }
+
   @action
   setHideUserEntryModal(hidden = true) {
     this._hideUserEntryModal = hidden
+  }
+
+  get initialAboutDialogView() {
+    return this._initialAboutDialogView
+  }
+
+  get aboutDialogReturnFocusRef() {
+    return this._aboutDialogReturnFocusRef
+  }
+
+  @action
+  openAboutDialog(view: AboutDialogView, returnFocusTo?: HTMLElement | null) {
+    this._initialAboutDialogView = view
+    this._aboutDialogReturnFocusRef = returnFocusTo ? { current: returnFocusTo } : undefined
+  }
+
+  @action
+  closeAboutDialog() {
+    this._initialAboutDialogView = undefined
+    this._aboutDialogReturnFocusRef = undefined
   }
 
   get focusedTile() {
@@ -252,8 +294,14 @@ export class UIState {
     return this._isEditingCell
   }
 
-  get isEditingBlockingCell() {
-    return this._isEditingBlockingCell
+  // whether a cell edit is holding some plugin's requests
+  get isEditingBlockingRequests() {
+    return !!this._getEditingBlockedPluginId?.()
+  }
+
+  // whether the requests from the plugin in tile `tileId` wait for the cell edit to end
+  isEditingBlockingRequestsFrom(tileId?: string) {
+    return !!tileId && tileId === this._getEditingBlockedPluginId?.()
   }
 
   get wasEditingCellBeforeInterruption() {
@@ -305,14 +353,14 @@ export class UIState {
   @action
   setIsEditingCell(isEditing: boolean) {
     if (!isEditing) {
-      this._isEditingBlockingCell = false
+      this._getEditingBlockedPluginId = undefined
     }
     this._isEditingCell = isEditing
   }
 
   @action
-  setIsEditingBlockingCell() {
-    this._isEditingBlockingCell = true
+  setIsEditingBlockingCell(getBlockedPluginId: () => string | undefined) {
+    this._getEditingBlockedPluginId = getBlockedPluginId
   }
 
   @action

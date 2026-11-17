@@ -50,14 +50,15 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
   const collectionId = _collection?.id
   const caseGroup = dataContext.caseInfoMap.get(caseId)
 
-  const parent = maybeToV2Id(dataContext.getParentCaseId(caseId))
+  // as in V2, a top-level case's parent, and a top-level collection's parent, are null
+  const parent = maybeToV2Id(dataContext.getParentCaseId(caseId)) ?? null
 
   const collectionIndex = collectionId ? dataContext.getCollectionIndex(collectionId) : -1
   const parentCollection = collectionIndex > 0 ? dataContext.collections[collectionIndex - 1] : undefined
   const parentCollectionInfo = parentCollection ? {
     id: toV2Id(parentCollection.id),
     name: parentCollection.name
-  } : undefined
+  } : null
   const collection = _collection ? {
     id: toV2Id(_collection.id),
     name: _collection.name,
@@ -84,7 +85,8 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
   const caseGroup = dataContext.caseInfoMap.get(caseId)
   const collectionId = caseGroup?.collectionId ?? dataContext.childCollection.id
 
-  const parent = maybeToV2Id(dataContext.getParentCaseId(caseId))
+  // as in V2, a case in the top-level collection has a null parent
+  const parent = maybeToV2Id(dataContext.getParentCaseId(caseId)) ?? null
 
   const _collection = dataContext.getCollection(collectionId)
   const collection = _collection ? {
@@ -121,7 +123,9 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     ...(low ? { "low-attribute-color": low } : {}),
     ...(high ? { "high-attribute-color": high } : {})
   } as ICodapV2CategoryMap
-  const categoryMap = categorySet ? { _categoryMap } : undefined
+  // as in V2, where assigned colors were kept in the category map, they are reported even without a category set
+  const attrMeta = metadata?.attributes.get(attribute.id)
+  const categoryMap = categorySet || attrMeta?.color || attrMeta?.colorRange ? { _categoryMap } : undefined
   // Omitted entirely when no category carries a shape, so a document that never used the feature
   // gains nothing.
   const shapeMap = categorySet?.shapeMap ?? {}

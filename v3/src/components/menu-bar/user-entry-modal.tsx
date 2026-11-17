@@ -26,10 +26,12 @@ export const UserEntryModal = ({ isOpen, onClose, containerRef }: IProps) => {
 
   const buttons = [{
     label: t("DG.main.userEntryView.openDocument"),
+    testId: "open-document-button",
     onClick: openDocument,
     default: true
   }, {
     label: t("DG.main.userEntryView.newDocument"),
+    testId: "new-document-button",
     onClick: createNewDocument
   }]
 
@@ -39,7 +41,7 @@ export const UserEntryModal = ({ isOpen, onClose, containerRef }: IProps) => {
       portalProps={containerRef ? { containerRef } : undefined}
     >
       <ModalOverlay />
-      <ModalContent className="user-entry-modal-container">
+      <ModalContent className="user-entry-modal-container" data-testid="user-entry-modal">
         <ModalHeader className="user-entry-modal-header">
           {t("DG.main.userEntryView.title")}
         </ModalHeader>
@@ -52,7 +54,7 @@ export const UserEntryModal = ({ isOpen, onClose, containerRef }: IProps) => {
               ml="15"
               className={`user-entry-button ${b.default ? "default" : ""}`}
               onClick={b.onClick}
-              data-testid={`${b.label}-button`}
+              data-testid={b.testId}
             >
               {b.label}
             </Button>

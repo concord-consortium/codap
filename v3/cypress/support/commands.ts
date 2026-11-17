@@ -25,11 +25,21 @@ Cypress.Commands.add("clickWhenClickable", (selector: string, shouldCondition = 
   })
 })
 
-// Like `contains` but uses a regex to match the text, allowing for whitespace variations
+// Like `contains` but matches the trimmed textContent exactly, normalizing
+// whitespace. Exact match avoids confusion when one attribute name is a prefix
+// of another (e.g. "newAttr" vs "newAttr2") — substring matches would pick the
+// wrong button. For attribute-header buttons the canonical name lives on the
+// `data-label` attribute (textContent is unreliable in truncated overflow
+// mode, where a reversed copy is concatenated for a CSS ellipsis effect).
 Cypress.Commands.add("containsText", (selector: string, text: string) => {
-  const textRegex = new RegExp(text.replace(/\s+/g, "\\s*"))
+  const normalize = (s: string) => s.replace(/\s+/g, " ").trim()
+  const target = normalize(text)
   return cy.get(selector)
-          .filter((i, el) => textRegex.test(el.textContent || ""))
+          .filter((_i, el) => {
+            const label = el.getAttribute("data-label")
+            const value = normalize(label ?? el.textContent ?? "")
+            return value === target
+          })
           .first()
           .should("exist")
 })
@@ -41,9 +51,9 @@ function stringifyDOMRect(rect: DOMRect): string {
 Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, targetNumber) => {
   const el = {
     tableColumnHeader:
-      `.codap-case-table [data-testid="codap-attribute-button ${attribute}"]`,
+      `.codap-case-table [data-testid^="codap-attribute-button-"]:contains("${attribute}")`,
     headerDivider: `.codap-attribute-header-divider`,
-    caseCardHeader: `.codap-case-card [data-testid="codap-attribute-button ${attribute}"]`,
+    caseCardHeader: `.codap-case-card [data-testid^="codap-attribute-button-"]:contains("${attribute}")`,
     caseCardHeaderDropZone: ".react-data-card .data-cell-lower",
     caseCardCollectionDropZone: ".react-data-card .collection-header-row",
     graphTile: ".graph-plot svg",
@@ -221,7 +231,7 @@ Cypress.Commands.add("pointerMoveBy",
   Cypress.Commands.add("checkDragAttributeHighlights", (source, attribute, target, exists) => {
     const el = {
       tableColumnHeader:
-        `.codap-case-table [data-testid="codap-attribute-button ${attribute}"]`,
+        `.codap-case-table [data-testid^="codap-attribute-button-"]:contains("${attribute}")`,
       caseCardHeader: ".react-data-card-attribute",
       caseCardHeaderDropZone: ".react-data-card .data-cell-lower",
       caseCardCollectionDropZone: ".react-data-card .collection-header-row",

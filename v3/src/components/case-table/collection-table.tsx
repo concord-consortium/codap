@@ -472,15 +472,16 @@ export const CollectionTable = observer(function CollectionTable(props: IProps) 
   const gridAriaLabel = t("V3.CaseTable.gridAriaLabel", { vars: [collection?.name ?? ""] })
   const gridInstructionsId = `sr-grid-instructions-${collectionId}`
   return (
-    <div className={clsx("collection-table", `collection-${collectionId}`, { "no-attributes": columns.length === 0 })}>
+    <div className={clsx("collection-table", `collection-${collectionId}`, { "no-attributes": columns.length === 0 })}
+        data-testid={`collection-table-${collectionIndex}`}>
       <CollectionTableSpacer gridElt={gridRef.current?.element}
         onWhiteSpaceClick={onWhiteSpaceClick} onDrop={handleNewCollectionDrop} />
       <div className="collection-table-and-title" ref={setNodeRef} onClick={handleClick}
             onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
         <CollectionTitle onAddNewAttribute={handleAddNewAttribute} showCount={true} collectionIndex={collectionIndex}/>
-        {/* A collection with all attributes hidden still renders its grid showing just the index
-            column (matching V2), so the parent/child relationship lines have cells to connect to.
-            Guard against the rare case of no columns at all (e.g. index column also hidden). */}
+        {/* A rendered collection with all attributes hidden (see getRenderedCollections) shows just
+            the index column, so the relationship lines have cells to connect to. Guard against the
+            rare case of no columns at all (e.g. index column also hidden). */}
         <If condition={columns.length > 0}>
           <VisuallyHidden id={gridInstructionsId}>
             {t("V3.CaseTable.gridEditInstructions")}
