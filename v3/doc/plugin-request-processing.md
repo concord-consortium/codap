@@ -158,8 +158,10 @@ per-request error response.
   plugin create, a single bulk create of many items) but snap for coalesced batches — the
   batch is the "high-speed stream" discriminator. See the `suppressAnimation` option on
   `addCases` (`data-set-types.ts`) and its consumer in `data-configuration-model.ts`.
-- **Cell editing**: the drain pauses while a blocking cell edit is in progress and catches up
-  (coalesced) when it ends.
+- **Cell editing**: while the user edits a cell in a data context whose managing plugin set
+  `blockAPIRequestsWhileEditing`, that plugin's drain pauses and catches up (coalesced) when the
+  edit ends. Other queues keep draining, and requests they start while the hold is on don't count
+  as interruptions of the edit.
 - **Undo**: plugin-initiated creates are not undoable (no `undoStringKey`), batched or not.
 
 ## Plugin traffic patterns

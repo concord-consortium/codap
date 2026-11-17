@@ -19,6 +19,7 @@ data context. Each resource page is self-contained.
 
 - [How CODAP processes requests](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/guides/request-processing.md)
 - [Undo and redo](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/guides/undo-and-redo.md)
+- [Data types](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/guides/data-types.md)
 - [Language and locale](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/guides/locale.md)
 - [Embedding CODAP in your page](https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/guides/embedded-server.md)
 

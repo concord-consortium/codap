@@ -43,8 +43,10 @@ own data context — see [the index](../README.md#the-default-data-context).
 ## Search formulas
 
 CODAP evaluates the formula once for each case in the collection, as if it were the formula of
-an attribute in that collection, and returns the cases for which the result is truthy: `true`, a
-non-zero number, or non-empty text.
+an attribute in that collection, and returns the cases for which the result is true as a filter
+formula reads it: `true`, the text `true` in any case, a non-zero number, or other non-empty text.
+The text `false` in any case, `0`, `NaN` (such as the result of `0/0`), text that converts to `0`
+(such as `0.0` or a space) and an empty result do not match.
 
 Because it is an ordinary formula:
 
@@ -76,7 +78,7 @@ Each case is an object:
 | Property | Notes |
 |---|---|
 | `id` | the case's id |
-| `parent` | the id of its parent case; `null` for a case in the top-level collection. v3 currently differs; see [Known limitations](#known-limitations) |
+| `parent` | the id of its parent case; `null` for a case in the top-level collection |
 | `collection` | `{ "name", "id" }` of the collection searched |
 | `values` | the case's values, keyed by attribute name — only the attributes of this collection, not its parents' |
 | `children` | the ids of its child cases; empty for a case in the last collection. New in v3 |
@@ -168,22 +170,17 @@ sendRequest({
 
 ## Known limitations
 
-**A boolean value is treated as text.** CODAP v3 stores every value a plugin sends as either a
-number or text, so a case created with `"Endangered": false` holds the text `false`. Non-empty
-text is truthy, so the formula `Endangered` on its own matches that case as well as the ones
-holding `true`. v2 kept the boolean, so `Endangered` matched only the `true` cases, which is the
-intended behavior. This is a known bug. Comparing explicitly works in both: `Endangered=true`.
+**The text `false` does not match.** The formula `Endangered` on its own matches the cases a
+plugin created with `"Endangered": true` and not those created with `false`, as in v2. It also
+skips the text `false` typed into a table, imported from a file, or left by an unchecked checkbox,
+and text that converts to `0`, as described under [Search formulas](#search-formulas). v2 used
+JavaScript truthiness, so any non-empty text matched there. This is a deliberate difference.
 
-**A formula error is not in `values.error`.** When the formula is not a valid formula, or
-evaluating it fails, the message is in a top-level `error` property,
-`{ "success": false, "error": "..." }`, instead of in `values.error` as every other error is, and
-as v2 reported it. Only a missing or empty formula reports its error in `values.error`. A plugin
-that reads only `values.error` gets nothing. This is a known bug. Until it is fixed, read
-`values?.error ?? error`.
-
-**A top-level case's `parent` is `undefined`, not `null`.** v2 sent `null`. A plugin that tests
-`parent === null` treats every top-level case as a child; test for a missing parent instead, such
-as `parent == null`. This is a known bug.
+**`not()`, `and` and `or` fail on a `true`/`false` attribute.** `not(Endangered)`, `Endangered and
+Diet="meat"` and `Diet="meat" or Endangered` reply with `success: false` and an error saying
+that `"true"` (or `"false"`) cannot be converted to a number. In v2, `and` and `or` worked on a
+boolean attribute. This is a known bug. Until it is fixed, compare explicitly: `Endangered=true`
+and `Endangered=false` work in both.
 
 ## Notifications
 
@@ -195,13 +192,18 @@ This resource sends none. Changes to a data set's cases are reported on
 | Error | Condition |
 |---|---|
 | `Collection not found` | The selector names no collection, names one that does not exist, or names a data context that does not exist |
-| `Unable to parse query.` | The formula is missing, empty, or not a valid formula. For a formula that is not valid, v3 currently puts the message in a top-level `error`; see [Known limitations](#known-limitations) |
+| `Unable to parse query.` | The formula is missing, empty, or has a syntax error |
+| the formula engine's message | The formula names something that does not exist, such as `Undefined symbol Mas`, or evaluating it fails for some case; see below |
 
 **A formula that fails for any case fails the whole request.** If evaluating the formula throws
 an error for even one case, CODAP returns `success: false` with the formula engine's message,
-such as `Undefined symbol Mas` for a misspelled attribute name, and no cases. The message's
-wording differs from v2's, and it currently arrives in a different place; see
-[Known limitations](#known-limitations).
+such as `Undefined symbol Mas` for a misspelled attribute name, and no cases. Like every other
+error, it is in `values.error`.
+
+**Error messages are worded differently from v2's.** v2 sent `SyntaxError: Incomplete expression`
+or `SyntaxError: Syntax error: '<token>'` where CODAP now sends `Unable to parse query.`, and
+`❌: 'Mas' is unrecognized` where CODAP now sends `Undefined symbol Mas`. A plugin should not
+depend on the text of either message.
 
 ## See also
 

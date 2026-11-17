@@ -5,6 +5,7 @@ import { Root } from "react-dom/client"
 import * as gaStatus from "../lib/ga-status"
 import { Logger } from "../lib/logger"
 import { appState } from "../models/app-state"
+import { persistentState } from "../models/persistent-state"
 import { uiState } from "../models/ui-state"
 import { prf } from "../utilities/profiler"
 import { setUrlParams } from "../utilities/url-params"
@@ -71,6 +72,11 @@ jest.mock("./menu-bar/user-entry-modal", () => ({
   UserEntryModal: () => <div data-testid="mock-user-entry-modal" />
 }))
 
+// Mock the `AboutDialog` for the same reason. Whether it's open is tracked by `uiState`; the dialog has its own test.
+jest.mock("./about-dialog/about-dialog", () => ({
+  AboutDialog: () => null
+}))
+
 describe.skip("App component", () => {
 
   afterEach(() => {
@@ -120,13 +126,28 @@ describe("App user entry modal visibility", () => {
     setUrlParams("")
     // Reset the flag flipped below so it doesn't leak into other tests in this file.
     uiState.setHideUserEntryModal(false)
+    uiState.closeAboutDialog()
+    persistentState.setHideWelcome(false)
     spySetMenuBarInfo?.mockRestore()
     spySetMenuBarInfo = undefined
     cfm = undefined
   })
 
+  it("shows the user entry modal after the welcome view closes", () => {
+    setUrlParams("")
+    render(<App/>)
+    expect(uiState.initialAboutDialogView).toBe("welcome")
+    expect(screen.queryByTestId("mock-user-entry-modal")).not.toBeInTheDocument()
+
+    act(() => {
+      uiState.closeAboutDialog()
+    })
+    expect(screen.getByTestId("mock-user-entry-modal")).toBeInTheDocument()
+  })
+
   it("hides the user entry modal reactively when uiState.hideUserEntryModal becomes true", () => {
     setUrlParams("")
+    persistentState.setHideWelcome(true)
     render(<App/>)
     // With no auto-open params, the user entry modal is shown initially
     expect(screen.getByTestId("mock-user-entry-modal")).toBeInTheDocument()

@@ -67,7 +67,8 @@ An item is an object mapping attribute names to values, for attributes in any co
 { "Diet": "meat", "Mammal": "Lion", "Mass": 190 }
 ```
 
-Attributes you leave out are empty. A name that matches no attribute is ignored. Text values have
+Attributes you leave out are empty. A name that matches no attribute is tried again with leading
+and trailing spaces removed, as in v2, and ignored if it still matches none. Text values have
 leading and trailing spaces removed, and `null` is stored as an empty value. Formula attributes
 compute their own values, so do not send them.
 
@@ -272,13 +273,11 @@ the cases the change removed in `deletedCases`. (Its `createdCases` was always e
 a known bug. Until it is fixed, a plugin that needs to know the resulting cases should read them
 again, for example with `caseSearch` or `allCases`.
 
-**Attribute names must match exactly.** v2 tried a name in an item object again with leading and
-trailing spaces removed, so `"Mass "` still matched `Mass`. v3 matches the name exactly and
-ignores one that differs. This is a known bug; the intended behavior is v2's.
-
-**A boolean value is stored as text.** An item created with `"Endangered": true` holds the text
-`true`, and `get` returns `"true"`. v2 kept the boolean. This is a known bug; it also affects
-searches, as described on [`caseSearch`](case-search.md#known-limitations).
+**The text `true` and `false` reads back as a boolean.** An item created with `"Endangered": true`
+returns `true` from `get`, as in v2. CODAP stores every value as a number or text, so it cannot
+tell that boolean from the text `true` typed into a table, imported from a file, or set by a
+checkbox: `get` returns those as booleans too, where v2 returned the text. Only the lowercase words
+are converted; `TRUE` stays text. This is a deliberate difference.
 
 **An `id` that is not a number is reported wrongly.** `create` stores an item under a text `id`
 such as `"s9"` as given, but `itemIDs` reports it as the digits it contains, `9`, or as `NaN`

@@ -13,7 +13,7 @@ context("codap plugins", () => {
   })
   const apiTesterUrl='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
   const openAPITester = () => {
-    c.clickIconFromToolShelf("web page")
+    c.clickIconFromToolShelf("web-view")
     webView.enterUrl(apiTesterUrl)
     cy.wait(1000)
   }

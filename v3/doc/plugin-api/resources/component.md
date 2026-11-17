@@ -6,7 +6,9 @@
 A component is a tile in the CODAP workspace — a graph, a case table, a map, a slider, a web
 view. Plugins use this resource to put components on screen, move and resize them, read how a
 user has configured one, and close them again. Closing is not always deletion — see
-[Known limitations](#known-limitations).
+[Known limitations](#known-limitations). Creating most components and closing one go on CODAP's
+undo history, as they do from CODAP's interface; see
+[Undo and redo](../guides/undo-and-redo.md#what-the-history-holds).
 
 Every component shares a common set of properties. Each **component type** adds its own on top,
 and those type-specific properties are where most of the detail lives.
@@ -84,6 +86,7 @@ v3.
 | Property | Type | |
 |---|---|---|
 | `cannotClose` | `boolean` | optional |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional |
 | `dimensions` | `{ width: number; height: number }` | optional |
 | `id` | `number` | optional |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional |
@@ -96,6 +99,16 @@ v3.
 
 `type` is required when creating. On `create`, `title` falls back to `name` when only `name` is
 given.
+
+`dimensions` is the size of the whole component, its title bar included, on `create`, `get` and
+`update`, as in v2, so a component created with a height of 300 is 300 pixels tall and `get` returns
+that size. On `create`, `contentDimensions` is the size of the component's content instead: CODAP
+adds its title bar, so a content height of 300 makes a component 334 pixels tall. If both give a
+width or a height, `contentDimensions` wins for that side. `update` ignores `contentDimensions`. A
+width or height that is not a positive number is ignored: `create` uses the default for that side,
+and `update` keeps its current value; text that reads as a number, such as `"450"`, is used. A
+plugin sizing its own tile should use [`interactiveFrame`](interactive-frame.md#sizing-the-plugin),
+which takes either size.
 
 Two of these behave differently from the table:
 
@@ -122,6 +135,7 @@ only — a `create` carrying it, and no `URL`, makes a blank web view.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -220,6 +234,7 @@ properties, or set them with a following `update`.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -246,6 +261,7 @@ properties, or set them with a following `update`.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -286,6 +302,7 @@ in `name` — a v2 compatibility shim that does not apply to `caseCard`.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -308,6 +325,7 @@ exists.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -325,6 +343,7 @@ exists.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -341,6 +360,7 @@ exists.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -358,6 +378,7 @@ exists.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -375,6 +396,7 @@ exists.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -394,6 +416,7 @@ exists.
 | Property | Type | | Declared in |
 |---|---|---|---|
 | `cannotClose` | `boolean` | optional | `V2Component` |
+| `contentDimensions` | `{ width?: number; height?: number }` | optional | `V2Component` |
 | `dimensions` | `{ width: number; height: number }` | optional | `V2Component` |
 | `id` | `number` | optional | `V2Component` |
 | `isResizable` | `boolean \| { width: boolean, height: boolean }` | optional | `V2Component` |
@@ -517,11 +540,6 @@ Bring a component to the front, then rescale it:
 ```
 
 ## Known limitations
-
-**Creating or closing a component cannot be undone.** v2 added `create` and `delete` on
-`component` to CODAP's undo history, as it did the same changes made in CODAP's interface, so the
-user could undo them. v3 does not. This is a known bug; see
-[Undo and redo](../guides/undo-and-redo.md#known-limitations).
 
 **`autoScale` applies to three types.** Graphs and maps rescale; a case table resizes its
 columns instead. Every other type returns `Component does not support rescale`. This matches v2.

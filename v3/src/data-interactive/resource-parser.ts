@@ -14,7 +14,7 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { toV3CaseId, toV3GlobalId, toV3ItemId } from "../utilities/codap-utils"
 import { resolveAdornmentType } from "./data-interactive-adornment-base-types"
 import { ActionName, DIResources, DIResourceSelector, DIParsedOperand } from "./data-interactive-types"
-import { getAttribute, getCollection } from "./data-interactive-utils"
+import { getAttribute, getCollection, toPluginValue } from "./data-interactive-utils"
 import { evaluateCaseFormula, findTileFromNameOrId, parseSearchQuery } from "./resource-parser-utils"
 
 /**
@@ -102,8 +102,8 @@ export function resolveResources(
 
   if (!resourceSelector.type || [
     'component', 'componentList', 'dataContextList', 'dataDisplay', 'document', 'formulaEngine', 'global', 'globalList',
-    'interactiveApi', 'interactiveFrame', 'logMessage', 'logMessageMonitor', 'undoableActionPerformed',
-    'undoChangeNotice'
+    'interactiveApi', 'interactiveFrame', 'logMessage', 'logMessageMonitor', 'uiNotificationMonitor',
+    'undoableActionPerformed', 'undoChangeNotice'
   ].indexOf(resourceSelector.type) < 0) {
     // if no data context provided, and we are not creating one, the
     // default data context is implied
@@ -129,6 +129,10 @@ export function resolveResources(
   if (resourceSelector.dataDisplay) {
     const { dataDisplay } = resourceSelector
     result.component = findTileFromNameOrId(dataDisplay)
+  }
+
+  if (resourceSelector.uiNotificationMonitor) {
+    result.uiNotificationMonitor = resourceSelector.uiNotificationMonitor
   }
 
   if (resourceSelector.global) {
@@ -228,7 +232,7 @@ export function resolveResources(
   }
 
   const getOperandValue = (itemIndex?: number, operand?: DIParsedOperand) => {
-    if (operand?.attr && itemIndex != null) return operand.attr.value(itemIndex)
+    if (operand?.attr && itemIndex != null) return toPluginValue(operand.attr.value(itemIndex))
 
     return operand?.value
   }

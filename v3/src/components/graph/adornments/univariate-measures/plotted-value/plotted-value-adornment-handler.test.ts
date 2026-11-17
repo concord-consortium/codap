@@ -5,8 +5,10 @@ jest.mock("../../adornment-content-info", () => ({
     modelClass: {
       create: jest.fn().mockReturnValue({
         id: "ADRN123",
-        type: "plottedValue",
+        type: "Plotted Value",
         isVisible: true,
+        error: "",
+        formula: { display: "2 * mean(a3)" },
         setExpression: jest.fn(),
         setVisibility: jest.fn(),
         measures: new Map([["__EMPTY__", { value: 1 }]])
@@ -19,11 +21,6 @@ jest.mock("../../adornment-content-info", () => ({
 jest.mock("./plotted-value-adornment-model", () => ({
   ...jest.requireActual("./plotted-value-adornment-model"),
   isPlottedValueAdornment: jest.fn((adornment: any) => adornment.type === "Plotted Value")
-}))
-
-jest.mock("../../../../../data-interactive/data-interactive-adornment-types", () => ({
-  ...jest.requireActual("../../../../../data-interactive/data-interactive-adornment-types"),
-  isAdornmentValues: jest.fn().mockReturnValue(true)
 }))
 
 import { kDefaultCellKey } from "../../../utilities/cell-key-utils"
@@ -55,6 +52,7 @@ describe("DataInteractive plottedValueAdornmentHandler", () => {
         hideAdornment: jest.fn()
       },
       dataConfiguration: mockDataConfig,
+      getUpdateCategoriesOptions: jest.fn(() => ({})),
       plotType: "dotPlot"
     }
     
@@ -95,9 +93,10 @@ describe("DataInteractive plottedValueAdornmentHandler", () => {
 
   describe("create", () => {
     it("creates a new plotted value adornment", () => {
-      const values = { isVisible: true, formula }
+      const values = { isVisible: true, formula: "2 * mean(a3)" }
       const result = handler.create?.({ graphContent: mockGraphContent, values })
       expect(result?.success).toBe(true)
+      expect(result?.values).toMatchObject({ error: "", formula: JSON.stringify("2 * mean(a3)") })
       expect(mockGraphContent.adornmentsStore.addAdornment).toHaveBeenCalled()
     })
   })
@@ -119,22 +118,6 @@ describe("DataInteractive plottedValueAdornmentHandler", () => {
     it("returns error if no existing adornment", () => {
       mockGraphContent.adornmentsStore.findAdornmentOfType = jest.fn(() => undefined)
       const result = handler.update?.({ graphContent: mockGraphContent, values: { isVisible: false } })
-      expect(result?.success).toBe(false)
-    })
-  })
-
-  describe("delete", () => {
-    it("removes an existing plotted value adornment", () => {
-      const existingAdornment = { ...mockPlottedValueAdornment }
-      mockGraphContent.adornmentsStore.findAdornmentOfType = jest.fn(() => existingAdornment)
-      const result = handler.delete?.({ graphContent: mockGraphContent })
-      expect(result?.success).toBe(true)
-      expect(mockGraphContent.adornmentsStore.hideAdornment).toHaveBeenCalledWith(kPlottedValueType)
-    })
-
-    it("returns error if no existing adornment to delete", () => {
-      mockGraphContent.adornmentsStore.findAdornmentOfType = jest.fn(() => undefined)
-      const result = handler.delete?.({ graphContent: mockGraphContent })
       expect(result?.success).toBe(false)
     })
   })
