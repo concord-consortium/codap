@@ -12,6 +12,20 @@ import { IBaseLegendProps } from "./legend-common"
 
 import vars from "../../../vars.scss"
 
+interface INumericLegendExtentArgs {
+  labelHeight: number
+  numberHeight: number
+  bottomClearance?: number
+}
+
+export function numericLegendExtent({labelHeight, numberHeight, bottomClearance = 0}: INumericLegendExtentArgs) {
+  // The label's background rect spans labelHeight + 2 * labelPaddingY vertically
+  // (paddingY above and below the text), so the choropleth needs to clear that.
+  // The choropleth is drawn from the top, so the clearance becomes empty space below the
+  // value labels.
+  return labelHeight + 2 * labelPaddingY + kChoroplethHeight + numberHeight + 2 * axisGap + bottomClearance
+}
+
 export const NumericLegend =
   observer(function NumericLegend({layerIndex, setDesiredExtent, numericLegendBottomClearance = 0}: IBaseLegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
@@ -32,12 +46,7 @@ export const NumericLegend =
         if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
           return 0
         }
-        // The label's background rect spans labelHeight + 2 * labelPaddingY vertically
-        // (paddingY above and below the text), so the choropleth needs to clear that.
-        // The choropleth is drawn from the top, so the clearance becomes empty space below the
-        // value labels.
-        return labelHeight + 2 * labelPaddingY + kChoroplethHeight + numberHeight + 2 * axisGap +
-          numericLegendBottomClearance
+        return numericLegendExtent({labelHeight, numberHeight, bottomClearance: numericLegendBottomClearance})
       }
 
       if (!choroplethElt || !dataConfiguration) return
