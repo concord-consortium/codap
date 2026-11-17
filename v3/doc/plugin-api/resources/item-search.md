@@ -203,8 +203,9 @@ sendRequest({
 created with `"Endangered": true`, as in v2. CODAP stores every value as a number or text, so the
 text `true` typed into a table, imported from a file, or set by a checkbox matches too, where v2
 compared it as text and did not match. This is a deliberate difference. As in v2,
-`Endangered==false` also finds the items with no value or `0`. Unlike v2, `Endangered==1` finds
-the `true` items too, because the comparison converts between types.
+`Endangered==false` also finds the items with an empty value or `0`, `Endangered==1` finds the
+`true` items, and `Endangered==true` finds the items holding `1`. An item created without the
+attribute matches `Endangered==false` too, where v2 did not match it.
 
 **An `itemOrder` position counts only the items shown.** When `itemOrder` is an array, v3 counts
 positions among the items that are not set aside or hidden by a filter formula. v2 counted

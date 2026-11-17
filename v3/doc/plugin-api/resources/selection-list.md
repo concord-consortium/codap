@@ -83,8 +83,8 @@ The second is a **selection expression**, which selects by formula instead of by
 `collection` defaults to the childmost collection of the data context.
 
 The expression selects the cases for which its result is true, read as a
-[`caseFormulaSearch`](case-formula-search.md#search-formulas) reads it: the text `false` in any
-case, `0` and an empty result do not select a case.
+[`caseFormulaSearch`](case-formula-search.md#search-formulas) reads it: values such as the text
+`false` in any case, `0` and an empty result do not select a case.
 
 ## Examples
 

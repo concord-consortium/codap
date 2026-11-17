@@ -173,6 +173,12 @@ Delete the first diet, and with it every mammal grouped under it:
 case within its collection: `"first"`, `"last"`, or a numeric position. v3 rejects the
 request as an unsupported action. This is a known bug.
 
+**The text `true` and `false` reads back as a boolean.** A value a plugin sent as `true` reads back
+as `true` from `get`, as in v2. CODAP stores every value as a number or text, so it cannot tell
+that boolean from the text `true` typed into a table, imported from a file, or set by a checkbox:
+those read back as booleans too, where v2 returned the text. Only the lowercase words are
+converted; `TRUE` stays text. This is a deliberate difference.
+
 ## Notifications
 
 This resource takes no `notify` requests of its own.

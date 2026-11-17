@@ -151,6 +151,9 @@ Every change in `values` carries `result`.
 
 Moving items is reported only as `moveCases`, as in v2, which never sent `moveItems` to plugins.
 
+The case values in `updateCases`, `deleteCases` and `selectCases` changes read `true` and `false`
+back as booleans, as `get` on a case does; see [Booleans](guides/data-types.md#booleans).
+
 This operation is part of the contract, but CODAP does not send it yet; see
 [Known limitations](#known-limitations):
 

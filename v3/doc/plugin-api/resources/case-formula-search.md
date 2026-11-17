@@ -45,8 +45,8 @@ own data context — see [the index](../README.md#the-default-data-context).
 CODAP evaluates the formula once for each case in the collection, as if it were the formula of
 an attribute in that collection, and returns the cases for which the result is true as a filter
 formula reads it: `true`, the text `true` in any case, a non-zero number, or other non-empty text.
-The text `false` in any case, `0`, text that converts to `0` (such as `0.0` or a space) and an
-empty result do not match.
+The text `false` in any case, `0`, `NaN` (such as the result of `0/0`), text that converts to `0`
+(such as `0.0` or a space) and an empty result do not match.
 
 Because it is an ordinary formula:
 
@@ -175,6 +175,12 @@ plugin created with `"Endangered": true` and not those created with `false`, as 
 skips the text `false` typed into a table, imported from a file, or left by an unchecked checkbox,
 and text that converts to `0`, as described under [Search formulas](#search-formulas). v2 used
 JavaScript truthiness, so any non-empty text matched there. This is a deliberate difference.
+
+**`not()`, `and` and `or` fail on a `true`/`false` attribute.** `not(Endangered)`, `Endangered and
+Diet="meat"` and `Diet="meat" or Endangered` reply with `success: false` and an error saying
+that `"true"` (or `"false"`) cannot be converted to a number. In v2, `and` and `or` worked on a
+boolean attribute. This is a known bug. Until it is fixed, compare explicitly: `Endangered=true`
+and `Endangered=false` work in both.
 
 ## Notifications
 

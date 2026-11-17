@@ -158,8 +158,9 @@ attribute of the collection and every child case.
 created with `"Endangered": true`, as in v2. CODAP stores every value as a number or text, so the
 text `true` typed into a table, imported from a file, or set by a checkbox matches too, where v2
 compared it as text and did not match. This is a deliberate difference. As in v2,
-`Endangered==false` also finds the cases with no value or `0`. Unlike v2, `Endangered==1` finds
-the `true` cases too, because the comparison converts between types.
+`Endangered==false` also finds the cases with no value or `0`. Unlike v2, `Endangered==1` finds the
+`true` cases too, and `Endangered==true` the cases holding `1`, because the comparison converts
+between types.
 
 ## Notifications
 
