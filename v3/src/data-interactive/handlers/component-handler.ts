@@ -28,6 +28,7 @@ import { registerDIHandler } from "../data-interactive-handler"
 import {
   DIErrorResult, DIHandler, DIHandlerFnResult, DINotification, DIResources, DIValues, isErrorResult
 } from "../data-interactive-types"
+import { tileDimensionsFromContent, validDimensions } from "../data-interactive-utils"
 import {
   componentNotFoundResult, errorResult, valuesRequiredResult
 } from "./di-results"
@@ -72,7 +73,7 @@ export const diComponentHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
     if (!values) return valuesRequiredResult
 
-    const { type, cannotClose, dimensions, position, name, title: _title } = values as V2Component
+    const { type, cannotClose, contentDimensions, dimensions, position, name, title: _title } = values as V2Component
     const { document } = appState
 
     // check if there's a registered handler for this type
@@ -101,8 +102,13 @@ export const diComponentHandler: DIHandler = {
       return document.applyModelChange(() => {
         const title = _title ?? name
         const _cannotClose = cannotClose != null ? !!cannotClose : undefined
+        // as in V2, dimensions is the whole tile, title bar included; contentDimensions is the plugin's own area,
+        // to which CODAP adds its title bar, and wins side by side
+        const tileSize = {
+          ...validDimensions(dimensions), ...tileDimensionsFromContent(validDimensions(contentDimensions))
+        }
         const newTileOptions = {
-          cannotClose: _cannotClose, content, ...dimensions, position, x, y, name, title, ..._options
+          cannotClose: _cannotClose, content, ...tileSize, position, x, y, name, title, ..._options
         }
         tile = _createOrShow(kComponentTypeV2ToV3Map[type], newTileOptions)
         if (!tile) return errorResult(t("V3.DI.Error.componentNotCreated"))
@@ -281,7 +287,9 @@ export const diComponentHandler: DIHandler = {
           const currentDimensions = freeTileRow?.getTileDimensions(component.id) ?? {}
           const tileType = component.content.type
           const { constrainApiDimensions } = getTileComponentInfo(tileType) || {}
-          const newDimensions = constrainApiDimensions?.(component, dimensions) ?? dimensions
+          // as in update interactiveFrame, a side that isn't a positive number keeps its current value
+          const size = validDimensions(dimensions)
+          const newDimensions = constrainApiDimensions?.(component, size) ?? size
           freeTileRow?.setTileDimensions(component.id, { ...currentDimensions, ...newDimensions })
         }
 
