@@ -1,7 +1,6 @@
 import {
   DomUtil, LatLng, Layer, LayerOptions, Map as LeafletMap, Point, setOptions, ZoomAnimEvent
 } from "leaflet"
-import { IMapHotSpotModel } from "../models/map-hot-spot-model"
 import { IDensityGridRegion, kHotSpotCellSize, kHotSpotPadding } from "./hot-spot-utils"
 
 export type HotSpotDrawFunction = (context: CanvasRenderingContext2D, region: IDensityGridRegion) => void
@@ -27,9 +26,8 @@ export class HotSpotCanvasLayer extends Layer {
   // The view the canvas was last drawn for, used to transform it during zooms
   private drawnCenter?: LatLng
   private drawnZoom = 0
-  private drawnPadding = kHotSpotPadding
 
-  constructor(private hotSpotModel: IMapHotSpotModel, options?: LayerOptions) {
+  constructor(options?: LayerOptions) {
     super()
     // L.Layer has no initialize method, so Leaflet doesn't apply constructor options for us
     setOptions(this, options)
@@ -77,11 +75,10 @@ export class HotSpotCanvasLayer extends Layer {
     const { canvas } = this
     if (!map || !canvas) return this
 
-    const padding = this.hotSpotModel.canvasPadding
     const size = map.getSize()
-    const topLeft = size.multiplyBy(-padding).round()
-    const cols = Math.ceil(size.x * (1 + 2 * padding) / kHotSpotCellSize)
-    const rows = Math.ceil(size.y * (1 + 2 * padding) / kHotSpotCellSize)
+    const topLeft = size.multiplyBy(-kHotSpotPadding).round()
+    const cols = Math.ceil(size.x * (1 + 2 * kHotSpotPadding) / kHotSpotCellSize)
+    const rows = Math.ceil(size.y * (1 + 2 * kHotSpotPadding) / kHotSpotCellSize)
     // setting the size also clears the canvas
     canvas.width = cols
     canvas.height = rows
@@ -90,7 +87,6 @@ export class HotSpotCanvasLayer extends Layer {
     DomUtil.setPosition(canvas, map.containerPointToLayerPoint(topLeft))
     this.drawnCenter = map.getCenter()
     this.drawnZoom = map.getZoom()
-    this.drawnPadding = padding
     const context = canvas.getContext("2d")
     if (context && cols > 0 && rows > 0) {
       this.drawFunction?.(context, {
@@ -116,7 +112,7 @@ export class HotSpotCanvasLayer extends Layer {
     if (!map || !hasGetNewPixelOrigin(map) || !this.canvas || !this.drawnCenter) return
 
     const scale = map.getZoomScale(zoom, this.drawnZoom)
-    const viewHalf = map.getSize().multiplyBy(0.5 + this.drawnPadding)
+    const viewHalf = map.getSize().multiplyBy(0.5 + kHotSpotPadding)
     const drawnCenterPoint = map.project(this.drawnCenter, zoom)
     const newPixelOrigin = map._getNewPixelOrigin(center, zoom)
     const topLeftOffset = viewHalf.multiplyBy(-scale).add(drawnCenterPoint).subtract(newPixelOrigin)

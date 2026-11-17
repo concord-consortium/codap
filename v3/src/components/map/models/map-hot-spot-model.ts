@@ -2,9 +2,7 @@ import { isEqual } from "lodash"
 import { getSnapshot, Instance, types } from "mobx-state-tree"
 import { applyModelChange } from "../../../models/history/apply-model-change"
 import { ILatLongSource } from "../map-types"
-import {
-  computeDefaultBandwidth, computeHotSpotSurface, IHotSpotSurface, kHotSpotPadding, kHotSpotPaddingOptimized
-} from "../utilities/hot-spot-utils"
+import { computeDefaultBandwidth, computeHotSpotSurface, IHotSpotSurface } from "../utilities/hot-spot-utils"
 
 export const MapHotSpotModel = types.model("MapHotSpotModel", {
   isVisible: false,
@@ -34,10 +32,6 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
     },
     get defaultBandwidth() {
       return computeDefaultBandwidth(self.plottedLatLongs)
-    },
-    // Canvas padding around the viewport, as a fraction of each dimension, on each side
-    get canvasPadding() {
-      return self.shouldOptimize ? kHotSpotPaddingOptimized : kHotSpotPadding
     },
     get hotSpotSurface(): Maybe<IHotSpotSurface> {
       return computeHotSpotSurface(self.plottedLatLongs, self.dynamicBandwidth ?? self.bandwidth, self.shouldOptimize)

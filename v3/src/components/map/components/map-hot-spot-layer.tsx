@@ -45,7 +45,7 @@ export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayer
     if (!show) return
 
     getHotSpotPane(leafletMap)
-    const layer = new HotSpotCanvasLayer(hotSpotModel, { pane: kHotSpotPaneName })
+    const layer = new HotSpotCanvasLayer({ pane: kHotSpotPaneName })
     layerRef.current = layer
 
     // Observing the surface keeps MobX's cached copy alive while the hot spots are shown.
