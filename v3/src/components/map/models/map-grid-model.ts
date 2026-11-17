@@ -1,9 +1,10 @@
-import {reaction} from "mobx"
+import { reaction } from "mobx"
 import { addDisposer, Instance, types } from "mobx-state-tree"
-import {applyModelChange} from "../../../models/history/apply-model-change"
-import {IDataConfigurationModel} from "../../data-display/models/data-configuration-model"
-import {LatLngGrid} from "../utilities/lat-lng-grid"
-import {getLatLongBounds} from "../utilities/map-utils"
+import { applyModelChange } from "../../../models/history/apply-model-change"
+import { IDataConfigurationModel } from "../../data-display/models/data-configuration-model"
+import { IPointDataSource } from "../map-types"
+import { LatLngGrid } from "../utilities/lat-lng-grid"
+import { getCaseLatLong, getLatLongBounds } from "../utilities/map-utils"
 
 export const MapGridModel = types.model("MapGridModel", {
   isVisible: false,
@@ -11,6 +12,7 @@ export const MapGridModel = types.model("MapGridModel", {
 })
   .volatile(() => ({
     dataConfiguration: undefined as IDataConfigurationModel | undefined,
+    pointDataSource: undefined as Maybe<IPointDataSource>,
     _latLngGrid: new LatLngGrid(),
     _gridSize: 0,  // degrees
     _dynamicGridMultiplier: undefined as number | undefined,  // Used during slider drag
@@ -33,6 +35,9 @@ export const MapGridModel = types.model("MapGridModel", {
     },
     setDataConfiguration(dataConfiguration: IDataConfigurationModel) {
       self.dataConfiguration = dataConfiguration
+    },
+    setPointDataSource(pointDataSource: IPointDataSource) {
+      self.pointDataSource = pointDataSource
     },
     setDynamicGridMultiplier(multiplier: number) {
       self._dynamicGridMultiplier = multiplier
@@ -60,12 +65,14 @@ export const MapGridModel = types.model("MapGridModel", {
           caseDataArray = dataConfiguration.getCaseDataArray(0)
 
         _latLngGrid.zeroCounts()
+        const latId = dataConfiguration.attributeID('lat'),
+          longId = dataConfiguration.attributeID('long')
+        if (!dataset || !latId || !longId) return
         caseDataArray.forEach(({caseID}: { plotNum: number, caseID: string }) => {
-          const long = dataset?.getNumeric(caseID, dataConfiguration.attributeID('long')),
-            lat = dataset?.getNumeric(caseID, dataConfiguration.attributeID('lat'))
-          if (long !== undefined && lat !== undefined) {
-            const longIndex = Math.floor((long - (startingCorners?.startWest ?? 0)) / gridSize),
-              latIndex = Math.floor((lat - (startingCorners?.startSouth ?? 0)) / gridSize)
+          const latLong = getCaseLatLong(dataset, caseID, latId, longId)
+          if (latLong) {
+            const longIndex = Math.floor((latLong.long - (startingCorners?.startWest ?? 0)) / gridSize),
+              latIndex = Math.floor((latLong.lat - (startingCorners?.startSouth ?? 0)) / gridSize)
             _latLngGrid.addCaseToGridCell(longIndex, latIndex, caseID)
           }
         })
@@ -137,7 +144,7 @@ export const MapGridModel = types.model("MapGridModel", {
   .actions(self => ({
     afterCreate() {
       addDisposer(self, reaction(
-        () => [self.dataConfiguration?.caseDataHash, self.gridMultiplier, self._gridSize],
+        () => [self.pointDataSource?.pointDataVersion, self.gridMultiplier, self._gridSize],
         () => {
           self.initializeGrid()
           self.updateSelection()

@@ -1,9 +1,8 @@
 import { Tooltip, VisuallyHidden } from "@chakra-ui/react"
 import { useDataSet } from "../../hooks/use-data-set"
-import { symParent } from "../../models/data/data-set-types"
 import { t } from "../../utilities/translation/translate"
 import { renderAttributeValue } from "../case-tile-common/attribute-format-utils"
-import { kInputRowKey, symDom, TRenderCellProps } from "./case-table-types"
+import { kInputRowKey, symDom, symShownParent, TRenderCellProps } from "./case-table-types"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
 export function AttributeValueCell({ column, row }: TRenderCellProps) {
@@ -16,7 +15,7 @@ export function AttributeValueCell({ column, row }: TRenderCellProps) {
   // random key to force React to render the contents for synchronization
   const key = row[symDom]?.has(column.key) ? Math.random() : undefined
   row[symDom]?.delete(column.key)
-  const isParentCollapsed = row[symParent] ? metadata?.isCollapsed(row[symParent]) : false
+  const isParentCollapsed = row[symShownParent] ? metadata?.isCollapsed(row[symShownParent]) : false
   // don't pass input row id to common code
   const isInputRow = row.__id__ === kInputRowKey
   const caseId = isInputRow ? undefined : row.__id__

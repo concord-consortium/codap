@@ -231,6 +231,50 @@ describe("DataSet undo/redo", () => {
     expect(data.itemIds).toEqual(["ITEM1", "ITEM5"])
   })
 
+  it("undo of a delete restores the items in place when an earlier item is set aside", async () => {
+    const { data, whenTreeManagerIsReady, undoManager } = setupDocument()
+
+    data.applyModelChange(() => {
+      data.addCases(["ITEM1", "ITEM2", "ITEM3", "ITEM4"].map((__id__, i) => ({ __id__, aId: i + 1, bId: 0 })))
+      data.hideCasesOrItems(["ITEM1"])
+    })
+    await whenTreeManagerIsReady()
+    expect(data.itemIds).toEqual(["ITEM0", "ITEM2", "ITEM3", "ITEM4"])
+
+    removeCasesWithCustomUndoRedo(data, ["ITEM3"])
+    await whenTreeManagerIsReady()
+    expect(data.itemIds).toEqual(["ITEM0", "ITEM2", "ITEM4"])
+
+    undoManager?.undo()
+    await whenTreeManagerIsReady()
+    expect(data.itemIds).toEqual(["ITEM0", "ITEM2", "ITEM3", "ITEM4"])
+    expect(data._itemIds).toEqual(["ITEM0", "ITEM1", "ITEM2", "ITEM3", "ITEM4"])
+  })
+
+  it("undo of a delete restores several runs in place when the item after one is set aside", async () => {
+    const { data, whenTreeManagerIsReady, undoManager } = setupDocument()
+
+    const ids = ["ITEM1", "ITEM2", "ITEM3", "ITEM4", "ITEM5"]
+    data.applyModelChange(() => {
+      data.addCases(ids.map((__id__, i) => ({ __id__, aId: i + 1, bId: 0 })))
+      data.hideCasesOrItems(["ITEM4"])
+    })
+    await whenTreeManagerIsReady()
+
+    // two runs: ITEM2-ITEM3, restored before the set-aside ITEM4, and ITEM5, restored at the end
+    removeCasesWithCustomUndoRedo(data, ["ITEM2", "ITEM3", "ITEM5"])
+    await whenTreeManagerIsReady()
+    expect(data._itemIds).toEqual(["ITEM0", "ITEM1", "ITEM4"])
+
+    undoManager?.undo()
+    await whenTreeManagerIsReady()
+    expect(data._itemIds).toEqual(["ITEM0", "ITEM1", "ITEM2", "ITEM3", "ITEM4", "ITEM5"])
+
+    undoManager?.redo()
+    await whenTreeManagerIsReady()
+    expect(data._itemIds).toEqual(["ITEM0", "ITEM1", "ITEM4"])
+  })
+
   it("can undo/redo setting a formula on an attribute without a formula", async () => {
     const { data, whenTreeManagerIsReady, undoManager } = setupDocument()
 

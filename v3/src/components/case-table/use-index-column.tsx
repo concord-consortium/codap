@@ -8,9 +8,9 @@ import { useDataSet } from "../../hooks/use-data-set"
 import { DEBUG_CASE_IDS } from "../../lib/debug"
 import { ICollectionModel } from "../../models/data/collection"
 import { IDataSet } from "../../models/data/data-set"
-import { symIndex, symParent } from "../../models/data/data-set-types"
+import { symIndex } from "../../models/data/data-set-types"
 import {
-  getCaseNameForCount, getCollectionAttrs, selectCases, setSelectedCases
+  getCaseNameForCount, getCollectionAttrs, getDescendantCaseIds, selectCases, setSelectedCases
 } from "../../models/data/data-set-utils"
 import { IDataSetMetadata } from "../../models/shared/data-set-metadata"
 import { preventCollectionReorg } from "../../utilities/plugin-utils"
@@ -18,10 +18,14 @@ import { t } from "../../utilities/translation/translate"
 import { kIndexColumnKey } from "../case-tile-common/case-tile-types"
 import { IndexMenuList } from "../case-tile-common/index-menu-list"
 import { useParentChildFocusRedirect } from "../case-tile-common/use-parent-child-focus-redirect"
-import { kIndexColumnWidth, kInputRowKey, TColSpanArgs, TColumn, TRenderCellProps } from "./case-table-types"
 import { IUseDraggableRow, useDraggableRow } from "./case-table-drag-drop"
+import {
+  kIndexColumnWidth, kInputRowKey, symShownParent, TColSpanArgs, TColumn, TRenderCellProps
+} from "./case-table-types"
+import { CollectionTableModel } from "./collection-table-model"
 import { ColumnHeader } from "./column-header"
 import { RowDivider } from "./row-divider"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
 import DragIndicator from "../../assets/icons/drag-indicator.svg"
 
@@ -29,13 +33,12 @@ interface IColSpanProps {
   data?: IDataSet
   metadata?: IDataSetMetadata
   collection: ICollectionModel
+  collectionTableModel?: CollectionTableModel
 }
-function indexColumnSpan(args: TColSpanArgs, { data, metadata, collection }: IColSpanProps) {
+function indexColumnSpan(args: TColSpanArgs, { data, metadata, collection, collectionTableModel }: IColSpanProps) {
   // collapsed rows span the entire table
   if (args.type === "ROW") {
-    const row = args.row
-    const parentId = row[symParent]
-    if (parentId && metadata?.isCaseOrAncestorCollapsed(parentId)) {
+    if (collectionTableModel?.getCollapsedAncestor(args.row.__id__)) {
       const visibleAttrCount = getCollectionAttrs(collection, data)
                                 .reduce((prev, attr) => metadata?.isHidden(attr.id) ? prev : ++prev, 0)
       return visibleAttrCount + 1
@@ -46,6 +49,7 @@ function indexColumnSpan(args: TColSpanArgs, { data, metadata, collection }: ICo
 export const useIndexColumn = () => {
   const { data, metadata } = useDataSet()
   const collectionId = useCollectionContext()
+  const collectionTableModel = useCollectionTableModel()
   const collection = data?.getCollection(collectionId)
   const disableMenu = preventCollectionReorg(data, collectionId)
 
@@ -56,13 +60,13 @@ export const useIndexColumn = () => {
 
   // renderer
   const RenderIndexCell = useCallback(({ row }: TRenderCellProps) => {
-    const { __id__, [symIndex]: _index, [symParent]: parentId } = row
+    const { __id__, [symIndex]: _index, [symShownParent]: parentId } = row
     const index = __id__ === kInputRowKey
                     ? -1
                     : _index != null ? _index : data?.getItemIndex(__id__)
-    const collapsedAncestorId = metadata?.getCollapsedAncestor(__id__)
+    const collapsedAncestorId = collectionTableModel?.getCollapsedAncestor(__id__)
     const collapsedCases = data && collapsedAncestorId
-                            ? metadata?.getDescendantCaseIds(collapsedAncestorId, __id__) ?? []
+                            ? getDescendantCaseIds(data, collapsedAncestorId, collectionId)
                             : []
     const collapsedCaseCount = collapsedCases.length
 
@@ -89,7 +93,7 @@ export const useIndexColumn = () => {
         <RowDivider rowId={__id__}/>
       </div>
     )
-  }, [metadata, data, disableMenu])
+  }, [data, collectionId, disableMenu, collectionTableModel])
   const indexColumn = useRef<TColumn | undefined>()
 
   useEffect(() => {
@@ -103,11 +107,11 @@ export const useIndexColumn = () => {
       renderHeaderCell: ColumnHeader,
       cellClass: row => clsx("codap-index-cell", `rowId-${row.__id__}`),
       colSpan(args: TColSpanArgs) {
-        return collection ? indexColumnSpan(args, { data, metadata, collection }) : undefined
+        return collection ? indexColumnSpan(args, { data, metadata, collection, collectionTableModel }) : undefined
       },
       renderCell: RenderIndexCell
     }
-  }, [metadata, collection, data, RenderIndexCell])
+  }, [metadata, collection, collectionTableModel, data, RenderIndexCell])
 
   return indexColumn.current
 }

@@ -90,10 +90,10 @@
     "DG.AppController.createDataSet.name": "New Dataset",
     "DG.AppController.createDataSet.collectionName": "Cases",
     "DG.AppController.caseTableMenu.openCaseTableToolTip": "Open case table for this data set",
-    "DG.AppController.caseTableMenu.newDataSet": "Νew",
+    "DG.AppController.caseTableMenu.newDataSet": "New",
     "DG.AppController.caseTableMenu.newDataSetToolTip": "Create a new data set",
     "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy data set %@",
-    "DG.AppController.caseTableMenu.clipboardDataset": "Νew from clipboard",
+    "DG.AppController.caseTableMenu.clipboardDataset": "New from clipboard",
     "DG.AppController.caseTableMenu.clipboardDatasetToolTip": "Paste data set from clipboard",
 
     "DG.SingleTextDialog.okButton.title": "OK",
@@ -940,6 +940,7 @@
     "DG.MapView.hidePoints": "Hide Points",
     "DG.MapView.marqueeHint": "Marquee tool—drag select points in map",
     "DG.MapView.gridControlHint": "Change size of grid rectangles",
+    "V3.Map.pinAriaLabel": "Map pin %@",
 
     // Inspector
     "DG.Inspector.values": "Measure",
@@ -1343,6 +1344,8 @@
     // V3 case table strings that are not present in V2 and will eventually require translation.
     "V3.general.yes": "Yes",
     "V3.general.no": "No",
+    "V3.general.back": "Back",
+    "V3.general.close": "Close",
     "V3.general.unsavedChangesWarning": "Changes you made may not be saved.",
 
     // V3 application level strings
@@ -1362,6 +1365,16 @@
     "V3.app.errorDialog.suggestionWithSave": "You may wish to reload this page after you save a copy of your work.",
     "V3.app.errorDialog.suggestion": "You may wish to reload this page.",
     "V3.app.errorDialog.errorDetails": "(Error: %@)",
+    // Clipboard messages are mostly read by students. Say "failed" rather than "blocked" unless the browser
+    // reports that access is denied; never promise a fix or send students to their IT administrators; and
+    // use neutral wording rather than having CODAP refer to itself.
+    "V3.clipboard.pasteDialog.title": "Import from Clipboard",
+    "V3.clipboard.pasteDialog.prompt": "Reading from the clipboard failed. Paste your data here:",
+    "V3.clipboard.pasteDialog.permissionDenied": "Your browser is blocking clipboard access.",
+    "V3.clipboard.pasteDialog.permissionSettingsHint": "You may be able to allow it in site settings.",
+    "V3.clipboard.pasteDialog.importButton": "Import",
+    "V3.clipboard.copyUnavailable": "Copying to the clipboard failed. You can use %@ instead.",
+    "V3.clipboard.emptyClipboard": "The clipboard doesn't contain any data to import.",
     "V3.app.documentDisplayError.title": "Display Error",
     "V3.app.documentDisplayError.suggestion": "Try reloading the page.",
     "V3.app.documentDisplayError.suggestionWithSave": "Try saving a copy of the document and reloading the page.",
@@ -1377,6 +1390,7 @@
     "V3.graph.Inspector.Format": "Format",
     "V3.graph.Inspector.Image": "Image",
     "V3.Inspector.map.hotSpot": "Hot spot",
+    "V3.Inspector.map.hotSpotOpacity": "Opacity",
     "V3.Inspector.graph.legendBins": "Legend Bins",
     "V3.Inspector.graph.legendBins.quantize": "Linear",
     "V3.Inspector.graph.legendBins.quantile": "Quantile",
@@ -1446,6 +1460,8 @@
     "V3.Redo.map.showHotSpot": "Redo showing hot spot on map",
     "V3.Undo.map.hideHotSpot": "Undo hiding hot spot on map",
     "V3.Redo.map.hideHotSpot": "Redo hiding hot spot on map",
+    "V3.Undo.map.changeHotSpotOpacity": "Undo changing hot spot opacity",
+    "V3.Redo.map.changeHotSpotOpacity": "Redo changing hot spot opacity",
 
     "V3.Undo.calculator.calculate": "Undo calculation",
     "V3.Redo.calculator.calculate": "Redo calculation",
@@ -1576,6 +1592,15 @@
     "V3.Undo.webView.changeUrl": "Undo changing web page url",
     "V3.Redo.webView.changeUrl": "Redo changing web page url",
 
+    // V3 tour and highlight strings that are not present in V2 and will eventually require translation.
+    "V3.Tour.stepRegion": "Tour step",
+    "V3.Tour.previous": "Previous",
+    "V3.Tour.next": "Next",
+    "V3.Tour.done": "Done",
+    "V3.Tour.gotIt": "Got it!",
+    "V3.Tour.close": "Close tour",
+    "V3.Tour.progress": "%{current} of %{total}",
+
     // Miscellaneous V3 strings that are not present in V2 and will eventually require translation.
     "V3.Undo.tile.show": "Undo showing tile",
     "V3.Redo.tile.show": "Redo showing tile",
@@ -1615,6 +1640,7 @@
     "V3.DI.Error.dataDisplayNotFound": "DataDisplay not found",
     "V3.DI.Error.dataSetMetadataNotFound": "DataSetMetadata not found for %@",
     "V3.DI.Error.caseNotFound": "Case not found",
+    "V3.DI.Error.caseParentInvalid": "Cannot create case with invalid or deleted parent",
     "V3.DI.Error.collectionNotFound": "Collection not found",
     "V3.DI.Error.componentNotCreated": "Could not create component",
     "V3.DI.Error.downloadCSV": "Failed to download and import CSV: %{url}",
@@ -1649,6 +1675,9 @@
     "V3.DI.Error.adornmentMismatch": "Not a(n) %@1 adornment.",
     "V3.DI.Error.adornmentNotSupportedByPlotType": "Adornment not supported by plot type.",
     "V3.DI.Error.adornmentRequestNotSupported": "The %@1 adornment does not currently support %@2 requests.",
+    "V3.DI.Error.adornmentValueNotBoolean": "%@ must be true or false.",
+    "V3.DI.Error.adornmentValueNotNumber": "%@ must be a number.",
+    "V3.DI.Error.adornmentValueNotString": "%@ must be a string.",
     "V3.DI.Error.countAdornmentPercentNotSupported": "The current plot type does not support Percent.",
     "V3.DI.Error.invalidCellKey": "%@1 contains an invalid attribute name or ID.",
     "V3.DI.Error.componentDoesNotSupportRescale": "Component does not support rescale",
@@ -1702,5 +1731,39 @@
     "V3.AppController.optionMenuItems.positionToolShelfLeft": "Toolbar Position: Move to the top",
     "V3.AppController.optionMenuItems.positionToolShelfTop": "Toolbar Position: Move to the left",
     "V3.AppController.optionMenuItems.graphicsAccelerationOn": "Graphics Acceleration: Turn off",
-    "V3.AppController.optionMenuItems.graphicsAccelerationOff": "Graphics Acceleration: Turn on"
+    "V3.AppController.optionMenuItems.graphicsAccelerationOff": "Graphics Acceleration: Turn on",
+
+    "V3.ExternalLink.opensInNewTab": "(opens in a new tab)",
+
+    "V3.AboutDialog.logoAlt": "CODAP, a product of The Concord Consortium",
+    "V3.AboutDialog.version": "Version %{version} · build %{build}",
+    "V3.AboutDialog.copyright": "© 1996–%{year} The Concord Consortium, Inc.",
+    "V3.AboutDialog.termsOfUse": "Terms of Use",
+    "V3.AboutDialog.license.heading": "License & Terms of Use",
+    "V3.AboutDialog.license.p1": "%{freeOpenSource} The CODAP source code is released under the %{mitLicense}, so you’re welcome to use, modify, and build on it.",
+    "V3.AboutDialog.license.freeOpenSource": "CODAP is free, open-source software.",
+    "V3.AboutDialog.license.mitLicense": "MIT License",
+    "V3.AboutDialog.license.p2": "%{yourUse} is governed by our %{termsOfUse}. The hosted version is free for non-commercial use; commercial use requires a separate written agreement. For more information, visit %{licensingPage} or contact %{licensingEmail}.",
+    "V3.AboutDialog.license.yourUse": "Your use of CODAP at codap.concord.org",
+    "V3.AboutDialog.license.licensingPage": "concord.org/licensing",
+    "V3.AboutDialog.links.licensingDetails": "Licensing details",
+    "V3.AboutDialog.links.sourceCode": "Source on GitHub",
+    "V3.AboutDialog.acknowledgementsButton": "Open-source libraries & acknowledgements",
+    "V3.AboutDialog.projectCount": "1 project",
+    "V3.AboutDialog.projectCountPlural": "%{count} projects",
+    "V3.AboutDialog.libraries.title": "Open-source libraries",
+    "V3.AboutDialog.libraries.intro": "CODAP is built with these open-source projects. Our thanks to their authors and maintainers.",
+    "V3.AboutDialog.libraries.footer": "This list is generated at build time from CODAP’s dependencies. Full license texts: %{noticesLink}",
+    "V3.AboutDialog.libraries.noticesLink": "THIRD-PARTY-NOTICES",
+    "V3.AboutDialog.libraries.searchLabel": "Search libraries…",
+    "V3.AboutDialog.libraries.resultCount": "1 library",
+    "V3.AboutDialog.libraries.resultCountPlural": "%{count} libraries",
+    "V3.AboutDialog.libraries.loading": "Loading libraries…",
+    "V3.AboutDialog.libraries.noMatches": "No libraries match “%{query}”.",
+    "V3.AboutDialog.libraries.loadError": "The library list couldn't be loaded.",
+    "V3.AboutDialog.welcome.title": "Welcome to CODAP",
+    "V3.AboutDialog.welcome.intro": "Explore, analyze, and visualize data right in your browser.",
+    "V3.AboutDialog.welcome.dontShowAgain": "Don’t show this again",
+    "V3.AboutDialog.welcome.aboutButton": "About & licensing",
+    "V3.AboutDialog.welcome.getStarted": "Get started"
 }

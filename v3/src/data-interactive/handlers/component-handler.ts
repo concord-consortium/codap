@@ -5,6 +5,8 @@ import {
 import { resizeAllColumns } from "../../components/case-table/case-table-utils"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { isMapContentModel } from "../../components/map/models/map-content-model"
+import { getCreateTileHistoryOptions } from "../../components/tool-shelf/tool-shelf-utilities"
+import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { INewTileOptions } from "../../models/codap/create-tile"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
@@ -55,6 +57,17 @@ export function registerComponentHandler(type: string, handler: DIComponentHandl
   diComponentHandlers.set(type, handler)
 }
 
+// V2's undo strings by the component type a plugin sends. As in V2, case tables and case cards for a data
+// context add no entry, and neither do guideViews (always a new web view here, like V2's first guide).
+// The toolbar's strings are V2's for these types
+const kShelfUndoTypes = new Set(["calculator", "graph", "map", "slider", "text"])
+// and these types aren't on the toolbar, or its strings differ from V2's
+const kCreateUndoStrings: Record<string, string> = {
+  game: "game.add",
+  imageComponentView: "imageComponent.show",
+  webView: "webView.show"
+}
+
 export const diComponentHandler: DIHandler = {
   create(resources: DIResources, values?: DIValues) {
     if (!values) return valuesRequiredResult
@@ -78,6 +91,13 @@ export const diComponentHandler: DIHandler = {
       const x = isPositionObject ? position.left : undefined
       const y = isPositionObject ? position.top : undefined
       let tile: Maybe<ITileModel>
+      // As the toolbar does, including the calculator's hide when one is showing, which V2 labeled a hide
+      const { undoStringKey, redoStringKey, log } =
+        getCreateTileHistoryOptions(kComponentTypeV2ToV3Map[type], document.content)
+      const undoStrings = kCreateUndoStrings[type]
+      const undoOptions = kShelfUndoTypes.has(type)
+        ? { undoStringKey, redoStringKey }
+        : undoStrings ? { undoStringKey: `DG.Undo.${undoStrings}`, redoStringKey: `DG.Redo.${undoStrings}` } : {}
       return document.applyModelChange(() => {
         const title = _title ?? name
         const _cannotClose = cannotClose != null ? !!cannotClose : undefined
@@ -102,6 +122,8 @@ export const diComponentHandler: DIHandler = {
         // openCaseTableNotification no-ops for non-case-table tiles, so it's safe to call
         // unconditionally here (V2-plugin compat for the case-table create path, CODAP-1353).
         notify: [() => createTileNotification(tile), () => openCaseTableNotification(tile)],
+        ...undoOptions,
+        log,
         // Don't echo the create back to the requesting plugin — Story Builder otherwise treats
         // notifications about its own DI-API actions as document edits and marks the current
         // moment as unsaved (CODAP-1307).
@@ -121,6 +143,10 @@ export const diComponentHandler: DIHandler = {
       document.content?.deleteOrHideTile(component.id)
     }, {
       notify: closeCaseTableNotification(component) ?? deleteTileNotification(component),
+      // as in V2, closing a component is undoable and logged, as it is from its close box
+      log: logMessageWithReplacement("Close component: %@", {tileType: component.content.type}, "component"),
+      undoStringKey: "DG.Undo.component.close",
+      redoStringKey: "DG.Redo.component.close",
       excludeTileId: resources.interactiveFrame?.id
     })
 

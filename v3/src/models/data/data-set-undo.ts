@@ -314,7 +314,8 @@ export function removeCasesWithCustomUndoRedo(data: IDataSet, caseIds: string[])
 
   function completeBatch() {
     if (nextBatch.items.length) {
-      nextBatch.beforeId = data.getItemAtIndex(lastIndex + 1)?.__id__
+      // lastIndex is a full index, so the item to restore before is the next one in _itemIds, hidden or not
+      nextBatch.beforeId = data._itemIds[lastIndex + 1]
       undoRedoPatch.data.batches.push({...nextBatch})
     }
   }

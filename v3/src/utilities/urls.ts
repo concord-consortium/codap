@@ -40,3 +40,12 @@ const kGoogleSheetsUrlPattern = /docs\.google\.com\/spreadsheets/i
 export function isGoogleSheetsUrl(url: string): boolean {
   return kGoogleSheetsUrlPattern.test(url)
 }
+
+/**
+ * Returns the URL of a file the build emits next to index.html. Pages promoted to the top level (production,
+ * beta, staging) load their scripts from a version folder, so a plain relative URL would point to the wrong
+ * place. Webpack's public path is the folder the bundle was actually loaded from.
+ */
+export function getBuildAssetUrl(filename: string) {
+  return typeof __webpack_public_path__ === "string" ? `${__webpack_public_path__}${filename}` : filename
+}
