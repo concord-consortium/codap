@@ -8,7 +8,8 @@ const kPersistentStateKey = "persistentState"
  */
 export const PersistentState = types.model("PersistentState", {
   toolbarPosition: types.optional(types.enumeration(["Top", "Left"]), "Top"),
-  disableGraphicsAcceleration: types.maybe(types.boolean)
+  disableGraphicsAcceleration: types.maybe(types.boolean),
+  hideWelcome: types.maybe(types.boolean)
 })
 .actions(self => ({
   save() {
@@ -29,6 +30,10 @@ export const PersistentState = types.model("PersistentState", {
   // fires MobX reactions and the cross-tab `storage` event propagates.
   setDisableGraphicsAcceleration(disabled: boolean) {
     self.disableGraphicsAcceleration = disabled
+    self.save()
+  },
+  setHideWelcome(hide: boolean) {
+    self.hideWelcome = hide
     self.save()
   }
 }))

@@ -56,8 +56,14 @@ export const getFormulaTestEnv = () => {
 // then the casePointer will be set to evalCasePointer and the formula will be evaluated again.
 // This is useful for testing functions like rollingMean(), which perform casePointer-based
 // caching on the first evaluation, but then can be evaluated for other cases.
-export const evaluate = (displayFormula: string, casePointer?: number, evalCasePointer?: number) => {
-  const { dataSetsByName, dataSets, globalValueManager } = getFormulaTestEnv()
+// When prepareEnv is provided, it can change the test data sets before the formula is evaluated.
+export const evaluate = (
+  displayFormula: string, casePointer?: number, evalCasePointer?: number,
+  prepareEnv?: (env: ReturnType<typeof getFormulaTestEnv>) => void
+) => {
+  const env = getFormulaTestEnv()
+  prepareEnv?.(env)
+  const { dataSetsByName, dataSets, globalValueManager } = env
   const localDataSet = dataSetsByName.Mammals
   const caseIds = localDataSet.items.map(c => c.__id__)
   const scope = new FormulaMathJsScope({
