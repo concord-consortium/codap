@@ -13,7 +13,7 @@ import { IBaseLegendProps } from "./legend-common"
 import vars from "../../../vars.scss"
 
 export const NumericLegend =
-  observer(function NumericLegend({layerIndex, setDesiredExtent}: IBaseLegendProps) {
+  observer(function NumericLegend({layerIndex, setDesiredExtent, numericLegendBottomClearance = 0}: IBaseLegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     tileWidth = useDataDisplayLayout().tileWidth,
     [choroplethElt, setChoroplethElt] = useState<SVGGElement | null>(null),
@@ -34,7 +34,10 @@ export const NumericLegend =
         }
         // The label's background rect spans labelHeight + 2 * labelPaddingY vertically
         // (paddingY above and below the text), so the choropleth needs to clear that.
-        return labelHeight + 2 * labelPaddingY + kChoroplethHeight + numberHeight + 2 * axisGap
+        // The choropleth is drawn from the top, so the clearance becomes empty space below the
+        // value labels.
+        return labelHeight + 2 * labelPaddingY + kChoroplethHeight + numberHeight + 2 * axisGap +
+          numericLegendBottomClearance
       }
 
       if (!choroplethElt || !dataConfiguration) return
@@ -74,7 +77,8 @@ export const NumericLegend =
     },
     [dataConfiguration]
   ),
-  [choroplethElt, dataConfiguration, getLabelHeight, layerIndex, legendAttrID, setDesiredExtent, tileWidth])
+  [choroplethElt, dataConfiguration, getLabelHeight, layerIndex, legendAttrID, numericLegendBottomClearance,
+    setDesiredExtent, tileWidth])
 
   // Reactions to check
   // - changing attribute by menu
