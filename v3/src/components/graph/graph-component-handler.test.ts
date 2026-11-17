@@ -5,6 +5,7 @@ import { diComponentHandler } from "../../data-interactive/handlers/component-ha
 import { setupTestDataset, testCases } from "../../test/dataset-test-utils"
 import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
 import { appState } from "../../models/app-state"
+import { DataSet } from "../../models/data/data-set"
 import { toV2Id, toV3Id } from "../../utilities/codap-utils"
 import { IBaseNumericAxisModel } from "../axis/models/base-numeric-axis-model"
 import { kGraphIdPrefix } from "./graph-defs"
@@ -489,5 +490,75 @@ describe("DataInteractive ComponentHandler Graph", () => {
 
     // Clean up
     handler.delete!({ component: tile })
+  })
+
+  it("refuses a data context or attribute that isn't found, and creates or changes nothing", () => {
+    const tileCount = documentContent.tileMap.size
+    const refuses = (values: Record<string, unknown>, message: string) => {
+      const refused = create({}, { type: "graph", ...values })
+      expect(refused.success).toBe(false)
+      expect(refused.values).toEqual({ error: message })
+      expect(documentContent.tileMap.size).toBe(tileCount)
+    }
+    // the document's only data set was linked before, with empty axes
+    refuses({ dataContext: "NoSuchContext" }, "Data context not found: NoSuchContext")
+    refuses({ dataContext: "data", xAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
+    refuses({ dataContext: "data", legendAttributeID: 999999 }, "Attribute not found: 999999")
+    refuses({ dataContext: "data", yAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
+    refuses({ dataContext: "data", yAttributeID: 999999, yAttributeName: "NoSuchAttr" },
+      "Attribute not found: NoSuchAttr")
+    refuses({ dataContext: "data", yAttributeNames: ["a3", "NoSuchAttr"] }, "Attribute not found: NoSuchAttr")
+    refuses({ dataContext: "data", yAttributeIDs: [toV2Id(a3.id), 999999] }, "Attribute not found: 999999")
+
+    // null still means no attribute, and a data context named by id or by title gets its attributes
+    dataset.setTitle("Data Title")
+    const byTitle = create({}, { type: "graph", dataContext: "Data Title", xAttributeName: "a3" })
+    expect(byTitle.success).toBe(true)
+    const byTitleTile = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, (byTitle.values as DIComponentInfo).id!))!
+    expect((byTitleTile.content as IGraphContentModel).dataConfiguration.attributeDescriptionForRole("x")?.attributeID)
+      .toBe(a3.id)
+    dataset.setTitle(undefined)
+    const result = create({}, {
+      type: "graph", dataContext: `${toV2Id(dataset.id)}`, xAttributeName: "a3", yAttributeName: null
+    })
+    expect(result.success).toBe(true)
+    const tile = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!))!
+    const { dataConfiguration } = tile.content as IGraphContentModel
+    expect(dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBe(a3.id)
+
+    // update checks everything before it changes anything
+    // ...the generic properties sent with it included
+    const before = getSnapshot(tile)
+    const updateRefuses = (values: Record<string, unknown>, message: string) => {
+      const updateResult = update({ component: tile }, { title: "Renamed", cannotClose: true, ...values })
+      expect(updateResult.success).toBe(false)
+      expect(updateResult.values).toEqual({ error: message })
+      expect(getSnapshot(tile)).toEqual(before)
+    }
+    updateRefuses({ dataContext: "NoSuchContext", xAttributeName: "a4" }, "Data context not found: NoSuchContext")
+    updateRefuses({ xAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
+    updateRefuses({ topSplitAttributeID: 999999 }, "Attribute not found: 999999")
+    updateRefuses({ xAttributeName: "a4", yAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
+    updateRefuses({ xAttributeName: "a4", yAttributeID: 999999 }, "Attribute not found: 999999")
+    updateRefuses({ xAttributeName: "a4", yAttributeNames: ["a4", "NoSuchAttr"] }, "Attribute not found: NoSuchAttr")
+    updateRefuses({ xAttributeName: "a4", yAttributeIDs: [999999] }, "Attribute not found: 999999")
+    updateRefuses({ xAttributeID: 999999, xAttributeName: "" }, "Attribute not found: 999999")
+    // attributes are looked for in the data context named
+    const _other = DataSet.create({ name: "other" })
+    _other.addAttribute({ name: "b1" })
+    documentContent.createDataSet(getSnapshot(_other))
+    updateRefuses({ dataContext: "other", xAttributeName: "a3" }, "Attribute not found: a3")
+
+    // found attributes still update, a y id or name is enough, as on create, an empty name is ignored,
+    // and null still removes
+    expect(update({ component: tile }, { yAttributeID: 999999, yAttributeName: "a3" }).success).toBe(true)
+    expect(dataConfiguration.yAttributeIDs).toEqual([a3.id])
+    expect(update({ component: tile }, { yAttributeName: "" }).success).toBe(true)
+    expect(dataConfiguration.yAttributeIDs).toEqual([a3.id])
+    expect(update({ component: tile }, { xAttributeName: "a4", yAttributeNames: ["a3"] }).success).toBe(true)
+    expect(dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBe(a4.id)
+    expect(dataConfiguration.yAttributeIDs).toEqual([a3.id])
+    expect(update({ component: tile }, { yAttributeName: null }).success).toBe(true)
+    expect(dataConfiguration.yAttributeIDs).toEqual([])
   })
 })

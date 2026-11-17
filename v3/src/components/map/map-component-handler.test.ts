@@ -5,6 +5,7 @@ import { diComponentHandler } from "../../data-interactive/handlers/component-ha
 import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { appState } from "../../models/app-state"
+import { DataSet } from "../../models/data/data-set"
 import { toV3Id } from "../../utilities/codap-utils"
 import { kMapIdPrefix } from "./map-defs"
 import "./map-registration"
@@ -75,5 +76,50 @@ describe("DataInteractive ComponentHandler Map", () => {
     expect(tileContent.center.lat).toBe(30)
     expect(tileContent.center.lng).toBe(34)
     expect(tileContent.zoom).toBe(5)
+  })
+
+  it("refuses a data context or legend attribute that isn't found, and creates or changes nothing", () => {
+    const _places = DataSet.create({ name: "places" })
+    ;["lat", "long", "color"].forEach(name => _places.addAttribute({ name }))
+    const places = documentContent.createDataSet(getSnapshot(_places)).sharedDataSet.dataSet
+    places.addCases([{ lat: 42, long: -71, color: "red" }], { canonicalize: true })
+    const tileCount = documentContent.tileMap.size
+    const refuses = (values: Record<string, unknown>, message: string) => {
+      const refused = handler.create!({}, { type: "map", ...values })
+      expect(refused.success).toBe(false)
+      expect(refused.values).toEqual({ error: message })
+      expect(documentContent.tileMap.size).toBe(tileCount)
+    }
+    refuses({ dataContext: "NoSuchContext" }, "Data context not found: NoSuchContext")
+    refuses({ dataContext: "places", legendAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
+    // a data context can be named by title
+    places.setTitle("Places Title")
+    expect(handler.create!({}, { type: "map", dataContext: "Places Title", legendAttributeName: "color" }).success)
+      .toBe(true)
+    places.setTitle(undefined)
+    // as in V2, a legend attribute is looked for only in a named data context
+    expect(handler.create!({}, { type: "map", legendAttributeName: "NoSuchAttr" }).success).toBe(true)
+
+    const result = handler.create!({}, { type: "map", dataContext: "places", legendAttributeName: "color" })
+    expect(result.success).toBe(true)
+    const tile = documentContent.tileMap.get(toV3Id(kMapIdPrefix, (result.values as DIComponentInfo).id!))!
+    const [layer] = (tile.content as IMapContentModel).layers
+    expect(layer.dataConfiguration.dataset).toBe(places)
+    const color = places.getAttributeByName("color")!
+    expect(layer.dataConfiguration.attributeID("legend")).toBe(color.id)
+
+    // a refused update changes nothing, the generic properties sent with it included
+    const before = getSnapshot(tile)
+    const updateResult = handler.update!({ component: tile }, {
+      legendAttributeName: "NoSuchAttr", zoom: 7, title: "Renamed"
+    })
+    expect(updateResult.success).toBe(false)
+    expect(updateResult.values).toEqual({ error: "Attribute not found: NoSuchAttr" })
+    expect(getSnapshot(tile)).toEqual(before)
+    expect(layer.dataConfiguration.attributeID("legend")).toBe(color.id)
+
+    // the legend attribute updates through the map's layers
+    expect(handler.update!({ component: tile }, { legendAttributeName: "lat" }).success).toBe(true)
+    expect(layer.dataConfiguration.attributeID("legend")).toBe(places.getAttributeByName("lat")!.id)
   })
 })

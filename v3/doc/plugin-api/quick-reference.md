@@ -142,6 +142,7 @@ the string is what reaches your plugin.
 | `Adornment not supported by plot type.` | `adornmentNotSupportedByPlotTypeResult` |
 | `An error occurred while processing the request.` | — |
 | `Attribute not found` | `attributeNotFoundResult` |
+| `Attribute not found: <value>` | — |
 | `Cannot assign <value1> to <value2>` | — |
 | `Cannot create case with invalid or deleted parent` | — |
 | `Cannot create multiple sliders for <value>` | — |
@@ -151,6 +152,7 @@ the string is what reaches your plugin.
 | `Component not found` | `componentNotFoundResult` |
 | `Could not create component` | — |
 | `Current plot type does not support fusing points into bars` | — |
+| `Data context not found: <value>` | — |
 | `DataContext not found` | `dataContextNotFoundResult` |
 | `DataDisplay not found` | `dataDisplayNotFoundResult` |
 | `DataSetMetadata not found for <value>` | — |

@@ -210,10 +210,15 @@ a plugin cannot. Every other property `get` returns can be sent back to `update`
 
 **`showConnectingLines` is ignored on `create`.** Set it with a following `update`.
 
-**Attributes are applied on `create` only when `dataContext` names the data set exactly.** The
-match is on name, not on id or title, and there is no defaulting — a `create` that gives the
-context by id, by title, or not at all produces a graph with no attributes assigned, and reports
-success.
+**A `dataContext` or an attribute that isn't found is refused.** `create` and `update` reply
+`success: false` with an error naming it (see [Errors](#errors)). Nothing is created or changed,
+including the title, position and other properties sent in the same request, and no notification
+is sent. The same holds for an attribute a role can't take. `dataContext` can be the data set's
+name, title or id. Attributes, by id or by name, are looked for in that data set; on
+`update` without one, in the graph's data set, or the document's first if the graph has none.
+`null` still means no attribute, and an empty name is ignored. This is a deliberate change from v2,
+which created the graph anyway and replied with success. A `create` with no `dataContext` links a
+document's only data set and assigns no attributes.
 
 ### slider
 
@@ -281,6 +286,13 @@ properties, or set them with a following `update`.
 `geoRaster` can be set but not read back; a plugin that reads a map's position in order to
 restore it later gets nothing. `geoRaster` is also ignored on `create` — set it with a following
 `update`. That `get` returns all four is the intended behavior and a known bug today.
+
+**A `dataContext`, or a `legendAttributeName` in it, that isn't found is refused** on `create`,
+as on a graph, and nothing is created. As in v2, `create` uses `legendAttributeName` only with a
+`dataContext`. On `update`, `legendAttributeName` works as choosing the attribute from the legend's
+menu: each data set the map shows that has the attribute gives it to one of its visible layers. A
+name none of those data sets has is refused, and nothing in the request is applied. A map that
+shows no data ignores it.
 
 A map's `geoRaster` is an object of its own:
 
@@ -631,6 +643,8 @@ notifies nobody at all, not just the sender.
 | `Component does not support rescale` | `autoScale` on a type other than graph, map or case table |
 | `<action> <type>: dataContext required` | `create` of a `caseTable` or `caseCard` without a resolvable `dataContext` |
 | `DataSetMetadata not found for <value>` | the data context resolved but carries no metadata |
+| `Data context not found: <value>` | a graph `create` or `update`, or a map `create`, named a `dataContext` that does not exist |
+| `Attribute not found: <value>` | a graph or map `create` or `update` named an attribute, by id or by name, that its data set does not have |
 | `Cannot assign <value1> to <value2>` | a graph `create` or `update` assigned an attribute to a role that cannot take it |
 | `Current plot type does not support fusing points into bars` | `pointsAreFusedIntoBars` on a plot that cannot show bars |
 | `Invalid bar chart scale: <value>` | `barChartScale` with a value that is not a breakdown type |
