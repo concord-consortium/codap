@@ -217,8 +217,9 @@ is sent. The same holds for an attribute a role can't take. `dataContext` can be
 name, title or id. Attributes, by id or by name, are looked for in that data set; on
 `update` without one, in the graph's data set, or the document's first if the graph has none.
 `null` still means no attribute, and an empty name is ignored. This is a deliberate change from v2,
-which created the graph anyway and replied with success. A `create` with no `dataContext` links a
-document's only data set and assigns no attributes.
+which created the graph anyway and replied with success. A `create` with no `dataContext` uses a
+document's only data set and assigns its attributes, as v2 did (v2 looked only in its child
+collection). With several data sets, it links none and ignores the attributes.
 
 ### slider
 

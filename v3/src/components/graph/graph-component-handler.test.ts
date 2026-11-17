@@ -509,6 +509,16 @@ describe("DataInteractive ComponentHandler Graph", () => {
       "Attribute not found: NoSuchAttr")
     refuses({ dataContext: "data", yAttributeNames: ["a3", "NoSuchAttr"] }, "Attribute not found: NoSuchAttr")
     refuses({ dataContext: "data", yAttributeIDs: [toV2Id(a3.id), 999999] }, "Attribute not found: 999999")
+    // with no data context named, the document's only data set is used, as in V2
+    refuses({ xAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
+    const noContext = create({}, { type: "graph", xAttributeName: "a3", yAttributeName: "a4" })
+    expect(noContext.success).toBe(true)
+    const noContextId = (noContext.values as DIComponentInfo).id!
+    const noContextTile = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, noContextId))!
+    const noContextConfig = (noContextTile.content as IGraphContentModel).dataConfiguration
+    expect(noContextConfig.dataset).toBe(dataset)
+    expect(noContextConfig.attributeDescriptionForRole("x")?.attributeID).toBe(a3.id)
+    expect(noContextConfig.yAttributeIDs).toEqual([a4.id])
 
     // null still means no attribute, and a data context named by id or by title gets its attributes
     dataset.setTitle("Data Title")

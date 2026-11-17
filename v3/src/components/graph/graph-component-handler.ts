@@ -192,15 +192,13 @@ export const graphComponentHandler: DIComponentHandler = {
     let provisionalMetadata: IDataSetMetadata | undefined
     const sharedDataSets = getSharedDataSets(appState.document)
     // We currently only support one dataset in a graph, so we find the one specified by plugin.
-    // A data context that is named but not found is refused rather than ignored.
-    const namedDataSet = _dataContext
-                          ? sharedDataSets.find(sd => sd.dataSet.matchTitleOrNameOrId(_dataContext))?.dataSet
-                          : undefined
-    if (_dataContext && !namedDataSet) return namedDataContextNotFoundResult(_dataContext)
-    // With no data context named, a document's only data set is linked, with no attributes
-    const sharedDataSet = namedDataSet
-                            ? sharedDataSets.find(sd => sd.dataSet === namedDataSet)
+    // A data context that is named but not found is refused rather than ignored. With none named, a
+    // document's only data set is used, and its attributes are assigned, as in V2.
+    const sharedDataSet = _dataContext
+                            ? sharedDataSets.find(sd => sd.dataSet.matchTitleOrNameOrId(_dataContext))
                             : sharedDataSets.length === 1 ? sharedDataSets[0] : undefined
+    if (_dataContext && !sharedDataSet) return namedDataContextNotFoundResult(_dataContext)
+    const graphDataSet = sharedDataSet?.dataSet
     if (sharedDataSet) {
       const dataset = sharedDataSet.dataSet
       const metadata = getMetadataFromDataSet(dataset)
@@ -208,49 +206,47 @@ export const graphComponentHandler: DIComponentHandler = {
         const _attributeDescriptions: Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>> = {}
         const _yAttributeDescriptions: IAttributeDescriptionSnapshot[] = []
         let hiddenCases = _hiddenCases?.map(id => toV3CaseId(id)) ?? []
-        if (dataset === namedDataSet) {
-          provisionalDataSet = dataset
-          provisionalMetadata = metadata
-          for (const attributeType in attributeInfo) {
-            const attribute = getAttributeFromInfo(dataset, attributeInfo[attributeType])
-            const requested = requestedAttribute(attributeInfo[attributeType])
-            if (!attribute && requested != null) return namedAttributeNotFoundResult(requested)
-            if (attribute) {
-              const attributeRole = roleFromAttrKey[attributeType]
-              if (attributeRole) {
-                const _type = attributeInfo[attributeType]?.type
-                const type = _type && isAttributeType(_type) ? _type : attribute.type
-                _attributeDescriptions[attributeRole] = { attributeID: attribute.id, type }
-              }
+        provisionalDataSet = dataset
+        provisionalMetadata = metadata
+        for (const attributeType in attributeInfo) {
+          const attribute = getAttributeFromInfo(dataset, attributeInfo[attributeType])
+          const requested = requestedAttribute(attributeInfo[attributeType])
+          if (!attribute && requested != null) return namedAttributeNotFoundResult(requested)
+          if (attribute) {
+            const attributeRole = roleFromAttrKey[attributeType]
+            if (attributeRole) {
+              const _type = attributeInfo[attributeType]?.type
+              const type = _type && isAttributeType(_type) ? _type : attribute.type
+              _attributeDescriptions[attributeRole] = { attributeID: attribute.id, type }
             }
           }
+        }
 
-          const _yAttributeType = isAttributeType(yAttributeType) ? yAttributeType : undefined
-          if (yAttributeIDs) {
-            for (const id of yAttributeIDs) {
-              const attribute = dataset.getAttribute(toV3AttrId(id))
-              if (!attribute) return namedAttributeNotFoundResult(id)
-              _yAttributeDescriptions.push({ attributeID: attribute.id, type: _yAttributeType })
-            }
-          } else if (yAttributeNames) {
-            for (const name of yAttributeNames) {
-              const attribute = dataset.getAttributeByName(name)
-              if (!attribute) return namedAttributeNotFoundResult(name)
-              _yAttributeDescriptions.push({ attributeID: attribute.id, type: _yAttributeType })
-            }
-          } else {
-            const yInfo = packageAttribute(yAttributeID, yAttributeName)
-            const yAttribute = getAttributeFromInfo(dataset, yInfo)
-            const requested = requestedAttribute(yInfo)
-            if (!yAttribute && requested != null) return namedAttributeNotFoundResult(requested)
-            if (yAttribute) {
-              _yAttributeDescriptions.push({ attributeID: yAttribute.id, type: _yAttributeType })
-            }
+        const _yAttributeType = isAttributeType(yAttributeType) ? yAttributeType : undefined
+        if (yAttributeIDs) {
+          for (const id of yAttributeIDs) {
+            const attribute = dataset.getAttribute(toV3AttrId(id))
+            if (!attribute) return namedAttributeNotFoundResult(id)
+            _yAttributeDescriptions.push({ attributeID: attribute.id, type: _yAttributeType })
           }
+        } else if (yAttributeNames) {
+          for (const name of yAttributeNames) {
+            const attribute = dataset.getAttributeByName(name)
+            if (!attribute) return namedAttributeNotFoundResult(name)
+            _yAttributeDescriptions.push({ attributeID: attribute.id, type: _yAttributeType })
+          }
+        } else {
+          const yInfo = packageAttribute(yAttributeID, yAttributeName)
+          const yAttribute = getAttributeFromInfo(dataset, yInfo)
+          const requested = requestedAttribute(yInfo)
+          if (!yAttribute && requested != null) return namedAttributeNotFoundResult(requested)
+          if (yAttribute) {
+            _yAttributeDescriptions.push({ attributeID: yAttribute.id, type: _yAttributeType })
+          }
+        }
 
-          if (showOnlyLastCase) {
-            hiddenCases = dataset.itemIds.slice(0, dataset.itemIds.length - 1)
-          }
+        if (showOnlyLastCase) {
+          hiddenCases = dataset.itemIds.slice(0, dataset.itemIds.length - 1)
         }
 
         layers.push({
@@ -316,7 +312,7 @@ export const graphComponentHandler: DIComponentHandler = {
       const dataConfiguration = graphModel.layers[i].dataConfiguration as IGraphDataConfigurationModel
       dataConfiguration.setShowMeasuresForSelection(showMeasuresForSelection ?? false)
       const { dataset } = dataConfiguration
-      if (dataset && dataset === namedDataSet) {
+      if (dataset && dataset === graphDataSet) {
         // Make sure all attributes can legally fulfill their specified roles
         for (const attributeType in attributeInfo) {
           const attributePackage = attributeInfo[attributeType]
