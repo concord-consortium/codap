@@ -101,8 +101,10 @@ honors fifteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAvai
 | `cannotClose` | no | yes |
 | `handlesLocaleChange` | no | yes |
 
-A number given as `name` or `title` is used as text, as in v2. `cannotClose` may be any value;
-CODAP stores whether it is truthy.
+`name` and `title` both set the tile's title. When both are sent, a non-empty `title` wins, as in
+v2. Empty text clears the title, as `update component` does, so the tile shows its name. v2
+cleared it only for an empty `name`, and ignored an empty `title` sent alone. A number other than
+`0` given as `name` or `title` is used as text, as in v2; `0`, `false` and `null` are ignored. `cannotClose` may be any value; CODAP stores whether it is truthy.
 
 ### Sizing the plugin
 
@@ -232,10 +234,6 @@ state reaches the document is by answering CODAP's `get interactiveState` reques
 
 **`update` with an array does nothing and reports success.**
 
-**`update` with no `values` at all returns a generic error.** Every property is optional, but the
-object is not; omitting it produces `An error occurred while processing the request.` rather than
-a message naming the problem.
-
 **Three v2 notify requests are not implemented.** `dirty`, `image` and `openGuideConfiguration`
 were handled in v2 and are not yet in v3. Like any unrecognized request they return success
 without acting.
@@ -262,7 +260,7 @@ For notifications CODAP sends *to* a plugin, see
 | Error | Condition |
 |---|---|
 | `Interactive Frame not found` | the request did not come from a plugin frame |
-| `A values object is required for this request.` | `notify` sent with no `values` |
+| `A values object is required for this request.` | `update` or `notify` sent with no `values`. Every `update` property is optional, but the object is not. v2's `update` failed with the text of a JavaScript exception |
 
 ## See also
 

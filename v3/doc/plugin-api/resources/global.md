@@ -66,24 +66,23 @@ apply. Naming a `dataContext` in the selector has no effect.
 | `value` | number | optional; default `0.5` |
 
 `create` replies with the new global value, in the shape `get` returns. With no `values` at all,
-v2 created a global value with the default name and value; v3 currently fails, see
-[Known limitations](#known-limitations).
+it creates a global value with the default name and value, as v2 did.
 
 A name already used by another global value is refused with `globals must have unique names`.
 This is new in v3: v2 replied with success, but the new global value could not be found by its
 name.
 
-`value` must be a number. v3 converts what it is given to a number and refuses it with
-`global values must be numbers` only when that fails: text that reads as a number, such as
-`"3"`, is stored as that number, and `true`, `false` and empty text are stored as `1`, `0` and
-`0`. v2 did not check, and stored
-whatever it was given, so a plugin that must also run there should send numbers.
+`value` must be a number. Text that reads as a number, such as `"3"`, is stored as that number.
+Anything else, including `true`, `false`, empty text and other text, is refused with
+`global values must be numbers`, and nothing is created. This is a deliberate difference from v2,
+which stored whatever it was given: global values drive sliders and formulas, which expect
+numbers.
 
 ### What `update` accepts
 
 | Property | Type | Notes |
 |---|---|---|
-| `value` | number | required. The new value, converted to a number as for `create`, so `true`, `false` and empty text are stored as `1`, `0` and `0`. `0` is a value. A missing or `null` `value` is refused with `missing global or value` |
+| `value` | number | required. The new value, accepted as for `create`: a number, or text that reads as one. Anything else is refused with `global values must be numbers`, and the global value keeps its value. `0` is a value. A missing or `null` `value` is refused with `missing global or value` |
 
 The name cannot be changed. `update` replies `{ "success": true }`. A slider showing the global
 value moves to the new value.
@@ -182,11 +181,6 @@ sendRequest({ action: "get", resource: "global[rate]" }, result => {
 
 ## Known limitations
 
-**`create` with no `values` fails.** v3 replies with the generic error
-`An error occurred while processing the request.` and creates nothing. v2 created a global value
-named `v1` (or the next unused name) with the value `0.5`. This is a known bug. Until it is fixed,
-send `values: {}` to get the defaults.
-
 **`update` does not respect a slider's "multiple of" setting.** When a slider showing the global
 value restricts it to multiples of some number, v2 rounded a value a plugin set to the nearest
 multiple. v3 stores the value as sent. This is a known bug.
@@ -219,13 +213,15 @@ thumb or uses the arrow keys, it comes first. See
 | Error | Condition |
 |---|---|
 | `Not found` | `get` names a global value that does not exist, or names none |
-| `missing global or value` | `update` names a global value that does not exist, or has no `value`, or a `null` one. This assumes the request has `values`; without it v3 replies with the generic error |
-| `global values must be numbers` | `create` or `update` with a `value` that is not a number |
+| `A values object is required for this request.` | `update` with no `values` |
+| `missing global or value` | `update` names a global value that does not exist, or has no `value`, or a `null` one |
+| `global values must be numbers` | `create` or `update` with a `value` that is not a number or text that reads as one |
 | `globals must have unique names` | `create` with a name another global value already has |
 | `error creating global value` | `create` failed for any other reason |
 
 v2 used the same messages for a missing global value, but did not check that values were numbers
-or that names were unique.
+or that names were unique. v2's `update` with no `values` failed with the text of a JavaScript
+exception.
 
 ## See also
 

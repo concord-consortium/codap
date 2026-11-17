@@ -6,18 +6,28 @@ import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIGlobal, DIHandler, DIResources, DIValues } from "../data-interactive-types"
 import { valuesFromGlobal } from "../data-interactive-type-utils"
+import { valuesRequiredResult } from "./di-results"
 
 const illegalValueResult = { success: false, values: { error: t("V3.DI.Error.globalIllegalValue") } } as const
-const isIllegalValue = (value: any) => !isFinite(value)
+
+// A global value is a number, or text that reads as one. Unlike V2, which stored whatever it was sent,
+// anything else (booleans, empty text, other text) is refused, since sliders and formulas expect numbers.
+function toGlobalValue(value: unknown) {
+  const num = typeof value === "number" ? value
+            : typeof value === "string" && value.trim() !== "" ? Number(value)
+            : NaN
+  return isFinite(num) ? num : undefined
+}
 
 export const diGlobalHandler: DIHandler = {
   create(_resources: DIResources, values?: DIValues) {
     const { document } = appState
     const globalManager = getGlobalValueManager(getSharedModelManager(document))
-    const { name, value } = values as DIGlobal
+    // as in V2, a create with no values makes a global value with the default name and value
+    const { name, value } = (values ?? {}) as DIGlobal
 
-    const _value = Number(value ?? kDefaultSliderValue)
-    if (isIllegalValue(_value)) return illegalValueResult
+    const _value = toGlobalValue(value ?? kDefaultSliderValue)
+    if (_value == null) return illegalValueResult
 
     const globalSnapshot = {
       name: (name || globalManager?.uniqueName() || kDefaultSliderName).toString(),
@@ -47,11 +57,12 @@ export const diGlobalHandler: DIHandler = {
   update(resources: DIResources, values?: DIValues) {
     const { document } = appState
     const { global } = resources
+    if (!values) return valuesRequiredResult
     const { value } = values as DIGlobal
     if (!global || value == null) return { success: false, values: { error: t("V3.DI.Error.missingGlobalOrValue") } }
 
-    const _value = Number(value)
-    if (isIllegalValue(_value)) return illegalValueResult
+    const _value = toGlobalValue(value)
+    if (_value == null) return illegalValueResult
 
     document.applyModelChange(
       () => global.setValue(_value)

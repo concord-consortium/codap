@@ -91,6 +91,7 @@ export const diInteractiveFrameHandler: DIHandler = {
     const { interactiveFrame } = resources
     if (!interactiveFrame) return noInteractiveFrameResult
     const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
+    if (!values) return valuesRequiredResult
     // CODAP v2 seems to ignore interactiveFrame updates when an array is passed for values
     if (Array.isArray(values)) return { success: true }
 
@@ -115,9 +116,6 @@ export const diInteractiveFrameHandler: DIHandler = {
         const currentDimensions = content?.getTileDimensions(interactiveFrame.id) ?? {}
         content?.setTileDimensions(interactiveFrame.id, { ...currentDimensions, ...tileDimensions })
       }
-      if (name && !interactiveFrame.userSetTitle) {
-        interactiveFrame.setTitle(String(name))
-      }
       if (blockAPIRequestsWhileEditing != null) {
         webViewContent?.setBlockAPIRequestsWhileEditing(blockAPIRequestsWhileEditing)
       }
@@ -131,8 +129,11 @@ export const diInteractiveFrameHandler: DIHandler = {
       if (subscribeToDocuments != null) {
         webViewContent?.setSubscribeToDocuments(subscribeToDocuments)
       }
-      if (title && !interactiveFrame.userSetTitle) {
-        interactiveFrame.setTitle(String(title))
+      // As in V2, a non-empty title takes precedence over name, and other falsy values are ignored. Empty text
+      // clears the title, as it does for update component; V2 cleared it only for an empty name.
+      const newTitle = title || name || (title === "" || name === "" ? "" : undefined)
+      if (newTitle != null && !interactiveFrame.userSetTitle) {
+        interactiveFrame.setTitle(String(newTitle) || undefined)
       }
       if (version) webViewContent?.setVersion(version)
       if (handlesLocaleChange != null) webViewContent?.setHandlesLocaleChange(handlesLocaleChange)
