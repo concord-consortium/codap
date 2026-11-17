@@ -300,11 +300,14 @@ export const InspectorPalette = ({children, Icon, id, title, paletteClassName, p
   const pointerRef = useRef<HTMLDivElement>(null)
   const viewportEl = paletteRef.current?.closest(".tile-row")
   const [inBounds, setInBounds] = useState(() => isWithinBounds(panelRight, paletteRef.current))
-  const tempPaletteTop = paletteRef.current?.getBoundingClientRect().top
   const pointerTop = buttonTop - panelTop + buttonHeight / 2 - pointerSize
   const pointerMidpoint = pointerTop + pointerSize
-  const paletteTop = (tempPaletteTop && paletteHeight) &&
-    getPaletteTopPosition(tempPaletteTop, paletteHeight, pointerMidpoint)
+  // The tile row is the scrolling area below the app header, so its top is the highest the palette can go.
+  const paletteTop = paletteHeight
+    ? getPaletteTopPosition({
+        panelTop, paletteHeight, pointerMid: pointerMidpoint, minTop: viewportEl?.getBoundingClientRect().top
+      })
+    : 0
   const headerId = title ? `palette-header-${title.replace(/\s+/g, "-").toLowerCase()}` : undefined
   useEffect(()=> {
     const observer = viewportEl && new ResizeObserver(() => {
@@ -346,14 +349,14 @@ export const InspectorPalette = ({children, Icon, id, title, paletteClassName, p
 
   const panelWidth = panelRect?.width || 72
   const paletteLeft = inBounds ? panelWidth - 5 : -(paletteWidth - 5)
-  const wrapperStyle = {top: paletteTop || 0, left: paletteLeft, zIndex: 250}
+  const wrapperStyle = {top: paletteTop, left: paletteLeft, zIndex: 250}
   const pointerStyle = inBounds
     ? { left: -(pointerSize - 1) }
     : { right: -(pointerSize - 1) }
   return (
     <div className="codap-inspector-palette-wrapper" style={wrapperStyle}>
       <div ref={pointerRef} className={`palette-pointer ${inBounds ? "arrow-left" : "arrow-right"}`}
-          style={{top: pointerTop - (paletteTop || 0), ...pointerStyle}} />
+          style={{top: pointerTop - paletteTop, ...pointerStyle}} />
       <div ref={paletteRef} className={clsx("codap-inspector-palette", paletteClassName)} id={id} tabIndex={-1}
           role={kInspectorPaletteAriaRole} aria-labelledby={headerId}
           data-testid={`inspector-palette-${tileType}`}
