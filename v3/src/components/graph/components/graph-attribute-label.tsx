@@ -10,13 +10,16 @@ import { AttributeType } from "../../../models/data/attribute-types"
 import { IDataSet } from "../../../models/data/data-set"
 import { GraphPlace, isVertical } from "../../axis-graph-shared"
 import { labelMargin, labelPaddingY } from "../../axis/axis-types"
-import { getStringBounds, renderLabelBackground } from "../../axis/axis-utils"
+import { elideStringToFit, getStringBounds, renderLabelBackground } from "../../axis/axis-utils"
 import { AttributeLabel } from "../../data-display/components/attribute-label"
 import { getAxisPlaceTraits, graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { ClickableAxisLabel } from "./clickable-axis-label"
 import { StaticAxisLabel } from "./static-axis-label"
 
 import vars from "../../vars.scss"
+
+const kResizeCornerSize = 24
+const kLabelArrowWidth = 24
 
 interface IAttributeLabelProps {
   place: GraphPlace
@@ -228,7 +231,14 @@ export const GraphAttributeLabel =
         bounds = layout.getComputedBounds(place),
         layoutIsVertical = isVertical(place),
         halfRange = layoutIsVertical ? bounds.height / 2 : bounds.width / 2,
-        label = getLabel(),
+        fullLabel = getLabel(),
+        // Without a legend, the bottom-axis title is next to the resize handle. Shorten a long title
+        // so that the centered title and the dropdown arrow after it stop short of the handle.
+        label = place === 'bottom' && layout.getComputedBounds('legend').height === 0
+          ? elideStringToFit(fullLabel,
+              2 * (layout.tileWidth - kResizeCornerSize - kLabelArrowWidth - (bounds.left + halfRange)),
+              labelFont)
+          : fullLabel,
         labelBounds = getStringBounds(label, labelFont),
         labelTransform = `translate(${bounds.left}, ${bounds.top})`,
         // With dominant-baseline: central, tY sets the visual center of the text.
@@ -267,6 +277,11 @@ export const GraphAttributeLabel =
           (update) =>
             update.call(updateTextSelection),
           )
+      // show the full title on hover when it is shortened
+      gSelection.selectAll(':scope > title')
+        .data(label !== fullLabel ? [fullLabel] : [])
+        .join('title')
+        .text(d => d)
 
       // Non-interactive axes (e.g. the Residual Plot's) skip the label background / dropdown caret —
       // there's no menu to open.
