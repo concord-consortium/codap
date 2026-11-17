@@ -1,4 +1,5 @@
 import { Map as LeafletMap } from "leaflet"
+import { MapHotSpotModel } from "../models/map-hot-spot-model"
 import { HotSpotCanvasLayer } from "./hot-spot-canvas-layer"
 
 describe("HotSpotCanvasLayer", () => {
@@ -9,7 +10,7 @@ describe("HotSpotCanvasLayer", () => {
     document.body.appendChild(container)
     const map = new LeafletMap(container, { center: [40, -95], zoom: 4 })
     const draw = jest.fn()
-    const layer = new HotSpotCanvasLayer({ pane: "overlayPane" })
+    const layer = new HotSpotCanvasLayer(MapHotSpotModel.create(), { pane: "overlayPane" })
     layer.setDrawFunction(draw)
     layer.addTo(map)
     const canvas = map.getPane("overlayPane")!.querySelector("canvas")!

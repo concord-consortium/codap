@@ -1,6 +1,7 @@
 import {
   DomUtil, LatLng, Layer, LayerOptions, Map as LeafletMap, Point, setOptions, ZoomAnimEvent
 } from "leaflet"
+import { IMapHotSpotModel } from "../models/map-hot-spot-model"
 import { IDensityGridRegion, kHotSpotCellSize, kHotSpotPadding } from "./hot-spot-utils"
 
 export type HotSpotDrawFunction = (context: CanvasRenderingContext2D, region: IDensityGridRegion) => void
@@ -23,13 +24,12 @@ export class HotSpotCanvasLayer extends Layer {
   private canvas?: HTMLCanvasElement
   private drawFunction?: HotSpotDrawFunction
   private opacity = 1
-  private padding = kHotSpotPadding
   // The view the canvas was last drawn for, used to transform it during zooms
   private drawnCenter?: LatLng
   private drawnZoom = 0
   private drawnPadding = kHotSpotPadding
 
-  constructor(options?: LayerOptions) {
+  constructor(private hotSpotModel: IMapHotSpotModel, options?: LayerOptions) {
     super()
     // L.Layer has no initialize method, so Leaflet doesn't apply constructor options for us
     setOptions(this, options)
@@ -72,17 +72,12 @@ export class HotSpotCanvasLayer extends Layer {
     return this
   }
 
-  setPadding(padding: number) {
-    this.padding = padding
-    return this
-  }
-
   redraw() {
     const map: Maybe<LeafletMap> = this._map
     const { canvas } = this
     if (!map || !canvas) return this
 
-    const { padding } = this
+    const padding = this.hotSpotModel.canvasPadding
     const size = map.getSize()
     const topLeft = size.multiplyBy(-padding).round()
     const cols = Math.ceil(size.x * (1 + 2 * padding) / kHotSpotCellSize)

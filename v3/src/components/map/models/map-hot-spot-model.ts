@@ -2,7 +2,9 @@ import { isEqual } from "lodash"
 import { getSnapshot, Instance, types } from "mobx-state-tree"
 import { applyModelChange } from "../../../models/history/apply-model-change"
 import { ILatLongSource } from "../map-types"
-import { computeDefaultBandwidth, computeHotSpotSurface, IHotSpotSurface } from "../utilities/hot-spot-utils"
+import {
+  computeDefaultBandwidth, computeHotSpotSurface, IHotSpotSurface, kHotSpotPadding, kHotSpotPaddingOptimized
+} from "../utilities/hot-spot-utils"
 
 export const MapHotSpotModel = types.model("MapHotSpotModel", {
   isVisible: false,
@@ -18,6 +20,10 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
     dynamicBandwidth: undefined as Maybe<number>
   }))
   .views(self => ({
+    // True while the bandwidth is changing interactively, so rendering should favor speed over quality
+    get shouldOptimize() {
+      return self.dynamicBandwidth != null
+    },
     get plottedLatLongs() {
       return self.latLongSource?.plottedLatLongs ?? []
     }
@@ -26,12 +32,12 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
     get displayOpacity() {
       return self.dynamicOpacity ?? self.opacity
     },
-    // True while the bandwidth is changing interactively, so rendering should favor speed over quality
-    get shouldOptimize() {
-      return self.dynamicBandwidth != null
-    },
     get defaultBandwidth() {
       return computeDefaultBandwidth(self.plottedLatLongs)
+    },
+    // Canvas padding around the viewport, as a fraction of each dimension, on each side
+    get canvasPadding() {
+      return self.shouldOptimize ? kHotSpotPaddingOptimized : kHotSpotPadding
     },
     get hotSpotSurface(): Maybe<IHotSpotSurface> {
       return computeHotSpotSurface(self.plottedLatLongs, self.dynamicBandwidth ?? self.bandwidth)

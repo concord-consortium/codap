@@ -7,9 +7,7 @@ import { isFeatureEnabled } from "../../../models/feature-flags/feature-flag-man
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { IMapPointLayerModel } from "../models/map-point-layer-model"
 import { HotSpotCanvasLayer } from "../utilities/hot-spot-canvas-layer"
-import {
-  buildColorLUT, kHotSpotPadding, kHotSpotPaddingOptimized, renderHotSpotSurface
-} from "../utilities/hot-spot-utils"
+import { buildColorLUT, renderHotSpotSurface } from "../utilities/hot-spot-utils"
 import { createLatLongProjector } from "../utilities/map-utils"
 
 export const kHotSpotPaneName = "codapHotSpotPane"
@@ -44,15 +42,13 @@ export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayer
   const opacity = hotSpotModel.displayOpacity
   const layerRef = useRef<HotSpotCanvasLayer>()
   // Coalesce bursts of changes (e.g. while dragging a point) into one redraw
-  const redraw = useDebouncedCallback(() => {
-    layerRef.current?.setPadding(hotSpotModel.shouldOptimize ? kHotSpotPaddingOptimized : kHotSpotPadding).redraw()
-  }, 10)
+  const redraw = useDebouncedCallback(() => layerRef.current?.redraw(), 10)
 
   useEffect(() => {
     if (!show) return
 
     getHotSpotPane(leafletMap)
-    const layer = new HotSpotCanvasLayer({ pane: kHotSpotPaneName })
+    const layer = new HotSpotCanvasLayer(hotSpotModel, { pane: kHotSpotPaneName })
     layerRef.current = layer
 
     // Observing the surface keeps MobX's cached copy alive while the hot spots are shown.
