@@ -15,9 +15,6 @@ interface BannerRegistration {
 // When showLowerPlot is on, the plot area splits with the upper region getting (1 - kLowerPlotFraction)
 // of the height and the lower region getting kLowerPlotFraction. Hardcoded per the Residual Plot design.
 export const kLowerPlotFraction = 1 / 3
-// The resize icon is triangular; a small inset keeps bottom labels clear of its painted corner
-// without leaving space for the full 24px button hit area.
-export const kGraphBottomClearance = 10
 
 export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   // actual measured sizes of axis elements
@@ -30,7 +27,6 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   // for the future Residual Plot adornment. Default off preserves all existing behavior.
   @observable showLowerPlot = false
   private disposer?: () => void
-  private plotHeightDisposer?: () => void
 
   constructor() {
     super()
@@ -52,12 +48,6 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
         })
       }
     )
-    // Other axis code can change MultiScale.scaleType directly. Keep vertical scale lengths in sync
-    // when that changes whether the bottom axis needs resize-handle clearance.
-    this.plotHeightDisposer = reaction(
-      () => this.plotHeight,
-      () => this.updateScaleRanges(this.plotWidth, this.plotHeight)
-    )
   }
 
   cleanup() {
@@ -68,10 +58,6 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
       this.disposer()
       this.disposer = undefined
     }
-    if (this.plotHeightDisposer) {
-      this.plotHeightDisposer()
-      this.plotHeightDisposer = undefined
-    }
   }
 
   @override get contentWidth() {
@@ -79,8 +65,7 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
   }
 
   @override get contentHeight() {
-    const plotHeight = this.computedBounds.plot.height
-    return this.isTileExtentInitialized ? plotHeight : (plotHeight || super.contentHeight)
+    return this.computedBounds.plot.height || super.contentHeight
   }
 
   @computed get plotWidth() {
@@ -250,11 +235,7 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
       v2AxisWidth = desiredExtents.get('rightNumeric') ?? 0,
       rightAxisWidth = desiredExtents.get('rightCat') ?? 0,
       plotWidth = tileWidth - leftAxisWidth - v2AxisWidth - rightAxisWidth,
-      // A legend can put labels at the right edge; a numeric bottom axis can put its max tick there.
-      // Categorical axes without a legend leave the corner clear and use the full graph height.
-      bottomClearance = legendHeight > 0 || !!this.getNumericScale('bottom') ? kGraphBottomClearance : 0,
-      usableBottom = Math.max(0, tileHeight - bottomClearance),
-      fullPlotHeight = Math.max(0, usableBottom - bannersHeight - topAxisHeight - bottomAxisHeight - legendHeight),
+      fullPlotHeight = tileHeight - bannersHeight - topAxisHeight - bottomAxisHeight - legendHeight,
       lowerPlotHeight = showLowerPlot ? Math.round(fullPlotHeight * kLowerPlotFraction) : 0,
       plotHeight = fullPlotHeight - lowerPlotHeight,
       plotTop = bannersHeight + topAxisHeight,
@@ -305,7 +286,7 @@ export class GraphLayout extends DataDisplayLayout implements IAxisLayout {
         },
         legend: {
           left: 6,
-          top: usableBottom - legendHeight,
+          top: tileHeight - legendHeight,
           width: tileWidth - 6,
           height: legendHeight
         },
