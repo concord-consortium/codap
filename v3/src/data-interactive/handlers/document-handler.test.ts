@@ -57,9 +57,12 @@ describe("update document", () => {
       { values: { operation: "updateDocumentBegun" }, targetTileId: undefined },
       { values: { operation: "updateDocumentEnded", success: true }, targetTileId: undefined }
     ])
-    expect(requesterSpy.mock.calls.map(([message]) => message)
-      .filter(({ resource }) => resource === "documentChangeNotice").map(({ values }) => values)).toEqual([
-      { operation: "updateDocumentBegun" }, { operation: "updateDocumentEnded", success: true }
+    // the requester gets everything every plugin gets, including the cleared history
+    expect(requesterSpy.mock.calls.map(([message]) => message.values)).toEqual([
+      { operation: "updateDocumentBegun" },
+      { operation: "clearUndo", canUndo: false, canRedo: false },
+      { operation: "clearRedo", canUndo: false, canRedo: false },
+      { operation: "updateDocumentEnded", success: true }
     ])
     requesterSpy.mockRestore()
   })
@@ -71,6 +74,9 @@ describe("update document", () => {
       { values: { operation: "updateDocumentBegun" }, targetTileId: undefined },
       { values: { operation: "updateDocumentEnded", success: false }, targetTileId: undefined }
     ])
+    // a failed update leaves the history alone
+    jest.advanceTimersByTime(500)
+    expect(broadcastSpy.mock.calls.filter(([message]) => message.resource === "undoChangeNotice")).toEqual([])
   })
 
   it("requires values, and then sends nothing", async () => {
@@ -149,14 +155,22 @@ describe("update document and the undo history", () => {
 
     const v2Document = JSON.parse(fs.readFileSync(path.join(__dirname, "../../test/v2/mammals.codap"), "utf8"))
     expect((await processAction({ action: "update", resource: "document", values: v2Document })).success).toBe(true)
+    // until the history is erased, the old document's entries can't be undone or redone in the new one
+    expect([document.canUndo, document.canRedo]).toEqual([false, false])
+    document.undoLastAction()
+    document.redoLastAction()
     await new Promise(resolve => setTimeout(resolve, 600))
+    expect(broadcastSpy.mock.calls.some(([message]) => message.resource === "document")).toBe(false)
 
     expect([document.canUndo, document.canRedo]).toEqual([false, false])
     const notices = broadcastSpy.mock.calls.map(([message]) => message)
       .filter(({ resource }) => resource === "undoChangeNotice" || resource === "documentChangeNotice")
       .map(({ values }) => values)
-    expect(notices.slice(-3)).toEqual([
-      { operation: "clearUndo", canUndo: false, canRedo: false },
+    // as in V2, the replacement itself is not an undoable action, so it sends no clearRedo of its own,
+    // and clearUndo goes out while the redo entry is still there
+    expect(notices).toEqual([
+      { operation: "updateDocumentBegun" },
+      { operation: "clearUndo", canUndo: false, canRedo: true },
       { operation: "clearRedo", canUndo: false, canRedo: false },
       { operation: "updateDocumentEnded", success: true }
     ])

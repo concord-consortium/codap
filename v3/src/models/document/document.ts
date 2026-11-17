@@ -29,7 +29,9 @@ export const DocumentModel = Tree.named("Document")
     // The default value should match the MENUBAR.UNTITLED_DOCUMENT in the CFM. When a new
     // document is saved, the CFM will use its default title not this one. However we need a
     // default value to show in the browser window.
-    title: t("DG.Document.defaultDocumentName")
+    title: t("DG.Document.defaultDocumentName"),
+    // true while a plugin's update document is replacing the document and its history isn't cleared yet
+    isUpdatingDocument: false
   }))
   .views(self => ({
     // This is needed for the tree monitor and manager
@@ -52,11 +54,13 @@ export const DocumentModel = Tree.named("Document")
     getDocumentTitle() {
       return self.properties.get("filename")?.split(".")[0]
     },
+    // The old document's entries can't be applied to its replacement, so there is nothing to undo or
+    // redo until the history is cleared.
     get canUndo() {
-      return !!self.treeManagerAPI?.undoManager.canUndo
+      return !self.isUpdatingDocument && !!self.treeManagerAPI?.undoManager.canUndo
     },
     get canRedo() {
-      return !!self.treeManagerAPI?.undoManager.canRedo
+      return !self.isUpdatingDocument && !!self.treeManagerAPI?.undoManager.canRedo
     }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
@@ -91,6 +95,10 @@ export const DocumentModel = Tree.named("Document")
         withoutUndo()
         self.treeManagerAPI?.undoManager.redo()
       }
+    },
+
+    setIsUpdatingDocument(isUpdatingDocument: boolean) {
+      self.isUpdatingDocument = isUpdatingDocument
     },
 
     setCreatedAt(createdAt: number) {

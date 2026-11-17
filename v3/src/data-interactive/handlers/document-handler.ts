@@ -207,14 +207,17 @@ async function updateDocument(values?: DIValues): Promise<DIHandlerFnResult> {
   }
 
   notifyDocumentChange('updateDocumentBegun')
+  document.setIsUpdatingDocument(true)
   try {
     await replaceDocument(values as ICodapV2DocumentJson)
   } catch (error) {
+    document.setIsUpdatingDocument(false)
     debugLog(DEBUG_PLUGINS, "update document failed", error)
     notifyDocumentChange('updateDocumentEnded', false)
     return errorResult(t("V3.DI.Error.exceptionProcessingRequest"))
   }
   setTimeout(() => {
+    document.setIsUpdatingDocument(false)
     document.treeManagerAPI?.undoManager.clearHistory()
     notifyDocumentChange('updateDocumentEnded', true)
   }, 500)
@@ -278,14 +281,14 @@ async function replaceDocument(v2DocumentJson: ICodapV2DocumentJson) {
       }
     )
   }
-  // TODO: try wrapping this in a an action so the afterApplySnapshot call happens
-  // before the reactions run from the applySnapshot. This should prevent an initial
-  // formula recomputation that happens too soon. But that computation will still
-  // happen. So to prevent the duplicate recomputation, we also need to make changes
-  // to how the formula manager observers work and how the manual recomputation is
-  // triggered.
-  applySnapshot(document, v3Snapshot)
-  document.content?.afterApplySnapshot()
+  // As in V2, the replacement is not an undoable action (no undo strings), so an undo before the
+  // history is cleared can't revert it.
+  // TODO: the formulas are still recomputed twice. To prevent the duplicate recomputation, we need
+  // to change how the formula manager observers work and how the manual recomputation is triggered.
+  document.applyModelChange(() => {
+    applySnapshot(document, v3Snapshot)
+    document.content?.afterApplySnapshot()
+  })
 }
 
 export const diDocumentHandler: DIAsyncHandler = {

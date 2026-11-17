@@ -60,7 +60,7 @@ This is the correct behavior from the user's perspective.
 
 ### Proactive Notifications
 
-CODAP broadcasts `clearUndo` / `clearRedo` notifications to all plugins whenever the undo or redo stack is emptied (`canUndo` or `canRedo` transitions from `true` to `false`). These are sent as `notify` messages on the `undoChangeNotice` resource with `{ operation, canUndo, canRedo }`.
+CODAP broadcasts `clearRedo` to all plugins (and the host page) each time an undoable entry is added to the history, and `clearUndo` then `clearRedo` when `update document` erases the history. Undo and redo send `undo` or `redo` on `document` instead. All are sent as `notify` messages with `{ operation, canUndo, canRedo }`, from the undo store's history listener.
 
 ### Standalone vs External Mode
 
@@ -100,7 +100,7 @@ Plugins must respond with `{ success: true }` or `{ success: false }`. On failur
 | File | Role |
 |---|---|
 | `src/data-interactive/handlers/undo-change-notice-handler.ts` | Handler for all three operations; custom undo/redo patcher registration |
-| `src/models/document/create-document-model.ts` | Proactive `clearUndo`/`clearRedo` notification reaction |
+| `src/models/document/create-document-model.ts` | History listener that sends `clearRedo`, `clearUndo`, and `undo`/`redo` on `document` |
 | `src/models/history/with-custom-undo-redo.ts` | `withCustomUndoRedo` — registers custom patches on history entries |
 | `src/models/history/custom-undo-redo-registry.ts` | Registry for custom undo/redo patchers |
 | `src/models/document/document.ts` | `canUndo`/`canRedo` views, `undoLastAction`/`redoLastAction` |
