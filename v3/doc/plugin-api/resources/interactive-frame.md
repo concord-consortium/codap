@@ -110,8 +110,9 @@ CODAP stores whether it is truthy.
 is the size of the plugin's own area: CODAP adds its title bar, so a plugin asking for
 `{ "width": 680, "height": 300 }` gets that much room, whatever the size of CODAP's title bar. Send
 either one; if both give a width or a height, `contentDimensions` wins for that side. A width or
-height left out, or one that is not a positive number, keeps its current value. `get` returns both. When the plugin runs standalone (`?standalone=true`) it
-fills the window, and neither size has a visible effect.
+height left out, or one that is not a positive number, keeps its current value; text that reads as
+a number, such as `"450"`, is used. `get` returns both. When the plugin runs standalone
+(`?standalone=true`) it fills the window, and neither size has a visible effect.
 
 v2's frame also had a border, so for the same `dimensions` a plugin gets 16 pixels more width and 3
 pixels more height in v3 than it did in v2. This is a deliberate difference; a plugin that needs an

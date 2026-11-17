@@ -84,11 +84,12 @@ export function createTableOrCardForDataset (
       Math.min(kCaseTableDefaultWidth, (numAttributes * kDefaultColumnWidth) + kDropzoneWidth + kIndexColumnWidth)
   }
 
-  const height = options?.height ?? (caseTableComponentInfo.defaultHeight || 0)
-  let {x, y} = getPositionOfNewComponent({width, height})
+  // a height in the options is the whole tile, as from a plugin's create component; the default is the content's
+  const height = options?.height ?? (caseTableComponentInfo.defaultHeight || 0) + kTitleBarHeight
+  let {x, y} = getPositionOfNewComponent({width, height: height - kTitleBarHeight})
   if (options?.x != null) x = options.x
   if (options?.y != null) y = options.y
-  const tileOptions = { x, y, width, height: height + kTitleBarHeight, animateCreation: options?.animateCreation }
+  const tileOptions = { x, y, width, height, animateCreation: options?.animateCreation }
   content?.insertTileInRow(tile, row, tileOptions)
   uiState.setFocusedTile(tile.id)
 

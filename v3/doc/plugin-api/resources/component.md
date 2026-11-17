@@ -100,12 +100,15 @@ v3.
 `type` is required when creating. On `create`, `title` falls back to `name` when only `name` is
 given.
 
-On `create`, `dimensions` is the size of the component's content, as in v2: CODAP adds its title
-bar, so a component created with a height of 300 is 334 pixels tall. `contentDimensions` means the
-same on `create`, and wins for a side both give. On `get` and `update`, `dimensions` is the size of the
-whole component, title bar included, also as in v2; `update` ignores `contentDimensions`. A plugin
-sizing its own tile should use [`interactiveFrame`](interactive-frame.md#sizing-the-plugin), which
-takes either size.
+`dimensions` is the size of the whole component, its title bar included, on `create`, `get` and
+`update`, as in v2, so a component created with a height of 300 is 300 pixels tall and `get` returns
+that size. On `create`, `contentDimensions` is the size of the component's content instead: CODAP
+adds its title bar, so a content height of 300 makes a component 334 pixels tall. If both give a
+width or a height, `contentDimensions` wins for that side. `update` ignores `contentDimensions`. A
+width or height that is not a positive number is ignored: `create` uses the default for that side,
+and `update` keeps its current value; text that reads as a number, such as `"450"`, is used. A
+plugin sizing its own tile should use [`interactiveFrame`](interactive-frame.md#sizing-the-plugin),
+which takes either size.
 
 Two of these behave differently from the table:
 
@@ -470,7 +473,7 @@ Read a graph back, to see how the user has reconfigured it:
 {
   "success": true,
   "values": {
-    "dimensions": { "width": 400, "height": 334 },
+    "dimensions": { "width": 400, "height": 300 },
     "id": 12,
     "name": "Height by Weight",
     "position": { "left": 100, "top": 100 },

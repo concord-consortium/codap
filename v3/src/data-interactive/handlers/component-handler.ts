@@ -102,9 +102,11 @@ export const diComponentHandler: DIHandler = {
       return document.applyModelChange(() => {
         const title = _title ?? name
         const _cannotClose = cannotClose != null ? !!cannotClose : undefined
-        // as in V2 (component_view.js:865-867), create's dimensions are the content size, to which CODAP adds
-        // its title bar; contentDimensions is the same, and wins side by side
-        const tileSize = tileDimensionsFromContent({ ...validDimensions(dimensions), ...validDimensions(contentDimensions) })
+        // as in V2, dimensions is the whole tile, title bar included; contentDimensions is the plugin's own area,
+        // to which CODAP adds its title bar, and wins side by side
+        const tileSize = {
+          ...validDimensions(dimensions), ...tileDimensionsFromContent(validDimensions(contentDimensions))
+        }
         const newTileOptions = {
           cannotClose: _cannotClose, content, ...tileSize, position, x, y, name, title, ..._options
         }
@@ -285,7 +287,9 @@ export const diComponentHandler: DIHandler = {
           const currentDimensions = freeTileRow?.getTileDimensions(component.id) ?? {}
           const tileType = component.content.type
           const { constrainApiDimensions } = getTileComponentInfo(tileType) || {}
-          const newDimensions = constrainApiDimensions?.(component, dimensions) ?? dimensions
+          // as in update interactiveFrame, a side that isn't a positive number keeps its current value
+          const size = validDimensions(dimensions)
+          const newDimensions = constrainApiDimensions?.(component, size) ?? size
           freeTileRow?.setTileDimensions(component.id, { ...currentDimensions, ...newDimensions })
         }
 
