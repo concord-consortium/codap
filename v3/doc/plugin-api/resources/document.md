@@ -70,6 +70,12 @@ like a silent no-op. To use this resource you must first opt in:
 
 Then issue `get document` and handle `newDocumentState` in your notification handler.
 
+The document holds values as CODAP stores them, so a `true` or `false` value is the text `"true"`
+or `"false"`, where the other resources return booleans; see
+[Booleans](../guides/data-types.md#booleans). This matches the file CODAP saves. v2's document kept a
+`true` a plugin sent as a boolean, but CODAP stores it the same way as a typed `true`, so it can't
+tell them apart. This is a deliberate difference.
+
 ## update — replacing the document
 
 `update document` takes a complete v2 document JSON in `values` and replaces the current document
