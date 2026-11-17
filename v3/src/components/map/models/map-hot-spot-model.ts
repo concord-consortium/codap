@@ -40,7 +40,7 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
       return self.shouldOptimize ? kHotSpotPaddingOptimized : kHotSpotPadding
     },
     get hotSpotSurface(): Maybe<IHotSpotSurface> {
-      return computeHotSpotSurface(self.plottedLatLongs, self.dynamicBandwidth ?? self.bandwidth)
+      return computeHotSpotSurface(self.plottedLatLongs, self.dynamicBandwidth ?? self.bandwidth, self.shouldOptimize)
     }
   }))
   .views(self => ({

@@ -220,6 +220,15 @@ export function computeMaxDensity(kernels: IKernel[]) {
   return maxDensity
 }
 
+/**
+ * Returns a cheap approximation of computeMaxDensity: the largest density at the kernels' centers, without climbing
+ * to the local maxima between them. It is a lower bound on the true maximum.
+ */
+export function computeApproximateMaxDensity(kernels: IKernel[]) {
+  const index = new WorldKernelIndex(kernels)
+  return kernels.reduce((max, { x, y }) => Math.max(max, index.densityAt(x, y)), 0)
+}
+
 /** A point to plot, with its position and bandwidth in zoom-0 world units */
 export interface IHotSpotPoint extends IKernel {
   latLong: ILatLong
@@ -241,7 +250,9 @@ export interface IHotSpotSurface {
  * Returns the density surface of the points, or undefined if there are none. If bandwidthMeters isn't a positive
  * number, a default is computed from the points' spread.
  */
-export function computeHotSpotSurface(latLongs: ILatLong[], bandwidthMeters?: number): Maybe<IHotSpotSurface> {
+export function computeHotSpotSurface(
+  latLongs: ILatLong[], bandwidthMeters?: number, optimize = false
+): Maybe<IHotSpotSurface> {
   if (!latLongs.length) return
 
   const bandwidth = bandwidthMeters && bandwidthMeters > 0 ? bandwidthMeters : computeDefaultBandwidth(latLongs)
@@ -249,7 +260,8 @@ export function computeHotSpotSurface(latLongs: ILatLong[], bandwidthMeters?: nu
     const { x, y } = latLongToWorldPoint(latLong)
     return { latLong, x, y, h: bandwidthToWorldUnits(bandwidth, latLong.lat) }
   })
-  return { points, bandwidthMeters: bandwidth, maxDensity: computeMaxDensity(points) }
+  const maxDensity = optimize ? computeApproximateMaxDensity(points) : computeMaxDensity(points)
+  return { points, bandwidthMeters: bandwidth, maxDensity }
 }
 
 /** A grid of square cells, positioned in container pixels */
