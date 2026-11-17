@@ -49,7 +49,6 @@ export const useSubAxis = ({
     _axisModel = axisProvider.getAxis(axisPlace),
     isCategorical = isAnyCategoricalAxisModel(_axisModel),
     isColorAxis = isColorAxisModel(_axisModel) || (_axisModel?.type === "categorical" && axisAttributeType === "color"),
-    multiScaleChangeCount = layout.getAxisMultiScale(_axisModel?.place ?? 'bottom')?.changeCount ?? 0,
     dragInfo = useRef<DragInfo>({
       initialIndexOfCategory: -1,
       indexOfCategory: -1,
@@ -455,45 +454,21 @@ export const useSubAxis = ({
     }
   }, [axisPlace, axisProvider, dataConfig, updateDomainAndRenderSubAxis])
 
-  useEffect(function respondToAttributeTypeChange() {
+  // Set up and render the sub-axis on mount, when the callbacks change, and when the axis
+  // length, number of sub-axes, categorical domain or attribute type changes.
+  useEffect(function syncSubAxis() {
     return mstReaction(
-      () => dataConfig?.dataset?.getAttribute(attrId)?.type, // Observe the attribute type
       () => {
-        setupCategories()
-        renderSubAxis()
-      },
-      { name: "useSubAxis [attributeTypeChange]" }, [dataConfig]
-    )
-  }, [attrId, dataConfig, setupCategories, renderSubAxis])
-
-  // Render when axis length or number of sub-axes changes. A change in the number of sub-axes changes
-  // each sub-axis's length, and with it the categories limit, so categorical axes must be set up again.
-  useEffect(() => {
-    const disposer = reaction(
-      () => {
-        return [layout.getAxisLength(axisPlace),
-          layout.getAxisMultiScale(axisPlace)?.repetitions]
+        const multiScale = layout.getAxisMultiScale(axisPlace)
+        return [layout.getAxisLength(axisPlace), multiScale?.repetitions, multiScale?.changeCount,
+                dataConfig?.dataset?.getAttribute(attrId)?.type]
       },
       () => {
         isCategorical && setupCategories()
         renderSubAxis()
-      }, {name: "useSubAxis [axisLength]", equals: comparer.structural}
+      },
+      { name: "useSubAxis.syncSubAxis", equals: comparer.structural, fireImmediately: true }, dataConfig
     )
-    return () => disposer()
-  }, [axisPlace, layout, isCategorical, renderSubAxis, setupCategories])
-
-  // update on multiScaleChangeCount change
-  useEffect(() => {
-    isCategorical && setupCategories()
-    renderSubAxis()
-  }, [renderSubAxis, multiScaleChangeCount, isCategorical, setupCategories])
-
-  // We only need to do this for categorical axes
-  useEffect(function setup() {
-    if (isCategorical) {
-      setupCategories()
-      renderSubAxis()
-    }
-  }, [isCategorical, setupCategories, renderSubAxis])
+  }, [attrId, axisPlace, dataConfig, isCategorical, layout, renderSubAxis, setupCategories])
 
 }

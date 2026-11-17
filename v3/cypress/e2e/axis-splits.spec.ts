@@ -197,29 +197,52 @@ context("Test graph axes with split, multi-y, bars, and overflow configurations"
         })
       })
   })
-  it("keeps the OTHER category on each sub-axis when a categorical axis is split", () => {
-    // A fresh graph from the toolbar is short enough that the 27 mammals overflow into OTHER.
+  // Splitting the plot by Diet repeats the Mammal axis once per diet, so each sub-axis is a fraction
+  // of the length and must show fewer categories, still ending with OTHER. Removing or undoing the
+  // split restores the unsplit set of categories.
+  const verifyCategoriesLimitOnSplit = (axis: "left" | "bottom", split: "right" | "top",
+                                        splitMenu: { open: string, list: string }) => {
+    // A fresh graph from the toolbar is small enough that the 27 mammals overflow into OTHER.
     c.closeComponent("graph")
     c.getIconFromToolShelf("graph").click()
     cy.wait(500)
 
-    ah.openAxisAttributeMenu("left")
-    ah.selectMenuAttribute("Mammal", "left")
-    cy.wait(1000)
-    ah.verifyAxisTickLabels("left", ["OTHER"], true)
+    ah.openAxisAttributeMenu(axis)
+    ah.selectMenuAttribute("Mammal", axis)
+    ae.getAxisTickLabels(axis, true).last().should("have.text", "OTHER")
 
-    ae.getAxisTickLabels("left", true).its("length").then(unsplitCount => {
-      // Splitting the plot by Diet repeats the left axis once per diet, so each sub-axis is a
-      // fraction of the length and must show fewer categories, still ending with OTHER.
-      cy.dragAttributeToTarget("table", arrayOfAttributes[8], "right") // Diet => right split
-      cy.wait(1000)
-      cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper")
-        .should("have.length", 3)
-        .each(wrapper => {
-          cy.wrap(wrapper).find("[data-testid=category-on-axis] [data-testid=category-label]")
-            .should("have.length.lessThan", unsplitCount)
-            .last().should("have.text", "OTHER")
-        })
+    const subAxes = () => cy.get("[data-testid=graph]").find(`[data-testid=axis-${axis}]`).find(".sub-axis-wrapper")
+    const verifyUnsplit = (unsplitCount: number) => {
+      subAxes().should("have.length", 1)
+      ae.getAxisTickLabels(axis, true).should("have.length", unsplitCount)
+        .last().should("have.text", "OTHER")
+    }
+    const verifySplit = (unsplitCount: number) => {
+      subAxes().should("have.length", 3).each(wrapper => {
+        cy.wrap(wrapper).find("[data-testid=category-on-axis] [data-testid=category-label]")
+          .should("have.length.lessThan", unsplitCount)
+          .last().should("have.text", "OTHER")
+      })
+    }
+
+    ae.getAxisTickLabels(axis, true).its("length").then(unsplitCount => {
+      cy.dragAttributeToTarget("table", arrayOfAttributes[8], split) // Diet => split
+      verifySplit(unsplitCount)
+
+      ah.openAxisAttributeMenu(splitMenu.open)
+      ah.removeAttributeFromAxis(arrayOfAttributes[8], splitMenu.list)
+      verifyUnsplit(unsplitCount)
+
+      toolbar.getUndoTool().click() // undo the removal
+      verifySplit(unsplitCount)
+      toolbar.getUndoTool().click() // undo adding the split
+      verifyUnsplit(unsplitCount)
     })
+  }
+  it("keeps the OTHER category on each left sub-axis when split from the right", () => {
+    verifyCategoriesLimitOnSplit("left", "right", { open: "rightCat", list: "right-cat" })
+  })
+  it("keeps the OTHER category on each bottom sub-axis when split from the top", () => {
+    verifyCategoriesLimitOnSplit("bottom", "top", { open: "top", list: "top" })
   })
 })
