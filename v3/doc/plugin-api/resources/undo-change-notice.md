@@ -77,20 +77,21 @@ CODAP sends `notify` on `undoChangeNotice` with one of these operations:
 |---|---|---|---|
 | `undoAction` | the plugin, or the host page, whose entry is being undone | — | `{ "success": true }` once it has reversed the action, or `{ "success": false }` if it could not, and CODAP then tells the user the undo failed |
 | `redoAction` | the plugin, or the host page, whose entry is being redone | — | the same, once it has reapplied the action |
-| `clearUndo` | every plugin | `canUndo`, `canRedo` | anything; CODAP does not read the reply |
+| `clearUndo` | every plugin, and the host page | `canUndo`, `canRedo` | anything; CODAP does not read the reply |
 | `clearRedo` | every plugin, and the host page | `canUndo`, `canRedo` | anything; CODAP does not read the reply |
 
 `clearRedo` is sent each time an action is added to the history, even when there was nothing to
-redo, so a plugin learns that undo has become possible. `clearUndo` is sent, with `clearRedo`,
-when the undo history is erased. v2 erased it whenever a change could not be undone and after an
-`update document`. CODAP keeps the history after a change that cannot be undone, so it does not
-send them for that. It does not yet erase the history after an `update document` either, and
-sends `clearRedo` with `canUndo: true` instead; this is a known bug. v2 sent `clearUndo` and
-`clearRedo` to plugins only. CODAP also sends `clearRedo` to the host page when it is embedded in
-one, so the host page too learns that undo has become possible; never erasing the history, it
-sends no `clearUndo` at all. Undoing or redoing sends neither: CODAP sends `undo` or `redo` on
-[`document`](document.md) to every plugin instead, also with `canUndo` and `canRedo`. Set your buttons from those values whatever the operation is
-called. See [Keeping your buttons in step](../guides/undo-and-redo.md#keeping-your-buttons-in-step).
+redo, so a plugin learns that undo has become possible. `clearUndo` is sent, with `clearRedo`, when
+the undo history is erased. v2 erased it whenever a change could not be undone and after an
+`update document`. CODAP erases it after an `update document`, just before `updateDocumentEnded`,
+as v2 did. Restoring a component can record an action of its own, such as a graph's measure, so a
+`clearRedo` can come first. CODAP keeps the history after a change that cannot
+be undone, so it does not send them for that. v2 sent `clearUndo` and `clearRedo` to plugins only.
+CODAP also sends them to the host page when it is embedded in one, so the host page too can keep
+its buttons in step. Undoing or redoing sends neither: CODAP sends `undo` or `redo` on
+[`document`](document.md) to every plugin instead, also with `canUndo` and `canRedo`. Set your
+buttons from those values whatever the operation is called. See
+[Keeping your buttons in step](../guides/undo-and-redo.md#keeping-your-buttons-in-step).
 
 ## Examples
 

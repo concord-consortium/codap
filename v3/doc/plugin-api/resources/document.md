@@ -98,6 +98,17 @@ being replaced, whoever replaced it.
 `updateDocumentEnded` is sent whether the replacement succeeded or failed, and its `success` says
 which. v2 sent no `success`, and sent no `updateDocumentEnded` at all when the replacement failed.
 
+After a successful replacement, CODAP erases the undo and redo history just before
+`updateDocumentEnded`, as v2 did, so the user cannot undo back into the replaced document. Every
+plugin, and the host page, receives `clearUndo` and then `clearRedo` on
+[`undoChangeNotice`](undo-change-notice.md#notifications). As in v2, the replacement itself is not
+an action the user can undo. Restoring a component can record an action of its own, such as a
+graph's measure, so a `clearRedo` can come before the other two.
+
+From the request until the history is erased, nothing can be undone or redone: `canUndo` and
+`canRedo` are `false`, and the toolbar's Undo and Redo are disabled. v2 left them enabled, though
+the actions they would undo belonged to the replaced document.
+
 **Your own state is not restored from the document you send.** Before applying the incoming
 snapshot, CODAP replaces the incoming state of every plugin with `subscribeToDocuments: true`
 with that plugin's *current* state. This is deliberate — it stops a plugin that saved a document
@@ -182,6 +193,7 @@ sendRequest({ action: 'update', resource: 'document', values: savedState })
 | `document` | `newDocumentState` | After `get document`, to every plugin with `subscribeToDocuments: true`. Carries the document in `values.state`. |
 | `documentChangeNotice` | `updateDocumentBegun` | Before an `update document` begins. Sent to every plugin and to the host page. |
 | `documentChangeNotice` | `updateDocumentEnded` | After it completes or fails. Carries `success`. Sent to every plugin and to the host page. |
+| [`undoChangeNotice`](undo-change-notice.md) | `clearUndo`, then `clearRedo` | After a successful `update document`, just before `updateDocumentEnded`, when the undo and redo history is erased. Sent to every plugin and to the host page. |
 
 When the user, or a plugin, undoes or redoes anything, CODAP sends every plugin a notification on
 this resource with operation `undo` or `redo`, as v2 did, carrying `canUndo` and `canRedo` (which
