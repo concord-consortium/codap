@@ -23,9 +23,11 @@ export class HotSpotCanvasLayer extends Layer {
   private canvas?: HTMLCanvasElement
   private drawFunction?: HotSpotDrawFunction
   private opacity = 1
+  private padding = kHotSpotPadding
   // The view the canvas was last drawn for, used to transform it during zooms
   private drawnCenter?: LatLng
   private drawnZoom = 0
+  private drawnPadding = kHotSpotPadding
 
   constructor(options?: LayerOptions) {
     super()
@@ -70,15 +72,21 @@ export class HotSpotCanvasLayer extends Layer {
     return this
   }
 
+  setPadding(padding: number) {
+    this.padding = padding
+    return this
+  }
+
   redraw() {
     const map: Maybe<LeafletMap> = this._map
     const { canvas } = this
     if (!map || !canvas) return this
 
+    const { padding } = this
     const size = map.getSize()
-    const topLeft = size.multiplyBy(-kHotSpotPadding).round()
-    const cols = Math.ceil(size.x * (1 + 2 * kHotSpotPadding) / kHotSpotCellSize)
-    const rows = Math.ceil(size.y * (1 + 2 * kHotSpotPadding) / kHotSpotCellSize)
+    const topLeft = size.multiplyBy(-padding).round()
+    const cols = Math.ceil(size.x * (1 + 2 * padding) / kHotSpotCellSize)
+    const rows = Math.ceil(size.y * (1 + 2 * padding) / kHotSpotCellSize)
     // setting the size also clears the canvas
     canvas.width = cols
     canvas.height = rows
@@ -87,6 +95,7 @@ export class HotSpotCanvasLayer extends Layer {
     DomUtil.setPosition(canvas, map.containerPointToLayerPoint(topLeft))
     this.drawnCenter = map.getCenter()
     this.drawnZoom = map.getZoom()
+    this.drawnPadding = padding
     const context = canvas.getContext("2d")
     if (context && cols > 0 && rows > 0) {
       this.drawFunction?.(context, {
@@ -112,7 +121,7 @@ export class HotSpotCanvasLayer extends Layer {
     if (!map || !hasGetNewPixelOrigin(map) || !this.canvas || !this.drawnCenter) return
 
     const scale = map.getZoomScale(zoom, this.drawnZoom)
-    const viewHalf = map.getSize().multiplyBy(0.5 + kHotSpotPadding)
+    const viewHalf = map.getSize().multiplyBy(0.5 + this.drawnPadding)
     const drawnCenterPoint = map.project(this.drawnCenter, zoom)
     const newPixelOrigin = map._getNewPixelOrigin(center, zoom)
     const topLeftOffset = viewHalf.multiplyBy(-scale).add(drawnCenterPoint).subtract(newPixelOrigin)

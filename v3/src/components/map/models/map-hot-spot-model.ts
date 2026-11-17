@@ -26,6 +26,10 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
     get displayOpacity() {
       return self.dynamicOpacity ?? self.opacity
     },
+    // True while the bandwidth is changing interactively, so rendering should favor speed over quality
+    get shouldOptimize() {
+      return self.dynamicBandwidth != null
+    },
     get defaultBandwidth() {
       return computeDefaultBandwidth(self.plottedLatLongs)
     },

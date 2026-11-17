@@ -20,6 +20,8 @@ export const kKernelCutoff = 3
  * computing a grid 4× the viewport's area.
  */
 export const kHotSpotPadding = 0.5
+/** Canvas padding while rendering is optimized for speed. */
+export const kHotSpotPaddingOptimized = 0
 /** Bandwidth used when the points have no spread or there is no mean center */
 export const kFallbackBandwidthMeters = 10000
 /** Radius of the sphere used by Leaflet's Web Mercator projection (EPSG:3857) */
