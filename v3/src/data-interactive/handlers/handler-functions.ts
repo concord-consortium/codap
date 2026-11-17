@@ -3,7 +3,7 @@ import {
   updateItemsNotification
 } from "../../models/data/data-set-notifications"
 import { IDataSet } from "../../models/data/data-set"
-import { getGroupedCases } from "../../models/data/data-set-utils"
+import { getGroupedCases, getVanishingCases } from "../../models/data/data-set-utils"
 import { ICase } from "../../models/data/data-set-types"
 import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
 import { DIResources, DISuccessResult, DIValues } from "../data-interactive-types"
@@ -22,10 +22,16 @@ export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   if (!aCase) return caseNotFoundResult
 
   const pseudoCase = dataContext.caseInfoMap.get(aCase.__id__)
-  const caseIds = pseudoCase?.childItemIds ?? [aCase.__id__]
+  // unlike V2, the case's set-aside items go too, so restoring set-aside cases can't bring it back;
+  // items hidden by a filter formula are left alone
+  const setAsideItemIds = pseudoCase?.hiddenChildItemIds.filter(itemId => dataContext.isItemSetAside(itemId)) ?? []
+  const itemIds = pseudoCase ? [...pseudoCase.childItemIds, ...setAsideItemIds] : [aCase.__id__]
 
+  // as in V2, the notice lists only the deleted case
   dataContext.applyModelChange(() => {
-    dataContext.removeCases(caseIds)
+    // the set-aside items are deleted, so they no longer count as set aside
+    if (setAsideItemIds.length) dataContext.showHiddenCasesAndItems(setAsideItemIds)
+    dataContext.removeCases(itemIds)
   }, {
     notify: deleteCasesNotification(dataContext, getGroupedCases(dataContext, [aCase.__id__]))
   })
@@ -33,11 +39,12 @@ export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   return { success: true as const, values: [toV2Id(aCase.__id__)] }
 }
 
-// The notifications for deleting items, built before they are removed: `deleteCases` for their cases,
-// then `deleteItems` for the items themselves (new in V3; V2 never forwarded deleteItems)
+// The notifications for deleting items, built before they are removed: `deleteCases` for every case that
+// disappears, in every collection, with V2's caseIDs, then `deleteItems` for the items themselves (new in V3;
+// V2 never forwarded deleteItems)
 export function deleteItemsNotifications(dataContext: IDataSet, itemIds: string[]) {
   const existingItemIds = Array.from(new Set(itemIds)).filter(itemId => dataContext.itemInfoMap.has(itemId))
-  const notifications = [deleteCasesNotification(dataContext, getGroupedCases(dataContext, existingItemIds))]
+  const notifications = [deleteCasesNotification(dataContext, getVanishingCases(dataContext, existingItemIds), true)]
   // no deleteItems when none of the listed items existed
   if (existingItemIds.length > 0) notifications.push(deleteItemsNotification(dataContext, existingItemIds))
   return notifications

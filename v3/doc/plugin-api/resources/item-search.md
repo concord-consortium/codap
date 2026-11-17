@@ -222,12 +222,12 @@ numbers from `0` to one less than the number of items.
 
 ## Notifications
 
-`get` sends none. `delete` sends `deleteCases`, then `deleteItems` with the deleted items' ids
-(new in v3), and `notify` sends `moveCases`, on `dataContextChangeNotice[<context>]` to the other
-plugins. `moveCases` is sent only when the order
-changes, and does not list the moved cases, as in v2; read the cases again if you need their new
-order. See
-[the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext).
+`get` sends none. `delete` sends `deleteCases` for every case it removes, in every collection, with
+their ids in `caseIDs` as in v2, then `deleteItems` with the deleted items' ids (new in v3), and
+`notify` sends `moveCases`, on `dataContextChangeNotice[<context>]` to the other plugins.
+`moveCases` is sent only when the order changes, and does not list the moved cases, as in v2; read
+the cases again if you need their new order. See [the notification
+catalog](../notifications.md#data-changes--datacontextchangenoticecontext).
 
 ## Errors
 
