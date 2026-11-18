@@ -9,10 +9,9 @@ catalogs them.
 
 The tables are generated from CODAP's source: which operations exist, which section each
 belongs in, and the keys each one's `values` carries. Only the "Fires when" column is written by
-hand. Where the keys cannot be read from the code, the table says so
-rather than guessing. Two operation names are assembled when they are sent, so the generated
-tables cannot list them: `toggle show as <plot type>` and `change bar chart from <old> to <new>`,
-both described under [Graph](#graph).
+hand, and the name of an operation assembled when it is sent, which its row gives with a
+`<placeholder>` for the part that varies; see [Graph](#graph). Where the keys cannot be read from
+the code, the table says so rather than guessing.
 
 It is the opposite direction from the `notify` **action**, which a plugin sends *to* CODAP to ask
 for something. Those are documented on each resource's own page.

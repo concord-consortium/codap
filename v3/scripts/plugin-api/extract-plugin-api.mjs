@@ -751,8 +751,13 @@ function operationNames(arg, callNode, resource) {
           if (!ts.isVariableStatement(stmt)) continue
           for (const decl of stmt.declarationList.declarations) {
             if (ts.isIdentifier(decl.name) && decl.name.text === arg.text && decl.initializer) {
+              // As for a direct argument: a const built from text, or a ternary with such a branch,
+              // is recorded by its shape, so a row with a <placeholder> can still name it.
               const lits = literalsOf(decl.initializer)
-              if (lits.length) return lits
+              if (!lits.length || hasOpaqueBranch(decl.initializer)) {
+                addUnresolved(callNode.getSourceFile(), callNode, resource, decl.initializer)
+              }
+              return lits
             }
           }
         }
@@ -778,14 +783,18 @@ function operationNames(arg, callNode, resource) {
 //   fixed       keys it always writes
 //   keyedSlots  keys it writes from an argument, present when that argument is passed
 //   spreadSlot  an argument whose own keys are spread into `values`
+//   assigned    keys it writes afterwards with `values.<key> = ...`, `values["<key>"] ??= ...`,
+//               `Object.assign(values, { <key> })` and the like
+//   assignedOnPage  the assigned keys are the ones every notification from it carries, stated once
+//               on the page (notifications.md, "Component changes") rather than in each row
 // A wrapper's spec is derived from the call it makes, so `updateAxisNotification(op, domain,
 // tile)` is known to carry `newBounds` although its callers never write that key. Anything that
 // cannot be read — a forwarded identifier, a computed object — is reported as unknown, never
 // guessed at.
 const kBaseValueSpecs = {
-  tileNotification: { fixed: [], spreadSlot: 1 },
-  dragNotification: { fixed: ["attribute", "collection", "context", "text"], spreadSlot: 4 },
-  dataSetNotification: { fixed: [], keyedSlots: { result: 1 }, spreadSlot: 4 }
+  tileNotification: { fixed: [], spreadSlot: 1, assigned: ["id", "type", "diType"], assignedOnPage: true },
+  dragNotification: { fixed: ["attribute", "collection", "context", "text"], spreadSlot: 4, assigned: [] },
+  dataSetNotification: { fixed: [], keyedSlots: { result: 1 }, spreadSlot: 4, assigned: [] }
 }
 
 const isAbsent = arg => !arg || (ts.isIdentifier(arg) && arg.text === "undefined")
@@ -891,7 +900,9 @@ function bindingOf(fn, name) {
 // The keys a call with this spec puts in `values`, or null when they cannot be read.
 function valuesAt(spec, call) {
   if (!spec || spec.opaque) return { keys: null }
-  const keys = [...spec.fixed]
+  // Keys assigned afterwards are part of every notification, except tileNotification's, which the
+  // page states once for all component notifications.
+  const keys = [...spec.fixed, ...(spec.assignedOnPage ? [] : spec.assigned ?? [])]
   let partial = !!spec.partial
   for (const [key, i] of Object.entries(spec.keyedSlots ?? {})) {
     if (!isAbsent(call.arguments[i])) keys.push(key)
@@ -909,7 +920,8 @@ function valuesAt(spec, call) {
 function deriveValueSpec(fn, call, inner) {
   const params = fn.parameters.map(pm => ts.isIdentifier(pm.name) ? pm.name.text : null)
   const paramIndex = arg => arg && ts.isIdentifier(arg) ? params.indexOf(arg.text) : -1
-  const out = { fixed: [...inner.fixed], keyedSlots: {}, partial: !!inner.partial, opaque: !!inner.opaque }
+  const out = { fixed: [...inner.fixed], keyedSlots: {}, partial: !!inner.partial, opaque: !!inner.opaque,
+                assigned: [...inner.assigned ?? []], assignedOnPage: !!inner.assignedOnPage }
   for (const [key, i] of Object.entries(inner.keyedSlots ?? {})) {
     const arg = call.arguments[i]
     if (isAbsent(arg)) continue
@@ -958,10 +970,13 @@ function baseValueSpecFromCode(name) {
   const params = fn.parameters.map(pm => ts.isIdentifier(pm.name) ? pm.name.text : null)
   const paramIndex = n => n && ts.isIdentifier(n) ? params.indexOf(n.text) : -1
   let spec = null
+  // the object the notifier fills: the parameter it writes into, or the const it builds
+  let target = null
   eachNode(fn, node => {
     if (spec) return
     if (ts.isObjectLiteralExpression(node) && node.properties.some(pr => pr.name?.text === "operation")) {
       spec = { fixed: [], keyedSlots: {} }
+      if (ts.isVariableDeclaration(node.parent) && ts.isIdentifier(node.parent.name)) target = node.parent.name.text
       for (const pr of node.properties) {
         // A spread of anything but a parameter, or a computed key, is listed as written; no spec
         // can express it, so the check fails until the extractor learns it.
@@ -983,19 +998,51 @@ function baseValueSpecFromCode(name) {
                ts.isPropertyAccessExpression(node.left) && node.left.name.text === "operation" &&
                paramIndex(node.left.expression) >= 0) {
       spec = { fixed: [], keyedSlots: {}, spreadSlot: paramIndex(node.left.expression) }
+      target = node.left.expression.text
     }
   })
+  // Keys written into that object afterwards, `values.k = ...` or `(values as any).k = ...`, are part
+  // of what every notification from it carries, so they are compared too.
+  if (spec) {
+    spec.assigned = []
+    const isTarget = n => { n = unwrap(n); return !!target && ts.isIdentifier(n) && n.text === target }
+    const kAssignOps = [ts.SyntaxKind.EqualsToken, ts.SyntaxKind.QuestionQuestionEqualsToken,
+                        ts.SyntaxKind.BarBarEqualsToken, ts.SyntaxKind.AmpersandAmpersandEqualsToken]
+    const add = key => { if (key !== "operation") spec.assigned.push(key) }
+    eachNode(fn, node => {
+      if (ts.isBinaryExpression(node) && kAssignOps.includes(node.operatorToken.kind)) {
+        const left = unwrap(node.left)
+        if (ts.isPropertyAccessExpression(left) && isTarget(left.expression)) add(left.name.text)
+        else if (ts.isElementAccessExpression(left) && isTarget(left.expression)) {
+          add(ts.isStringLiteralLike(left.argumentExpression) ? left.argumentExpression.text
+            : `[${left.argumentExpression.getText()}]`)
+        }
+      }
+      // Object.assign(values, { k: ... }, ...)
+      if (ts.isCallExpression(node) && node.expression.getText() === "Object.assign" &&
+          node.arguments.length > 1 && isTarget(node.arguments[0])) {
+        for (const src of node.arguments.slice(1)) {
+          const obj = unwrap(src)
+          if (ts.isObjectLiteralExpression(obj)) objectKeys(obj).keys.forEach(add)
+          else add(`...${src.getText()}`)
+        }
+      }
+    })
+  }
   return spec
 }
 {
-  const shape = s =>
-    JSON.stringify([[...s.fixed].sort(), Object.entries(s.keyedSlots ?? {}).sort(), s.spreadSlot ?? null])
+  const shape = s => JSON.stringify([[...s.fixed].sort(), Object.entries(s.keyedSlots ?? {}).sort(),
+                                     s.spreadSlot ?? null, [...new Set(s.assigned ?? [])].sort()])
   for (const name of Object.keys(kBaseNotifiers)) {
     const fromCode = baseValueSpecFromCode(name)
     if (!fromCode || shape(fromCode) !== shape(kBaseValueSpecs[name])) {
       console.error(`extract-plugin-api: kBaseValueSpecs.${name} does not match ${name} in the code ` +
                     `(${fromCode ? `the code gives ${JSON.stringify(fromCode)}` : "not found"}). Update the ` +
-                    `spec, or the extractor if the code does something a spec can't express.`)
+                    `spec, or the extractor if the code does something a spec can't express.` +
+                    (kBaseValueSpecs[name]?.assignedOnPage
+                      ? " If the keys every component notification carries changed, also update the sentence " +
+                        "listing them under \"Component changes\" in doc/plugin-api/notifications.md." : ""))
       process.exit(3)
     }
   }
@@ -1265,38 +1312,188 @@ for (const [, sf] of sources) {
   })
 }
 
+// The message builders a file exports, by the name it exports them under: its own; re-exports
+// (`export { b } from "./x"`, `export { b as c } from "./x"`, `export { b as default } from "./x"`,
+// `export * from "./x"`); a builder it imports and exports again (`import { b } ...; export { b as c }`);
+// and `export default b`. `export * as NS from "./x"` exports a namespace instead (exportedNamespaces).
+// Worked out once for every file, repeating until nothing changes, so import cycles need no special care.
+const exportedBuildersByFile = new Map()
+{
+  const own = sf => new Set([...messageBuilders.keys()].filter(name => messageBuilders.get(name) === sf))
+  for (const [, sf] of sources) exportedBuildersByFile.set(sf, own(sf))
+  const theirs = from => exportedBuildersByFile.get(from) ?? new Set()
+  for (let changed = true; changed;) {
+    changed = false
+    for (const [, sf] of sources) {
+      const names = exportedBuildersByFile.get(sf)
+      const before = names.size
+      // this file's imported builders, by local name, for `export { local as name }` and `export default local`
+      const imported = new Set()
+      for (const st of sf.statements) {
+        if (!ts.isImportDeclaration(st) || !ts.isStringLiteralLike(st.moduleSpecifier)) continue
+        const from = importedFile(sf, st.moduleSpecifier.text)
+        const clause = from && st.importClause
+        if (!clause || clause.isTypeOnly) continue
+        if (clause.name && theirs(from).has("default")) imported.add(clause.name.text)
+        if (clause.namedBindings && ts.isNamedImports(clause.namedBindings)) {
+          for (const el of clause.namedBindings.elements) {
+            if (theirs(from).has((el.propertyName ?? el.name).text)) imported.add(el.name.text)
+          }
+        }
+      }
+      for (const st of sf.statements) {
+        if (ts.isExportAssignment(st) && !st.isExportEquals && ts.isIdentifier(st.expression) &&
+            (messageBuilders.get(st.expression.text) === sf || imported.has(st.expression.text))) names.add("default")
+        if (!ts.isExportDeclaration(st) || st.isTypeOnly) continue
+        if (!st.moduleSpecifier) {
+          if (st.exportClause && ts.isNamedExports(st.exportClause)) {
+            for (const el of st.exportClause.elements) {
+              const local = (el.propertyName ?? el.name).text
+              if (messageBuilders.get(local) === sf || imported.has(local)) names.add(el.name.text)
+            }
+          }
+          continue
+        }
+        if (!ts.isStringLiteralLike(st.moduleSpecifier)) continue
+        const from = importedFile(sf, st.moduleSpecifier.text)
+        if (!from) continue
+        if (!st.exportClause) theirs(from).forEach(name => { if (name !== "default") names.add(name) })
+        else if (ts.isNamedExports(st.exportClause)) {
+          for (const el of st.exportClause.elements) {
+            if (theirs(from).has((el.propertyName ?? el.name).text)) names.add(el.name.text)
+          }
+        }
+      }
+      if (names.size !== before) changed = true
+    }
+  }
+}
+const exportedBuilders = sf => exportedBuildersByFile.get(sf) ?? new Set()
+
+// The namespaces a file exports with `export * as NS from "./x"`, by name -> the file.
+function exportedNamespaces(sf) {
+  const out = new Map()
+  for (const st of sf.statements) {
+    if (!ts.isExportDeclaration(st) || st.isTypeOnly || !st.moduleSpecifier || !st.exportClause ||
+        !ts.isNamespaceExport(st.exportClause) || !ts.isStringLiteralLike(st.moduleSpecifier)) continue
+    const from = importedFile(sf, st.moduleSpecifier.text)
+    if (from) out.set(st.exportClause.name.text, from)
+  }
+  return out
+}
+
+// The names a binding pattern or name declares.
+function boundNames(name, out = []) {
+  if (!name) return out
+  if (ts.isIdentifier(name)) out.push(name.text)
+  else if (ts.isObjectBindingPattern(name) || ts.isArrayBindingPattern(name)) {
+    for (const el of name.elements) if (!ts.isOmittedExpression(el)) boundNames(el.name, out)
+  }
+  return out
+}
+
+// True when a scope between `node` and the file declares `text` again, so the name there isn't the
+// file's builder: a parameter, a variable, function or class in a block, a catch variable, a loop variable.
+function isShadowed(node, text) {
+  for (let n = node.parent; n && !ts.isSourceFile(n); n = n.parent) {
+    if (ts.isFunctionLike(n) && n.parameters?.some(pm => boundNames(pm.name).includes(text))) return true
+    if (ts.isFunctionExpression(n) && n.name?.text === text) return true
+    if (ts.isCatchClause(n) && boundNames(n.variableDeclaration?.name).includes(text)) return true
+    if ((ts.isForStatement(n) || ts.isForOfStatement(n) || ts.isForInStatement(n)) && n.initializer &&
+        ts.isVariableDeclarationList(n.initializer) &&
+        n.initializer.declarations.some(d => boundNames(d.name).includes(text))) return true
+    const statements = ts.isBlock(n) || ts.isModuleBlock(n) ? n.statements : ts.isCaseClause(n) ? n.statements : null
+    if (statements?.some(st =>
+      (ts.isVariableStatement(st) && st.declarationList.declarations.some(d => boundNames(d.name).includes(text))) ||
+      ((ts.isFunctionDeclaration(st) || ts.isClassDeclaration(st)) && st.name?.text === text))) return true
+  }
+  return false
+}
+
 // A call to a message builder from anywhere but a base notifier sends a message nothing above read.
+// So does any other use of one, such as `const send = notification`, since its calls can't be followed.
 for (const [, sf] of sources) {
   if (/\.test\.tsx?$/.test(rel(sf.fileName))) continue
-  // Builders this file can call: its own, named imports and namespace imports of a builder's file.
-  const builtHere = name => messageBuilders.get(name) === sf
-  const localNames = new Set([...messageBuilders.keys()].filter(builtHere))
-  const namespaces = new Map()   // local namespace name -> the file it imports
+  // Builders this file can use: its own, named and default imports of them, and namespaces that
+  // hold them (`import * as N`, or a namespace a file exports with `export * as NS from`).
+  const localNames = new Set([...messageBuilders.keys()].filter(name => messageBuilders.get(name) === sf))
+  const namespaces = new Map()   // local namespace name -> the file it stands for
   for (const st of sf.statements) {
     if (!ts.isImportDeclaration(st) || !ts.isStringLiteralLike(st.moduleSpecifier)) continue
     const from = importedFile(sf, st.moduleSpecifier.text)
-    const bindings = from && st.importClause?.namedBindings
+    const clause = from && st.importClause
+    if (!clause || clause.isTypeOnly) continue
+    if (clause.name && exportedBuilders(from).has("default")) localNames.add(clause.name.text)
+    const bindings = clause.namedBindings
     if (!bindings) continue
     if (ts.isNamespaceImport(bindings)) namespaces.set(bindings.name.text, from)
     else {
+      const nsExports = exportedNamespaces(from)
       for (const el of bindings.elements) {
-        if (messageBuilders.get((el.propertyName ?? el.name).text) === from) localNames.add(el.name.text)
+        if (el.isTypeOnly) continue
+        const theirName = (el.propertyName ?? el.name).text
+        if (exportedBuilders(from).has(theirName)) localNames.add(el.name.text)
+        if (nsExports.has(theirName)) namespaces.set(el.name.text, nsExports.get(theirName))
       }
     }
   }
   if (!localNames.size && !namespaces.size) continue
-  const callsBuilder = callee => ts.isIdentifier(callee) ? localNames.has(callee.text)
-    : ts.isPropertyAccessExpression(callee) && ts.isIdentifier(callee.expression) &&
-      namespaces.has(callee.expression.text) &&
-      messageBuilders.get(callee.name.text) === namespaces.get(callee.expression.text)
-  eachNode(sf, node => {
-    if (!ts.isCallExpression(node) || !callsBuilder(node.expression)) return
-    // A call anywhere inside a base notifier, a closure in one included, is how messages are meant to be built.
-    for (let n = node.parent; n && !ts.isSourceFile(n); n = n.parent) {
-      if (ts.isFunctionLike(n) && kBaseNotifiers[functionNameOf(n)]) return
+  // The file an expression stands for when it names a namespace: `N`, or `N.NS` for a namespace N exports.
+  const namespaceFile = expr => {
+    if (ts.isIdentifier(expr)) return namespaces.has(expr.text) && !isShadowed(expr, expr.text) ? namespaces.get(expr.text) : null
+    if (ts.isPropertyAccessExpression(expr)) {
+      const outer = namespaceFile(expr.expression)
+      return outer ? exportedNamespaces(outer).get(expr.name.text) ?? null : null
     }
-    const resource = node.arguments[0] && ts.isStringLiteralLike(node.arguments[0]) ? node.arguments[0].text : null
-    addUnresolved(sf, node, resource?.replace(/\[.*$/, "") ?? null)
+    return null
+  }
+  const isBuilderRef = node => {
+    if (ts.isIdentifier(node)) return localNames.has(node.text) && !isShadowed(node, node.text)
+    if (ts.isPropertyAccessExpression(node)) {
+      const file = namespaceFile(node.expression)
+      return !!file && exportedBuilders(file).has(node.name.text)
+    }
+    return false
+  }
+  // A use inside a base notifier, a closure in one included, is how messages are meant to be built.
+  const inBaseNotifier = node => {
+    for (let n = node.parent; n && !ts.isSourceFile(n); n = n.parent) {
+      if (ts.isFunctionLike(n) && kBaseNotifiers[functionNameOf(n)]) return true
+    }
+    return false
+  }
+  // Where an identifier is not a value reference to the binding: a declared name (a property or
+  // method, class, interface, parameter, JSX attribute...), a property accessed by name, the key
+  // side of a renamed destructure, an import or export specifier, or anything inside a type.
+  const isNotAReference = node => {
+    const p = node.parent
+    // `{ notification }` names the property and uses the value
+    if (ts.isShorthandPropertyAssignment(p)) return false
+    if (ts.getNameOfDeclaration(p) === node) return true
+    if (ts.isPropertyAccessExpression(p) && p.name === node) return true
+    if (ts.isBindingElement(p) && p.propertyName === node) return true
+    if (ts.isImportSpecifier(p) || ts.isExportSpecifier(p) || ts.isNamespaceImport(p) || ts.isImportClause(p)) return true
+    if (ts.isQualifiedName(p)) return true
+    for (let n = p; n && !ts.isSourceFile(n); n = n.parent) if (ts.isTypeNode(n)) return true
+    return false
+  }
+  eachNode(sf, node => {
+    if (ts.isCallExpression(node) && isBuilderRef(node.expression)) {
+      if (inBaseNotifier(node)) return
+      const resource = node.arguments[0] && ts.isStringLiteralLike(node.arguments[0]) ? node.arguments[0].text : null
+      addUnresolved(sf, node, resource?.replace(/\[.*$/, "") ?? null)
+      return
+    }
+    // any other reference: an alias, or the builder passed along
+    const isRef = ts.isIdentifier(node) ? !isNotAReference(node) && isBuilderRef(node)
+      : ts.isPropertyAccessExpression(node) && isBuilderRef(node)
+    if (!isRef || inBaseNotifier(node)) return
+    const p = node.parent
+    if (ts.isCallExpression(p) && p.expression === node) return
+    if (ts.isPropertyAccessExpression(p) && p.expression === node && isBuilderRef(p)) return
+    if (ts.isShorthandPropertyAssignment(p) && ts.isObjectLiteralExpression(p.parent) &&
+        ts.isBinaryExpression(p.parent.parent) && p.parent.parent.left === p.parent) return
+    addUnresolved(sf, node, null)
   })
 }
 

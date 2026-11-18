@@ -334,12 +334,13 @@ function renderNotificationTable(entries, body,
     const keyOf = op => `${resource}\u0000${op}`
     const literal = names.length ? names.filter(op => !isTemplated(op)) : [""]
     const live = literal.map(keyOf).filter(k => byKey.has(k) && !placed.has(k))
-    // A templated name stays only while a site of its shape is still in the code.
+    // A templated name stays only while a site of its shape is still in the code. It covers every
+    // site of that shape, so two calls (or two branches of one call) that build it both pass.
     const kept = names.filter(isTemplated).filter(op => {
-      const site = unresolved.find(u => u.shape === templateShape(op) && u.resource === resource)
-      if (site) coveredUnresolved.add(site)
-      else unmatchedTemplates.push(`${resource} \`${op}\``)
-      return !!site
+      const sites = unresolved.filter(u => u.shape === templateShape(op) && u.resource === resource)
+      sites.forEach(site => coveredUnresolved.add(site))
+      if (!sites.length) unmatchedTemplates.push(`${resource} \`${op}\``)
+      return sites.length > 0
     })
     if (!live.length && !kept.length) continue
     live.forEach(k => placed.add(k))
