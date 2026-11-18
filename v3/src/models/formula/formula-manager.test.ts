@@ -108,8 +108,8 @@ describe("FormulaManager", () => {
       formulaManager.addDataSet(dataSet)
       formulaManager.addAdapters([adapter])
 
-      expect(dataSet.getValueAtItemIndex(0, dataSet.attrFromName("foo")?.id || "")).toMatch(/Circular reference/)
-      expect(dataSet.getValueAtItemIndex(0, dataSet.attrFromName("bar")?.id || "")).toMatch(/Circular reference/)
+      expect(dataSet.getValueAtFullItemIndex(0, dataSet.attrFromName("foo")?.id || "")).toMatch(/Circular reference/)
+      expect(dataSet.getValueAtFullItemIndex(0, dataSet.attrFromName("bar")?.id || "")).toMatch(/Circular reference/)
     })
   })
 
@@ -135,8 +135,8 @@ describe("FormulaManager", () => {
 
         // No errors should have been reported by MobX (a stack overflow would be).
         expect(consoleErrSpy).not.toHaveBeenCalled()
-        const sunnyValue = dataSet.getValueAtItemIndex(0, dataSet.attrFromName("sunny")?.id || "")
-        const rainyValue = dataSet.getValueAtItemIndex(0, dataSet.attrFromName("rainy")?.id || "")
+        const sunnyValue = dataSet.getValueAtFullItemIndex(0, dataSet.attrFromName("sunny")?.id || "")
+        const rainyValue = dataSet.getValueAtFullItemIndex(0, dataSet.attrFromName("rainy")?.id || "")
         expect(typeof sunnyValue === "string" ? sunnyValue : "").not.toMatch(/Circular reference/)
         expect(typeof rainyValue === "string" ? rainyValue : "").not.toMatch(/Circular reference/)
       } finally {

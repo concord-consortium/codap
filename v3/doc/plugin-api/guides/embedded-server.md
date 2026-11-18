@@ -76,17 +76,15 @@ parameter. A request sent right away can find a document that is still empty.
 ## Sending requests
 
 Requests from the host page work as they do from a plugin. They are processed in order, one at a
-time, each with exactly one response, in a queue of the host page's own. If a plugin has turned
-on `blockAPIRequestsWhileEditing`, the host page's requests are held along with every plugin's
-while the user edits that plugin's data; see
+time, each with exactly one response, in a queue of the host page's own. A plugin's
+`blockAPIRequestsWhileEditing` holds back only that plugin's requests, never the host page's; see
 [Requests while the user is editing](request-processing.md#requests-while-the-user-is-editing).
 See [How CODAP processes requests](request-processing.md) for the rest.
 
 What the host page cannot do is ask about itself. A plugin's requests can refer to the
 component it runs in; the host page has none. So `interactiveFrame` fails with
-`Interactive Frame not found` when the host page sends it. A few other resources fail from the
-host page too, though they should not, and the host page has no default data context; see
-[Known limitations](#known-limitations).
+`Interactive Frame not found` when the host page sends it. The host page also has no default
+data context; see [Known limitations](#known-limitations).
 
 ## Receiving notifications
 
@@ -104,9 +102,14 @@ It receives none of the notifications sent to one plugin or to plugins that opte
 - `newDocumentState` goes only to plugins with `subscribeToDocuments`, a property of
   `interactiveFrame`, so a `get document` from the host page delivers the document to those
   plugins and not to the host page.
-- `undoAction` and `redoAction` go only to the plugin that reported the action.
+- `undoAction` and `redoAction` for a plugin's action go only to that plugin.
 - `localeChanged` goes only to plugins that set `handlesLocaleChange`, so the host page is not
   told when the user switches language.
+
+It does receive the notifications that answer its own requests. When the user undoes or redoes
+an action the host page reported with `undoChangeNotice`, CODAP sends `undoAction` or
+`redoAction` to the host page. When CODAP logs an event that matches a monitor the host page
+registered with `logMessageMonitor`, CODAP sends the `logMessageNotice` to the host page.
 
 When the host page or a plugin sends `update document`, CODAP sends `updateDocumentBegun` and
 `updateDocumentEnded` to every plugin and to the host page.
@@ -118,19 +121,6 @@ data context fails with a not-found error, even right after the host page create
 `create dataContext`. v2 kept a default for the host page: the data context it created most
 recently without naming one in the selector. This is a known bug. Until it is fixed, name the
 data context in every request from the host page.
-
-**`undoChangeNotice` fails from the host page.** Every operation, including
-`undoButtonPress` and `redoButtonPress`, returns `Interactive Frame not found`. v2 accepted all
-three from the host page: it put the host page's actions on the undo history and sent the host
-page `undoAction` and `redoAction`. This is a known bug.
-
-**`configuration`, `configurationList` and `logMessageMonitor` fail from the host page.**
-`configuration` returns `Interactive Frame not found`, `get configurationList` returns an error,
-and registering a log monitor returns `clientId and filter values are required`. v2 answered all
-three. This is a known bug.
-
-**`logMessage` from the host page is not logged.** It reaches any registered log monitors but is
-not written to CODAP's log, as v2 wrote it. This is a known bug.
 
 ## See also
 

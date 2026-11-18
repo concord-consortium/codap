@@ -36,6 +36,22 @@ export const kMapClassSelector = `.${kMapClass}`
 
 export const MapAttrRoles = ['lat', 'long', 'polygon'] as const
 export type MapAttrRole = typeof MapAttrRoles[number]
+
+/** A latitude/longitude pair, in degrees. */
+export interface ILatLong {
+  lat: number
+  long: number
+}
+
+/** Supplies the coordinates of plotted points (see MapPointLayerModel.plottedLatLongs) */
+export interface ILatLongSource {
+  plottedLatLongs: ILatLong[]
+}
+
+export interface IPointDataSource {
+  pointDataVersion: number
+}
+
 export type GeoJsonObject = GeoJSON.GeoJsonObject
 export interface PolygonLayerOptions extends GeoJSONOptions<any, GeoJSON.Geometry> {
   caseID: string

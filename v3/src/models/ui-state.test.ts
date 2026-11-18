@@ -1,3 +1,4 @@
+import { persistentState } from "./persistent-state"
 import { UIState } from "./ui-state"
 import { setUrlParams } from "../utilities/url-params"
 
@@ -472,6 +473,59 @@ describe("UIState", () => {
       setUrlParams("?lara=true")
       const uiState = new UIState()
       expect(uiState.hideUserEntryModal).toBe(true)
+    })
+  })
+
+  describe("About dialog", () => {
+    it("should be closed by default and follow open and close", () => {
+      const uiState = new UIState()
+      expect(uiState.initialAboutDialogView).toBeUndefined()
+      uiState.openAboutDialog("welcome")
+      expect(uiState.initialAboutDialogView).toBe("welcome")
+      uiState.openAboutDialog("about")
+      expect(uiState.initialAboutDialogView).toBe("about")
+      uiState.closeAboutDialog()
+      expect(uiState.initialAboutDialogView).toBeUndefined()
+    })
+
+    it("should remember where to return focus until the dialog closes", () => {
+      const uiState = new UIState()
+      const opener = document.createElement("button")
+      uiState.openAboutDialog("about", opener)
+      expect(uiState.aboutDialogReturnFocusRef?.current).toBe(opener)
+      uiState.closeAboutDialog()
+      expect(uiState.aboutDialogReturnFocusRef).toBeUndefined()
+      uiState.openAboutDialog("welcome")
+      expect(uiState.aboutDialogReturnFocusRef).toBeUndefined()
+    })
+  })
+
+  describe("shouldShowWelcome", () => {
+    beforeEach(() => {
+      persistentState.setHideWelcome(false)
+    })
+
+    it("should be true by default", () => {
+      expect(new UIState().shouldShowWelcome).toBe(true)
+    })
+
+    it("should be false after \"Don't show this again\"", () => {
+      persistentState.setHideWelcome(true)
+      expect(new UIState().shouldShowWelcome).toBe(false)
+    })
+
+    it.each([
+      "?componentMode=yes", "?embeddedMode=yes", "?standalone=true", "?interactiveApi", "?noEntryModal",
+      "?di=https://example.com/plugin/index.html", "?sample=mammals", "?dashboard"
+    ])(
+      "should be false with %s", params => {
+        setUrlParams(params)
+        expect(new UIState().shouldShowWelcome).toBe(false)
+      })
+
+    it("should be true when a document opens automatically", () => {
+      setUrlParams("?url=https://example.com/shared.codap")
+      expect(new UIState().shouldShowWelcome).toBe(true)
     })
   })
 })

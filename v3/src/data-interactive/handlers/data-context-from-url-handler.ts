@@ -1,4 +1,5 @@
 import { appState } from "../../models/app-state"
+import { dataContextCountChangedNotification } from "../../models/data/data-set-notifications"
 import { convertParsedCsvToDataSet, CsvParseResult, downloadCsvFile } from "../../utilities/csv-import"
 import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
@@ -36,7 +37,7 @@ export const diDataContextFromURLHandler: DIAsyncHandler = {
               const createDefaultTile = values.showCaseTable !== false
               appState.document.applyModelChange(() => {
                 appState.document.content?.importDataSet(ds, { createDefaultTile })
-              })
+              }, { notify: dataContextCountChangedNotification })
               resolve({
                 success: true,
                 values: basicDataSetInfo(ds)

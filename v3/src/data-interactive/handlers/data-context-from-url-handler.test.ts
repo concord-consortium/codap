@@ -44,9 +44,15 @@ describe("DataInteractive DataContextHandler", () => {
         }, "")
       })
 
-      const result = await handler.create!({}, {URL: "https://example.com"})
-      expect(mockedDownloadCsvFile).toHaveBeenCalled()
-      expect(result.success).toBe(false)
+      const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+      try {
+        const result = await handler.create!({}, {URL: "https://example.com"})
+        expect(mockedDownloadCsvFile).toHaveBeenCalled()
+        expect(result.success).toBe(false)
+        expect(broadcastSpy).not.toHaveBeenCalled()
+      } finally {
+        broadcastSpy.mockRestore()
+      }
     })
 
     it("creates a dataset", async () => {
@@ -67,15 +73,24 @@ describe("DataInteractive DataContextHandler", () => {
         onComplete(parseResult, "")
       })
 
-      expect(gDataBroker.length).toBe(0)
-      const result = await handler.create!({}, {URL: "https://example.com/"})
-      expect(gDataBroker.length).toBe(1)
-      expect(mockedDownloadCsvFile).toHaveBeenCalled()
-      expect(result.success).toBe(true)
-      // There is also an id field, but that is harder to test.
-      expect(result.values).toMatchObject({
-        name: "https://example.com/"
-      })
+      const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+      try {
+        expect(gDataBroker.length).toBe(0)
+        const result = await handler.create!({}, {URL: "https://example.com/"})
+        expect(gDataBroker.length).toBe(1)
+        expect(broadcastSpy.mock.calls).toEqual([[
+          { action: "notify", resource: "documentChangeNotice", values: { operation: "dataContextCountChanged" } },
+          expect.any(Function), undefined, undefined
+        ]])
+        expect(mockedDownloadCsvFile).toHaveBeenCalled()
+        expect(result.success).toBe(true)
+        // There is also an id field, but that is harder to test.
+        expect(result.values).toMatchObject({
+          name: "https://example.com/"
+        })
+      } finally {
+        broadcastSpy.mockRestore()
+      }
     })
 
     it("opens a case table for the imported dataset by default", async () => {

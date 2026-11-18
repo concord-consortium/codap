@@ -1,21 +1,19 @@
 import { DIResources, DIUpdateConfigurationValue } from "../data-interactive-types"
 import { diConfigurationHandler } from "./configuration-handler"
-import * as mstDocumentUtils from "../../utilities/mst-document-utils"
 
-jest.mock("../../utilities/mst-document-utils")
+let mockDocumentContent: any
+jest.mock("../../models/app-state", () => ({
+  appState: { document: { get content() { return mockDocumentContent } } }
+}))
 
 describe("DataInteractive ConfigurationHandler", () => {
   const handler = diConfigurationHandler
-  let mockDocumentContent: any
 
   beforeEach(() => {
     mockDocumentContent = {
       gaussianFitEnabled: false,
       setGaussianFitEnabled: jest.fn()
     }
-    ;(mstDocumentUtils.getDocumentContentFromNode as jest.Mock).mockReturnValue(
-      mockDocumentContent
-    )
   })
 
   describe("get", () => {
@@ -34,11 +32,11 @@ describe("DataInteractive ConfigurationHandler", () => {
       expect(result).toEqual({ success: false, values: { error: 'unknown configuration "unknownConfig"' } })
     })
 
-    it("returns undefined when interactiveFrame is not provided", () => {
-      ;(mstDocumentUtils.getDocumentContentFromNode as jest.Mock).mockReturnValue(undefined)
+    it("gets the configuration without an interactiveFrame, as from the host page", () => {
+      mockDocumentContent.gaussianFitEnabled = true
       const resources: DIResources = { configuration: "gaussianFitEnabled" }
       const result = handler.get?.(resources)
-      expect(result).toEqual({ success: false, values: { error: 'Interactive Frame not found' } })
+      expect(result).toEqual({ success: true, values: { name: "gaussianFitEnabled", value: "yes" } })
     })
 
     it("gets gaussianFitEnabled configuration when enabled", () => {
@@ -146,12 +144,12 @@ describe("DataInteractive ConfigurationHandler", () => {
       expect(mockDocumentContent.setGaussianFitEnabled).not.toHaveBeenCalled()
     })
 
-    it("returns success false when interactiveFrame is not provided", () => {
-      ;(mstDocumentUtils.getDocumentContentFromNode as jest.Mock).mockReturnValue(undefined)
+    it("updates the configuration without an interactiveFrame, as from the host page", () => {
       const resources: DIResources = { configuration: "gaussianFitEnabled" }
       const values: DIUpdateConfigurationValue = { value: "yes" }
       const result = handler.update?.(resources, values)
-      expect(result).toEqual({ success: false, values: { error: 'Interactive Frame not found' } })
+      expect(result).toEqual({ success: true })
+      expect(mockDocumentContent.setGaussianFitEnabled).toHaveBeenCalledWith(true)
     })
   })
 

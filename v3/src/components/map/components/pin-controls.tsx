@@ -50,7 +50,7 @@ export const PinControls = observer(function PinControls({ mapLayerModel }: IPin
     }
   }
   return (
-    <div className="pin-controls">
+    <div className="pin-controls" data-testid="map-pin-controls">
       <ControlButton
         active={mapLayerModel.addMode}
         className="top-button"
