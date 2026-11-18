@@ -192,6 +192,17 @@ sendRequest({ action: 'get', resource: 'document' })
 sendRequest({ action: 'update', resource: 'document', values: savedState })
 ```
 
+**Replace the document (paste a whole v2 document into `values`).** Use one saved from an earlier
+`newDocumentState` notification, for example:
+
+```json
+{
+  "action": "update",
+  "resource": "document",
+  "values": { "...": "a complete v2 document, as delivered in values.state" }
+}
+```
+
 ## Notifications
 
 | Resource | Operation | When |
