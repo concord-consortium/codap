@@ -12,7 +12,6 @@ const kAttributionSeparator = ' <span aria-hidden="true">|</span> '
 export function useEsriAttributionPrefix(show: boolean) {
   const map = useMap()
 
-  // Add the esri attribution to leaflet's attribution prefix.
   useEffect(() => {
     const control = map.attributionControl
     if (!show || !control) return
