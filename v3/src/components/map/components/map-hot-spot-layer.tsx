@@ -50,6 +50,8 @@ export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayer
 
     // Observing the surface keeps MobX's cached copy alive while the hot spots are shown.
     // Install this before the first draw so that draw reads the cached surface.
+    // (MobX doesn't use the scheduler for the first run, which only starts observing,
+    // so the surface is still cached before the first draw.)
     const disposeReaction = mstReaction(
       () => [hotSpotModel.hotSpotSurface, hotSpotModel.lowColor, hotSpotModel.highColor],
       () => layer.redraw(),

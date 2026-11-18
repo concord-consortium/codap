@@ -50,7 +50,7 @@ const kMinSpreadMeters = 0.001
 /**
  * ArcGIS's default search radius (see computeDefaultBandwidth) is divided by this (≈ 3.3) to give the default
  * bandwidth. Together with kResolutionRangeFactor, this makes the slider span from about 0.85 times ArcGIS's default
- * (10^−0.07) down to about 0.11 times it (10^−0.97), with the default in the center.
+ * (10^−0.07) down to about 0.11 times it (10^−0.97), with the default in the center. Both values were tuned by hand.
  */
 export const kDefaultBandwidthDivisor = 10 ** 0.52
 
@@ -220,7 +220,8 @@ export function computeMaxDensity(kernels: IKernel[]) {
 
 /**
  * Returns a cheap approximation of computeMaxDensity: the largest density at the kernels' centers, without climbing
- * to the local maxima between them. It is a lower bound on the true maximum.
+ * to the local maxima between them. It is a lower bound on the true maximum, so colors are a little brighter than
+ * they should be where the maximum falls between points.
  */
 export function computeApproximateMaxDensity(kernels: IKernel[]) {
   const index = new WorldKernelIndex(kernels)
@@ -239,14 +240,14 @@ export interface IHotSpotSurface {
   /**
    * The maximum density over all the points, not just those in the viewport, so a location's color doesn't change
    * as the map pans or zooms. Densities are in zoom-0 world coordinates, so the value at a location is the same at
-   * every zoom level and this is computed once per data or bandwidth change.
+   * every zoom level and this is computed once per data or bandwidth change. Approximated while optimizing.
    */
   maxDensity: number
 }
 
 /**
  * Returns the density surface of the points, or undefined if there are none. If bandwidthMeters isn't a positive
- * number, a default is computed from the points' spread.
+ * number, a default is computed from the points' spread. If optimize is true, speed is prioritized over accuracy.
  */
 export function computeHotSpotSurface(
   latLongs: ILatLong[], bandwidthMeters?: number, optimize = false

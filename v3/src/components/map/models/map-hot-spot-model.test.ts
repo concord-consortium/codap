@@ -1,5 +1,6 @@
 import { observable, reaction, runInAction } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
+import { greatCircleDistance } from "../../../utilities/geo-utils"
 import { IHotSpotSurface, kFallbackBandwidthMeters } from "../utilities/hot-spot-utils"
 import { isDefaultHotSpotModel, MapHotSpotModel } from "./map-hot-spot-model"
 import { MapPointLayerModel } from "./map-point-layer-model"
@@ -84,6 +85,30 @@ describe("MapHotSpotModel bandwidth", () => {
     expect(hotSpot.effectiveBandwidth).toBe(7000)
     expect(hotSpot.displayBandwidth).toBe(7000)
     expect(hotSpot.hotSpotSurface?.bandwidthMeters).toBe(7000)
+  })
+})
+
+describe("MapHotSpotModel optimization", () => {
+  it("optimizes only while the bandwidth is changing interactively", () => {
+    const hotSpot = MapHotSpotModel.create()
+    expect(hotSpot.shouldOptimize).toBe(false)
+    hotSpot.setDynamicBandwidth(5000)
+    expect(hotSpot.shouldOptimize).toBe(true)
+    hotSpot.setBandwidth(5000)
+    expect(hotSpot.shouldOptimize).toBe(false)
+  })
+
+  it("approximates the maximum density while optimizing and computes it exactly once the bandwidth is set", () => {
+    const hotSpot = MapHotSpotModel.create()
+    hotSpot.setLatLongSource({ plottedLatLongs: [{ lat: 0, long: 0 }, { lat: 0, long: 0.1 }] })
+    // two points two bandwidths apart, so the maximum is between them: 2e^(−½) there, but 1 + e⁻² at each point
+    const bandwidth = greatCircleDistance(0, 0, 0, 0.1) / 2
+
+    hotSpot.setDynamicBandwidth(bandwidth)
+    expect(hotSpot.hotSpotSurface!.maxDensity).toBeCloseTo(1 + Math.exp(-2), 2)
+
+    hotSpot.setBandwidth(bandwidth)
+    expect(hotSpot.hotSpotSurface!.maxDensity).toBeCloseTo(2 * Math.exp(-0.5), 2)
   })
 })
 
