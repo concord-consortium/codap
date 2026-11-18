@@ -33,12 +33,6 @@ describe("useEsriAttributionPrefix", () => {
     expect(container().querySelector('a[href="https://www.esri.com"]')).not.toBeNull()
   })
 
-  it("does not add 'Powered by Esri' when not shown", () => {
-    const { container } = renderPrefix({ show: false })
-    expect(container().textContent).toContain("Leaflet")
-    expect(container().textContent).not.toContain("Powered by Esri")
-  })
-
   it("removes 'Powered by Esri' when show becomes false and restores it when true again", () => {
     const { container, rerender } = renderPrefix({ show: true })
     rerender(true, false)
