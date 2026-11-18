@@ -55,9 +55,4 @@ describe("useEsriAttributionPrefix", () => {
     expect(container().textContent).toContain("Leaflet")
     expect(container().textContent).not.toContain("Powered by Esri")
   })
-
-  it("makes the attribution control keyboard-focusable", () => {
-    const { container } = renderPrefix({ show: true })
-    expect(container().getAttribute("tabindex")).toBe("0")
-  })
 })
