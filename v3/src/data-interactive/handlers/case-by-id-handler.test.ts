@@ -113,6 +113,17 @@ describe("DataInteractive CaseByIDHandler", () => {
       expect(notify(caseIn(c2.id, "a-x"), { caseOrder: "last" })?.success).toBe(true)
       expect(order(c2.id)).toEqual(["a-z", "a-x", "b-y", "b-z"])
       expect(order(c1.id)).toEqual(["a", "b"])
+      // "last" for the last parent's cases, and for a top-level case
+      expect(notify(caseIn(c2.id, "b-y"), { caseOrder: "last" })?.success).toBe(true)
+      expect(order(c2.id)).toEqual(["a-z", "a-x", "b-z", "b-y"])
+      expect(notify(caseIn(c1.id, "a"), { caseOrder: "last" })?.success).toBe(true)
+      expect(order(c1.id)).toEqual(["b", "a"])
+    })
+
+    it("drops a fractional position's fraction", () => {
+      const { c2, caseIn, order, notify } = setup()
+      expect(notify(caseIn(c2.id, "a-z"), { caseOrder: 0.6 })?.success).toBe(true)
+      expect(order(c2.id)).toEqual(["a-z", "a-x", "b-y", "b-z"])
     })
 
     it("puts a case first among its siblings for a position just before them", () => {
@@ -153,7 +164,7 @@ describe("DataInteractive CaseByIDHandler", () => {
       expect(order(P.id)).toEqual(["A", "B"])
     })
 
-    it("puts a case's shown items ahead of its hidden ones, so the parent keeps its place", () => {
+    it("moves a case whose own hidden item comes first, and the parent keeps its place", () => {
       // items I0 { A, 1 }, I1 { B, 9 }, I2 { A, 2 } hidden, I3 { A, 2 }
       const { P, C, order, caseIn, notify } = setupWithHiddenItem(2, [1, 9, 2, 2])
       expect(order(P.id)).toEqual(["A", "B"])
@@ -163,15 +174,103 @@ describe("DataInteractive CaseByIDHandler", () => {
       expect(order(P.id)).toEqual(["A", "B"])
     })
 
-    it("leaves a hidden item ahead of the parent's first shown item in place, so the parent keeps its place", () => {
-      // I0, A-1's first item and A's first item, is hidden, so A comes after B
+    it("refuses a move no item order can show without reordering other cases", () => {
+      // I0, A-1's first item and A's first item, is hidden, so A comes after B while shown, and before B once I0 is
+      // shown again. A-2 first under A would put A's first shown item first among A's, which puts A ahead of B.
       const { P, C, order, caseIn, notify } = setupWithHiddenItem(0)
       expect(order(P.id)).toEqual(["B", "A"])
       expect(order(C.id)).toEqual(["B9", "A1", "A2"])
-      expect(notify(caseIn("A2"), { caseOrder: "first" })?.success).toBe(true)
+      expect(notify(caseIn("A2"), { caseOrder: "first" })).toEqual({ success: false, values: {
+        error: "The case can't move there without changing the order of other cases " +
+          "(set-aside or filtered-out cases are in the way)"
+      } })
       expect(order(P.id)).toEqual(["B", "A"])
-      // A-1's hidden item still comes first, so A-1 stays ahead of A-2
       expect(order(C.id)).toEqual(["B9", "A1", "A2"])
+    })
+
+    // a data set with one collection per attribute name, items given as values in order
+    function setupLevels(names: string[], items: Array<Array<string | number>>, hiddenIndices: number[]) {
+      const dataset = DataSet.create({ name: "data", collections: names.map(name => ({ name: name.toUpperCase() })) },
+        { historyService: new AppHistoryService() })
+      names.forEach((name, i) => dataset.addAttribute({ name }, { collection: dataset.collections[i].id }))
+      dataset.addCases(items.map(values => Object.fromEntries(names.map((name, i) => [name, values[i]]))),
+        { canonicalize: true })
+      dataset.hideCasesOrItems(hiddenIndices.map(index => dataset.itemIds[index]))
+      const valuesOf = (level: number) => dataset.getCasesForCollection(dataset.collections[level].id)
+        .map(({ __id__ }) => dataset.getStrValue(__id__, dataset.attrIDFromName(names[level])!))
+      const caseIn = (level: number, value: string) => dataset.getCasesForCollection(dataset.collections[level].id)
+        .find(({ __id__ }) => dataset.getStrValue(__id__, dataset.attrIDFromName(names[level])!) === value)!
+      const notify = (aCase: { __id__: string }, values: any) =>
+        handler.notify?.({ dataContext: dataset, caseByID: aCase }, values)
+      return { dataset, valuesOf, caseIn, notify }
+    }
+
+    it("keeps an unmoved case's items in order, so restoring a set-aside item doesn't reorder its cases", () => {
+      // items { A, 1 } { A, 2 } { A, 3 } { B, 9 }, with { A, 2 } set aside
+      const two = setupLevels(["p", "c"], [["A", 1], ["A", 2], ["A", 3], ["B", 9]], [1])
+      expect(two.notify(two.caseIn(0, "B"), { caseOrder: "first" })?.success).toBe(true)
+      two.dataset.showHiddenCasesAndItems()
+      expect(two.valuesOf(1)).toEqual(["9", "1", "2", "3"])
+
+      // A-1's grandchildren 1, 2 (set aside) and 3, and A-2's 4
+      const three = setupLevels(["p", "c", "d"], [["A", 1, 1], ["A", 1, 2], ["A", 1, 3], ["A", 2, 4]], [1])
+      expect(three.notify(three.caseIn(1, "2"), { caseOrder: "first" })?.success).toBe(true)
+      three.dataset.showHiddenCasesAndItems()
+      expect(three.valuesOf(2)).toEqual(["4", "1", "2", "3"])
+    })
+
+    it("puts a top-level case moved first ahead of a set-aside case before it, as itemSearch does", () => {
+      // items h, a, b, with h set aside
+      const flat = setupLevels(["p"], [["h"], ["a"], ["b"]], [0])
+      expect(flat.notify(flat.caseIn(0, "b"), { caseOrder: "first" })?.success).toBe(true)
+      expect(flat.valuesOf(0)).toEqual(["b", "a"])
+      flat.dataset.showHiddenCasesAndItems()
+      expect(flat.valuesOf(0)).toEqual(["b", "h", "a"])
+    })
+
+    it("keeps a wholly set-aside case in place among the cases that don't move", () => {
+      // items a, h (set aside), b, c
+      const first = setupLevels(["p"], [["a"], ["h"], ["b"], ["c"]], [1])
+      expect(first.notify(first.caseIn(0, "c"), { caseOrder: "first" })?.success).toBe(true)
+      first.dataset.showHiddenCasesAndItems()
+      expect(first.valuesOf(0)).toEqual(["c", "a", "h", "b"])
+
+      const last = setupLevels(["p"], [["a"], ["h"], ["b"], ["c"]], [1])
+      expect(last.notify(last.caseIn(0, "a"), { caseOrder: "last" })?.success).toBe(true)
+      last.dataset.showHiddenCasesAndItems()
+      expect(last.valuesOf(0)).toEqual(["h", "b", "c", "a"])
+
+      // A's children 1, 7 (set aside), 2, 3
+      const child = setupLevels(["p", "c"], [["A", 1], ["A", 7], ["A", 2], ["A", 3]], [1])
+      expect(child.notify(child.caseIn(1, "3"), { caseOrder: "first" })?.success).toBe(true)
+      child.dataset.showHiddenCasesAndItems()
+      expect(child.valuesOf(1)).toEqual(["3", "1", "7", "2"])
+    })
+
+    it("keeps a filtered-out case in place among the cases that don't move", () => {
+      const { dataset, valuesOf, caseIn, notify } =
+        setupLevels(["p", "c"], [["A", 1], ["A", 7], ["A", 2], ["A", 3]], [])
+      const filter = (filteredOut: boolean) => {
+        dataset.updateFilterFormulaResults(dataset.items.map(({ __id__ }) => ({
+          itemId: __id__, result: !(filteredOut && dataset.getStrValue(__id__, dataset.attrIDFromName("c")!) === "7")
+        })), { replaceAll: true })
+        dataset.invalidateCases()
+      }
+      filter(true)
+      expect(valuesOf(1)).toEqual(["1", "2", "3"])
+      expect(notify(caseIn(1, "3"), { caseOrder: "first" })?.success).toBe(true)
+      filter(false)
+      expect(valuesOf(1)).toEqual(["3", "1", "7", "2"])
+    })
+
+    it("keeps a top-level case moved first ahead of a case whose set-aside item came first", () => {
+      // items { A, 1 } (set aside), { A, 2 }, { B, 9 }
+      const { dataset, valuesOf, caseIn, notify } = setupLevels(["p", "c"], [["A", 1], ["A", 2], ["B", 9]], [0])
+      expect(notify(caseIn(0, "B"), { caseOrder: "first" })?.success).toBe(true)
+      expect(valuesOf(0)).toEqual(["B", "A"])
+      dataset.showHiddenCasesAndItems()
+      expect(valuesOf(0)).toEqual(["B", "A"])
+      expect(valuesOf(1)).toEqual(["9", "1", "2"])
     })
 
     it("keeps each item's values with it", () => {
@@ -186,8 +285,10 @@ describe("DataInteractive CaseByIDHandler", () => {
     it("fails without a valid caseOrder", () => {
       const { c3, caseIn, order, notify } = setup()
       const aCase = caseIn(c3.id, "6")
-      expect(notify(aCase, undefined)?.success).toBe(false)
-      expect(notify(aCase, {})?.success).toBe(false)
+      expect(notify(aCase, undefined)).toEqual(
+        { success: false, values: { error: "notify caseByID: values required" } })
+      expect(notify(aCase, {})).toEqual(
+        { success: false, values: { error: "notify caseByID: values.caseOrder required" } })
       ;["middle", "", " ", true, false, null, [], Infinity, NaN].forEach(caseOrder => {
         expect(notify(aCase, { caseOrder })?.success).toBe(false)
       })

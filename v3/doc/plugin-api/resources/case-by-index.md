@@ -81,15 +81,35 @@ Otherwise `update` replies `{ "success": true }`.
 |---|---|---|
 | `caseOrder` | String or number | required. `"first"`, `"last"`, or the position, counting from 0, the case should end up at in its collection. A position may be sent as text, such as `"2"` |
 
-`notify` moves the case to that position, as in v2, and replies `{ "success": true }`. Its child
-cases move with it, and a child case stays under its parent: a position among another parent's
-cases puts it first or last among its own parent's cases, on the side the position was on, where
-v2 put it at that position anyway. A position is rounded toward zero, and one before the start or
-past the end puts the case first or last. Any other `caseOrder` replies `{ "success": false }`. v2
-replied that way to a position of `0` too, so send `"first"` if your plugin must also run there.
-A case that owns a set-aside or hidden item coming before every shown item under its parent stays
-ahead of its other siblings, since moving that item would move the parent.
+`notify` moves the case to that position, as in v2, and replies `{ "success": true }` unless the
+move is impossible (see below). Its child cases move with it, and a child case stays under its
+parent: a position among another parent's cases puts it first or last among its own parent's cases,
+on the side the position was on. A position is rounded toward zero, and one before the start or past
+the end puts the case first or last. Any other `caseOrder` replies `{ "success": false }`. A case
+already at that position isn't moved.
+
+Only the moved case changes places. Every other case, at every level, keeps its order, both among
+the cases shown and once set-aside and filtered-out cases are shown again, and every case but the
+moved case's parent and higher-level cases keeps its own items in order. Moved first, the case also
+goes ahead of the set-aside and filtered-out cases under its parent, and moved last, after them, as
+`notify` on `itemSearch` places items, unless that would reorder other cases. A case that is wholly
+set aside or filtered out can be moved too: only where it appears once it is shown again changes.
+When set-aside or filtered-out items make the move impossible without reordering other cases,
+`notify` replies with an error and changes nothing.
 As in v2, the move can't be undone.
+
+v2 moved cases differently. A plugin that must also run in v2 should avoid a position of `0`, text
+that isn't a number, negative positions and positions past the end. Even then, v2 placed child
+cases differently:
+
+- A position of `0` replied `{ "success": false }`.
+- v2 moved the case within its whole collection: `"first"` and `"last"` meant the first and last
+  case of the collection, and a position counted across every parent's cases, so a child case
+  could end up under another parent's cases. Its own child cases kept their places.
+- Reading v2's code (not run): text that isn't a number, such as `"middle"`, moved the case first,
+  and `true` moved it to position 1. A negative position counted back from the end, so `-1` put it
+  just ahead of the last case. A position past the end failed with an out-of-range error after the
+  case had already been taken out of its place.
 
 ### What `delete` returns
 
@@ -205,8 +225,9 @@ converted; `TRUE` stays text. This is a deliberate difference.
 
 ## Notifications
 
-`notify` sends `moveCases`, listing the case, to the other plugins on
-`dataContextChangeNotice[<context>]`, even when the case was already in place, as in v2.
+`notify` sends `moveCases` to the other plugins on `dataContextChangeNotice[<context>]`, even
+when the case was already in place, as in v2. It lists the case's id in `caseIDs` and the case,
+with its values, in `cases`, as v2 did.
 
 `update` and `delete` notify other plugins on `dataContextChangeNotice[<context>]` with
 `updateCases` or `deleteCases`, as the same change made in a case table does. An `update` that
@@ -225,6 +246,7 @@ when an attribute of a parent collection changed.
 | `DataContext not found` | the selector's data context does not resolve |
 | `Case not found` | the selector names no collection, the collection does not resolve, or `<index>` is not a position in it |
 | `<action> <resource>: <field> required` | `update` without `values`, or without `values.values`; `notify` without `values`, or without `values.caseOrder` (v2 replied `{ "success": false }` with no message) |
+| `The case can't move there without changing the order of other cases (set-aside or filtered-out cases are in the way)` | `notify` with a `caseOrder` that can't be reached without reordering other cases, because of set-aside or filtered-out items |
 
 ## See also
 

@@ -168,6 +168,7 @@ the string is what reaches your plugin.
 | `Not a(n) <value1> adornment.` | — |
 | `Not found` | — |
 | `The <value1> adornment does not currently support <value2> requests.` | — |
+| `The case can't move there without changing the order of other cases (set-aside or filtered-out cases are in the way)` | — |
 | `The current plot type does not support Percent.` | — |
 | `Unable to parse query.` | `couldNotParseQueryResult` |
 | `Unsupported action: <value>/<value>` | — |

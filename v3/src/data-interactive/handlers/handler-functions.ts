@@ -12,8 +12,11 @@ import {
 } from "../data-interactive-data-set-types"
 import { getV2ItemResult, getCaseRequestResultValues } from "../data-interactive-type-utils"
 import { resolveAttrNames } from "../data-interactive-utils"
+import { t } from "../../utilities/translation/translate"
+import { planCaseMove } from "./case-move-utils"
 import {
-  caseNotFoundResult, dataContextNotFoundResult, fieldRequiredResult, itemNotFoundResult, valuesRequiredResult
+  caseNotFoundResult, dataContextNotFoundResult, errorResult, fieldRequiredResult, itemNotFoundResult,
+  valuesRequiredResult
 } from "./di-results"
 
 export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
@@ -82,33 +85,26 @@ export function moveCaseBy(resources: DIResources, values: DIValues | undefined,
   if (!isFinite(position)) return { success: false as const }
 
   // the case's siblings are together in the collection; a position before them puts the case first among them,
-  // and one past them (which slice allows) puts it last
+  // and one past them puts it last
   const parentId = dataContext.getParentCaseId(caseId)
   const siblings = otherCases.filter(({ __id__ }) => dataContext.getParentCaseId(__id__) === parentId)
   const firstSiblingIndex = siblings.length > 0 ? otherCases.indexOf(siblings[0]) : 0
-  const siblingIndex = Math.max(Math.trunc(position) - firstSiblingIndex, 0)
-  const orderedCases = [...siblings.slice(0, siblingIndex), aCase, ...siblings.slice(siblingIndex)]
+  const siblingIndex = Math.min(Math.max(Math.trunc(position) - firstSiblingIndex, 0), siblings.length)
+  const shownSiblingIds = dataContext.getCasesForCollection(collectionId)
+    .filter(({ __id__ }) => dataContext.getParentCaseId(__id__) === parentId).map(({ __id__ }) => __id__)
 
-  // Refill the places the siblings' items hold, in the new order, so no other item moves and the parent keeps its
-  // place. A top-level case is placed by its first shown item and a child case by its first item, hidden or not,
-  // so hidden items ahead of the group's first shown item stay put, and each case's shown items go first.
-  const itemIndex = (itemId: string) => dataContext.getItemIndex(itemId) ?? -1
-  const byIndex = (ids: string[]) => ids.slice().sort((a, b) => itemIndex(a) - itemIndex(b))
-  const caseInfos = orderedCases.map(({ __id__ }) => dataContext.caseInfoMap.get(__id__))
-  const firstShownIndex = caseInfos.flatMap(info => info?.childItemIds ?? [])
-    .reduce((min, itemId) => Math.min(min, itemIndex(itemId)), Infinity)
-  const groupItemIds = caseInfos.flatMap(info => [
-    ...byIndex(info?.childItemIds ?? []),
-    ...byIndex(info?.hiddenChildItemIds ?? []).filter(itemId => itemIndex(itemId) > firstShownIndex)
-  ])
-  const slots = groupItemIds.map(itemIndex).sort((a, b) => a - b)
-  const itemIds = Array.from(dataContext._itemIds)
-  slots.forEach((slot, index) => { itemIds[slot] = groupItemIds[index] })
+  // as in V2, a case already in place isn't moved, but moveCases is still sent
+  let itemIds: Maybe<string[]>
+  if (shownSiblingIds.indexOf(caseId) !== siblingIndex) {
+    const level = dataContext.getCollectionIndex(collectionId)
+    itemIds = planCaseMove(dataContext, aCase, level, parentId, siblings, siblingIndex)
+    if (!itemIds) return errorResult(t("V3.DI.Error.caseCannotMove"))
+  }
 
   dataContext.applyModelChange(() => {
-    dataContext.setItemOrder(itemIds)
+    itemIds && dataContext.setItemOrder(itemIds)
   }, {
-    // as in V2, moveCases lists the case, and is sent even when the case was already in place
+    // as in V2, moveCases lists the case, with its values, and is sent even when the case was already in place
     notify: moveCasesNotification(dataContext, [aCase])
   })
 

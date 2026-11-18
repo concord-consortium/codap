@@ -133,10 +133,16 @@ export function deleteItemsNotification(data: IDataSet, itemIds: string[]) {
   return dataSetNotification("deleteItems", { success: true, itemIDs: itemIds.map(id => toV2Id(id)) }, data)
 }
 
+// As in V2, the moved cases are listed in full as well when there are any: V2's `notify caseByID` and `caseByIndex`
+// passed `cases` (data_interactive_phone_handler.js:1258-1264), which the notification manager sent with each case's
+// id, parent, context, collection and values (notification_manager.js:189-218). The undo and `itemSearch` moves pass
+// none, as V2's itemSearch move carried none.
 export function moveCasesNotification(data: IDataSet, cases: ICase[] = []) {
+  const adapter = getDataSetNotificationAdapter()
   const result = {
     success: true,
-    caseIDs: cases.map(aCase => toV2Id(aCase.__id__))
+    caseIDs: cases.map(aCase => toV2Id(aCase.__id__)),
+    ...(cases.length > 0 ? { cases: cases.map(aCase => adapter.convertCase(aCase, data)) } : {})
   }
   return dataSetNotification("moveCases", result, data)
 }
