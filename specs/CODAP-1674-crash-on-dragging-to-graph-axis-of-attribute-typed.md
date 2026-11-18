@@ -29,6 +29,7 @@ Dragging an attribute typed as *date* onto a graph axis froze CODAP v3 when none
 - **The shrink flag:** `BaseNumericAxisModel.allowRangeToShrink` is volatile. `setDomain` takes the union with the current range unless it is set, and clears it after use. `setupAxes` and Rescale set it. After applying the R2 range, `setNiceDateDomain` sets it again so the first dates fit (R6a); a drag or zoom ends in `setDomain` and clears it, while a plugin's `setMinimum`/`setMaximum` does not.
 - **Callers of `setNiceDomain` on a date axis:** `setupAxes`, the data-change resync (the only `growOnly` caller), Rescale, the dot plot's display-type reaction, `graph.tsx`'s y-removal refit, `use-graph-model.ts`'s plot-type action and `use-sub-axis.ts`'s `updateDomainAndRenderSubAxis`. `use-graph-model.ts` passes plotted cases' y values, so R6a relies on R8 there: a list of only `undefined` would hit the lone-date branch and clear the flag.
 - **Two date readers:** `setupAxes` reads every case's string with `parseDate`; plotting, Rescale and the other refits read plotted cases with `convertToDate`. They agree on date strings and on non-dates, but not on bare numbers ("1704067200" is epoch seconds to `convertToDate` and unreadable to `parseDate`).
+- **A date role over an attribute that is not a date:** **Treat as Date** followed by an edit that leaves a value unreadable as a date (or a V2 document that types the role date) keeps the role typed date while the attribute's own type becomes categorical. `dataDisplayGetNumericValue` converts dates only for a date attribute, so the axis reads no values there. The filter extracts digits only for a numeric role, as `numericValuesForAttribute` does, so no case on such a role is plotted, real dates included, until the attribute reads as dates again.
 - **Day length:** the 10-day range and 5-day pad are fixed multiples of 86,400 seconds, as in V2, so a range crossing a daylight-saving change is off by an hour at one end.
 - **Grow-only and the same-date pad:** a same-date axis narrowed below 5 days each side widens again on the next data change, as distinct dates already widen to their 10% pad.
 - **No Cypress test of the drop:** on `main` the freeze blocks the browser's main thread, which Cypress shares, so a regression would hang the run rather than fail it. The Jest tests cover each cause; the R7 test renders [-6000, 100] first, which `main` misreads but finishes on, so it fails before reaching a hanging case.
@@ -141,6 +142,16 @@ Dragging an attribute typed as *date* onto a graph axis froze CODAP v3 when none
 - B) Clear the flag when a plugin sets bounds.
 
 **Decision**: A. R6 names drag or zoom as what ends the window.
+
+---
+
+### R8 for a date role over an attribute that is not a date
+**Context**: The filter extracted digits there, so "1/1/2024" (112024) and "2024-not-a-date" (2024) counted toward counts and percents while drawn far off the axis.
+**Options considered**:
+- A) Extract digits only for a numeric role, matching the axis reader.
+- B) Parse dates in the filter for a date role.
+
+**Decision**: A. B keeps "1/1/2024", which point positions still read as 112024 seconds; making the readers agree is the deferred reader story.
 
 ---
 

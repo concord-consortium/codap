@@ -32,3 +32,21 @@ describe("a date attribute on an axis role", () => {
     expect(tree.config.filterCase(tree.data, "c3")).toBe(false)
   })
 })
+
+describe("a date role over an attribute that is not a date", () => {
+  it("plots only the cases the axis can read", () => {
+    const tree = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    tree.data.addAttribute({ id: "textId", name: "when" })
+    tree.metadata.setData(tree.data)
+    tree.data.addCases(toCanonical(tree.data, [
+      { __id__: "c1", when: "1/1/2024" },
+      { __id__: "c2", when: "2024-not-a-date" }
+    ]))
+    tree.config.setDataset(tree.data, tree.metadata)
+    tree.config.setAttribute("x", { attributeID: "textId", type: "date" })
+    expect(tree.data.getAttribute("textId")?.type).toBe("categorical")
+    expect(tree.config.numericValuesForAttrRole("x")).toEqual([])
+    expect(tree.config.filterCase(tree.data, "c1")).toBe(false)
+    expect(tree.config.filterCase(tree.data, "c2")).toBe(false)
+  })
+})
