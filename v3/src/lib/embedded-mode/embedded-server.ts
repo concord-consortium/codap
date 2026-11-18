@@ -4,7 +4,7 @@ import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { setupRequestQueueProcessor } from "../../data-interactive/data-interactive-request-processor"
 import { DIRequest, DIRequestCallback } from "../../data-interactive/data-interactive-types"
 import { DEBUG_PLUGINS, debugLog } from "../debug"
-import { registerEmbeddedModeHandler } from "./embedded-mode-registry"
+import { kHostPageId, registerEmbeddedModeHandler } from "./embedded-mode-registry"
 
 export interface EmbeddedModeHandler {
   rpcEndpoint: iframePhone.IframePhoneRpcEndpoint
@@ -69,7 +69,9 @@ export function initializeEmbeddedServer(): EmbeddedModeHandler | null {
   // Set up request queue processor using shared module
   // Note: embedded server has no associated tile, so we don't pass one
   disposer = setupRequestQueueProcessor(requestQueue, {
-    name: "EmbeddedServer request processor"
+    name: "EmbeddedServer request processor",
+    // the host page's requests, as its reports of undoable actions, are identified as kHostPageId
+    requesterId: kHostPageId
   })
 
   parentHandler = {

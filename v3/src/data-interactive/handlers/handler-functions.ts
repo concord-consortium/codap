@@ -27,6 +27,8 @@ export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
   dataContext.applyModelChange(() => {
     dataContext.removeCases(caseIds)
   }, {
+    // as in V2, deleting cases keeps the undo history (data_context.js:520, :575)
+    keepRedo: true,
     notify: deleteCasesNotification(dataContext, getGroupedCases(dataContext, [aCase.__id__]))
   })
 
@@ -52,6 +54,8 @@ export function deleteItem(resources: DIResources, item?: ICase | string[]) {
   dataContext.applyModelChange(() => {
     dataContext.removeCases(itemIds)
   }, {
+    // as in V2, deleting items keeps the undo history (data_context.js:540, :575)
+    keepRedo: true,
     notify: deleteItemsNotifications(dataContext, itemIds)
   })
 
@@ -121,6 +125,9 @@ export function updateCaseBy(
   dataContext.applyModelChange(() => {
     dataContext.setCaseValues([{ ...updatedAttributes, __id__: aCase.__id__ }])
   }, {
+    // as in V2, updating items keeps the undo history (data_context.js:532, :575); updating cases
+    // clears it, so it clears what could be redone
+    keepRedo: !!itemReturnStyle,
     // as the case table does, report the changed case and any cases the change created by regrouping
     notify: () => {
       if (!hasUpdates) return
@@ -185,6 +192,9 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
     })
     dataContext.setCaseValues(updatedCases)
   }, {
+    // as in V2, updating items keeps the undo history (data_context.js:532, :575); updating cases
+    // clears it, so it clears what could be redone
+    keepRedo: !!itemReturnStyle,
     // as the case table does, report the changed cases and any cases the change created by regrouping;
     // as in V2, an item update follows its case notices with `updateItems`
     notify: () => {

@@ -157,6 +157,9 @@ export const TreeManager = types
       // state we might want to show that somehow. There are lots of entries
       // that are empty though, so they are removed for the time being.
       if (!entry.records.length && !entry.customPatches?.length) {
+        // a change to volatile state, such as case values, records no patches, but a plugin's request that
+        // makes one still clears the redo list (see below)
+        if (entry.clearsRedo && !entry.noDirty) self.undoStore.clearRedo()
         destroy(entry)
         return
       }
@@ -178,6 +181,12 @@ export const TreeManager = types
       // stack will have incomplete entries in sometimes.
       if (entry.undoable) {
         self.undoStore.addHistoryEntry(entry)
+      }
+      // A change that can't be undone, made on purpose rather than as a reaction or by undo or redo, clears
+      // the redo list, as V2's changes did (undo_history.js:89-111, :233-238). Unlike V2, the undo list is kept
+      // (CODAP-1594). See AppHistoryService for the changes that don't.
+      else if (entry.clearsRedo && !entry.noDirty) {
+        self.undoStore.clearRedo()
       }
 
       if (!entry.noDirty) {

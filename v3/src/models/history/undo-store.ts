@@ -16,6 +16,7 @@ export interface IUndoManager {
   undo() : IUndoInformation
   redo() : IUndoInformation
   setHistoryListener(listener?: UndoHistoryListener): void
+  liveHistoryEntryIds: string[]
   clearHistory(): void
 }
 
@@ -23,7 +24,8 @@ export interface IUndoManager {
 // or redone, or the entries that could be undone ("clearUndo") or redone ("clearRedo") are erased.
 // Lets the app notify plugins of each change as it happens.
 export type UndoHistoryChange = "add" | "undo" | "redo" | "clearUndo" | "clearRedo"
-export type UndoHistoryListener = (change: UndoHistoryChange) => void
+// For "undo" and "redo", entryId is the id of the entry undone or redone.
+export type UndoHistoryListener = (change: UndoHistoryChange, entryId?: string) => void
 
 // Information that is returned by undo and redo calls
 export interface IUndoInformation {
@@ -57,6 +59,11 @@ export const UndoStore = types
   },
   get redoEntry() {
     return this.canRedo ? self.history[self.undoIdx] : undefined
+  },
+  // the ids of the entries in the undo history and of those still being recorded
+  get liveHistoryEntryIds(): string[] {
+    const manager = getParent<{ activeHistoryEntries: HistoryEntryType[] }>(self)
+    return [...self.history.map(entry => entry.id), ...manager.activeHistoryEntries.map(entry => entry.id)]
   },
   findHistoryEntry(historyEntryId: string) {
     return self.history.find(entry => entry.id === historyEntryId)
@@ -163,6 +170,14 @@ export const UndoStore = types
       self.historyListener?.("clearRedo")
     },
 
+    // erase the entries that could be redone, telling the listener only when there were some, so a burst of
+    // changes that can't be undone reports it once
+    clearRedo() {
+      if (self.redoLevels === 0) return
+      self.history.splice(self.undoIdx)
+      self.historyListener?.("clearRedo")
+    },
+
     addHistoryEntry(entry: Instance<typeof HistoryEntry>) {
       // Find if there is already an HistoryEntry with this
       // historyEntryId. This action is called each time a new
@@ -232,8 +247,8 @@ export const UndoStore = types
 
       self.undoIdx--
       // tell the listener once the patches have been applied, as V2 did after the command's undo
-      if (patchesApplied) patchesApplied.then(() => self.historyListener?.("undo"))
-      else self.historyListener?.("undo")
+      if (patchesApplied) patchesApplied.then(() => self.historyListener?.("undo", entryToUndo.id))
+      else self.historyListener?.("undo", entryToUndo.id)
       return {
         id: entryToUndo.id,
         action: entryToUndo.action
@@ -271,8 +286,8 @@ export const UndoStore = types
 
       self.undoIdx++
       // tell the listener once the patches have been applied, as V2 did after the command's redo
-      if (patchesApplied) patchesApplied.then(() => self.historyListener?.("redo"))
-      else self.historyListener?.("redo")
+      if (patchesApplied) patchesApplied.then(() => self.historyListener?.("redo", entryToRedo.id))
+      else self.historyListener?.("redo", entryToRedo.id)
       return {
         id: entryToRedo.id,
         action: entryToRedo.action

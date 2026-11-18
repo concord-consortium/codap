@@ -10,11 +10,18 @@ export type INotify =
 export interface IApplyModelChangeOptions {
   log?: string | ILogMessage | (() => Maybe<string | ILogMessage>)
   notify?: INotify
+  // notices sent to every plugin when this change is undone or redone, beside the document's undo or redo
+  // notice. They are built when the change is made, so a tile the undo removes can still be described.
+  undoNotify?: INotify
+  redoNotify?: INotify
   notifyTileId?: string
   // tile to exclude from broadcast — e.g. the source plugin shouldn't get an echo of its own action
   excludeTileId?: string
   // all changes dirty the document by default; specify noDirty to disable dirtying the document
   noDirty?: boolean
+  // a change that can't be undone clears the redo list by default; keepRedo leaves it, e.g. for a change that
+  // erases the whole history itself afterward
+  keepRedo?: boolean
   // undo/redo strings indicate undo-ability; if not provided, the action is not undoable
   undoStringKey?: string
   redoStringKey?: string

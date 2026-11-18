@@ -28,6 +28,7 @@ export interface ICreateHistoryEntry {
   action: string
   noDirty?: boolean
   undoable: boolean
+  clearsRedo?: boolean
   customPatches?: ICustomPatch[]
   clientData?: IClientUndoData
 }
@@ -41,6 +42,8 @@ export const HistoryEntry = types.model("HistoryEntry", {
   // the easiest place for now.
   noDirty: types.maybe(types.boolean),
   undoable: types.maybe(types.boolean),
+  // an explicit change that can't be undone, which clears the redo list
+  clearsRedo: types.maybe(types.boolean),
   // other standard properties
   created: types.optional(types.Date, () => new Date()),
   records: types.array(TreePatchRecord),
