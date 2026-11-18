@@ -88,6 +88,16 @@ describe("MapHotSpotModel bandwidth", () => {
   })
 })
 
+describe("MapHotSpotModel default bandwidth", () => {
+  it("uses the default bandwidth when the bandwidth isn't positive", () => {
+    const hotSpot = MapHotSpotModel.create()
+    hotSpot.setLatLongSource({ plottedLatLongs: [{ lat: 0, long: 0 }, { lat: 1, long: 1 }, { lat: 2, long: 0 }] })
+    hotSpot.setBandwidth(0)
+    expect(hotSpot.effectiveBandwidth).toBe(hotSpot.defaultBandwidth)
+    expect(hotSpot.hotSpotSurface?.bandwidthMeters).toBe(hotSpot.defaultBandwidth)
+  })
+})
+
 describe("MapHotSpotModel optimization", () => {
   it("optimizes only while the bandwidth is changing interactively", () => {
     const hotSpot = MapHotSpotModel.create()

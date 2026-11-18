@@ -246,15 +246,14 @@ export interface IHotSpotSurface {
 }
 
 /**
- * Returns the density surface of the points, or undefined if there are none. If bandwidthMeters isn't a positive
- * number, a default is computed from the points' spread. If optimize is true, speed is prioritized over accuracy.
+ * Returns the density surface of the points with the given bandwidth in meters, or undefined if there are no points.
+ * If optimize is true, speed is prioritized over accuracy.
  */
 export function computeHotSpotSurface(
-  latLongs: ILatLong[], bandwidthMeters?: number, optimize = false
+  latLongs: ILatLong[], bandwidth: number, optimize = false
 ): Maybe<IHotSpotSurface> {
   if (!latLongs.length) return
 
-  const bandwidth = bandwidthMeters && bandwidthMeters > 0 ? bandwidthMeters : computeDefaultBandwidth(latLongs)
   const points = latLongs.map(latLong => {
     const { x, y } = latLongToWorldPoint(latLong)
     return { latLong, x, y, h: bandwidthToWorldUnits(bandwidth, latLong.lat) }

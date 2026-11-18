@@ -240,7 +240,7 @@ describe("computeHotSpotSurface", () => {
   const latLongs = [{ lat: 40, long: -100 }, { lat: 41, long: -101 }, { lat: 39, long: -99 }]
 
   it("is undefined without points", () => {
-    expect(computeHotSpotSurface([])).toBeUndefined()
+    expect(computeHotSpotSurface([], 20000)).toBeUndefined()
   })
 
   it("projects each point to world coordinates with its own bandwidth", () => {
@@ -258,11 +258,6 @@ describe("computeHotSpotSurface", () => {
   it("approximates the maximum density when optimizing", () => {
     const surface = computeHotSpotSurface(latLongs, 200000, true)!
     expect(surface.maxDensity).toBe(computeApproximateMaxDensity(surface.points))
-  })
-
-  it("computes a default bandwidth when none is given or it isn't positive", () => {
-    expect(computeHotSpotSurface(latLongs)!.bandwidthMeters).toBe(computeDefaultBandwidth(latLongs))
-    expect(computeHotSpotSurface(latLongs, 0)!.bandwidthMeters).toBe(computeDefaultBandwidth(latLongs))
   })
 })
 

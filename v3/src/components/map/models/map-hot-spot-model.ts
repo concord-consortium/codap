@@ -32,9 +32,6 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
     },
     get defaultBandwidth() {
       return computeDefaultBandwidth(self.plottedLatLongs)
-    },
-    get hotSpotSurface(): Maybe<IHotSpotSurface> {
-      return computeHotSpotSurface(self.plottedLatLongs, self.dynamicBandwidth ?? self.bandwidth, self.shouldOptimize)
     }
   }))
   .views(self => ({
@@ -47,6 +44,11 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
     // The bandwidth to render: the in-progress slider value if there is one, otherwise the effective bandwidth
     get displayBandwidth() {
       return self.dynamicBandwidth ?? self.effectiveBandwidth
+    }
+  }))
+  .views(self => ({
+    get hotSpotSurface(): Maybe<IHotSpotSurface> {
+      return computeHotSpotSurface(self.plottedLatLongs, self.displayBandwidth, self.shouldOptimize)
     }
   }))
   .actions(self => ({
