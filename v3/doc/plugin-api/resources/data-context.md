@@ -159,13 +159,6 @@ and attributes — and has no cases:
             "type": "categorical",
             "title": "Species",
             "cid": "ATTR43",
-            "_categoryMap": {
-              "lion": "#ff6800",
-              "__order": [ "lion" ],
-              "attribute-color": "#ff6800",
-              "low-attribute-color": "#f5e9e0",
-              "high-attribute-color": "#ff6800"
-            },
             "editable": true,
             "hidden": false,
             "renameable": true,
@@ -178,13 +171,6 @@ and attributes — and has no cases:
             "type": "numeric",
             "title": "Mass",
             "cid": "ATTR44",
-            "_categoryMap": {
-              "190": "#ff6800",
-              "__order": [ "190" ],
-              "attribute-color": "#803e75",
-              "low-attribute-color": "#eee7ed",
-              "high-attribute-color": "#803e75"
-            },
             "editable": true,
             "hidden": false,
             "renameable": true,
@@ -210,9 +196,10 @@ and attributes — and has no cases:
 ```
 
 Keys whose value is `undefined`, such as each attribute's `formula`, `description`, `unit` and
-`deletedFormula` and the collection's `parent`, are left out above; a plugin receives them, as
-described under [What `get` returns](#what-get-returns). An attribute's `_categoryMap` is present
-only once something in CODAP has used its categories, such as a case table or graph showing it.
+`deletedFormula`, Species' `precision`, and the collection's `parent` and `defaults`, are left out
+above; a plugin receives them, as described under [What `get` returns](#what-get-returns). An
+attribute's `_categoryMap` appears only once something in CODAP has used its categories; see the
+`_categoryMap` row in [attribute's What `get` returns](attribute.md#what-get-returns).
 
 Sort a data context by one attribute, descending:
 

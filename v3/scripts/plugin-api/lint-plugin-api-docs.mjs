@@ -20,6 +20,9 @@
 //   sections      each resource page has the required sections
 //   provenance    every page but conventions.md starts with a title and a provenance header
 //   llms          llms.txt links only pages that exist, and lists every resource and guide page
+//   examples      every request example names a resource and action the inventory lists (or is
+//                 a notice CODAP sends), and every documented action has an example, so each
+//                 becomes a plugin API Tester template (tester-templates.mjs)
 //   coverage      which resources in the code have no page (reported; --strict to fail)
 //
 // Undocumented resources are expected while resources still lack pages, so coverage is
@@ -31,10 +34,11 @@
 import { readFileSync, readdirSync, existsSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, join, relative, normalize } from "node:path"
-import { headingsOf } from "./markdown.mjs"
+import { headingsOf, jsonBlocksOf, stripFences } from "./markdown.mjs"
 import { markerProblems } from "./markers.mjs"
 import { buildPageFor } from "./coverage.mjs"
 import { readInventory } from "./inventory.mjs"
+import { buildTesterTemplates } from "./tester-templates.mjs"
 
 const here = dirname(fileURLToPath(import.meta.url))
 const v3Dir = join(here, "..", "..")
@@ -75,18 +79,18 @@ for (const file of files) {
   const raw = readFileSync(file, "utf8")
   const isResourcePage = name.startsWith("resources/")
   const isConventions = name === "conventions.md"
-  const outsideFences = raw.replace(/```[\s\S]*?```/g, "")
+  const outsideFences = stripFences(raw)
 
   // json
-  for (const [i, body] of [...raw.matchAll(/```json\n([\s\S]*?)```/g)].entries()) {
-    try { JSON.parse(body[1]) } catch (e) { fail(name, `json block ${i + 1} does not parse: ${e.message}`) }
+  for (const [i, { body }] of jsonBlocksOf(raw).entries()) {
+    try { JSON.parse(body) } catch (e) { fail(name, `json block ${i + 1} does not parse: ${e.message}`) }
   }
 
   // responses — a `get` example shows what comes back, as the next json block. Only resource
   // pages: the index shows request shapes on their own before it introduces responses.
   if (isResourcePage) {
-    const parsed = [...raw.matchAll(/```json\n([\s\S]*?)```/g)].map(m => {
-      try { return JSON.parse(m[1]) } catch { return null }
+    const parsed = jsonBlocksOf(raw).map(({ body }) => {
+      try { return JSON.parse(body) } catch { return null }
     })
     for (const [i, request] of parsed.entries()) {
       if (request?.action !== "get") continue
@@ -210,6 +214,11 @@ if (scopeBlocks.size > 3) {
       fail("notifications.md", `${operation ?? line} has no "Fires when" description`)
     }
   }
+}
+
+// examples — the same rules the tester's templates are built with
+for (const { file, message } of buildTesterTemplates(join(docsDir, "resources"), inventory).problems) {
+  fail(`resources/${file}`, message)
 }
 
 // coverage — the same mapping the generator uses, so the two cannot disagree about which
