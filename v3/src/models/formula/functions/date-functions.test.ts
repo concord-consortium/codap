@@ -275,9 +275,19 @@ describe("dateToEpoch", () => {
     expect(fn.evaluate({ x: date, unit: "μs" })).toBe(1700000000123000)
     expect(fn.evaluate({ x: date, unit: "ns" })).toBe(1700000000123000000)
     expect(fn.evaluate({ x: new Date(28333333 * 60000), unit: "min" })).toBe(28333333)
-    expect(fn.evaluate({ x: date, unit: "hours" })).toBe(UNDEF_RESULT)
-    expect(fn.evaluate({ x: date, unit: "constructor" })).toBe(UNDEF_RESULT)
-    expect(fn.evaluate({ x: date, unit: "__proto__" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: date, unit: "sec" })).toBe(1700000000.123)
+    expect(fn.evaluate({ x: date, unit: "second" })).toBe(1700000000.123)
+    expect(fn.evaluate({ x: date, unit: "millisecond" })).toBe(1700000000123)
+  })
+
+  it("throws an error listing the valid units for an unrecognized unit", () => {
+    const fn = math.compile("dateToEpoch(x, unit)")
+    const date = new Date(1700000000123)
+    for (const unit of ["hours", "constructor", "__proto__", ""]) {
+      expect(() => fn.evaluate({ x: date, unit })).toThrow("The 'dateToEpoch()' function's unit must be one of: s, min")
+    }
+    // The unit is checked even when the date is a number
+    expect(() => fn.evaluate({ x: 0, unit: "hours" })).toThrow()
   })
 
   it("converts numbers from epoch seconds to the given unit", () => {
@@ -285,6 +295,21 @@ describe("dateToEpoch", () => {
     expect(fn.evaluate({ x: 1700000000, unit: "ms" })).toBe(1700000000000)
     expect(fn.evaluate({ x: 1.1, unit: "s" })).toBe(1.1)
     expect(fn.evaluate({ x: 120, unit: "min" })).toBe(2)
+    expect(fn.evaluate({ x: 1700000000, unit: "us" })).toBe(1700000000000000)
+    expect(fn.evaluate({ x: 1700000000, unit: "ns" })).toBe(1700000000000000000)
+    expect(fn.evaluate({ x: "1700000000", unit: "ms" })).toBe(1700000000000)
+  })
+
+  it("returns UNDEF_RESULT instead of NaN or Infinity", () => {
+    const fn = math.compile("dateToEpoch(x, unit)")
+    expect(fn.evaluate({ x: NaN, unit: "s" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: Infinity, unit: "s" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: -Infinity, unit: "ms" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: "Infinity", unit: "s" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: 1e300, unit: "ns" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: new Date(NaN), unit: "s" })).toBe(UNDEF_RESULT)
+    expect(math.compile("dateToEpoch(1/0)").evaluate()).toBe(UNDEF_RESULT)
+    expect(math.compile("dateToEpoch(now() + 1e300)").evaluate()).toBe(UNDEF_RESULT)
   })
 })
 
@@ -323,9 +348,32 @@ describe("epochToDate", () => {
     expect(fn.evaluate({ x: 1700000000123456, unit: "microseconds" })).toEqual(expected)
     expect(fn.evaluate({ x: "1700000000123456789", unit: "ns" })).toEqual(expected)
     expect(fn.evaluate({ x: "1700000000123456789", unit: "nanoseconds" })).toEqual(expected)
-    expect(fn.evaluate({ x: 1700000000, unit: "hours" })).toBe(UNDEF_RESULT)
-    expect(fn.evaluate({ x: 1700000000, unit: "constructor" })).toBe(UNDEF_RESULT)
-    expect(fn.evaluate({ x: 1700000000, unit: "__proto__" })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: 1700000000, unit: "sec" })).toEqual(new Date(1700000000000))
+    expect(fn.evaluate({ x: 1700000000, unit: "second" })).toEqual(new Date(1700000000000))
+    expect(fn.evaluate({ x: 28333333, unit: "minute" })).toEqual(new Date(28333333 * 60000))
+    expect(fn.evaluate({ x: 1700000000123, unit: "millisecond" })).toEqual(expected)
+    expect(fn.evaluate({ x: 1700000000123456, unit: "microsecond" })).toEqual(expected)
+    expect(fn.evaluate({ x: "1700000000123456789", unit: "nanosecond" })).toEqual(expected)
+  })
+
+  it("throws an error listing the valid units for an unrecognized unit", () => {
+    const fn = math.compile("epochToDate(x, unit)")
+    for (const unit of ["hours", "constructor", "__proto__", ""]) {
+      expect(() => fn.evaluate({ x: 1700000000, unit }))
+        .toThrow("The 'epochToDate()' function's unit must be one of: s, min")
+    }
+    // The unit is checked even when the value isn't a number
+    expect(() => fn.evaluate({ x: true, unit: "hours" })).toThrow()
+  })
+
+  it("rounds to the nearest millisecond", () => {
+    const fn = math.compile("epochToDate(x, unit)")
+    // Float error puts these just below a whole millisecond, e.g. 1091312667.84 * 1000 is 1091312667839.9999
+    expect(fn.evaluate({ x: 1.001, unit: "s" })).toEqual(new Date(1001))
+    expect(fn.evaluate({ x: -1.001, unit: "s" })).toEqual(new Date(-1001))
+    expect(fn.evaluate({ x: 1091312667.84, unit: "s" })).toEqual(new Date(1091312667840))
+    expect(fn.evaluate({ x: 1500, unit: "us" })).toEqual(new Date(2))
+    expect(fn.evaluate({ x: 1400, unit: "us" })).toEqual(new Date(1))
   })
 
   it("converts whole microseconds exactly", () => {
@@ -341,6 +389,11 @@ describe("epochToDate", () => {
     expect(fn.evaluate({ x: new Date() })).toBe(UNDEF_RESULT)
     // JS dates span ±8.64e15 ms, i.e. ±8.64e12 seconds
     expect(fn.evaluate({ x: 8.64e12 + 1 })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: -8.64e12 - 1 })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: 8.64e12 })).toEqual(new Date(8.64e15))
+    expect(fn.evaluate({ x: -8.64e12 })).toEqual(new Date(-8.64e15))
+    expect(fn.evaluate({ x: NaN })).toBe(UNDEF_RESULT)
+    expect(fn.evaluate({ x: Infinity })).toBe(UNDEF_RESULT)
   })
 
   it("round-trips with dateToEpoch", () => {
@@ -352,5 +405,7 @@ describe("epochToDate", () => {
   it("round-trips with dateToEpoch in other units", () => {
     expect(math.compile("dateToEpoch(epochToDate(1700000000123, \"ms\"), \"ms\")").evaluate()).toBe(1700000000123)
     expect(math.compile("dateToEpoch(epochToDate(28333333, \"min\"), \"min\")").evaluate()).toBe(28333333)
+    expect(math.compile("dateToEpoch(epochToDate(1091312667.84))").evaluate()).toBe(1091312667.84)
+    expect(math.compile("dateToEpoch(epochToDate(1.001))").evaluate()).toBe(1.001)
   })
 })

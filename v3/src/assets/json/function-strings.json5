@@ -246,7 +246,7 @@
           {
             "name": "date",
             "type": "string",
-            "description": "The specified date. May be a string or a computed date."
+            "description": "The specified date. May be a computed date or a date string. A number, or a string of digits such as \"2023\", is taken to be epoch seconds rather than a year, and is converted to the given unit."
           },
           {
             "name": "unit",
@@ -259,7 +259,8 @@
           "dateToEpoch(\"11/14/2023, 17:13:20\") returns 1700000000 in US Eastern time",
           "dateToEpoch(\"11/14/2023, 17:13:20\", \"ms\") returns 1700000000000 in US Eastern time",
           "dateToEpoch(\"2023-11-14T22:13:20+00:00\") returns 1700000000 in any time zone",
-          "dateToEpoch(epochToDate(86400)) returns 86400"
+          "dateToEpoch(epochToDate(86400)) returns 86400",
+          "dateToEpoch(2023) returns 2023 because a number is taken as epoch seconds, not the year 2023"
         ]
       },
       { "displayName": "dayOfMonth",
@@ -315,7 +316,7 @@
           {
             "name": "unit",
             "type": "string",
-            "description": "\"s\" (seconds, the default), \"min\" (minutes), \"ms\" (milliseconds), \"us\" or \"μs\" (microseconds), or \"ns\" (nanoseconds). Many data sources record milliseconds, which are 13-digit numbers for recent dates. Dates keep only whole milliseconds, so anything smaller is dropped.",
+            "description": "\"s\" (seconds, the default), \"min\" (minutes), \"ms\" (milliseconds), \"us\" or \"μs\" (microseconds), or \"ns\" (nanoseconds). Many data sources record milliseconds, which are 13-digit numbers for recent dates. Dates keep only whole milliseconds, so values are rounded to the nearest millisecond.",
             "optional": true
           }
         ],

@@ -1615,6 +1615,7 @@
     "V3.formula.error.mixedSelfRef": "Formula uses both prev() and next() on its own attribute, which requires iterative resolution and is not yet supported",
     "V3.formula.error.stringConstantArg": "The '%@()' function expects %@ argument to be a string constant",
     "V3.formula.error.caseDependentNotSupported": "This formula scope does not support case-dependent formulas",
+    "V3.formula.error.epochUnit": "The '%@()' function's unit must be one of: %@",
 
     // V3 graph & map strings that are not present in V2 and will eventually require translation.
     "V3.Undo.mapLegendAttributeChange": "Undo changing map legend attribute",

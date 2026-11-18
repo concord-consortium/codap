@@ -8,17 +8,24 @@ import { t } from "../../../utilities/translation/translate"
 // that convert a value in the unit to milliseconds. Units smaller than a millisecond use a divisor rather
 // than a fractional multiplier so that whole values convert exactly.
 const kEpochUnits: Record<string, [number, number]> = {
-  min: [60000, 1], minutes: [60000, 1],
-  s: [1000, 1], seconds: [1000, 1],
-  ms: [1, 1], milliseconds: [1, 1],
-  us: [1, 1000], "μs": [1, 1000], "µs": [1, 1000], microseconds: [1, 1000],  // Greek mu and micro sign
-  ns: [1, 1e6], nanoseconds: [1, 1e6]
+  min: [60000, 1], minute: [60000, 1], minutes: [60000, 1],
+  s: [1000, 1], sec: [1000, 1], second: [1000, 1], seconds: [1000, 1],
+  ms: [1, 1], millisecond: [1, 1], milliseconds: [1, 1],
+  us: [1, 1000], "μs": [1, 1000], "µs": [1, 1000],  // Greek mu and micro sign
+  microsecond: [1, 1000], microseconds: [1, 1000],
+  ns: [1, 1e6], nanosecond: [1, 1e6], nanoseconds: [1, 1e6]
 }
 
-function getEpochUnit(unit: FValue): [number, number] | undefined {
+// The units listed in the error message for an unrecognized unit
+const kEpochUnitList = "s, min, ms, us, ns"
+
+function getEpochUnit(functionName: string, unit: FValue): [number, number] {
   const key = String(unit).trim().toLowerCase()
   // Only own keys, so inherited names such as "constructor" and "__proto__" aren't treated as units
-  return Object.prototype.hasOwnProperty.call(kEpochUnits, key) ? kEpochUnits[key] : undefined
+  if (!Object.prototype.hasOwnProperty.call(kEpochUnits, key)) {
+    throw new Error(t("V3.formula.error.epochUnit", { vars: [functionName, kEpochUnitList] }))
+  }
+  return kEpochUnits[key]
 }
 
 export const dateFunctions = {
@@ -131,9 +138,9 @@ export const dateFunctions = {
   dateToEpoch: {
     numOfRequiredArguments: 1,
     evaluate: (date: FValue, unit: FValue = "s") => {
-      const epochUnit = getEpochUnit(unit)
-      if (!epochUnit) return UNDEF_RESULT
-      const [multiplier, divisor] = epochUnit
+      const [multiplier, divisor] = getEpochUnit("dateToEpoch", unit)
+      // NaN, Infinity and invalid dates give a blank result rather than showing NaN or Infinity
+      const finiteOrUndef = (result: number) => isFinite(result) ? result : UNDEF_RESULT
       // convertToDate reads a whitespace-only string as the number 0, i.e. the year 2000
       if (typeof date === "boolean" || (typeof date === "string" && date.trim() === "")) return UNDEF_RESULT
       // A number (or numeric string) is already epoch seconds. Passing it to convertToDate would apply
@@ -142,11 +149,11 @@ export const dateFunctions = {
         const [isNumeric, seconds] = checkNumber(date)
         if (isNumeric) {
           // Return seconds unchanged rather than converting through milliseconds, which can add rounding error
-          return multiplier === 1000 ? seconds : seconds * 1000 * divisor / multiplier
+          return finiteOrUndef(multiplier === 1000 ? seconds : seconds * 1000 * divisor / multiplier)
         }
       }
       const dateObject = convertToDate(date)
-      return dateObject ? dateObject.getTime() * divisor / multiplier : UNDEF_RESULT
+      return dateObject ? finiteOrUndef(dateObject.getTime() * divisor / multiplier) : UNDEF_RESULT
     }
   },
 
@@ -156,13 +163,13 @@ export const dateFunctions = {
       // Unlike date(), small values aren't treated as years, so epochToDate(0) is January 1, 1970 UTC.
       // Only numbers and numeric strings are accepted. Booleans and Date objects are rejected because
       // Number(true) is 1 and Number(new Date()) is milliseconds, which would give misleading dates.
+      const [multiplier, divisor] = getEpochUnit("epochToDate", unit)
       if (typeof epochTime !== "number" && typeof epochTime !== "string") return UNDEF_RESULT
-      const epochUnit = getEpochUnit(unit)
       const [isValid, value] = checkNumber(epochTime)
-      if (!isValid || !epochUnit) return UNDEF_RESULT
-      const [multiplier, divisor] = epochUnit
-      // Date stores whole milliseconds, so microseconds and nanoseconds are truncated to the millisecond
-      const date = new Date(value * multiplier / divisor)
+      if (!isValid) return UNDEF_RESULT
+      // Date keeps only whole milliseconds and would truncate. Rounding stops float error from losing one
+      // (1091312667.84 * 1000 is 1091312667839.9999) and rounds sub-millisecond units to the nearest ms.
+      const date = new Date(Math.round(value * multiplier / divisor))
       return isFinite(date.valueOf()) ? date : UNDEF_RESULT
     }
   }
