@@ -56,9 +56,9 @@ notifications about changes it requested itself, so it never has to recognize an
 work. Changes the user makes are sent to every plugin.
 
 v2 followed this rule only for data changes that recorded which plugin asked for them. `update`
-on `attribute`, the `createCases` sent when items are created, `moveCases`, `moveAttribute`, and
-`dependentCases` all went to the requester too, and v2 sent component notifications to every
-plugin, the requester included.
+on `attribute`, the `createCases` sent when items are created, the `moveCases` sent when items are
+moved through `itemSearch`, `moveAttribute`, and `dependentCases` all went to the requester too,
+and v2 sent component notifications to every plugin, the requester included.
 
 ## The envelope
 
