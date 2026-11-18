@@ -5,6 +5,8 @@ import { IAxisDomainOptions } from "./axis-types"
 import { IBaseNumericAxisModel } from "./models/base-numeric-axis-model"
 import { IDateAxisModel, isAnyNumericAxisModel, isDateAxisModel } from "./models/numeric-axis-models"
 
+// Days are a fixed 86,400 seconds, as in V2, so a range that crosses a daylight-saving change is
+// an hour off at one end.
 const kSecondsPerDay = 24 * 60 * 60
 // With no dates to fit, a date axis shows the ten days ending now, as in V2
 const kNoDatesSpanSeconds = 10 * kSecondsPerDay
@@ -44,6 +46,10 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
   return bounds
 }
 
+/**
+ * `values` must hold only readable dates, in epoch seconds: a list of only undefined values takes the
+ * lone-date branch, which leaves the range as is but clears the axis's freedom to shrink.
+ */
 function setNiceDateDomain(values: number[], axisModel: IDateAxisModel, options?: IAxisDomainOptions) {
   if (values.length === 0) {
     // Only a refit that may shrink the axis replaces its range when there is nothing to fit.

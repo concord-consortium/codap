@@ -109,4 +109,8 @@ describe("DateAxisHelper.render", () => {
     // The outer label names the day the axis starts on, which is 1969 or 1970 depending on time zone.
     expect(labels[0]).toMatch(/19(69|70)/)
   })
+
+  it("draws no ticks for bounds beyond the range a Date can hold", () => {
+    expect(renderAxis(1e13, 1e13 + 60).tickCount).toBe(0)
+  })
 })

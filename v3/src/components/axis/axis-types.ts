@@ -49,9 +49,9 @@ export interface AxisBounds {
 export interface IAxisDomainOptions {
   clampPosMinAtZero?: boolean
   // When set, the domain is grown to fit the data, not shrunk, unless the axis model still allows
-  // its range to shrink (as after setting up an axis with nothing to fit). This preserves a
-  // larger user/plugin-set bound even for clamped (count/percent) axes, which otherwise refit
-  // tightly to the data on every change.
+  // its range to shrink (as after setting up an axis with nothing to fit); with nothing to fit, a
+  // grow-only refit leaves the axis alone. This preserves a larger user/plugin-set bound even for
+  // clamped (count/percent) axes, which otherwise refit tightly to the data on every change.
   growOnly?: boolean
 }
 

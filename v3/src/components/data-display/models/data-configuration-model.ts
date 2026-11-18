@@ -287,6 +287,7 @@ export const DataConfigurationModel = types
         if (["caption", "legend"].includes(role)) return true
         const roleType = self.attributeType(role as AttrRole)
         switch (roleType) {
+          // A split role never arrives here as a date: setupAxes retypes a split role categorical.
           case "date":
           case "numeric":
             return isFiniteNumber(dataDisplayGetNumericValue(data, caseID, attributeID, roleType === "numeric"))

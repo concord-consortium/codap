@@ -467,6 +467,8 @@ export class DateAxisHelper extends AxisHelper {
     sAS.attr("class", "date-axis axis")
 
     this.renderAxisLine()
+    // A bound beyond the range a Date can hold leaves no dates to tick, so only the line is drawn.
+    if (!lowerBoundsDate || !upperBoundsDate) return
     drawTicks()
   }
 }

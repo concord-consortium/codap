@@ -97,6 +97,16 @@ describe("setNiceDomain on a date axis", () => {
     expect(axis.domain).toEqual([100000, 200000])
   })
 
+  it("keeps a range the user dragged to on a no-dates axis", () => {
+    const axis = DateAxisModel.create({ place: "bottom", min: 0, max: 1 })
+    axis.setAllowRangeToShrink(true)
+    setNiceDomain([], axis)
+    // a drag or zoom ends by setting the domain
+    axis.setDomain(100000, 200000)
+    setNiceDomain([], axis)
+    expect(axis.domain).toEqual([100000, 200000])
+  })
+
   it("centers the axis on the date, five days each way, when every date is the same", () => {
     const date = 1704067200 // 1 January 2024 00:00 UTC
     const axis = DateAxisModel.create({ place: "bottom", min: 0, max: 1 })
