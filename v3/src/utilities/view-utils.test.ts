@@ -28,7 +28,7 @@ describe("getPaletteTopPosition", () => {
     const panelTop = 180
     // centering would put the palette's top above minTop
     expect(centeredTop(pointerMid)).toBeLessThan(minAllowedTop(panelTop))
-    // the clamped top is above the panel's top, rather than falling back to the panel's top
+    // the clamped top is above the panel's top
     expect(minAllowedTop(panelTop)).toBeLessThan(0)
     expect(position(panelTop, pointerMid)).toBe(minAllowedTop(panelTop))
   })
