@@ -277,7 +277,9 @@ describe("V2 map hot spot round-trip", () => {
     const v2MapTile = v2Document.components.find(c => c.type === "DG.MapView")!
     const layerModels = (v2MapTile.componentStorage as any).mapModelStorage.layerModels
     const v2PointLayer = layerModels.find((l: any) => l.pointColor != null)
-    const hotSpot = { isVisible: true, bandwidth: 5000, opacity: 0.5, lowColor: "#0000ff", highColor: "#ff0000" }
+    const hotSpot = {
+      isVisible: true, bandwidth: 5000, opacity: 0.5, colorRamp: "custom", lowColor: "#0000ff", highColor: "#ff0000"
+    }
     v2PointLayer.v3 = { ...v2PointLayer.v3, hotSpot }
 
     const tile = v2MapImporter({ v2Component: v2MapTile, v2Document, ...mockImporterArgs })

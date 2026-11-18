@@ -2,6 +2,9 @@ import { isEqual } from "lodash"
 import { getSnapshot, Instance, types } from "mobx-state-tree"
 import { applyModelChange } from "../../../models/history/apply-model-change"
 import { ILatLongSource } from "../map-types"
+import {
+  HotSpotColorRamp, HotSpotColorRamps, kDefaultHotSpotColorRamp, kDefaultHotSpotHighColor, kDefaultHotSpotLowColor
+} from "../utilities/hot-spot-color-ramps"
 import { computeHotSpotSurface, IHotSpotSurface } from "../utilities/hot-spot-utils"
 
 export const MapHotSpotModel = types.model("MapHotSpotModel", {
@@ -9,8 +12,9 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
   // Kernel bandwidth in meters on the ground; undefined means compute a default from the data's spread
   bandwidth: types.maybe(types.number),
   opacity: 0.75,
-  lowColor: "#000000",
-  highColor: "#ffffff"
+  colorRamp: types.optional(types.enumeration([...HotSpotColorRamps]), kDefaultHotSpotColorRamp),
+  lowColor: kDefaultHotSpotLowColor,
+  highColor: kDefaultHotSpotHighColor
 })
   .volatile(() => ({
     latLongSource: undefined as Maybe<ILatLongSource>,
@@ -37,6 +41,9 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
     },
     setDynamicOpacity(opacity: Maybe<number>) {
       self.dynamicOpacity = opacity
+    },
+    setColorRamp(colorRamp: HotSpotColorRamp) {
+      self.colorRamp = colorRamp
     },
     setLowColor(color: string) {
       self.lowColor = color
