@@ -83,12 +83,14 @@
         "caseByID": [
           "get",
           "update",
-          "delete"
+          "delete",
+          "notify"
         ],
         "caseByIndex": [
           "get",
           "update",
-          "delete"
+          "delete",
+          "notify"
         ],
         "caseCount": [
           "get"

@@ -131,6 +131,76 @@ Create a data context with one collection and two attributes:
 }
 ```
 
+Read it back, after one case has been added. The response describes the structure — collections
+and attributes — and has no cases:
+
+```json
+{
+  "action": "get",
+  "resource": "dataContext[Mammals]"
+}
+```
+
+```json
+{
+  "success": true,
+  "values": {
+    "type": "DG.DataContext",
+    "document": 1,
+    "guid": 41,
+    "id": 41,
+    "name": "Mammals",
+    "title": "Mammal measurements",
+    "collections": [
+      {
+        "attrs": [
+          {
+            "name": "Species",
+            "type": "categorical",
+            "title": "Species",
+            "cid": "ATTR43",
+            "editable": true,
+            "hidden": false,
+            "renameable": true,
+            "deleteable": true,
+            "guid": 43,
+            "id": 43
+          },
+          {
+            "name": "Mass",
+            "type": "numeric",
+            "title": "Mass",
+            "cid": "ATTR44",
+            "editable": true,
+            "hidden": false,
+            "renameable": true,
+            "deleteable": true,
+            "guid": 44,
+            "id": 44,
+            "precision": 2
+          }
+        ],
+        "guid": 42,
+        "id": 42,
+        "name": "Cases",
+        "title": "Cases",
+        "type": "DG.Collection"
+      }
+    ],
+    "flexibleGroupingChangeFlag": false,
+    "preventReorg": false,
+    "setAsideItems": [],
+    "contextStorage": { "_links_": { "selectedCases": [] } }
+  }
+}
+```
+
+Keys whose value is `undefined`, such as each attribute's `formula`, `description`, `unit` and
+`deletedFormula`, Species' `precision`, and the collection's `parent` and `defaults`, are left out
+above; a plugin receives them, as described under [What `get` returns](#what-get-returns). An
+attribute's `_categoryMap` appears only once something in CODAP has used its categories; see the
+`_categoryMap` row in [attribute's What `get` returns](attribute.md#what-get-returns).
+
 Sort a data context by one attribute, descending:
 
 ```json
@@ -156,6 +226,15 @@ Set two cases aside, then restore everything that is set aside:
   "action": "notify",
   "resource": "dataContext[Mammals]",
   "values": { "request": "restoreSetAsides" }
+}
+```
+
+Delete a data context, with all of its cases:
+
+```json
+{
+  "action": "delete",
+  "resource": "dataContext[Mammals]"
 }
 ```
 

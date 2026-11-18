@@ -1,6 +1,10 @@
 import { getSnapshot } from "mobx-state-tree"
 import { appState } from "../../models/app-state"
 import { IDataSet } from "../../models/data/data-set"
+import {
+  getDataSetNotificationAdapter, setDataSetNotificationAdapter
+} from "../../models/data/data-set-notification-adapter"
+import { V2DataSetNotificationAdapter } from "../../models/data/data-set-notification-adapter-v2"
 import { ISharedDataSet } from "../../models/shared/shared-data-set"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { toV2Id } from "../../utilities/codap-utils"
@@ -222,6 +226,43 @@ describe("API data changes send dataContextChangeNotice", () => {
     await processAction({ action: "update", values: [{ id: itemId, values: [90, 91] }],
       resource: `dataContext[${dataset.name}].collection[collection3].item` })
     expect([dataset.getValue(dataset.itemIds[0], a3), dataset.getValue(dataset.itemIds[0], a4)]).toEqual(before)
+  })
+
+  it("notify caseByIndex and caseByID with caseOrder send moveCases with the moved case, as in V2", async () => {
+    const childCases = () => dataset.getCasesForCollection(dataset.collections[2].id).map(({ __id__ }) => __id__)
+    const movedId = childCases()[4]
+    const parentId = dataset.getParentCaseId(movedId)!
+    const [c2, c3] = [dataset.collections[1], dataset.collections[2]]
+    const itemId = dataset.caseInfoMap.get(movedId)!.childItemIds[0]
+    // CODAP sends plugins v2 cases (app.tsx)
+    const adapter = getDataSetNotificationAdapter()
+    setDataSetNotificationAdapter(V2DataSetNotificationAdapter)
+    try {
+      await request("notify", "collection[collection3].caseByIndex[4]", { caseOrder: 3 })
+    } finally {
+      setDataSetNotificationAdapter(adapter)
+    }
+    expect(childCases()[3]).toBe(movedId)
+    // as in V2, the case is listed in full too
+    expect(changes()).toEqual([{ operation: "moveCases", result: {
+      success: true,
+      caseIDs: [toV2Id(movedId)],
+      cases: [{
+        id: toV2Id(movedId),
+        parent: toV2Id(parentId),
+        context: { id: toV2Id(dataset.id), name: dataset.name },
+        collection: { id: toV2Id(c3.id), name: "collection3", parent: { id: toV2Id(c2.id), name: "collection2" } },
+        values: {
+          a3: dataset.getNumeric(itemId, dataset.attrIDFromName("a3")!),
+          a4: dataset.getNumeric(itemId, dataset.attrIDFromName("a4")!)
+        }
+      }]
+    } }])
+
+    // as in V2, it is sent even when the case is already there
+    broadcastSpy.mockClear()
+    await request("notify", `collection[collection3].caseByID[${toV2Id(movedId)}]`, { caseOrder: 3 })
+    expect(operations()).toEqual(["moveCases"])
   })
 
   it("create item sends createCases for each collection, then createItems", async () => {
