@@ -17,6 +17,8 @@ export function useEsriAttributionPrefix(show: boolean) {
     const control = map.attributionControl
     if (!show || !control) return
 
+    // Add the esri attribution to the prefix (separated from the default with a |) instead of as an attribution
+    // because Leaflet joins layer attributions with commas
     const defaultPrefix = control.options.prefix
     const esriPrefix = typeof defaultPrefix === "string" && defaultPrefix
       ? `${defaultPrefix}${kAttributionSeparator}${kPoweredByEsriAttribution}`

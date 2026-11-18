@@ -21,9 +21,8 @@ export const kMapUrls: Record<BaseMapKey, string> = {
   streets: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
 }
 
-// Attribution for each base map layer is the `copyrightText` reported by its Esri map service
-// (`<service URL>/MapServer?f=json`). Leaflet renders attribution as HTML, so escape any HTML-special characters if
-// these are updated.
+// Attribution for each base map layer is the `copyrightText` reported by its Esri map service.
+// Leaflet renders attribution as HTML, so escape any HTML-special characters if these are updated.
 //   oceans:  https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer?f=json
 //   topo:    https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer?f=json
 //   streets: https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer?f=json
@@ -37,7 +36,7 @@ export const kMapAttributions: Record<BaseMapKey, string> = {
     "and the GIS User Community"
 }
 
-// Esri requires exactly "Powered by Esri" wherever its basemaps are shown.
+// Esri requires exactly "Powered by Esri" wherever its basemaps are shown (so it isn't translated).
 export const kPoweredByEsriAttribution =
   'Powered by <a href="https://www.esri.com" target="_blank" rel="noopener noreferrer">Esri</a>'
 
