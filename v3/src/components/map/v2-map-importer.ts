@@ -3,7 +3,8 @@ import {toV3AttrId, toV3Id} from "../../utilities/codap-utils"
 import { parseColorToHex } from "../../utilities/color-utils"
 import {V2TileImportArgs} from "../../v2/codap-v2-tile-importers"
 import {
-  isV2MapComponent, isV2MapCurrentStorage, isV2MapPointLayerStorage, isV2MapPolygonLayerStorage
+  ICodapV2MapHotSpotStorage, isV2MapComponent, isV2MapCurrentStorage, isV2MapPointLayerStorage,
+  isV2MapPolygonLayerStorage
 } from "../../v2/codap-v2-types"
 import { applyImportedLegendBinCount, importV3Properties } from "../../v2/codap-v2-type-utils"
 import {v3TypeFromV2TypeIndex} from "../../v2/codap-v2-data-context-types"
@@ -15,8 +16,17 @@ import {kMapIdPrefix, kMapTileType} from "./map-defs"
 import {IMapPointLayerModelSnapshot} from "./models/map-point-layer-model"
 import {BaseMapKey, kMapPointLayerType, kMapPolygonLayerType} from "./map-types"
 import {IMapBaseLayerModelSnapshot} from "./models/map-base-layer-model"
+import { IMapHotSpotModelSnapshot } from "./models/map-hot-spot-model"
 import {IMapPolygonLayerModelSnapshot} from "./models/map-polygon-layer-model"
 import { DataSetMapAttributes } from "./utilities/data-set-map-attributes"
+import { isHotSpotColorRamp } from "./utilities/hot-spot-color-ramps"
+
+// Drops a color ramp this version doesn't know (e.g. one saved by a newer version), so the model uses its default
+function importHotSpot(hotSpot?: ICodapV2MapHotSpotStorage): Maybe<IMapHotSpotModelSnapshot> {
+  if (!hotSpot) return
+  const { colorRamp, ...others } = hotSpot
+  return isHotSpotColorRamp(colorRamp) ? { ...others, colorRamp } : others
+}
 
 
 export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}: V2TileImportArgs) {
@@ -105,7 +115,7 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
           isVisible: grid.isVisible,
           _gridMultiplier: grid.gridMultiplier,
         },
-        hotSpotModel: v2LayerModel.v3?.hotSpot,
+        hotSpotModel: importHotSpot(v2LayerModel.v3?.hotSpot),
         pointsAreVisible: pointsShouldBeVisible,
         connectingLinesAreVisible: connectingLines.isVisible
       }

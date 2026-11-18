@@ -548,7 +548,7 @@ export interface ICodapV2MapHotSpotStorage {
   isVisible?: boolean
   bandwidth?: number
   opacity?: number
-  colorRamp?: "heat" | "viridis" | "cividis" | "monochrome" | "custom"
+  colorRamp?: string
   lowColor?: string
   highColor?: string
 }

@@ -85,8 +85,9 @@ A new action, `setColorRamp`, sets the property.
 ### Saved documents
 
 - The v2 export already writes the whole hot spot snapshot under the point layer's `v3.hotSpot` when any
-  property differs from its default, so `colorRamp` is saved and restored with no change to the importer or
-  exporter. `ICodapV2MapHotSpotStorage` gains an optional `colorRamp`.
+  property differs from its default, so `colorRamp` is saved with no change to the exporter.
+- `ICodapV2MapHotSpotStorage` gains an optional `colorRamp`, typed as a string. The importer validates it, as it
+  does point shapes: a ramp name this version doesn't know is dropped, so the layer opens with Heat.
 - No migration is written. The feature is flagged and unreleased. A document saved before this change has no
   `colorRamp`, so it opens with Heat. If it has saved colors, they become its custom colors.
 

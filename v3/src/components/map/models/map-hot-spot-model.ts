@@ -1,5 +1,5 @@
 import { isEqual } from "lodash"
-import { getSnapshot, Instance, types } from "mobx-state-tree"
+import { getSnapshot, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { applyModelChange } from "../../../models/history/apply-model-change"
 import { ILatLongSource } from "../map-types"
 import {
@@ -58,6 +58,7 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
   .actions(applyModelChange)
 
 export interface IMapHotSpotModel extends Instance<typeof MapHotSpotModel> {}
+export interface IMapHotSpotModelSnapshot extends SnapshotIn<typeof MapHotSpotModel> {}
 
 export const kDefaultHotSpotSnapshot = getSnapshot(MapHotSpotModel.create())
 
