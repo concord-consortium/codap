@@ -79,6 +79,7 @@ export const MapLayersPalette = observer(function MapLayersPalette(
       setShowPalette={setShowPalette}
       panelRect={panelRect}
       buttonRect={buttonRect}
+      tileType="map"
     >
       <MapBaseLayerControl tile={tile}/>
       {renderLayersFormattingControls()}

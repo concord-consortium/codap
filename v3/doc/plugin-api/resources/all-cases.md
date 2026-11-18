@@ -51,7 +51,7 @@ own data context — see [the index](../README.md#the-default-data-context).
 | `collection` | `{ "name", "id" }` of the collection |
 | `cases` | one entry per case in the collection, in the order the case table shows them |
 | `cases[].case.id` | the case's id |
-| `cases[].case.parent` | the parent case's id; `null` for a case in the top-level collection. v3 currently differs; see [Known limitations](#known-limitations) |
+| `cases[].case.parent` | the parent case's id; `null` for a case in the top-level collection |
 | `cases[].case.children` | the ids of the case's child cases, in order; empty in the child-most collection |
 | `cases[].case.values` | one key per attribute of the collection, keyed by attribute name |
 | `cases[].caseIndex` | the case's position in the collection, counting from 0, as used by [`caseByIndex`](case-by-index.md) |
@@ -147,9 +147,11 @@ Clear the data context before loading new data:
 
 ## Known limitations
 
-**A top-level case's `parent` is `undefined`, not `null`.** v2 sent `null`. A plugin that tests
-`parent === null` treats every top-level case as a child; test for a missing parent instead, such
-as `parent == null`. This is a known bug.
+**The text `true` and `false` reads back as a boolean.** A value a plugin sent as `true` reads back
+as `true` in `get`'s reply, as in v2. CODAP stores every value as a number or text, so it cannot
+tell that boolean from the text `true` typed into a table, imported from a file, or set by a
+checkbox: those read back as booleans too, where v2 returned the text. Only the lowercase words are
+converted; `TRUE` stays text. This is a deliberate difference.
 
 ## Notifications
 

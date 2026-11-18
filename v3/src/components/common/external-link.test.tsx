@@ -5,7 +5,7 @@ const kUrl = "https://example.com"
 
 describe("ExternalLink", () => {
   it("opens in a new tab without giving the new page access to CODAP", () => {
-    render(<ExternalLink href={kUrl}>Example</ExternalLink>)
+    render(<ExternalLink href={kUrl} data-testid="test-link">Example</ExternalLink>)
     const link = screen.getByRole("link", { name: "Example (opens in a new tab)" })
     expect(link).toHaveAttribute("href", kUrl)
     expect(link).toHaveAttribute("target", "_blank")
@@ -24,9 +24,9 @@ describe("ExternalLink", () => {
   })
 
   it("shows an arrow, hidden from screen readers, only when requested", () => {
-    const { rerender } = render(<ExternalLink href={kUrl}>Example</ExternalLink>)
+    const { rerender } = render(<ExternalLink href={kUrl} data-testid="test-link">Example</ExternalLink>)
     expect(screen.queryByText("↗")).not.toBeInTheDocument()
-    rerender(<ExternalLink href={kUrl} showArrow>Example</ExternalLink>)
+    rerender(<ExternalLink href={kUrl} showArrow data-testid="test-link">Example</ExternalLink>)
     expect(screen.getByText("↗")).toHaveAttribute("aria-hidden", "true")
     expect(screen.getByRole("link", { name: "Example (opens in a new tab)" })).toBeInTheDocument()
   })

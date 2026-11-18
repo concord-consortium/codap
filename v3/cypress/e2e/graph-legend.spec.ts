@@ -678,8 +678,8 @@ context("Test changing legend colors", () => {
           }
         })
       // Close the popover by clicking outside (close = accept, keeps the selected color)
-      cy.get(".codap-inspector-palette-header-title").click({force: true})
-      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+      cy.get("[data-testid=codap-inspector-palette-header]").click({force: true})
+      cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('.legend-key-shape')
         .invoke('css', 'fill')
         .then((fillColor) => {
@@ -692,7 +692,7 @@ context("Test changing legend colors", () => {
 
       cy.log("Undo/Redo color change")
       toolbar.getUndoTool().click()
-      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+      cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('.legend-key-shape')
         .invoke('css', 'fill')
         .then((fillColor) => {
@@ -703,7 +703,7 @@ context("Test changing legend colors", () => {
           }
         })
       toolbar.getRedoTool().click()
-      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+      cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('.legend-key-shape')
         .invoke('css', 'fill')
         .then((fillColor) => {
@@ -739,7 +739,7 @@ context("Test changing legend colors", () => {
             expect(rgb.g).to.be.within(saturationLandGreen - colorTolerance, saturationLandGreen + colorTolerance)
           }
         })
-      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+      cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('.legend-key-shape')
         .invoke('css', 'fill')
         .then((fillColor) => {
@@ -750,7 +750,7 @@ context("Test changing legend colors", () => {
           }
         })
       color_picker.getSetColorButton().click({waitForAnimations: false})
-      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+      cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('.legend-key-shape')
         .invoke('css', 'fill')
         .then((fillColor) => {
@@ -786,7 +786,7 @@ context("Test changing legend colors", () => {
             expect(rgb.g).to.be.within(hueLandBaseGreen - colorTolerance, hueLandBaseGreen + colorTolerance)
           }
         })
-      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+      cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('.legend-key-shape')
         .invoke('css', 'fill')
         .then((fillColor) => {
@@ -806,7 +806,7 @@ context("Test changing legend colors", () => {
             expect(rgb.g).to.be.within(saturationLandGreen - colorTolerance, saturationLandGreen + colorTolerance)
           }
         })
-      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+      cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('.legend-key-shape')
         .invoke('css', 'fill')
         .then((fillColor) => {

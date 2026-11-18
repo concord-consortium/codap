@@ -2,6 +2,7 @@ import { appState } from "../models/app-state"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { FormulaMathJsScope } from "../models/formula/formula-mathjs-scope"
+import { passesFilter } from "../models/formula/functions/function-utils"
 import { math } from "../models/formula/functions/math"
 import { displayToCanonical } from "../models/formula/utils/canonicalization-utils"
 import { getDisplayNameMap } from "../models/formula/utils/name-mapping-utils"
@@ -91,7 +92,8 @@ export function evaluateCaseFormula(displayFormula: string, dataset: IDataSet, c
     })
 
     try {
-      if (math.evaluate(formula, scope)) caseIds.push(caseId)
+      // decided as a filter formula is, so a "false" value doesn't match
+      if (passesFilter(math.evaluate(formula, scope))) caseIds.push(caseId)
     } catch (e: any) {
       return e.message
     }

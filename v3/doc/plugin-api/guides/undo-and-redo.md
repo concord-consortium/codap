@@ -25,14 +25,20 @@ match a single action in CODAP's interface and undo the same way it does:
 - `update` on `dataContext` with a `sort`
 - `notify` on a case table or graph `component` with `autoScale`
 - `update` on `attributeLocation`, which moves an attribute as dragging its column does
-- `create` on `component`, which adds a component as the toolbar does
+- `create` on `component`, which adds a component as the toolbar does. Creating a case table or
+  case card for a data context adds no entry, as in v2, and neither does a `guideView`: CODAP
+  creates every `guideView` new, as v2 did its first guide, which added no entry. Creating a
+  calculator that is already showing hides it, and its entry undoes the hide, also as in v2
 - `delete` on `component`, which closes a component as its close button does
 
-v3 does not yet add entries for the last three; see [Known limitations](#known-limitations).
+Entries use v2's labels, so the user sees, for example, "Undo adding a graph".
 
-A plugin should not depend on whether CODAP's undo reverses a request it made. If your plugin
-needs the user to be able to undo something it did through the API, it reports the action itself,
-as described next, and reverses the API changes itself when asked.
+The requests listed above that add an entry are undone by CODAP itself. Don't report those
+yourself, which adds a second entry, and don't make one of them while handling `undoAction` or
+`redoAction`, which adds a new entry and so clears redo. For anything else, a plugin should not
+depend on whether CODAP's undo reverses a request it made: if your plugin needs the user to be
+able to undo it, it reports the action itself, as described next, and reverses the API changes
+itself when asked.
 
 ## Making your plugin's actions undoable
 
@@ -182,10 +188,11 @@ CODAP, so CODAP also tells every plugin when it changes:
 
 Both carry `canUndo` and `canRedo` as they are after the change. Set your buttons from those values
 whatever the operation is called. v2 erased the undo history, and sent `clearUndo`, whenever a
-change could not be undone and after an `update document`. CODAP keeps the history after a change
-that cannot be undone, so it does not send `clearUndo` for that. It does not yet erase the history
-after an `update document` either, and sends `clearRedo` with `canUndo: true` instead. This is a
-known bug.
+change could not be undone and after an `update document`. CODAP erases it after an
+`update document`, just before `updateDocumentEnded`, as v2 did. It keeps the history after a change
+that cannot be undone, so it does not send `clearUndo` for that. Unlike v2, CODAP also sends
+`clearUndo` and `clearRedo` to the page it is embedded in, if any, so that page can keep its own
+buttons in step.
 
 Undoing or redoing sends neither. Instead, CODAP sends every plugin a notification on
 [`document`](../resources/document.md) with operation `undo` or `redo`, as v2 did. It also carries
@@ -196,17 +203,6 @@ Undoing or redoing sends neither. Instead, CODAP sends every plugin a notificati
 **`?standalone=true` also removes other title bars.** v3 removes the title bar of every web
 page shown in a component, guides included, not only plugins'. v2 removed only plugins' title
 bars. This is a known bug.
-
-**Undoing an entry from a closed plugin does nothing visible.** When the user closes a plugin, the
-close is itself an entry, so undoing it brings the plugin back before its own entries are
-reached. But if the plugin was closed without leaving an entry, for example by another plugin's
-`delete` on `component`, undoing one of its entries sends nothing and changes nothing, but still
-uses an undo step.
-
-**A plugin's attribute moves, and the components it creates or closes, cannot be undone.** v2
-added `update` on `attributeLocation`, and `create` and `delete` on `component`, to the history,
-as it did the same changes made in CODAP's interface, so the user could undo them. v3 does not.
-This is a known bug.
 
 ## See also
 

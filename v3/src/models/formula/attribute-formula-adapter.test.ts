@@ -42,7 +42,7 @@ describe("AttributeFormulaAdapter", () => {
     it("should store results in DataSet case values", () => {
       const { adapter, dataSet, attribute, context, extraMetadata } = getTestEnv()
       adapter.recalculateFormula(context, extraMetadata, "ALL_CASES")
-      expect(dataSet.getValueAtItemIndex(0, attribute.id)).toEqual(3)
+      expect(dataSet.getValueAtFullItemIndex(0, attribute.id)).toEqual(3)
     })
 
     it("handles next(self) on large datasets without stack overflow (CODAP-1358)", () => {
@@ -61,9 +61,9 @@ describe("AttributeFormulaAdapter", () => {
 
       const xAttr = dataSet.attributes[0]
       // Reverse-counting: case 1 -> N, case 2 -> N-1, ..., case N -> 1
-      expect(dataSet.getValueAtItemIndex(0, xAttr.id)).toEqual(N)
-      expect(dataSet.getValueAtItemIndex(N - 1, xAttr.id)).toEqual(1)
-      expect(dataSet.getValueAtItemIndex(Math.floor(N / 2), xAttr.id)).toEqual(N - Math.floor(N / 2))
+      expect(dataSet.getValueAtFullItemIndex(0, xAttr.id)).toEqual(N)
+      expect(dataSet.getValueAtFullItemIndex(N - 1, xAttr.id)).toEqual(1)
+      expect(dataSet.getValueAtFullItemIndex(Math.floor(N / 2), xAttr.id)).toEqual(N - Math.floor(N / 2))
     })
 
     it("rejects formulas that mix prev(self) and next(self) with a formula error (CODAP-1358)", () => {
@@ -81,7 +81,7 @@ describe("AttributeFormulaAdapter", () => {
       formulaManager.addAdapters([adapter])
 
       const xAttr = dataSet.attributes[0]
-      expect(dataSet.getValueAtItemIndex(0, xAttr.id)).toMatch(/prev.*next|next.*prev/)
+      expect(dataSet.getValueAtFullItemIndex(0, xAttr.id)).toMatch(/prev.*next|next.*prev/)
     })
   })
 
@@ -89,7 +89,7 @@ describe("AttributeFormulaAdapter", () => {
     it("should store error in DataSet case values", () => {
       const { adapter, attribute, dataSet, context, extraMetadata } = getTestEnv()
       adapter.setFormulaError(context, extraMetadata, "test error")
-      expect(dataSet.getValueAtItemIndex(0, attribute.id)).toEqual("test error")
+      expect(dataSet.getValueAtFullItemIndex(0, attribute.id)).toEqual("test error")
     })
   })
 
@@ -251,9 +251,9 @@ describe("AttributeFormulaAdapter", () => {
       const adapter = new AttributeFormulaAdapter(api)
       adapter.setupFormulaObservers(context, extraMetadata)
 
-      expect(dataSet.getValueAtItemIndex(0, attribute.id)).toEqual("")
+      expect(dataSet.getValueAtFullItemIndex(0, attribute.id)).toEqual("")
       dataSet.moveAttributeToNewCollection(dataSet.attrIDFromName("bar")!)
-      expect(dataSet.getValueAtItemIndex(0, attribute.id)).toEqual(3) // formula has been recalculated
+      expect(dataSet.getValueAtFullItemIndex(0, attribute.id)).toEqual(3) // formula has been recalculated
     })
   })
 })

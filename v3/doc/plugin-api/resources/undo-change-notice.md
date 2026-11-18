@@ -6,7 +6,8 @@
 The resource through which a plugin takes part in CODAP's undo history. A plugin sends it to put
 one of its own actions on the history, or to press undo or redo from buttons of its own. CODAP
 sends it back to tell the plugin to undo or redo one of its actions, and to report changes in
-whether undo and redo are available.
+whether undo and redo are available. The page CODAP is embedded in can use it the same way, as
+in v2.
 
 This page is the reference card. How the pieces fit together, and a complete example of a plugin
 keeping its own stack of actions, are in [Undo and redo](../guides/undo-and-redo.md).
@@ -74,21 +75,22 @@ CODAP sends `notify` on `undoChangeNotice` with one of these operations:
 
 | Operation | Sent to | `values` carries | The plugin replies |
 |---|---|---|---|
-| `undoAction` | the plugin whose entry is being undone | — | `{ "success": true }` once it has reversed the action, or `{ "success": false }` if it could not, and CODAP then tells the user the undo failed |
-| `redoAction` | the plugin whose entry is being redone | — | the same, once it has reapplied the action |
-| `clearUndo` | every plugin | `canUndo`, `canRedo` | anything; CODAP does not read the reply |
-| `clearRedo` | every plugin | `canUndo`, `canRedo` | anything; CODAP does not read the reply |
+| `undoAction` | the plugin, or the host page, whose entry is being undone | — | `{ "success": true }` once it has reversed the action, or `{ "success": false }` if it could not, and CODAP then tells the user the undo failed |
+| `redoAction` | the plugin, or the host page, whose entry is being redone | — | the same, once it has reapplied the action |
+| `clearUndo` | every plugin, and the host page | `canUndo`, `canRedo` | anything; CODAP does not read the reply |
+| `clearRedo` | every plugin, and the host page | `canUndo`, `canRedo` | anything; CODAP does not read the reply |
 
 `clearRedo` is sent each time an action is added to the history, even when there was nothing to
-redo, so a plugin learns that undo has become possible. `clearUndo` is sent, with `clearRedo`,
-when the undo history is erased. v2 erased it whenever a change could not be undone and after an
-`update document`. CODAP keeps the history after a change that cannot be undone, so it does not
-send them for that. It does not yet erase the history after an `update document` either, and
-sends `clearRedo` with `canUndo: true` instead; this is a known bug. `clearUndo` and `clearRedo`
-are sent to plugins only. v3 currently also sends them to the host page when CODAP is embedded in
-one; see [Known limitations](#known-limitations). Undoing or redoing sends neither: CODAP sends
-`undo` or `redo` on [`document`](document.md) to every plugin instead, also with `canUndo` and
-`canRedo`. Set your buttons from those values whatever the operation is called. See
+redo, so a plugin learns that undo has become possible. `clearUndo` is sent, with `clearRedo`, when
+the undo history is erased. v2 erased it whenever a change could not be undone and after an
+`update document`. CODAP erases it after an `update document`, just before `updateDocumentEnded`,
+as v2 did. Restoring a component can record an action of its own, such as a graph's measure, so a
+`clearRedo` can come first. CODAP keeps the history after a change that cannot
+be undone, so it does not send them for that. v2 sent `clearUndo` and `clearRedo` to plugins only.
+CODAP also sends them to the host page when it is embedded in one, so the host page too can keep
+its buttons in step. Undoing or redoing sends neither: CODAP sends `undo` or `redo` on
+[`document`](document.md) to every plugin instead, also with `canUndo` and `canRedo`. Set your
+buttons from those values whatever the operation is called. See
 [Keeping your buttons in step](../guides/undo-and-redo.md#keeping-your-buttons-in-step).
 
 ## Examples
@@ -142,21 +144,6 @@ function requestHandler(command, callback) {
 }
 ```
 
-## Known limitations
-
-The first of these is described in full in
-[the guide's known limitations](../guides/undo-and-redo.md#known-limitations).
-
-- **Undoing an entry from a closed plugin can do nothing visible.** When the plugin was closed by
-  another plugin's `delete` on `component`, which leaves no entry, undoing one of its entries
-  does nothing visible but still uses an undo step.
-- **The host page cannot use this resource.** When CODAP is embedded in a page, every operation
-  from the host page fails with `Interactive Frame not found`; v2 accepted them. See
-  [Embedding CODAP in your page](../guides/embedded-server.md#known-limitations).
-- **`clearUndo` and `clearRedo` also reach the host page.** When CODAP is embedded in a page, v3
-  sends them to the host page as well as to plugins. v2 sent them only to plugins. This is a
-  known bug. A host page should ignore them.
-
 ## Notifications
 
 `undoAction`, `redoAction`, `clearUndo` and `clearRedo` are the notifications on this resource;
@@ -168,7 +155,6 @@ see [What CODAP sends](#what-codap-sends) and
 | Error | Condition |
 |---|---|
 | `Unknown undoChangeNotice operation: <operation>` | `operation` is missing or is not one of the three a plugin sends. A missing one reads `undefined` |
-| `Interactive Frame not found` | the request did not come from a plugin in the document, as when the host page sends it |
 | `Interactive frame content not found` | `undoableActionPerformed` from a component that is not a plugin |
 | `Document content not found` | `undoableActionPerformed` from a plugin that is not part of a document |
 

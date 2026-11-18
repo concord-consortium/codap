@@ -13,7 +13,7 @@ export const MapTileElements = {
   selectHideShowButton() {
     c.getInspectorPanel().find("[data-testid=map-hide-show-button]").click()
     // Menu content renders in a React Aria Popover portal outside the inspector panel DOM
-    cy.get("[data-testid=hide-show-menu-list]").should("be.visible")
+    cy.get("[data-testid=inspector-menu-hide-show]").should("be.visible")
   },
   getDisplayValuesButton() {
     return c.getInspectorPanel().find("[data-testid=map-display-values-button]")
@@ -25,7 +25,7 @@ export const MapTileElements = {
     return c.getInspectorPanel().find("[data-testid=map-camera-button]")
   },
   getInspectorPalette() {
-    return c.getInspectorPanel().find("[data-testid=codap-inspector-palette]")
+    return c.getInspectorPanel().find("[data-testid=inspector-palette-map]")
   },
   getHeatmapBullet(type: "heatmap" | "points" = "heatmap") {
     return this.getInspectorPalette().contains(`Display as ${type}`)
@@ -60,10 +60,10 @@ export const MapTileElements = {
     return cy.get("[data-testid=hide-selected-cases]")
   },
   selectHideSelectedCases() {
-    cy.get("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
+    cy.get("[data-testid=inspector-menu-hide-show]").should("be.visible").then(() => {
       cy.get("[data-testid=hide-selected-cases]").click()
       cy.get("[data-testid=hide-selected-cases]").should("not.exist")
-      cy.get("[data-testid=hide-show-menu-list]").should("not.exist")
+      cy.get("[data-testid=inspector-menu-hide-show]").should("not.exist")
     })
   },
   getHideUnselectedCases() {
@@ -73,20 +73,20 @@ export const MapTileElements = {
     return this.getMapTile().find(".heatmap-canvas")
   },
   selectHideUnselectedCases() {
-    cy.get("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
+    cy.get("[data-testid=inspector-menu-hide-show]").should("be.visible").then(() => {
       cy.get("[data-testid=hide-unselected-cases]").click()
       cy.get("[data-testid=hide-unselected-cases]").should("not.exist")
-      cy.get("[data-testid=hide-show-menu-list]").should("not.exist")
+      cy.get("[data-testid=inspector-menu-hide-show]").should("not.exist")
     })
   },
   getShowAllCases() {
     return cy.get("[data-testid=show-all-cases]")
   },
   selectShowAllCases() {
-    cy.get("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
+    cy.get("[data-testid=inspector-menu-hide-show]").should("be.visible").then(() => {
       cy.get("[data-testid=show-all-cases]").click()
       cy.get("[data-testid=show-all-cases]").should("not.exist")
-      cy.get("[data-testid=hide-show-menu-list]").should("not.exist")
+      cy.get("[data-testid=inspector-menu-hide-show]").should("not.exist")
     })
   }
 }

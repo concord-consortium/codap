@@ -2,11 +2,12 @@ import { colord } from "colord"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useRef } from "react"
 import { Row } from "react-data-grid"
-import { TRenderRowProps } from "./case-table-types"
 import { useCollectionContext } from "../../hooks/use-collection-context"
 import { useDataSet } from "../../hooks/use-data-set"
 import { IDataSet } from "../../models/data/data-set"
 import { parseColorToHex } from "../../utilities/color-utils"
+import { TRenderRowProps } from "./case-table-types"
+import { useCollectionTableModel } from "./use-collection-table-model"
 
 // have to balance background visibility vs. visibility/accessibility of rendered text
 const kAlphaForRowBackground = 0.1
@@ -30,11 +31,12 @@ function getRowColor(data: IDataSet | undefined, collectionId: string, caseId: s
 }
 
 export const CustomRow = observer(function CustomRow(props: TRenderRowProps) {
-  const { data, metadata } = useDataSet()
+  const { data } = useDataSet()
   const collectionId = useCollectionContext()
+  const collectionTableModel = useCollectionTableModel()
   const rowRef = useRef<HTMLDivElement | null>(null)
   const { row: { __id__: caseId } } = props
-  const isCollapsedProp = metadata?.getCollapsedAncestor(caseId) ? { "data-is-collapsed": "true" } : {}
+  const isCollapsedProp = collectionTableModel?.getCollapsedAncestor(caseId) ? { "data-is-collapsed": "true" } : {}
   const rowColor = getRowColor(data, collectionId, caseId) ?? ""
 
   useEffect(() => {
