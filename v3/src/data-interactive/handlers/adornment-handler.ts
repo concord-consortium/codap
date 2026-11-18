@@ -1,4 +1,5 @@
 import { IAdornmentModel } from "../../components/graph/adornments/adornment-models"
+import { booleanValuesError } from "../../components/graph/adornments/utilities/adornment-handler-utils"
 import { IGraphContentModel, isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { t } from "../../utilities/translation/translate"
 import {
@@ -27,6 +28,11 @@ function withoutHistoryEntry<T>(graphContent: IGraphContentModel, fn: () => T): 
   return graphContent.applyModelChange(fn)
 }
 
+// every type's `create` and `update` refuse an `isVisible` that isn't a boolean
+function visibilityError(values: DIValues) {
+  return booleanValuesError(values as Record<string, unknown>, ["isVisible"])
+}
+
 export const registerAdornmentHandler = (type: string, handler: DIAdornmentHandler, alias?: string) => {
   diAdornmentHandlers.set(type, handler)
   if (alias) registerAdornmentTypeAlias(alias, type)
@@ -51,6 +57,8 @@ export const diAdornmentHandler: DIHandler = {
       const handler = diAdornmentHandlers.get(resolvedType)
 
       if (handler?.create) {
+        const error = visibilityError(values)
+        if (error) return error
         return withoutHistoryEntry(graphContent, () => handler.create!({graphContent, values}))
       }
 
@@ -134,6 +142,8 @@ export const diAdornmentHandler: DIHandler = {
 
       const handler = diAdornmentHandlers.get(resolvedType)
       if (handler?.update) {
+        const error = visibilityError(values)
+        if (error) return error
         return withoutHistoryEntry(graphContent, () => handler.update!({graphContent, values}))
       } else {
         return errorResult(t("V3.DI.Error.adornmentRequestNotSupported", { vars: [type, "update"] }))

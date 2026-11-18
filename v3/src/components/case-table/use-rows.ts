@@ -9,9 +9,7 @@ import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { isAddCasesAction, isCaseValueChangeAction, isRemoveCasesAction } from "../../models/data/data-set-actions"
 import { createCasesNotification } from "../../models/data/data-set-notifications"
-import {
-  IAddCasesOptions, ICase, ICaseCreation, IGroupedCase, symFirstChild, symIndex, symParent
-} from "../../models/data/data-set-types"
+import { IAddCasesOptions, ICase, ICaseCreation, symParent } from "../../models/data/data-set-types"
 import { mstReaction } from "../../utilities/mst-reaction"
 import { onAnyAction } from "../../utilities/mst-utils"
 import { prf } from "../../utilities/profiler"
@@ -33,12 +31,7 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
     const { rowCache } = collectionTableModel
     rowCache.clear()
     const cases = data?.getCasesForCollection(collectionId) ?? []
-    let prevParent: string | undefined
-    cases.forEach(({ __id__, [symIndex]: i, [symParent]: parent }: IGroupedCase) => {
-      const firstChild = parent && (parent !== prevParent) ? { [symFirstChild]: true } : undefined
-      rowCache.set(__id__, { __id__, [symIndex]: i, [symParent]: parent, ...firstChild })
-      prevParent = parent
-    })
+    collectionTableModel.createRows(cases).forEach(row => rowCache.set(row.__id__, row))
   }, [collectionId, collectionTableModel, data])
 
   const setCachedDomAttr = useCallback((caseId: string, attrId: string) => {
@@ -58,7 +51,7 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
         const cases = data?.getCasesForCollection(collectionId) ?? []
         return cases.map(({ __id__ }) => {
           const row = rowCache.get(__id__)
-          const collapsedAncestorId = metadata?.getCollapsedAncestor(__id__)
+          const collapsedAncestorId = collectionTableModel.getCollapsedAncestor(__id__)
           const isCollapsed = !!collapsedAncestorId
           const isFirstCaseOfAncestor = collapsedAncestorId
                                           ? metadata?.isFirstCaseOfAncestor(__id__, collapsedAncestorId)
@@ -228,12 +221,20 @@ export const useRows = (gridElement: HTMLDivElement | null) => {
       () => resetRowCacheAndSyncRows(),
       { name: "useRows.useEffect.reaction [collapsedCases]" }, metadata)
 
+    // rebuild the row cache when the rendered collections change (e.g. on hiding/showing attributes),
+    // since rows are grouped, numbered, and collapsed according to the rendered collections
+    const renderedCollectionsDisposer = reaction(
+      () => collectionTableModel.renderedCollectionIds.join(),
+      () => resetRowCacheAndSyncRows(),
+      { name: "useRows.useEffect.reaction [renderedCollections]" })
+
     return () => {
       validationReactionDisposer?.()
       caseIdsReactionDisposer?.()
       beforeAnyActionDisposer?.()
       afterAnyActionDisposer?.()
       metadataDisposer?.()
+      renderedCollectionsDisposer()
     }
   }, [metadata, collectionId, collectionTableModel, data, resetRowCache, resetRowCacheAndSyncRows,
       syncRowsToDom, syncRowsToRdg])

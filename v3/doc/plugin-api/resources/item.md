@@ -273,9 +273,11 @@ the cases the change removed in `deletedCases`. (Its `createdCases` was always e
 a known bug. Until it is fixed, a plugin that needs to know the resulting cases should read them
 again, for example with `caseSearch` or `allCases`.
 
-**A boolean value is stored as text.** An item created with `"Endangered": true` holds the text
-`true`, and `get` returns `"true"`. v2 kept the boolean. This is a known bug; it also affects
-searches, as described on [`caseSearch`](case-search.md#known-limitations).
+**The text `true` and `false` reads back as a boolean.** An item created with `"Endangered": true`
+returns `true` from `get`, as in v2. CODAP stores every value as a number or text, so it cannot
+tell that boolean from the text `true` typed into a table, imported from a file, or set by a
+checkbox: `get` returns those as booleans too, where v2 returned the text. Only the lowercase words
+are converted; `TRUE` stays text. This is a deliberate difference.
 
 **An `id` that is not a number is reported wrongly.** `create` stores an item under a text `id`
 such as `"s9"` as given, but `itemIDs` reports it as the digits it contains, `9`, or as `NaN`

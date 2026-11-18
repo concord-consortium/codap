@@ -2,6 +2,7 @@ import { Instance } from "@concord-consortium/mobx-state-tree"
 import { when } from "mobx"
 import "../../components/web-view/web-view-registration"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
+import { kHostPageId } from "../../lib/embedded-mode/embedded-mode-registry"
 import { Logger } from "../../lib/logger"
 import { appState } from "../../models/app-state"
 import { GlobalValue } from "../../models/global/global-value"
@@ -19,11 +20,6 @@ async function waitForHistoryEntry() {
 describe("DataInteractive UndoChangeNoticeHandler", () => {
   const handler = diUndoChangeNoticeHandler
 
-  it("returns error when interactiveFrame is missing", async () => {
-    const result = await handler.notify?.({}, { operation: "undoableActionPerformed" })
-    expect(result?.success).toBe(false)
-  })
-
   it("returns error for unknown operation", async () => {
     const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
     const result = await handler.notify?.({ interactiveFrame: tile }, { operation: "bogus" })
@@ -38,6 +34,7 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
 
   describe("with undo monitoring enabled", () => {
     let tile: ITileModel
+    let broadcastSpy: jest.SpyInstance | undefined
 
     beforeEach(() => {
       tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
@@ -45,6 +42,8 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
     })
 
     afterEach(() => {
+      broadcastSpy?.mockRestore()
+      broadcastSpy = undefined
       appState.document.treeMonitor!.disableMonitoring()
     })
 
@@ -101,8 +100,26 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
       expect(appState.document.canUndo).toBe(true)
     })
 
+    it("undoableActionPerformed without an interactiveFrame, as from the host page, targets the host page",
+        async () => {
+      broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+
+      const result = await handler.notify?.({}, { operation: "undoableActionPerformed" })
+      expect(result?.success).toBe(true)
+      await waitForHistoryEntry()
+
+      broadcastSpy.mockClear()
+      await handler.notify?.({}, { operation: "undoButtonPress" })
+      await waitForHistoryEntry()
+
+      const undoCall = broadcastSpy.mock.calls.find(
+        ([msg]) => msg.resource === "undoChangeNotice" && msg.values?.operation === "undoAction"
+      )
+      expect(undoCall?.[2]).toBe(kHostPageId)
+    })
+
     it("undo sends undoAction message to the originating plugin", async () => {
-      const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+      broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
 
       await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
       await waitForHistoryEntry()
@@ -117,12 +134,10 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
       expect(undoCall).toBeDefined()
       // Should target only the originating plugin tile
       expect(undoCall?.[2]).toBe(tile.id)
-
-      broadcastSpy.mockRestore()
     })
 
     it("redo sends redoAction message to the originating plugin", async () => {
-      const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+      broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
 
       await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
       await waitForHistoryEntry()
@@ -138,8 +153,6 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
       )
       expect(redoCall).toBeDefined()
       expect(redoCall?.[2]).toBe(tile.id)
-
-      broadcastSpy.mockRestore()
     })
 
   })
@@ -212,6 +225,22 @@ describe("DataInteractive UndoChangeNoticeHandler", () => {
       const clearNotices = notices("undoChangeNotice")
         .filter(({ message }) => ["clearUndo", "clearRedo"].includes(message.values.operation))
       expect(clearNotices).toEqual([])
+    })
+
+    it("sends clearUndo, then clearRedo, to every plugin when the history is erased, as v2 did", async () => {
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoableActionPerformed" })
+      await handler.notify?.({ interactiveFrame: tile }, { operation: "undoButtonPress" })
+      await waitForHistoryEntry()
+      broadcastSpy.mockClear()
+
+      appState.document.treeManagerAPI!.undoManager.clearHistory()
+      expect([appState.document.canUndo, appState.document.canRedo]).toEqual([false, false])
+      expect(notices("undoChangeNotice").map(({ message, targetTileId, excludeTileId }) =>
+        [message.values, targetTileId, excludeTileId])).toEqual([
+        [{ operation: "clearUndo", canUndo: false, canRedo: true }, undefined, undefined],
+        [{ operation: "clearRedo", canUndo: false, canRedo: false }, undefined, undefined]
+      ])
     })
 
     it("logs the plugin's logMessage, as v2 did", async () => {

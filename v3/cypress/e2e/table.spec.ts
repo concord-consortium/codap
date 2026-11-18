@@ -1,4 +1,3 @@
-import { CfmElements as cfm } from "../support/elements/cfm"
 import { ComponentElements as c } from "../support/elements/component-elements"
 import { TableTileElements as table } from "../support/elements/table-tile"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
@@ -424,61 +423,6 @@ context("case table ui", () => {
       table.getExportDataExportButton().click()
       table.getCfmModal().should("exist")
     })
-
-
-    // TODO: The following test frequently fails in CI even when it passes locally. We need to investigate
-    // and stabilize the test. Skipping for now to avoid blocking other work and potentially hitting our test quota.
-    it.skip("can copy data to the clipboard", () => {
-      // The following allows Cypress to copy data to the clipboard
-      // It was taken from: https://github.com/cypress-io/cypress/issues/2752#issuecomment-934864818
-      cy.wrap(Cypress.automation('remote:debugger:protocol', {
-        command: 'Browser.grantPermissions',
-        params: { permissions: ['clipboardReadWrite', 'clipboardSanitizedWrite'], },
-      })).then(() => {
-        cy.log("check copying data from a single collection")
-        c.selectTile("table", 0)
-        table.getRulerButton().click()
-        table.getCopyToClipboardItem().click()
-        table.getCopiedCasesAlert().should("contain", "Copied 27 Cases to the clipboard")
-        table.getCopiedCasesAlertOkButton().click()
-
-        cy.log("check copying data from multiple collections")
-        const queryParams = "?suppressUnsavedWarning&mouseSensor=#file=examples:Four%20Seals"
-        const url = `${Cypress.config("index")}${queryParams}`
-        cy.visit(url)
-        cy.wait(1000)
-        c.selectTile("table", 0)
-        table.getRulerButton().click()
-        table.getCopyToClipboardItem().click()
-        table.getExportDataModalBody().should("contain", "Copy case data from:")
-        table.getExportDataCollectionsButton().click()
-        table.getExportDataCollectionList().should("exist")
-        table.getExportDataCollectionListItems().should("have.length", 3)
-        table.getExportDataCollectionListItems().contains("Tracks").click()
-        table.getExportDataCopyButton().click()
-        table.getCopiedCasesAlert().should("contain", "Copied 4 Tracks to the clipboard")
-        table.getCopiedCasesAlertOkButton().click()
-
-        cy.log("check new table from clipboard")
-        cfm.openExampleDocument("Mammals", { discardChanges: true })
-        cy.wait(1000)  // Wait for document to load
-        c.getComponentTile("table", 0).should("exist")  // Verify first table exists before proceeding
-        c.clickIconFromToolShelf("table")
-        toolbar.getNewCaseTableFromClipboard().click()
-        c.getComponentTitle("table", 1).should("contain", "clipboard data")
-        table.getAttributeHeader().should("contain", "animal id")
-        table.getAttributeHeader().should("contain", "species")
-        // Wait for clipboard data to be fully imported before checking row count
-        // The table should have 6 rows: Header row + 4 data rows + 1 input row
-        // Wait for data cells to appear before checking row count
-        c.getComponentTile("table", 1).find(".rdg-cell").should("have.length.gte", 4)
-        table.getNumOfRows(1, 1).should("eq", "6")
-        c.closeComponent("table", 1)
-
-        // TODO: Add test for importing data from clipboard into existing table.
-        // I couldn't figure out how to confirm in the Importer plugin.
-      })
-    })
   })
   describe("case table header attribute menu", () => {
     it("verify add attribute with undo and redo", ()=>{
@@ -539,15 +483,21 @@ context("case table ui", () => {
       table.getAttribute("Animal").should("exist")
     })
     it("edits, re-randomizes, and deletes formulas", () => {
+      // The table displays numbers rounded to two decimal places. With random() in [0, 1), two
+      // different values often display identically, and values >= 0.995 display as "1". A wide
+      // range keeps distinct random values distinct on screen.
+      const kMaxRandom = 1000000
+      const cellValue = (cell: JQuery<HTMLElement>) => +cell.text().replace(/,/g, "")
+      const expectInRange = (value: number) => expect(value).to.be.within(0, kMaxRandom)
+
       // add a random() formula
-      table.addFormula("Height", "random()")
+      table.addFormula("Height", `random(${kMaxRandom})`)
       let random1 = 0
+      // verify cell background color is not white
+      table.getGridCell(2, 5).should("have.css", "background-color", "rgba(255, 255, 0, 0.2)")
       table.getGridCell(2, 5).then(cell => {
-        random1 = +cell.text()
-        expect(random1 >= 0).to.eq(true)
-        expect(random1 < 1).to.eq(true)
-        // verify cell background color is not white
-        cy.wrap(cell).should("have.css", "background-color", "rgba(255, 255, 0, 0.2)")
+        random1 = cellValue(cell)
+        expectInRange(random1)
       })
       // Rerandomize
       let random2 = 0
@@ -555,24 +505,18 @@ context("case table ui", () => {
       table.selectMenuItemFromAttributeMenu("Rerandomize")
       // Wait for the cell value to change (rerandomize is async)
       table.getGridCell(2, 5).should($cell => {
-        const value = +$cell.text()
-        expect(value).to.not.eq(random1)
+        expect(cellValue($cell)).to.not.eq(random1)
       })
       table.getGridCell(2, 5).then(cell => {
-        random2 = +cell.text()
-        expect(random2 >= 0).to.eq(true)
-        expect(random2 < 1).to.eq(true)
-        expect(random2).not.to.eq(random1)
+        random2 = cellValue(cell)
+        expectInRange(random2)
       })
 
       cy.log("Delete formula, verify values remain")
       table.openAttributeMenu("Height")
       table.selectMenuItemFromAttributeMenu("Delete Formula (Keeping Values)")
       table.getGridCell(2, 5).then(cell => {
-        const value = +cell.text()
-        expect(value >= 0).to.eq(true)
-        expect(value < 1).to.eq(true)
-        expect(value).to.eq(random2)
+        expect(cellValue(cell)).to.eq(random2)
       })
 
       cy.log("Verify that formula was deleted")
@@ -586,43 +530,31 @@ context("case table ui", () => {
       table.openAttributeMenu("Height")
       table.getAttributeMenuItem("Rerandomize").should("be.enabled")
       table.getAttributeMenuItem("Delete Formula (Keeping Values)").should("be.enabled")
-      // Wait for the cell value to change (formula re-evaluation is async)
+      // Wait for the restored formula to be re-evaluated (async), resulting in a different value
       table.getGridCell(2, 5).should($cell => {
-        const value = +$cell.text()
-        expect(value).to.not.eq(random2)
+        expect(cellValue($cell)).to.not.eq(random2)
       })
       table.getGridCell(2, 5).then(cell => {
-        random3 = +cell.text()
-        expect(random3 >= 0).to.eq(true)
-        expect(random3 < 1).to.eq(true)
-        // restored formula is re-evaluated resulting in a different value
-        expect(random3).not.to.eq(random2)
+        random3 = cellValue(cell)
+        expectInRange(random3)
       })
       table.closeAttributeMenu()
 
       cy.log("Delete formula, then use recover formula")
       table.openAttributeMenu("Height")
       table.selectMenuItemFromAttributeMenu("Delete Formula (Keeping Values)")
+      // after deleting the formula the values should still match
       table.getGridCell(2, 5).then(cell => {
-        const value = +cell.text()
-        expect(value >= 0).to.eq(true)
-        expect(value < 1).to.eq(true)
-        // after deleting the formula the values should still match
-        expect(value).to.eq(random3)
+        expect(cellValue(cell)).to.eq(random3)
       })
       table.openAttributeMenu("Height")
       table.selectMenuItemFromAttributeMenu("Recover Deleted Formula")
-      // Wait for the cell value to change (formula re-evaluation is async)
+      // Wait for the recovered formula to be re-evaluated (async), resulting in a different value
       table.getGridCell(2, 5).should($cell => {
-        const value = +$cell.text()
-        expect(value).to.not.eq(random3)
+        expect(cellValue($cell)).to.not.eq(random3)
       })
       table.getGridCell(2, 5).then(cell => {
-        const value = +cell.text()
-        expect(value >= 0).to.eq(true)
-        expect(value < 1).to.eq(true)
-        // restored formula is re-evaluated resulting in a different value
-        expect(value).to.not.eq(random3)
+        expectInRange(cellValue(cell))
       })
     })
     it("verify sorting", () => {

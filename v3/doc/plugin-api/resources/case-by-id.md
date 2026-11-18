@@ -207,6 +207,14 @@ Delete a parent case, and with it every mammal grouped under it:
 { "success": true, "values": [ 53 ] }
 ```
 
+## Known limitations
+
+**The text `true` and `false` reads back as a boolean.** A value a plugin sent as `true` reads back
+as `true` from `get`, as in v2. CODAP stores every value as a number or text, so it cannot tell
+that boolean from the text `true` typed into a table, imported from a file, or set by a checkbox:
+those read back as booleans too, where v2 returned the text. Only the lowercase words are
+converted; `TRUE` stays text. This is a deliberate difference.
+
 ## Notifications
 
 `notify` sends `moveCases`, listing the case, to the other plugins on

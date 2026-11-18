@@ -16,11 +16,13 @@ export interface IUndoManager {
   undo() : IUndoInformation
   redo() : IUndoInformation
   setHistoryListener(listener?: UndoHistoryListener): void
+  clearHistory(): void
 }
 
-// Called after the undo history changes: an undoable entry is added ("add"), or an entry is undone
-// or redone. Lets the app notify plugins of each change as it happens.
-export type UndoHistoryChange = "add" | "undo" | "redo"
+// Called after the undo history changes: an undoable entry is added ("add"), an entry is undone
+// or redone, or the entries that could be undone ("clearUndo") or redone ("clearRedo") are erased.
+// Lets the app notify plugins of each change as it happens.
+export type UndoHistoryChange = "add" | "undo" | "redo" | "clearUndo" | "clearRedo"
 export type UndoHistoryListener = (change: UndoHistoryChange) => void
 
 // Information that is returned by undo and redo calls
@@ -150,6 +152,15 @@ export const UndoStore = types
   return {
     setHistoryListener(listener?: UndoHistoryListener) {
       self.historyListener = listener
+    },
+
+    // erase the whole history, the undo side first, as V2's clearUndoRedoHistory did (undo_history.js:248-251)
+    clearHistory() {
+      self.history.splice(0, self.undoIdx)
+      self.undoIdx = 0
+      self.historyListener?.("clearUndo")
+      self.history.clear()
+      self.historyListener?.("clearRedo")
     },
 
     addHistoryEntry(entry: Instance<typeof HistoryEntry>) {

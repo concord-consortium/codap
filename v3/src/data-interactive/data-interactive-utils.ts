@@ -1,3 +1,5 @@
+import { kTitleBarHeight } from "../components/constants"
+import { IValueType } from "../models/data/attribute-types"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { ICaseCreation } from "../models/data/data-set-types"
@@ -20,6 +22,35 @@ export function canonicalizeAttributeName(name: string, iCanonicalize = true) {
   return tName
 }
 
+interface IDimensions { width?: number, height?: number }
+
+// The sides of a size a plugin sent that are usable: positive numbers, or text that converts to one
+export function validDimensions(dimensions?: unknown): IDimensions {
+  if (!dimensions || typeof dimensions !== "object") return {}
+  const pick = (value: unknown) => {
+    const num = typeof value === "number" || typeof value === "string" ? Number(value) : NaN
+    return isFinite(num) && num > 0 ? num : undefined
+  }
+  const { width, height } = dimensions as Record<string, unknown>
+  const [w, h] = [pick(width), pick(height)]
+  return { ...(w != null && { width: w }), ...(h != null && { height: h }) }
+}
+
+// A tile's size for a given size of its content: CODAP's only chrome is the title bar
+export function tileDimensionsFromContent({ width, height }: IDimensions): IDimensions {
+  return { ...(width != null && { width }), ...(height != null && { height: height + kTitleBarHeight }) }
+}
+
+export function contentDimensionsFromTile({ width, height }: IDimensions): IDimensions {
+  return { ...(width != null && { width }), ...(height != null && { height: Math.max(height - kTitleBarHeight, 0) }) }
+}
+
+// A value as a plugin reads it. V2 kept the booleans plugins sent (data_utilities.js:63-71), but V3 stores
+// every value as text, so the text "true" and "false" read back as booleans, whatever stored them.
+export function toPluginValue<T extends IValueType>(value: T): T | boolean {
+  return value === "true" ? true : value === "false" ? false : value
+}
+
 export function getCaseValues(caseId: string, dataSet: IDataSet, collectionId?: string) {
   const attributes = collectionId
                       ? dataSet.getCollection(collectionId)?.attributes ?? []
@@ -29,7 +60,7 @@ export function getCaseValues(caseId: string, dataSet: IDataSet, collectionId?: 
   const itemIndex = dataSet.getItemIndex(caseId) ?? -1
   attributes.map(attribute => {
     if (attribute?.name) {
-      values[attribute.name] = dataSet.getValue(caseId, attribute.id) ?? attribute?.value(itemIndex)
+      values[attribute.name] = toPluginValue(dataSet.getValue(caseId, attribute.id) ?? attribute?.value(itemIndex))
     }
   })
 

@@ -39,4 +39,31 @@ describe("MapHotSpotControl", () => {
     expect(pointLayer.hotSpotModel.isVisible).toBe(true)
     expect(checkbox).toBeChecked()
   })
+
+  it("renders an accessible opacity slider that is disabled while the hot spot is hidden", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const pointLayer = MapPointLayerModel.create(undefined, { historyService: new AppHistoryService() })
+    render(<MapHotSpotControl mapPointLayerModel={pointLayer}/>)
+
+    expect(screen.getByRole("group", { name: "V3.Inspector.map.hotSpotOpacity" })).toBeInTheDocument()
+    const slider = screen.getByRole("slider")
+    expect(slider).toHaveAttribute("aria-valuetext", "75%")
+    expect(screen.getByTestId("map-hot-spot-opacity-slider")).toHaveAttribute("data-disabled", "true")
+  })
+
+  it("commits the opacity when the slider change ends", async () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const user = userEvent.setup()
+    const pointLayer = MapPointLayerModel.create(undefined, { historyService: new AppHistoryService() })
+    pointLayer.hotSpotModel.setIsVisible(true)
+    render(<MapHotSpotControl mapPointLayerModel={pointLayer}/>)
+
+    const slider = screen.getByRole("slider")
+    expect(screen.getByTestId("map-hot-spot-opacity-slider")).not.toHaveAttribute("data-disabled")
+    act(() => slider.focus())
+    await user.keyboard("{ArrowRight}")
+    expect(pointLayer.hotSpotModel.opacity).toBeCloseTo(0.76)
+    expect(pointLayer.hotSpotModel.dynamicOpacity).toBeUndefined()
+    expect(slider).toHaveAttribute("aria-valuetext", "76%")
+  })
 })

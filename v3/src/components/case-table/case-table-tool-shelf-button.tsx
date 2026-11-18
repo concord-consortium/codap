@@ -1,9 +1,11 @@
-import { useState } from "react"
-import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
-    Tooltip, useDisclosure } from "@chakra-ui/react"
+import {
+  Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter, Tooltip, useDisclosure
+} from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
+import { useState } from "react"
 import { useMenuItemScrollIntoView } from "../../hooks/use-menu-item-scroll-into-view"
+import { clipboardManager } from "../../lib/clipboard/clipboard-manager"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
@@ -18,7 +20,6 @@ import { getFormulaManager, getSharedModelManager } from "../../models/tiles/til
 import { ITileModel } from "../../models/tiles/tile-model"
 import { createTileNotification } from "../../models/tiles/tile-notifications"
 import { persistentState } from "../../models/persistent-state"
-import { initiateImportFromClipboard } from "../../utilities/clipboard-import"
 import { uniqueName } from "../../utilities/js-utils"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 import { createOrShowTableOrCardForDataset, createTableOrCardForDataset } from "../case-tile-common/case-tile-utils"
@@ -143,7 +144,7 @@ const CaseTableToolShelfMenuList = observer(
         <MenuItem
           className="tool-shelf-menu-item table-menu-item"
           data-testid="tool-shelf-table-new-clipboard"
-          onClick={() => initiateImportFromClipboard()}
+          onClick={() => clipboardManager.importData()}
         >
           <TableIcon className="menu-icon case-table-icon"/>
           {`${t("DG.AppController.caseTableMenu.clipboardDataset")}`}

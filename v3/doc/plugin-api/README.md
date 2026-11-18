@@ -48,9 +48,10 @@ iframe-phone's two-second timeout for you; see
 
 **This reference replaces the
 [wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).**
-Every resource now has a complete, self-contained page in this folder, except `tourElements`,
-which is not yet documented anywhere, and `uiNotificationMonitor`, which has only an
-[interim guide](../plugin-ui-notifications.md). The wiki page is frozen as the **CODAP v2** reference;
+Every resource now has a complete, self-contained page in this folder, except two that are
+covered by full guides of their own: `tourElements`, documented in the
+[Tour API guide](../plugin-tour-api.md#get-tourelements), and `uiNotificationMonitor`, documented in
+the [UI notifications guide](../plugin-ui-notifications.md). The wiki page is frozen as the **CODAP v2** reference;
 [Where the wiki page's sections went](wiki-section-map.md) maps each of its sections to the page
 that now covers it.
 
@@ -216,7 +217,7 @@ Some resources are exceptions and return their internal string id directly:
 | Resource | Id it returns |
 |---|---|
 | `adornment`, `adornmentList` | The adornment's `ADRN...` string. The selector matches on it, so round-tripping works. |
-| `logMessageMonitor` | `clientId` is intended to be the plugin's own value, as in v2. v3 currently reports the plugin's tile id string instead, a known bug; see [`logMessageMonitor`](resources/log-message-monitor.md#known-limitations). |
+| `logMessageMonitor` | `clientId` is intended to be the plugin's own value, as in v2. v3 currently reports the plugin's tile id string instead, or `"__hostPage__"` for a monitor the host page registered, a known bug; see [`logMessageMonitor`](resources/log-message-monitor.md#known-limitations). |
 
 This is why "pass back what you were given" is the reliable rule: it holds for both cases,
 whereas "ids are numbers" does not. Do not parse an id, construct one, or assume its type.
@@ -322,8 +323,8 @@ All 39 resources CODAP v3 registers, alphabetically.
 | [`logMessage`](resources/log-message.md) | Write an event to CODAP's log |
 | [`logMessageMonitor`](resources/log-message-monitor.md) | Be told about the events CODAP logs |
 | [`selectionList`](resources/selection-list.md) | The selected cases in a data context |
-| `tourElements` | Not yet documented |
-| `uiNotificationMonitor` | Be told about clicks, drags and dialogs in CODAP's interface; see the [interim guide](../plugin-ui-notifications.md) |
+| [`tourElements`](../plugin-tour-api.md#get-tourelements) | The UI elements a tour or highlight can target, by `tourKey` |
+| [`uiNotificationMonitor`](../plugin-ui-notifications.md) | Be told about clicks, drags and dialogs in CODAP's interface |
 | [`undoChangeNotice`](resources/undo-change-notice.md) | Take part in CODAP's undo history |
 
 ---

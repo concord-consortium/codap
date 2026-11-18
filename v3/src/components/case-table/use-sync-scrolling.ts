@@ -1,10 +1,11 @@
 import { useCallback } from "react"
+import { useDataSet } from "../../hooks/use-data-set"
 import { OnTableScrollFn } from "./case-table-types"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { getRenderedCollections } from "./rendered-collections"
 import { useCaseTableModel } from "./use-case-table-model"
 
 export function useSyncScrolling() {
-  const data = useDataSetContext()
+  const { data, metadata } = useDataSet()
   const tableModel = useCaseTableModel()
 
   /**
@@ -19,8 +20,9 @@ export function useSyncScrolling() {
     const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)
     if (!tableModel || !collectionTableModel) return
 
-    // identify collections to be synchronized
-    const { collectionIds = [] } = data || {}
+    // identify collections to be synchronized -- only those the table renders
+    const collections = data ? getRenderedCollections(data.collections, attrId => !!metadata?.isHidden(attrId)) : []
+    const collectionIds = collections.map(collection => collection.id)
     const triggerCollectionIndex = collectionIds.findIndex(id => id === collectionId)
 
     // synchronize parent tables in succession
@@ -42,7 +44,7 @@ export function useSyncScrolling() {
         childTableModel.scrollToAlignWithParent(parentTableModel)
       }
     }
-  }, [data, tableModel])
+  }, [data, metadata, tableModel])
 
   const handleTableScroll = useCallback<OnTableScrollFn>((event, collectionId, element) => {
     const collectionTableModel = tableModel?.getCollectionTableModel(collectionId)

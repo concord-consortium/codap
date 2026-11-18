@@ -44,10 +44,11 @@ every connected plugin. The exceptions:
   [`document`](resources/document.md). `localeChanged` requires `handlesLocaleChange`; see
   [Everything else](#everything-else). A `logMessageNotice` requires registering a
   monitor; see [`logMessageMonitor`](resources/log-message-monitor.md).
-- **Sent to one plugin only.**
-  - `undoAction` and `redoAction` go only to the plugin that reported the undoable action. See
-    [Undo and redo](#undo-and-redo--undochangenotice).
-  - A `logMessageNotice` goes only to the plugin that registered the matching monitor.
+- **Sent to one recipient only.**
+  - `undoAction` and `redoAction` go only to the plugin, or the host page, that reported the
+    undoable action. See [Undo and redo](#undo-and-redo--undochangenotice).
+  - A `logMessageNotice` goes only to the plugin, or the host page, that registered the matching
+    monitor.
   - `drag`, `dragenter`, `dragleave` and `drop` go only to the plugin under the pointer. See
     [Attribute drag](#attribute-drag--dragdropattribute).
 
@@ -149,6 +150,9 @@ Every change in `values` carries `result`.
 <!-- END GENERATED: notifications-data -->
 
 Moving items is reported only as `moveCases`, as in v2, which never sent `moveItems` to plugins.
+
+The case values in `updateCases`, `deleteCases` and `selectCases` changes read `true` and `false`
+back as booleans, as `get` on a case does; see [Booleans](guides/data-types.md#booleans).
 
 This operation is part of the contract, but CODAP does not send it yet; see
 [Known limitations](#known-limitations):
@@ -339,14 +343,15 @@ Sent while a user drags an attribute, so a plugin can offer a drop target or rea
 |---|---|---|
 | `undoAction` | the user undoes an action your plugin reported as undoable | — |
 | `redoAction` | the user redoes an action your plugin reported as undoable | — |
-| `clearRedo` | an action is added to the history, even when there was nothing to redo. Sent to every plugin. Undoing or redoing sends `undo` or `redo` on `document` instead | `canRedo`, `canUndo` |
+| `clearRedo` | an action is added to the history, even when there was nothing to redo. Sent to every plugin and the host page. Undoing or redoing sends `undo` or `redo` on `document` instead | `canRedo`, `canUndo` |
+| `clearUndo` | the undo history is erased, after an `update document` just before `updateDocumentEnded`. Sent to every plugin and the host page, followed by `clearRedo` | `canRedo`, `canUndo` |
 <!-- END GENERATED: notifications-undo -->
 
-`clearUndo` is also part of the contract, carrying `canUndo` and `canRedo`: v2 sent it, with
-`clearRedo`, when the undo history was erased, which happened whenever a change could not be
-undone and after an `update document`. CODAP keeps the history after a change that cannot be
-undone, so it does not send `clearUndo` for that. It does not yet erase the history after an
-`update document` either, and sends `clearRedo` with `canUndo: true` instead. This is a known bug.
+v2 sent `clearUndo`, with `clearRedo`, when the undo history was erased, which happened whenever
+a change could not be undone and after an `update document`. CODAP erases it after an
+`update document`, just before `updateDocumentEnded`, as v2 did. It keeps the history after a
+change that cannot be undone, so it does not send `clearUndo` for that. v2 sent both to plugins
+only; CODAP also sends them to the host page when it is embedded in one.
 
 **`undoAction` and `redoAction` answer your own reports.** CODAP cannot undo a change inside your
 plugin, so it does not tell you about undo in general. Instead, when your plugin makes a change
@@ -386,7 +391,7 @@ Five more resources, each with a few notifications.
 | `global` | `localeChanged` | CODAP's locale changed. Carries `lang`, the two-letter base language, and `locale`, the locale itself, such as `pt-BR`. Sent only to plugins that set `handlesLocaleChange`; see [Language and locale](guides/locale.md) | `lang`, `locale` |
 | `logMessageNotice` | none | a user-analytics log event matched a monitor your plugin registered. Carries `message`, `formatStr` and `logMonitor`, and sometimes `topic` and `replaceArgs` | `formatStr`, `logMonitor`, `message`, … |
 | `interactiveFrame` | computed | guided-tour and highlight messages — `tourUpdate` and `highlightUpdate`. See the [Tour API](../plugin-tour-api.md) | _not readable from the code_ |
-| `uiNotificationNotice` | none | a UI event (an element appearing or disappearing, a click, a drag, a dialog change and the like) matched a `uiNotificationMonitor` your plugin registered. Carries `monitor` (its `id` and any `clientId`) and the event; see the [interim guide](../plugin-ui-notifications.md) | `monitor`, … |
+| `uiNotificationNotice` | none | a UI event (an element appearing or disappearing, a click, a drag, a dialog change and the like) matched a `uiNotificationMonitor` your plugin registered. Carries `monitor` (its `id` and any `clientId`) and the event; see the [UI notifications guide](../plugin-ui-notifications.md) | `monitor`, … |
 <!-- END GENERATED: notifications-other -->
 
 `dataContextCountChanged` and `dataContextDeleted` arrive here rather than on a named context
