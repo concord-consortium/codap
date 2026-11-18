@@ -1,8 +1,9 @@
+import { rgb } from "d3"
 import { CRS, latLng, Point } from "leaflet"
-import { getChoroplethColors } from "../../../utilities/color-utils"
 import { computeMeanCenter, greatCircleDistance } from "../../../utilities/geo-utils"
 import { degreesToRadians, mod, quantileOfSortedArray } from "../../../utilities/math-utils"
 import { ILatLong } from "../map-types"
+import { ColorInterpolator } from "./hot-spot-color-ramps"
 import { LatLongProjector } from "./map-utils"
 
 /** Grid cell side length, in CSS pixels */
@@ -311,18 +312,18 @@ export function hotSpotFade(normalizedDensity: number) {
 export const kColorLUTSize = 256
 
 /**
- * Returns a lookup table of kColorLUTSize RGBA colors (4 bytes each) running from lowColor to highColor, sampled
- * with getChoroplethColors so the gradient matches CODAP's legend gradients. Each entry's alpha is multiplied by
- * hotSpotFade of its normalized density, so low densities fade to transparent. Future multi-stop gradients and
- * binning (getChoroplethColors with the bin count) plug in here.
+ * Returns a lookup table of kColorLUTSize RGBA colors (4 bytes each) sampled along the ramp, from low density to
+ * high. Each entry's alpha is multiplied by hotSpotFade of its normalized density, so low densities fade to
+ * transparent. Binning would plug in here.
  */
-export function buildColorLUT(lowColor: string, highColor: string) {
+export function buildColorLUT(interpolator: ColorInterpolator) {
   const lut = new Uint8ClampedArray(kColorLUTSize * 4)
-  getChoroplethColors(lowColor, highColor, kColorLUTSize, { format: "rgba" }).forEach(({ r, g, b, a }, i) => {
-    const fade = hotSpotFade(i / (kColorLUTSize - 1))
-    // Uint8ClampedArray rounds the unrounded channels
-    lut.set([r, g, b, a * fade * 255], i * 4)
-  })
+  for (let i = 0; i < kColorLUTSize; i++) {
+    const normalizedDensity = i / (kColorLUTSize - 1)
+    const { r, g, b, opacity } = rgb(interpolator(normalizedDensity))
+    // Uint8ClampedArray rounds the alpha
+    lut.set([r, g, b, opacity * hotSpotFade(normalizedDensity) * 255], i * 4)
+  }
   return lut
 }
 

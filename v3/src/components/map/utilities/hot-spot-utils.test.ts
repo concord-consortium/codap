@@ -1,5 +1,6 @@
 import { Map as LeafletMap, Point, Projection } from "leaflet"
 import { greatCircleDistance } from "../../../utilities/geo-utils"
+import { getHotSpotRampInterpolator } from "./hot-spot-color-ramps"
 import {
   bandwidthToWorldUnits, buildColorLUT, colorizeDensityGrid, computeDefaultBandwidth, computeDensityGrid,
   computeHotSpotSurface, computeMaxDensity, hotSpotFade, IDensityGridRegion, IKernel, kColorLUTSize, kernelWeight,
@@ -312,15 +313,23 @@ describe("buildColorLUT", () => {
   const fullIndex = Math.ceil(kHotSpotFadeFull * (kColorLUTSize - 1))
 
   it("runs from the low color to the high color", () => {
-    const lut = buildColorLUT("#000000", "#ffffff")
+    const lut = buildColorLUT(getHotSpotRampInterpolator("monochrome", "", ""))
     expect(lut.length).toBe(kColorLUTSize * 4)
     expect(rgbaAt(lut, 0)).toEqual([0, 0, 0, 0])
     expect(rgbaAt(lut, 128)).toEqual([128, 128, 128, 255])
     expect(rgbaAt(lut, 255)).toEqual([255, 255, 255, 255])
   })
 
+  it("samples a named ramp from end to end", () => {
+    const lut = buildColorLUT(getHotSpotRampInterpolator("heat", "", ""))
+    // #000004, fully faded
+    expect(rgbaAt(lut, 0)).toEqual([0, 0, 4, 0])
+    // #fcffa4
+    expect(rgbaAt(lut, 255)).toEqual([252, 255, 164, 255])
+  })
+
   it("fades low densities to transparent", () => {
-    const lut = buildColorLUT("#000000", "#ffffff")
+    const lut = buildColorLUT(getHotSpotRampInterpolator("monochrome", "", ""))
     const alphaAt = (i: number) => lut[i * 4 + 3]
     const floorIndex = Math.floor(kHotSpotFadeFloor * (kColorLUTSize - 1))
     for (let i = 0; i <= floorIndex; i++) {
@@ -336,9 +345,9 @@ describe("buildColorLUT", () => {
   })
 
   it("multiplies the gradient's alpha by the fade", () => {
-    const lut = buildColorLUT("#ff000000", "#ff0000ff")
-    expect(rgbaAt(lut, 0)).toEqual([255, 0, 0, 0])
-    expect(rgbaAt(lut, 255)).toEqual([255, 0, 0, 255])
+    const lut = buildColorLUT(getHotSpotRampInterpolator("custom", "#00000000", "#000000ff"))
+    expect(rgbaAt(lut, 0)).toEqual([0, 0, 0, 0])
+    expect(rgbaAt(lut, 255)).toEqual([0, 0, 0, 255])
     // above the full cutoff, only the gradient's alpha applies
     expect(lut[fullIndex * 4 + 3]).toBe(Math.round(fullIndex))
     // within the fade, both apply
@@ -348,7 +357,7 @@ describe("buildColorLUT", () => {
 })
 
 describe("colorizeDensityGrid", () => {
-  const lut = buildColorLUT("#000000", "#ffffff")
+  const lut = buildColorLUT(getHotSpotRampInterpolator("monochrome", "", ""))
 
   it("maps 0 to the transparent low color, the maximum to the high color, and clamps above it", () => {
     const out = new Uint8ClampedArray(4 * 4)
@@ -402,7 +411,7 @@ describe("rendering a surface", () => {
     const region = { originX: -40, originY: -30, cols: 240, rows: 180, cellSize: 2 }
     const out = new Uint8ClampedArray(region.cols * region.rows * 4)
     renderHotSpotSurface(surface, createLatLongProjector(map), zoomScale(map), region,
-      buildColorLUT("#000000", "#ffffff"), out)
+      buildColorLUT(getHotSpotRampInterpolator("monochrome", "", "")), out)
     // far corner: no density, so transparent
     expect(Array.from(out.slice(0, 4))).toEqual([0, 0, 0, 0])
     // some cell near the points is bright
@@ -415,7 +424,7 @@ describe("rendering a surface", () => {
     const bandwidth = 2 * Math.PI * kWebMercatorRadiusMeters / kWorldSize
     const east = { lat: 0, long: 179.296875 }
     const seamSurface = computeHotSpotSurface([east, { lat: 0, long: -179.296875 }], bandwidth)!
-    const lut = buildColorLUT("#000000", "#ffffff")
+    const lut = buildColorLUT(getHotSpotRampInterpolator("monochrome", "", ""))
     // centered on 0°, the points project to opposite sides of the map; centered on 180°, next to each other
     const brightnesses = [0, 180].map(centerLong => {
       const map = createMap([0, centerLong], 1)
