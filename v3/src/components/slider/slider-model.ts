@@ -178,14 +178,16 @@ export const SliderModel = TileContentModel
     }
   }))
   .views(self => ({
-    // Whether a value lies within the inclusive range; a missing value never does. The tolerance keeps a case at
-    // either end when floating point leaves the bound a hair inside it.
+    // A test of whether a value lies within the inclusive range; a missing value never does. The tolerance keeps a
+    // case at either end when floating point leaves the bound a hair inside it. The bounds are worked out once, so
+    // a pass over every case doesn't recompute them per value.
+    get rangeTest(): (value?: number | null) => boolean {
+      const low = self.rangeLow - 8 * Number.EPSILON * Math.max(1, Math.abs(self.rangeLow))
+      const high = self.rangeHigh + 8 * Number.EPSILON * Math.max(1, Math.abs(self.rangeHigh))
+      return value => value != null && isFinite(value) && value >= low && value <= high
+    },
     isValueInRange(value?: number | null) {
-      const low = self.rangeLow
-      const high = self.rangeHigh
-      const lowTolerance = 8 * Number.EPSILON * Math.max(1, Math.abs(low))
-      const highTolerance = 8 * Number.EPSILON * Math.max(1, Math.abs(high))
-      return value != null && isFinite(value) && value >= low - lowTolerance && value <= high + highTolerance
+      return this.rangeTest(value)
     },
     // whether this is a selection slider bound to an attribute it can select by (the visibility slider's condition)
     get isBoundSelectionSlider() {
@@ -196,8 +198,9 @@ export const SliderModel = TileContentModel
     // The cases a visibility slider hides: those whose value is missing or outside the inclusive range.
     get sliderHiddenItemIds(): ReadonlySet<string> {
       const hidden = new Set<string>()
+      const inRange = self.rangeTest
       self.attributeValues.forEach(({ itemId, value }) => {
-        if (!self.isValueInRange(value)) hidden.add(itemId)
+        if (!inRange(value)) hidden.add(itemId)
       })
       return hidden
     },
@@ -206,8 +209,12 @@ export const SliderModel = TileContentModel
       const target = new Set<string>()
       const dataSet = self.dataSet
       if (!self.isBoundSelectionSlider || !dataSet) return target
+      // attributeValues already leaves out the cases that are set aside or filtered out by the filter formula, so
+      // only those hidden by visibility sliders remain to be checked
+      const inRange = self.rangeTest
+      const sliderFilters = Array.from(dataSet.sliderFilteredOutItemIds.values())
       self.attributeValues.forEach(({ itemId, value }) => {
-        if (self.isValueInRange(value) && !dataSet.isCaseOrItemHidden(itemId)) target.add(itemId)
+        if (inRange(value) && !sliderFilters.some(hidden => hidden.has(itemId))) target.add(itemId)
       })
       return target
     }
