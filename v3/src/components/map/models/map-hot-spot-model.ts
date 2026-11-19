@@ -2,7 +2,7 @@ import { isEqual } from "lodash"
 import { getSnapshot, Instance, types } from "mobx-state-tree"
 import { applyModelChange } from "../../../models/history/apply-model-change"
 import { ILatLongSource } from "../map-types"
-import { computeHotSpotSurface, IHotSpotSurface } from "../utilities/hot-spot-utils"
+import { computeDefaultBandwidth, computeHotSpotSurface, IHotSpotSurface } from "../utilities/hot-spot-utils"
 
 export const MapHotSpotModel = types.model("MapHotSpotModel", {
   isVisible: false,
@@ -14,14 +14,42 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
 })
   .volatile(() => ({
     latLongSource: undefined as Maybe<ILatLongSource>,
-    dynamicOpacity: undefined as Maybe<number>
+    dynamicOpacity: undefined as Maybe<number>,
+    dynamicBandwidth: undefined as Maybe<number>
+  }))
+  .views(self => ({
+    // True while the bandwidth is changing interactively, so rendering should favor speed over quality
+    get shouldOptimize() {
+      return self.dynamicBandwidth != null
+    },
+    get plottedLatLongs() {
+      return self.latLongSource?.plottedLatLongs ?? []
+    }
   }))
   .views(self => ({
     get displayOpacity() {
       return self.dynamicOpacity ?? self.opacity
     },
+    get defaultBandwidth() {
+      return computeDefaultBandwidth(self.plottedLatLongs)
+    }
+  }))
+  .views(self => ({
+    // The bandwidth that has been set (ignoring any in-progress slider value), or the default if none has been set
+    get effectiveBandwidth() {
+      return self.bandwidth && self.bandwidth > 0 && Number.isFinite(self.bandwidth)
+        ? self.bandwidth : self.defaultBandwidth
+    }
+  }))
+  .views(self => ({
+    // The bandwidth to render: the in-progress slider value if there is one, otherwise the effective bandwidth
+    get displayBandwidth() {
+      return self.dynamicBandwidth ?? self.effectiveBandwidth
+    }
+  }))
+  .views(self => ({
     get hotSpotSurface(): Maybe<IHotSpotSurface> {
-      return computeHotSpotSurface(self.latLongSource?.plottedLatLongs ?? [], self.bandwidth)
+      return computeHotSpotSurface(self.plottedLatLongs, self.displayBandwidth, self.shouldOptimize)
     }
   }))
   .actions(self => ({
@@ -30,6 +58,10 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
     },
     setBandwidth(bandwidth: Maybe<number>) {
       self.bandwidth = bandwidth
+      self.dynamicBandwidth = undefined
+    },
+    setDynamicBandwidth(bandwidth: Maybe<number>) {
+      self.dynamicBandwidth = bandwidth
     },
     setOpacity(opacity: number) {
       self.opacity = opacity
