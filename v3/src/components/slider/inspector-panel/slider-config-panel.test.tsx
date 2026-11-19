@@ -161,19 +161,36 @@ describe("SliderConfigPalette", () => {
     expect(slider.rangeWidth).toBe(500)
   })
 
-  it("ignores a negative or non-numeric width", async () => {
+  it("accepts only digits and one decimal point as they're typed", async () => {
+    const { slider } = await setupBoundSlider()
+    renderPalette(slider)
+    const input = screen.getByTestId("slider-range-width-input")
+    await userEvent.clear(input)
+    // the minus sign, second decimal point, exponent and letters are dropped
+    await userEvent.type(input, "-1.2.3e5abc")
+    expect(input).toHaveValue("1.235")
+    await userEvent.type(input, "{Enter}")
+    expect(slider.rangeWidth).toBe(1.235)
+  })
+
+  it("ignores a paste that isn't a number, and accepts one that is", async () => {
     const { slider } = await setupBoundSlider()
     act(() => slider.setRangeWidth(2))
     renderPalette(slider)
     const input = screen.getByTestId("slider-range-width-input")
     await userEvent.clear(input)
-    await userEvent.type(input, "-1{Enter}")
-    expect(slider.rangeWidth).toBe(2)
-    expect(input).toHaveValue("2")
-    await userEvent.clear(input)
-    await userEvent.type(input, "abc{Enter}")
-    expect(slider.rangeWidth).toBe(2)
-    expect(input).toHaveValue("2")
+    await userEvent.paste("1,5")
+    expect(input).toHaveValue("")
+    await userEvent.paste(".5")
+    expect(input).toHaveValue(".5")
+    await userEvent.type(input, "{Enter}")
+    expect(slider.rangeWidth).toBe(0.5)
+  })
+
+  it("offers a decimal keypad on touch devices", async () => {
+    const { slider } = await setupBoundSlider()
+    renderPalette(slider)
+    expect(screen.getByTestId("slider-range-width-input")).toHaveAttribute("inputmode", "decimal")
   })
 
   it("undoes a width edit", async () => {
@@ -375,7 +392,9 @@ describe("SliderConfigPalette", () => {
       const { slider } = await setupDateSlider(2 * year, 2 * week)
       const input = screen.getByTestId("slider-range-width-input")
       await userEvent.clear(input)
-      await userEvent.type(input, "1e303{Enter}")
+      // 10^303 years, which is finite until it's converted to seconds
+      await userEvent.paste(`1${"0".repeat(303)}`)
+      await userEvent.type(input, "{Enter}")
       expect(slider.rangeWidth).toBe(2 * week)
     })
 
