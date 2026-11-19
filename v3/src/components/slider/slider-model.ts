@@ -398,6 +398,11 @@ export const SliderModel = TileContentModel
       moveDynamicRange(low: number) {
         self.globalValue.setDynamicValue(normalizeMove(low))
       },
+      // drops an uncommitted dynamic change, e.g. keyboard steps that ended where they began
+      cancelDynamicRange() {
+        self.dynamicRangeWidth = undefined
+        self.globalValue.clearDynamicValue()
+      },
       moveRange(low: number) {
         const lo = normalizeMove(low)
         // the unlimited width, so a move while the axis is zoomed in doesn't save the narrower width

@@ -71,12 +71,39 @@ context("Slider range thumb", () => {
     }
   })
 
-  it("resizes from the keyboard without moving the other end", () => {
+  it("moves the whole range from the keyboard, keeping its width, and undoes in one step", () => {
     setupRangeSlider()
-    slider.getRangeHighInput().focus()
+    slider.getRange().focus()
     cy.realPress("ArrowRight")
-    slider.getRangeHighInput().should($high => expect(valueOf($high)).to.be.greaterThan(3.8))
+    slider.getSliderTile().should($tile => {
+      const low = valueOf($tile.find('[data-testid="slider-range-low"] input'))
+      const high = valueOf($tile.find('[data-testid="slider-range-high"] input'))
+      expect(low).to.be.greaterThan(2)
+      expect(high - low).to.be.closeTo(1.8, 0.1)
+    })
+    toolbar.getUndoTool().click()
     slider.getRangeLowInput().should("have.value", "2")
+  })
+
+  it("resizes from the upper edge with Alt+Arrow, without the browser going back", () => {
+    setupRangeSlider()
+    cy.url().then(url => {
+      slider.getRange().focus()
+      cy.realPress(["Alt", "ArrowRight"])
+      slider.getRangeHighInput().should($high => expect(valueOf($high)).to.be.greaterThan(3.8))
+      slider.getRangeLowInput().should("have.value", "2")
+      // Alt+Left is the browser's Back on Windows and Linux
+      cy.realPress(["Alt", "ArrowLeft"])
+      slider.getRangeHighInput().should($high => expect(valueOf($high)).to.be.closeTo(3.8, 0.1))
+      slider.getRangeLowInput().should("have.value", "2")
+      cy.url().should("eq", url)
+    })
+  })
+
+  it("takes the keyboard focus when the middle is dragged", () => {
+    setupRangeSlider()
+    slider.getRangeBody().then($body => dragBy($body, 80))
+    slider.getRange().should("have.focus")
   })
 
   it("collapses to a value in the data when one edge is dragged onto the other", () => {

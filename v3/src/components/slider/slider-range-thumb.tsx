@@ -1,6 +1,6 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import { MouseEvent, PointerEvent, RefObject, SyntheticEvent, useRef } from "react"
+import { KeyboardEvent, MouseEvent, PointerEvent, RefObject, SyntheticEvent, useRef } from "react"
 import { mergeProps, useFocusRing, useSliderThumb } from "react-aria"
 import type { SliderState } from "@react-stately/slider"
 import { isAliveSafe } from "../../utilities/mst-utils"
@@ -9,6 +9,7 @@ import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { ISliderModel } from "./slider-model"
 import { rangeChangeOptions } from "./slider-range-change"
+import { rangeForKey } from "./slider-range-keyboard"
 import { formatSliderValue } from "./slider-utils"
 import { useSliderAnimation } from "./use-slider-animation"
 
@@ -29,8 +30,8 @@ interface IHandleProps {
   moveHandlers?: IMoveHandlers
   state: SliderState
   trackRef: RefObject<HTMLDivElement | null>
-  // the id of an element describing the handle, e.g. that a selection slider is paused
-  describedBy?: string
+  // the range's keyboard stop, which takes the focus React Aria gives a handle when it's pressed
+  rangeRef: RefObject<HTMLDivElement | null>
 }
 
 // The handles are the two halves of the variable slider's thumb icon (see ThumbIcon), split at its point:
@@ -49,12 +50,11 @@ const RangeHandleIcon = ({ index }: { index: 0 | 1 }) => (
 
 // one edge of the range; React Aria provides dragging, role="slider", and arrow/Home/End keys
 const RangeHandle = function RangeHandle({
-  index, label, valueText, left, moveHandlers, state, trackRef, describedBy
+  index, label, valueText, left, moveHandlers, state, trackRef, rangeRef
 }: IHandleProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const { thumbProps, inputProps, isDragging } = useSliderThumb({ index, trackRef, inputRef, "aria-label": label },
     state)
-  const { isFocusVisible, focusProps } = useFocusRing()
   // A press that moves the thumb must not reach React Aria, whose own drag would move just this edge, nor its
   // track (see stopTrackPress). A touch can't be shift-pressed, so a collapsed thumb always moves by touch.
   const moveProps = moveHandlers && {
@@ -73,16 +73,17 @@ const RangeHandle = function RangeHandle({
     onLostPointerCapture: moveHandlers.onPointerUp
   }
   return (
-    <div className={clsx("slider-range-handle", index === 0 ? "low" : "high",
-                         { dragging: isDragging, "focus-visible": isFocusVisible })}
+    <div className={clsx("slider-range-handle", index === 0 ? "low" : "high", { dragging: isDragging })}
          data-testid={index === 0 ? "slider-range-low" : "slider-range-high"}
          // a collapsed thumb's halves don't resize it as they appear to, so say what they do
          title={moveHandlers ? t("V3.Slider.collapsedThumbHint") : undefined}
          {...thumbProps} {...moveProps} style={{ ...thumbProps.style, left, transform: "none" }}>
       <RangeHandleIcon index={index} />
-      {/* the handle's own name, without the group's (see sliderGroupLabel) */}
-      <input {...mergeProps(inputProps, focusProps)} ref={inputRef} className="codap-visually-hidden"
-             aria-valuetext={valueText} aria-labelledby={undefined} aria-describedby={describedBy}
+      {/* The keyboard and screen readers use the range's own stop (see SliderRangeThumb), so the handle's input,
+          which React Aria needs for dragging, is out of the tab order and the accessibility tree. */}
+      <input {...mergeProps(inputProps, { onFocus: () => rangeRef.current?.focus({ preventScroll: true }) })}
+             ref={inputRef} className="codap-visually-hidden" tabIndex={-1} aria-hidden="true"
+             aria-valuetext={valueText} aria-labelledby={undefined}
              data-testid={index === 0 ? "slider-range-low-input" : "slider-range-high-input"} />
     </div>
   )
@@ -95,7 +96,16 @@ interface IProps {
   setRunning: (running: boolean) => void
   state: SliderState
   trackRef: RefObject<HTMLDivElement | null>
+  step: number
+  // the id of an element describing the range, e.g. that a selection slider is paused
   describedBy?: string
+}
+
+// the keyboard changes since the range's keys were last released, committed as one change when they are
+interface IKeyBurst {
+  startLow: number
+  startHigh: number
+  resized: boolean
 }
 
 // width of a range handle; each handle's point is at its inner edge, so the low handle sits just left of
@@ -103,12 +113,15 @@ interface IProps {
 const kHandleWidth = 12
 
 export const SliderRangeThumb = observer(function SliderRangeThumb({
-  sliderModel: _sliderModel, tile, running, setRunning, state, trackRef, describedBy
+  sliderModel: _sliderModel, tile, running, setRunning, state, trackRef, step, describedBy
 }: IProps) {
   const sliderModel = isAliveSafe(_sliderModel) ? _sliderModel : undefined
   const layout = useAxisLayoutContext()
   const scale = layout.getAxisMultiScale("bottom")
   const dragRef = useRef<{ startX: number, startLow: number, moved: boolean } | null>(null)
+  const rangeRef = useRef<HTMLDivElement | null>(null)
+  const keyBurstRef = useRef<IKeyBurst | null>(null)
+  const { isFocusVisible, focusProps } = useFocusRing()
 
   useSliderAnimation({ sliderModel, running, setRunning })
 
@@ -135,6 +148,8 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
     // only the primary pointer's main button drags (not a right-click or a second finger)
     if (!e.isPrimary || e.button !== 0) return
     e.currentTarget.setPointerCapture(e.pointerId)
+    // so the keys move the range once it's been dragged
+    rangeRef.current?.focus({ preventScroll: true })
     dragRef.current = { startX: e.clientX, startLow: sliderModel.rangeLow, moved: false }
   }
   const lowForPointer = (clientX: number) => {
@@ -162,6 +177,41 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
     const low = sliderModel.rangeLow
     sliderModel.applyModelChange(() => sliderModel.moveRange(low), rangeChangeOptions(sliderModel, tile))
   }
+  // Keys change the range dynamically, as a drag does, and the change is committed when they're released, so
+  // holding a key down makes one undoable change.
+  const handleRangeKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const [min, max] = sliderModel.axis.domain
+    const { rangeLow: low, rangeHigh: high } = sliderModel
+    const change = rangeForKey({ low, high, min, max, step, pageSize: state.pageSize,
+                                 snapValues: sliderModel.snapValues }, e.key, e)
+    if (!change) return
+    // e.g. Page Up would scroll the page, and Alt+Left is the browser's Back on Windows
+    e.preventDefault()
+    const burst = keyBurstRef.current ?? (keyBurstRef.current = { startLow: low, startHigh: high, resized: false })
+    if (change.kind === "resize") burst.resized = true
+    sliderModel.applyModelChange(
+      () => change.kind === "move"
+        ? sliderModel.moveDynamicRange(change.low)
+        : sliderModel.setDynamicRange(change.low, change.high),
+      // the global value's observer sends `global[<name>]`
+      { noDirty: true })
+  }
+  const commitKeyBurst = () => {
+    const burst = keyBurstRef.current
+    keyBurstRef.current = null
+    if (!burst) return
+    const { rangeLow: low, rangeHigh: high } = sliderModel
+    // keys that ended where they began change nothing, so plugins and the log shouldn't hear of a change
+    if (low === burst.startLow && high === burst.startHigh) {
+      sliderModel.applyModelChange(() => sliderModel.cancelDynamicRange(), { noDirty: true })
+      return
+    }
+    sliderModel.applyModelChange(
+      () => burst.resized ? sliderModel.setRange(low, high) : sliderModel.moveRange(low),
+      rangeChangeOptions(sliderModel, tile))
+  }
+  const [axisMin, axisMax] = sliderModel.axis.domain
+
   // a collapsed range has no body to grab, so its halves move it (and the move snaps to the data)
   const collapsedMoveHandlers: IMoveHandlers | undefined = sliderModel.width === 0
     ? { onPointerDown: handleBodyPointerDown, onPointerMove: handleBodyPointerMove,
@@ -179,10 +229,21 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
            onLostPointerCapture={handleBodyPointerUp} />
       <RangeHandle index={0} label={handleLabel("V3.Slider.rangeLowOf")} valueText={valueText(0)}
                    left={lowX - kHandleWidth}
-                   moveHandlers={collapsedMoveHandlers} state={state} trackRef={trackRef} describedBy={describedBy} />
+                   moveHandlers={collapsedMoveHandlers} state={state} trackRef={trackRef} rangeRef={rangeRef} />
       <RangeHandle index={1} label={handleLabel("V3.Slider.rangeHighOf")}
                    valueText={valueText(1)} left={highX}
-                   moveHandlers={collapsedMoveHandlers} state={state} trackRef={trackRef} describedBy={describedBy} />
+                   moveHandlers={collapsedMoveHandlers} state={state} trackRef={trackRef} rangeRef={rangeRef} />
+      {/* The range's one keyboard stop, framing both handles: the arrow keys move the whole range and Alt+Left/Right
+          resize it (see rangeForKey). Pointers pass through it to the handles and body. */}
+      <div ref={rangeRef} role="slider" tabIndex={0} aria-orientation="horizontal"
+           className={clsx("slider-range-focus", { "focus-visible": isFocusVisible })}
+           style={{ left: lowX - kHandleWidth, width: Math.max(0, highX - lowX) + 2 * kHandleWidth }}
+           aria-label={handleLabel("V3.Slider.rangeOf")}
+           aria-valuemin={axisMin} aria-valuemax={axisMax} aria-valuenow={sliderModel.rangeLow}
+           aria-valuetext={t("V3.Slider.rangeValueText", { vars: [valueText(0), valueText(1)] })}
+           aria-describedby={describedBy} data-testid="slider-range"
+           {...mergeProps(focusProps, { onKeyDown: handleRangeKeyDown, onKeyUp: commitKeyBurst,
+                                        onBlur: commitKeyBurst })} />
     </div>
   )
 })

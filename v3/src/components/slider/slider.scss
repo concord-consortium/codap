@@ -45,7 +45,16 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
     pointer-events: auto;
 
     svg { display: block; }
+  }
 
+  // the range's keyboard stop, framing both handles; pointers pass through it
+  .slider-range-focus {
+    position: absolute;
+    top: 0;
+    height: 12px;
+    pointer-events: none;
+
+    &:focus { outline: none; }
     &.focus-visible { outline: 2px solid vars.$focus-outline-color; outline-offset: 1px; }
   }
 

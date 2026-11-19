@@ -1,0 +1,93 @@
+import { IRangeKeyContext, rangeForKey } from "./slider-range-keyboard"
+
+const context = (overrides: Partial<IRangeKeyContext> = {}): IRangeKeyContext => ({
+  low: 4, high: 6, min: 0, max: 10, step: 0.5, pageSize: 1, snapValues: [1, 3, 4, 7, 9], ...overrides
+})
+const noMods = { shiftKey: false, altKey: false }
+const shift = { shiftKey: true, altKey: false }
+const alt = { shiftKey: false, altKey: true }
+const altShift = { shiftKey: true, altKey: true }
+
+describe("rangeForKey", () => {
+  describe("a range with width", () => {
+    it("moves the whole range by a step with the arrow keys", () => {
+      expect(rangeForKey(context(), "ArrowRight", noMods)).toEqual({ kind: "move", low: 4.5 })
+      expect(rangeForKey(context(), "ArrowUp", noMods)).toEqual({ kind: "move", low: 4.5 })
+      expect(rangeForKey(context(), "ArrowLeft", noMods)).toEqual({ kind: "move", low: 3.5 })
+      expect(rangeForKey(context(), "ArrowDown", noMods)).toEqual({ kind: "move", low: 3.5 })
+    })
+
+    it("moves the whole range by a page with Shift+Arrow and Page Up/Down", () => {
+      expect(rangeForKey(context(), "ArrowRight", shift)).toEqual({ kind: "move", low: 5 })
+      expect(rangeForKey(context(), "ArrowLeft", shift)).toEqual({ kind: "move", low: 3 })
+      expect(rangeForKey(context(), "PageUp", noMods)).toEqual({ kind: "move", low: 5 })
+      expect(rangeForKey(context(), "PageDown", noMods)).toEqual({ kind: "move", low: 3 })
+    })
+
+    it("moves the whole range to either end of the axis with Home and End", () => {
+      expect(rangeForKey(context(), "Home", noMods)).toEqual({ kind: "move", low: 0 })
+      expect(rangeForKey(context(), "End", noMods)).toEqual({ kind: "move", low: 8 })
+    })
+
+    it("widens and narrows from the upper edge with Alt+Right and Alt+Left", () => {
+      expect(rangeForKey(context(), "ArrowRight", alt)).toEqual({ kind: "resize", low: 4, high: 6.5 })
+      expect(rangeForKey(context(), "ArrowLeft", alt)).toEqual({ kind: "resize", low: 4, high: 5.5 })
+      expect(rangeForKey(context(), "ArrowRight", altShift)).toEqual({ kind: "resize", low: 4, high: 7 })
+      expect(rangeForKey(context(), "ArrowLeft", altShift)).toEqual({ kind: "resize", low: 4, high: 5 })
+    })
+
+    it("collapses rather than inverting when narrowed past the lower edge", () => {
+      expect(rangeForKey(context({ high: 4.25 }), "ArrowLeft", alt)).toEqual({ kind: "resize", low: 4, high: 4 })
+    })
+
+    it("doesn't widen past the end of the axis", () => {
+      expect(rangeForKey(context({ high: 9.75 }), "ArrowRight", alt)).toEqual({ kind: "resize", low: 4, high: 10 })
+    })
+
+    it("leaves Alt+Up and Alt+Down alone (Chromebooks send them as Page Up and Page Down)", () => {
+      expect(rangeForKey(context(), "ArrowUp", alt)).toBeUndefined()
+      expect(rangeForKey(context(), "ArrowDown", alt)).toBeUndefined()
+    })
+
+    it("leaves other keys alone", () => {
+      expect(rangeForKey(context(), "Tab", noMods)).toBeUndefined()
+      expect(rangeForKey(context(), "a", noMods)).toBeUndefined()
+      expect(rangeForKey(context(), "Home", alt)).toBeUndefined()
+    })
+  })
+
+  describe("a collapsed range", () => {
+    const collapsed = (low: number) => context({ low, high: low })
+
+    it("steps through the data's values with the arrow keys", () => {
+      expect(rangeForKey(collapsed(4), "ArrowRight", noMods)).toEqual({ kind: "move", low: 7 })
+      expect(rangeForKey(collapsed(4), "ArrowLeft", noMods)).toEqual({ kind: "move", low: 3 })
+    })
+
+    it("stays put at the first or last value", () => {
+      expect(rangeForKey(collapsed(9), "ArrowRight", noMods)).toEqual({ kind: "move", low: 9 })
+      expect(rangeForKey(collapsed(1), "ArrowLeft", noMods)).toEqual({ kind: "move", low: 1 })
+    })
+
+    it("pages to the first value at or beyond a page away", () => {
+      const ctx = context({ low: 1, high: 1, pageSize: 2.5 })
+      expect(rangeForKey(ctx, "PageUp", noMods)).toEqual({ kind: "move", low: 4 })
+      expect(rangeForKey({ ...ctx, low: 9, high: 9 }, "PageDown", noMods)).toEqual({ kind: "move", low: 4 })
+      // nothing that far away: the last value in that direction
+      expect(rangeForKey({ ...ctx, low: 7, high: 7 }, "PageUp", noMods)).toEqual({ kind: "move", low: 9 })
+    })
+
+    it("goes to the first or last value on the axis with Home and End", () => {
+      expect(rangeForKey(collapsed(4), "Home", noMods)).toEqual({ kind: "move", low: 1 })
+      expect(rangeForKey(collapsed(4), "End", noMods)).toEqual({ kind: "move", low: 9 })
+      const zoomed = context({ low: 4, high: 4, min: 2, max: 8 })
+      expect(rangeForKey(zoomed, "Home", noMods)).toEqual({ kind: "move", low: 3 })
+      expect(rangeForKey(zoomed, "End", noMods)).toEqual({ kind: "move", low: 7 })
+    })
+
+    it("widens from the point with Alt+Right, and ignores Alt+Left", () => {
+      expect(rangeForKey(collapsed(4), "ArrowRight", alt)).toEqual({ kind: "resize", low: 4, high: 4.5 })
+      expect(rangeForKey(collapsed(4), "ArrowLeft", alt)).toBeUndefined()
+    })
+  })
+})

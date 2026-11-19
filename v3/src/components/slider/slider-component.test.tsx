@@ -14,6 +14,7 @@ import { setSelectedCases } from "../../models/data/data-set-utils"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { SliderConfigPalette } from "./inspector-panel/slider-config-panel"
 import { configureSliderFromAttribute } from "./slider-attribute-drop"
+import * as rangeChangeModule from "./slider-range-change"
 import { SliderComponent } from "./slider-component"
 import { addDates, setupSliderAndData } from "./slider-test-utils"
 
@@ -180,28 +181,23 @@ describe("SliderComponent for screen readers", () => {
   }
 
   describe("value text", () => {
-    it("gives a range's handles their values as the range display shows them, with the attribute's units",
-        async () => {
+    it("gives a range its ends as the range display shows them, with the attribute's units", async () => {
       const { tile, dataSet, slider } = await setupSliderAndData()
       dataSet.attrFromName("a3")!.setUnits("cm")
       slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
       renderSlider(tile)
       const [low, high] = shownRangeEnds()
-      const [lowHandle, highHandle] = screen.getAllByRole("slider")
-      expect(lowHandle).toHaveAttribute("aria-valuetext", `${low} cm`)
-      expect(highHandle).toHaveAttribute("aria-valuetext", `${high} cm`)
+      expect(screen.getByRole("slider")).toHaveAttribute("aria-valuetext", `${low} cm to ${high} cm`)
     })
 
-    it("gives a date range's handles dates, not epoch seconds", async () => {
+    it("gives a date range dates, not epoch seconds", async () => {
       const { content, tile, slider } = await setupSliderAndData()
       const dates = addDates(content, ["2005-05-01", "2005-12-31"])
       slider.configureFromAttribute(dates, dates.attrFromName("when")!.id)
       renderSlider(tile)
       const [low, high] = shownRangeEnds()
       expect(low).toBe("5/1/2005")
-      const [lowHandle, highHandle] = screen.getAllByRole("slider")
-      expect(lowHandle).toHaveAttribute("aria-valuetext", low)
-      expect(highHandle).toHaveAttribute("aria-valuetext", high)
+      expect(screen.getByRole("slider")).toHaveAttribute("aria-valuetext", `${low} to ${high}`)
     })
 
     it("gives a variable slider's thumb its value as the slider shows it", async () => {
@@ -229,16 +225,18 @@ describe("SliderComponent for screen readers", () => {
       expect(screen.getByRole("slider")).toHaveAccessibleName("v1")
     })
 
-    it("names a bound range slider by its type, attribute and range, and its handles by their bounds",
+    it("names a bound range slider by its type, attribute and range, and its one keyboard stop by its attribute",
         async () => {
       const { tile, dataSet, slider } = await setupSliderAndData()
       slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
       renderSlider(tile)
       const [low, high] = shownRangeEnds()
       expect(screen.getByRole("group")).toHaveAccessibleName(`Visibility slider, a3, showing ${low} to ${high}`)
-      const [lowHandle, highHandle] = screen.getAllByRole("slider")
-      expect(lowHandle).toHaveAccessibleName("Lower bound of a3")
-      expect(highHandle).toHaveAccessibleName("Upper bound of a3")
+      // the handles' inputs, which React Aria drags with, are hidden from screen readers and the tab order
+      expect(screen.getAllByRole("slider")).toHaveLength(1)
+      expect(screen.getByRole("slider")).toHaveAccessibleName("Range of a3")
+      expect(screen.getByTestId("slider-range-low-input")).toHaveAttribute("tabindex", "-1")
+      expect(screen.getByTestId("slider-range-high-input")).toHaveAttribute("tabindex", "-1")
     })
 
     it("names a bound selection slider by what it selects", async () => {
@@ -431,6 +429,137 @@ describe("SliderComponent for screen readers", () => {
   })
 })
 
+describe("SliderComponent: the range's keyboard stop", () => {
+  beforeEach(() => {
+    featureFlagManager.setServerConfig({ visibilitySlider: "on", selectionSlider: "on" })
+  })
+
+  afterEach(() => {
+    act(() => featureFlagManager.setServerConfig({}))
+  })
+
+  async function setupRange() {
+    const result = await setupSliderAndData()
+    const { dataSet, slider } = result
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    slider.setRange(2, 3)
+    return result
+  }
+
+  it("moves the whole range with the arrow keys, keeping its width", async () => {
+    const { tile, slider } = await setupRange()
+    renderSlider(tile)
+    const range = screen.getByRole("slider")
+    fireEvent.keyDown(range, { key: "ArrowRight" })
+    fireEvent.keyUp(range, { key: "ArrowRight" })
+    expect(slider.rangeLow).toBeGreaterThan(2)
+    expect(slider.rangeHigh - slider.rangeLow).toBeCloseTo(1)
+  })
+
+  it("widens the range from its upper edge with Alt+Right", async () => {
+    const { tile, slider } = await setupRange()
+    renderSlider(tile)
+    const range = screen.getByRole("slider")
+    fireEvent.keyDown(range, { key: "ArrowRight", altKey: true })
+    fireEvent.keyUp(range, { key: "ArrowRight", altKey: true })
+    expect(slider.rangeLow).toBe(2)
+    expect(slider.rangeHigh).toBeGreaterThan(3)
+  })
+
+  it("changes the range live while a key is held, and commits it when the key is released", async () => {
+    const { tile, slider } = await setupRange()
+    renderSlider(tile)
+    const range = screen.getByRole("slider")
+    fireEvent.keyDown(range, { key: "ArrowRight" })
+    fireEvent.keyDown(range, { key: "ArrowRight", repeat: true })
+    expect(slider.globalValue.isUpdatingDynamically).toBe(true)
+    fireEvent.keyUp(range, { key: "ArrowRight" })
+    expect(slider.globalValue.isUpdatingDynamically).toBe(false)
+  })
+
+  it("commits a held key's changes as one undoable change, and keys that end where they began as none",
+      async () => {
+    const { tile, slider } = await setupRange()
+    renderSlider(tile)
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    const undoLevels = () => manager.undoStore.undoLevels
+    appState.document.treeMonitor!.enableMonitoring()
+    try {
+      await settle()
+      const before = undoLevels()
+      const range = screen.getByRole("slider")
+      for (let i = 0; i < 3; ++i) fireEvent.keyDown(range, { key: "ArrowRight", repeat: i > 0 })
+      fireEvent.keyUp(range, { key: "ArrowRight" })
+      await settle()
+      expect(undoLevels()).toBe(before + 1)
+      const movedLow = slider.rangeLow
+
+      // the three steps reached the end of the axis, so Home and then End return there
+      expect(slider.rangeHigh).toBe(slider.axis.domain[1])
+      fireEvent.keyDown(range, { key: "Home" })
+      fireEvent.keyDown(range, { key: "End" })
+      fireEvent.keyUp(range, { key: "End" })
+      await settle()
+      expect(undoLevels()).toBe(before + 1)
+      expect(slider.rangeLow).toBe(movedLow)
+      expect(slider.globalValue.isUpdatingDynamically).toBe(false)
+
+      act(() => appState.document.undoLastAction())
+      await waitFor(() => expect(slider.rangeLow).toBe(2))
+      expect(slider.rangeHigh).toBe(3)
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
+  })
+
+  it("doesn't commit keys that end where they began, so neither plugins nor the log hear of a change", async () => {
+    const { tile, slider } = await setupRange()
+    renderSlider(tile)
+    const range = screen.getByRole("slider")
+    fireEvent.keyDown(range, { key: "End" })
+    fireEvent.keyUp(range, { key: "End" })
+    const spy = jest.spyOn(rangeChangeModule, "rangeChangeOptions")
+    try {
+      // already at the end of the axis
+      fireEvent.keyDown(range, { key: "End" })
+      fireEvent.keyUp(range, { key: "End" })
+      expect(spy).not.toHaveBeenCalled()
+      expect(slider.globalValue.isUpdatingDynamically).toBe(false)
+    }
+    finally {
+      spy.mockRestore()
+    }
+  })
+
+  it("commits when focus leaves with a key still down", async () => {
+    const { tile, slider } = await setupRange()
+    renderSlider(tile)
+    const range = screen.getByRole("slider")
+    act(() => range.focus())
+    fireEvent.keyDown(range, { key: "ArrowRight" })
+    act(() => range.blur())
+    expect(slider.globalValue.isUpdatingDynamically).toBe(false)
+    expect(slider.rangeLow).toBeGreaterThan(2)
+  })
+
+  it("prevents the browser's default for the keys it handles, e.g. Page Up scrolling the page", async () => {
+    const { tile } = await setupRange()
+    renderSlider(tile)
+    const range = screen.getByRole("slider")
+    expect(fireEvent.keyDown(range, { key: "PageUp" })).toBe(false)
+    expect(fireEvent.keyDown(range, { key: "Tab" })).toBe(true)
+  })
+
+  it("takes the focus when a handle is pressed, so the keys work after a drag", async () => {
+    const { tile } = await setupRange()
+    renderSlider(tile)
+    act(() => screen.getByTestId("slider-range-high-input").focus())
+    expect(screen.getByRole("slider")).toHaveFocus()
+  })
+})
+
 describe("SliderComponent: resuming a selection slider", () => {
   beforeEach(() => {
     featureFlagManager.setServerConfig({ visibilitySlider: "on", selectionSlider: "on" })
@@ -475,13 +604,20 @@ describe("SliderComponent: resuming a selection slider", () => {
     await userEvent.click(screen.getByTestId("slider-play-pause"))
   })
 
-  it("an arrow key on the thumb resumes it; Tab doesn't", async () => {
+  it("an arrow key on the range resumes it; Tab doesn't", async () => {
     const { tile, slider } = await setupPausedSelectionSlider()
     renderSlider(tile)
-    const handle = within(screen.getByTestId("slider-range-high")).getByRole("slider")
-    fireEvent.keyDown(handle, { key: "Tab" })
+    const range = screen.getByTestId("slider-range")
+    fireEvent.keyDown(range, { key: "Tab" })
     expect(slider.ownsSelection).toBe(false)
-    fireEvent.keyDown(handle, { key: "ArrowRight" })
+    fireEvent.keyDown(range, { key: "ArrowRight" })
+    expect(slider.ownsSelection).toBe(true)
+  })
+
+  it("Alt+Arrow on the range resumes it", async () => {
+    const { tile, slider } = await setupPausedSelectionSlider()
+    renderSlider(tile)
+    fireEvent.keyDown(screen.getByTestId("slider-range"), { key: "ArrowRight", altKey: true })
     expect(slider.ownsSelection).toBe(true)
   })
 
@@ -672,13 +808,13 @@ describe("SliderComponent: resuming a selection slider", () => {
       expect(status()).toHaveTextContent(/^Slider animation stopped$/)
     })
 
-    it("describes the handles as paused while the slider is paused", async () => {
+    it("describes the range as paused while the slider is paused", async () => {
       const { tile } = await setupPausedSelectionSlider()
       renderSlider(tile)
-      const handle = within(screen.getByTestId("slider-range-high")).getByRole("slider")
-      expect(handle).toHaveAccessibleDescription(/Selection paused/)
+      const range = screen.getByRole("slider")
+      expect(range).toHaveAccessibleDescription(/Selection paused/)
       fireEvent.pointerDown(screen.getByTestId("slider-range-body"))
-      expect(handle).not.toHaveAccessibleDescription(/Selection paused/)
+      expect(range).not.toHaveAccessibleDescription(/Selection paused/)
     })
 
     it("choosing an attribute from the slider's menu announces nothing about selection", async () => {

@@ -393,7 +393,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                    onKeyDownCapture={handleTrackKeyDownCapture}>
                 {sliderModel.isRangeSlider
                   ? <SliderRangeThumb sliderModel={sliderModel} tile={tile} running={running} setRunning={setRunning}
-                                      state={state} trackRef={trackRef}
+                                      state={state} trackRef={trackRef} step={step}
                                       describedBy={sliderModel.isSelectionPaused ? pausedDescriptionId : undefined}
                     />
                   : <CodapSliderThumb sliderModel={sliderModel} running={running} setRunning={setRunning}
