@@ -21,13 +21,10 @@ items.
 | `create` | — |
 | `update` | ✓ |
 | `delete` | ✓ |
-| `notify` | — |
+| `notify` | ✓ |
 | `register` | — |
 | `unregister` | — |
 <!-- END GENERATED: actions -->
-
-`notify`, which moves a case within its collection, is part of the API but not yet supported;
-see [Known limitations](#known-limitations).
 
 ## Resource selector patterns
 
@@ -80,6 +77,43 @@ Updating a parent case changes that value for every item grouped under it, so th
 children.
 
 Otherwise `update` replies `{ "success": true }`.
+
+### What `notify` accepts
+
+| Property | Type | Notes |
+|---|---|---|
+| `caseOrder` | String or number | required. `"first"`, `"last"`, or the position, counting from 0, the case should end up at in its collection. A position may be sent as text, such as `"2"` |
+
+`notify` moves the case to that position, as in v2, and replies `{ "success": true }` unless the
+move is impossible (see below). Its child cases move with it, and a child case stays under its
+parent: a position among another parent's cases puts it first or last among its own parent's cases,
+on the side the position was on. A position is rounded toward zero, and one before the start or past
+the end puts the case first or last. Any other `caseOrder` replies `{ "success": false }`. A case
+already at that position isn't moved.
+
+Only the moved case changes places. Every other case, at every level, keeps its order, both among
+the cases shown and once set-aside and filtered-out cases are shown again, and every case but the
+moved case's parent and higher-level cases keeps its own items in order. Moved first, the case also
+goes ahead of the set-aside and filtered-out cases under its parent, and moved last, after them, as
+`notify` on `itemSearch` places items, unless that would reorder other cases. A case that is wholly
+set aside or filtered out can be moved too: only where it appears once it is shown again changes.
+When set-aside or filtered-out items make the move impossible without reordering other cases,
+`notify` replies with an error and changes nothing.
+The `collection` segment is optional here too: the case moves within its own collection. v2
+required it. As in v2, the move can't be undone.
+
+v2 moved cases differently. A plugin that must also run in v2 should avoid a position of `0`, text
+that isn't a number, negative positions and positions past the end. Even then, v2 placed child
+cases differently:
+
+- A position of `0` replied `{ "success": false }`.
+- v2 moved the case within its whole collection: `"first"` and `"last"` meant the first and last
+  case of the collection, and a position counted across every parent's cases, so a child case
+  could end up under another parent's cases. Its own child cases kept their places.
+- Reading v2's code (not run): text that isn't a number, such as `"middle"`, moved the case first,
+  and `true` moved it to position 1. A negative position counted back from the end, so `-1` put it
+  just ahead of the last case. A position past the end failed with an out-of-range error after the
+  case had already been taken out of its place.
 
 ### What `delete` returns
 
@@ -169,6 +203,21 @@ Change one value of a case. Note the nested `values`:
 { "success": true }
 ```
 
+Move the mammal to the top of its diet's mammals. `"first"` puts it first in its collection, as
+in v2, but a child case stays under its parent, so it goes first among its parent's cases:
+
+```json
+{
+  "action": "notify",
+  "resource": "dataContext[Mammals].caseByID[13]",
+  "values": { "caseOrder": "first" }
+}
+```
+
+```json
+{ "success": true }
+```
+
 Delete a parent case, and with it every mammal grouped under it:
 
 ```json
@@ -184,10 +233,6 @@ Delete a parent case, and with it every mammal grouped under it:
 
 ## Known limitations
 
-**`notify` to move a case is not supported.** In v2, `notify` with `values.caseOrder` moved the
-case within its collection: `"first"`, `"last"`, or a numeric position. The selector had to name
-the collection. v3 rejects the request as an unsupported action. This is a known bug.
-
 **The text `true` and `false` reads back as a boolean.** A value a plugin sent as `true` reads back
 as `true` from `get`, as in v2. CODAP stores every value as a number or text, so it cannot tell
 that boolean from the text `true` typed into a table, imported from a file, or set by a checkbox:
@@ -196,7 +241,9 @@ converted; `TRUE` stays text. This is a deliberate difference.
 
 ## Notifications
 
-This resource takes no `notify` requests of its own.
+`notify` sends `moveCases` to the other plugins on `dataContextChangeNotice[<context>]`, even
+when the case was already in place, as in v2. It lists the case's id in `caseIDs` and the case,
+with its values, in `cases`, as v2 did.
 
 `update` and `delete` notify other plugins on `dataContextChangeNotice[<context>]` with
 `updateCases` or `deleteCases`, as the same change made in a case table does. An `update` that
@@ -214,7 +261,8 @@ when an attribute of a parent collection changed.
 |---|---|
 | `DataContext not found` | the selector's data context does not resolve |
 | `Case not found` | no case in the data context has that id, including when the id is an item id |
-| `<action> <resource>: <field> required` | `update` without `values`, or without `values.values` |
+| `<action> <resource>: <field> required` | `update` without `values`, or without `values.values`; `notify` without `values`, or without `values.caseOrder` (v2 replied `{ "success": false }` with no message) |
+| `The case can't move there without changing the order of other cases (set-aside or filtered-out cases are in the way)` | `notify` with a `caseOrder` that can't be reached without reordering other cases, because of set-aside or filtered-out items |
 
 ## See also
 
