@@ -16,6 +16,7 @@ import { SliderConfigPalette } from "./inspector-panel/slider-config-panel"
 import { configureSliderFromAttribute } from "./slider-attribute-drop"
 import * as rangeChangeModule from "./slider-range-change"
 import { SliderComponent } from "./slider-component"
+import { kCountAnnouncementDelay } from "./use-slider-count-announcement"
 import { addDates, setupSliderAndData } from "./slider-test-utils"
 
 const tileSelection: ITileSelection = {
@@ -557,6 +558,100 @@ describe("SliderComponent: the range's keyboard stop", () => {
     renderSlider(tile)
     act(() => screen.getByTestId("slider-range-high-input").focus())
     expect(screen.getByRole("slider")).toHaveFocus()
+  })
+})
+
+describe("SliderComponent: announcing case counts", () => {
+  beforeEach(() => {
+    featureFlagManager.setServerConfig({ visibilitySlider: "on", selectionSlider: "on" })
+    jest.useFakeTimers()
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
+    act(() => featureFlagManager.setServerConfig({}))
+  })
+
+  const status = () => within(screen.getByTestId("slider")).getByRole("status")
+  // a3 is 1 to 6, one case each
+  async function setupRange(sliderType: "visibility" | "selection" = "visibility") {
+    const result = await setupSliderAndData()
+    const { dataSet, slider } = result
+    slider.setSliderType(sliderType)
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    slider.setRange(2, 3)
+    // a selection slider bound by the model rather than by a gesture hasn't taken the selection yet
+    if (sliderType === "selection") slider.resumeSelection()
+    return result
+  }
+  const wait = (ms: number) => act(() => { jest.advanceTimersByTime(ms) })
+
+  it("announces how many cases a visibility slider shows once its range stops changing", async () => {
+    const { tile, slider } = await setupRange()
+    renderSlider(tile)
+    act(() => slider.setRange(2, 4))
+    expect(status()).not.toHaveTextContent(/cases/)
+    wait(kCountAnnouncementDelay)
+    expect(status()).toHaveTextContent(/^3 of 6 cases visible$/)
+  })
+
+  it("announces only the end state of changes made in quick succession", async () => {
+    const { tile, slider } = await setupRange()
+    renderSlider(tile)
+    act(() => slider.setRange(2, 4))
+    wait(kCountAnnouncementDelay / 2)
+    expect(status()).not.toHaveTextContent(/cases/)
+    act(() => slider.setRange(2, 5))
+    wait(kCountAnnouncementDelay / 2)
+    expect(status()).not.toHaveTextContent(/cases/)
+    wait(kCountAnnouncementDelay / 2)
+    expect(status()).toHaveTextContent(/^4 of 6 cases visible$/)
+  })
+
+  it("announces how many cases a selection slider selects", async () => {
+    const { tile, slider } = await setupRange("selection")
+    renderSlider(tile)
+    act(() => slider.setRange(2, 4))
+    wait(kCountAnnouncementDelay)
+    expect(status()).toHaveTextContent(/^3 cases selected$/)
+    act(() => slider.setRange(2, 2))
+    wait(kCountAnnouncementDelay)
+    expect(status()).toHaveTextContent(/^1 case selected$/)
+  })
+
+  it("announces no count for a paused selection slider, which isn't selecting", async () => {
+    const { tile, dataSet, slider } = await setupRange("selection")
+    renderSlider(tile)
+    act(() => setSelectedCases([dataSet.items[0].__id__], dataSet))
+    expect(slider.ownsSelection).toBe(false)
+    wait(kCountAnnouncementDelay)
+    act(() => slider.setRange(2, 4))
+    wait(kCountAnnouncementDelay)
+    expect(status()).not.toHaveTextContent(/cases? selected/)
+  })
+
+  it("announces nothing when the slider appears", async () => {
+    const { tile } = await setupRange()
+    renderSlider(tile)
+    wait(kCountAnnouncementDelay)
+    expect(status()).toHaveTextContent(/^$/)
+  })
+
+  it("stays quiet during playback, and announces the count when it stops", async () => {
+    const { tile, slider } = await setupRange()
+    // so playback doesn't stop by itself at the end of the axis
+    slider.setAnimationMode("nonStop")
+    renderSlider(tile)
+    const playPause = screen.getByTestId("slider-play-pause")
+    fireEvent.click(playPause)
+    wait(2 * kCountAnnouncementDelay)
+    expect(playPause).toHaveAccessibleName("Pause slider")
+    expect(status()).not.toHaveTextContent(/cases/)
+    fireEvent.click(playPause)
+    expect(playPause).toHaveAccessibleName("Play slider")
+    // the count where playback left the range
+    wait(kCountAnnouncementDelay)
+    expect(status()).toHaveTextContent(/^Slider animation stopped\. \d of 6 cases visible$/)
   })
 })
 

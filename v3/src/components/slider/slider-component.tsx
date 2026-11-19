@@ -35,6 +35,7 @@ import { SliderRangeValues } from "./slider-range-values"
 import { CodapSliderThumb } from "./slider-thumb"
 import { kNoSelectionResumeProps, kNoSelectionResumeSelector, kSliderClass } from "./slider-types"
 import { rangeFromHandles, sliderGroupLabel, sliderStep } from "./slider-utils"
+import { useSliderCountAnnouncement } from "./use-slider-count-announcement"
 
 import "./slider.scss"
 
@@ -202,6 +203,17 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       stoppedByPauseRef.current = false
     }
   }, [isPrompting, running, showStatusMessage])
+
+  // The case count adds to a message still being announced, e.g. that playback stopped or an attribute was set, but
+  // replaces an earlier count.
+  const lastCountMessageRef = useRef("")
+  const announceCount = useCallback((message: string) => {
+    const prior = statusMessageRef.current === lastCountMessageRef.current ? "" : statusMessageRef.current
+    const combined = prior ? t("V3.Slider.messageThenMessage", { vars: [prior, message] }) : message
+    lastCountMessageRef.current = combined
+    showStatusMessage(combined)
+  }, [showStatusMessage])
+  useSliderCountAnnouncement({ sliderModel, running, announce: announceCount })
 
   // When another component takes the selection, a selection slider pauses: it stops playback and says so. Only a
   // change of ownership is announced; a slider that merely looks paused because the data changed keeps playing.
