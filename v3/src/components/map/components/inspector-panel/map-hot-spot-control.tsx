@@ -1,17 +1,14 @@
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
-import {
-  Button, Key, Label, ListBox, ListBoxItem, Popover, Select, SelectValue, Slider, SliderThumb, SliderTrack
-} from "react-aria-components"
+import { Label, Slider, SliderThumb, SliderTrack } from "react-aria-components"
 import { logStringifiedObjectMessage } from "../../../../lib/log-message"
 import { isFeatureEnabled } from "../../../../models/feature-flags/feature-flag-manager"
 import { t } from "../../../../utilities/translation/translate"
 import { ColorSetting } from "../../../common/color-setting"
 import { PaletteCheckbox } from "../../../palette-checkbox"
 import { IMapPointLayerModel } from "../../models/map-point-layer-model"
-import {
-  getHotSpotRampGradient, HotSpotColorRamp, HotSpotColorRamps, isHotSpotColorRamp
-} from "../../utilities/hot-spot-color-ramps"
+import { HotSpotColorRamp } from "../../utilities/hot-spot-color-ramps"
+import { ColorRampSelect } from "./color-ramp-select"
 
 // Announce the opacity to screen readers as a percentage (e.g. "75%") rather than a raw fraction
 const kOpacityFormatOptions: Intl.NumberFormatOptions = { style: "percent" }
@@ -51,16 +48,14 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ mapPointL
     })
   }
 
-  const handleColorRampChange = (key: Key | null) => {
-    if (!isHotSpotColorRamp(key) || key === colorRamp) return
-
+  const handleColorRampChange = (newColorRamp: HotSpotColorRamp) => {
     hotSpotModel.applyModelChange(() => {
-      hotSpotModel.setColorRamp(key)
+      hotSpotModel.setColorRamp(newColorRamp)
     }, {
       undoStringKey: "V3.Undo.map.changeHotSpotColorRamp",
       redoStringKey: "V3.Redo.map.changeHotSpotColorRamp",
       log: logStringifiedObjectMessage("mapAction: %@",
-        { mapAction: "changeHotSpotColorRamp", colorRamp: key, dataset: datasetName })
+        { mapAction: "changeHotSpotColorRamp", colorRamp: newColorRamp, dataset: datasetName })
     })
   }
 
@@ -78,18 +73,6 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ mapPointL
         { mapAction: `changeHotSpot${end}Color`, color, dataset: datasetName })
     })
   }
-
-  const renderRamp = (ramp: HotSpotColorRamp) => (
-    <>
-      <span
-        className="hot-spot-ramp-strip"
-        // The strip is decorative: the option's text is its accessible name.
-        aria-hidden="true"
-        style={{ background: getHotSpotRampGradient(ramp, lowColor, highColor) }}
-      />
-      {t(`V3.Inspector.map.hotSpotColorRamp.${ramp}`)}
-    </>
-  )
 
   const renderCustomColorRow = (end: "Low" | "High", color: string) => {
     const label = t(`V3.Inspector.map.hotSpot${end}Color`)
@@ -137,31 +120,13 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ mapPointL
           </SliderTrack>
         </div>
       </Slider>
-      <Select
-        className={clsx("react-aria-Select palette-row color-ramp-row", { disabled })}
-        selectedKey={colorRamp}
-        onSelectionChange={handleColorRampChange}
+      <ColorRampSelect
+        colorRamp={colorRamp}
+        lowColor={lowColor}
+        highColor={highColor}
         isDisabled={disabled}
-        data-testid="map-hot-spot-color-ramp-select"
-      >
-        <Label className="form-label">{t("V3.Inspector.map.hotSpotColorRamp")}</Label>
-        <Button data-testid="map-hot-spot-color-ramp-button">
-          <SelectValue />
-          <span aria-hidden="true" className="select-arrow">▾</span>
-        </Button>
-        <Popover
-          className="react-aria-Popover hot-spot-color-ramp-popover"
-          data-testid="map-hot-spot-color-ramp-popover"
-        >
-          <ListBox>
-            {HotSpotColorRamps.map(ramp =>
-              <ListBoxItem key={ramp} id={ramp} textValue={t(`V3.Inspector.map.hotSpotColorRamp.${ramp}`)}>
-                {renderRamp(ramp)}
-              </ListBoxItem>
-            )}
-          </ListBox>
-        </Popover>
-      </Select>
+        onColorRampChange={handleColorRampChange}
+      />
       {renderCustomColorRow("Low", lowColor)}
       {renderCustomColorRow("High", highColor)}
     </div>
