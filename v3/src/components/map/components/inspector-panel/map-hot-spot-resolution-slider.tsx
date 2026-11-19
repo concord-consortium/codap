@@ -44,6 +44,12 @@ export const MapHotSpotResolutionSlider = observer(function MapHotSpotResolution
 
   const handleChangeEnd = (newResolution: number) => {
     const bandwidth = resolutionToBandwidth(newResolution, defaultBandwidth)
+    if (bandwidth === hotSpotModel.effectiveBandwidth) {
+      // Nothing to commit, so just end the in-progress change.
+      hotSpotModel.setDynamicBandwidth(undefined)
+      return
+    }
+
     hotSpotModel.applyModelChange(() => {
       hotSpotModel.setBandwidth(bandwidth)
     }, {

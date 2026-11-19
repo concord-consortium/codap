@@ -1,5 +1,6 @@
 import { act, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { ISerializedActionCall, onAction } from "mobx-state-tree"
 import { AppHistoryService } from "../../../../models/history/app-history-service"
 import { MapPointLayerModel } from "../../models/map-point-layer-model"
 import { kResolutionRangeFactor } from "../../utilities/hot-spot-utils"
@@ -50,6 +51,33 @@ describe("MapHotSpotResolutionSlider", () => {
     expect(hotSpotModel.dynamicBandwidth).toBeUndefined()
     // 10 km / 10^0.45
     expect(slider).toHaveAttribute("aria-valuetext", "3.5 km")
+  })
+
+  it("doesn't change the model when released at the committed bandwidth", async () => {
+    const user = userEvent.setup()
+    const pointLayer = createPointLayer()
+    const { hotSpotModel } = pointLayer
+    hotSpotModel.setIsVisible(true)
+    // the 10 km default times the range factor is the slider's minimum, so pressing Home doesn't move it
+    const bandwidth = 10000 * kResolutionRangeFactor
+    hotSpotModel.setBandwidth(bandwidth)
+    // as if the slider had been dragged away and back
+    hotSpotModel.setDynamicBandwidth(bandwidth)
+    render(<MapHotSpotResolutionSlider mapPointLayerModel={pointLayer}/>)
+
+    const actions: ISerializedActionCall[] = []
+    const disposer = onAction(hotSpotModel, action => actions.push(action))
+    const slider = screen.getByRole("slider")
+    act(() => slider.focus())
+    await user.keyboard("{Home}")
+    disposer()
+
+    // committing a bandwidth is a single applyModelChange action, which wraps setBandwidth
+    expect(actions.map(({ name }) => name)).not.toContain("applyModelChange")
+    expect(hotSpotModel.bandwidth).toBe(bandwidth)
+    // the in-progress change has ended
+    expect(hotSpotModel.dynamicBandwidth).toBeUndefined()
+    expect(hotSpotModel.shouldOptimize).toBe(false)
   })
 
   it("widens the range to include a bandwidth outside the usual range", () => {
