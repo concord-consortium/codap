@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite"
-import { useLayoutEffect, useRef } from "react"
-import { Label, Slider, SliderThumb, SliderTrack } from "react-aria-components"
+import { Label, Slider, SliderTrack } from "react-aria-components"
 import { logStringifiedObjectMessage } from "../../../../lib/log-message"
+import { ValueTextSliderThumb } from "../../../common/value-text-slider-thumb"
 import { gLocale } from "../../../../utilities/translation/locale"
 import { t } from "../../../../utilities/translation/translate"
 import { IMapPointLayerModel } from "../../models/map-point-layer-model"
@@ -27,7 +27,6 @@ export const MapHotSpotResolutionSlider = observer(function MapHotSpotResolution
   { mapPointLayerModel }: IProps
 ) {
   const { hotSpotModel } = mapPointLayerModel
-  const inputRef = useRef<HTMLInputElement>(null)
 
   const { defaultBandwidth, displayBandwidth } = hotSpotModel
   const resolution = bandwidthToResolution(displayBandwidth, defaultBandwidth)
@@ -35,12 +34,6 @@ export const MapHotSpotResolutionSlider = observer(function MapHotSpotResolution
   const limit = resolutionLimit(bandwidthToResolution(hotSpotModel.effectiveBandwidth, defaultBandwidth),
     kResolutionStep)
   const bandwidthText = formatBandwidth(displayBandwidth)
-
-  // React Aria derives the thumb's aria-valuetext from the slider's position, which is meaningless to users, and
-  // provides no way to override it, so replace it with the bandwidth after every render.
-  useLayoutEffect(() => {
-    inputRef.current?.setAttribute("aria-valuetext", bandwidthText)
-  })
 
   const handleChangeEnd = (newResolution: number) => {
     const bandwidth = resolutionToBandwidth(newResolution, defaultBandwidth)
@@ -75,7 +68,7 @@ export const MapHotSpotResolutionSlider = observer(function MapHotSpotResolution
       <div className="palette-row slider-row">
         <Label className="form-label">{t("V3.Inspector.map.hotSpotResolution")}</Label>
         <SliderTrack>
-          <SliderThumb inputRef={inputRef}/>
+          <ValueTextSliderThumb valueText={bandwidthText}/>
         </SliderTrack>
       </div>
     </Slider>
