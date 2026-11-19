@@ -533,9 +533,9 @@ export const SliderModel = TileContentModel
       // filter is volatile, so it's recomputed rather than saved, and it never becomes a history entry.
       let filteredDataSet: IDataSet | undefined
       const sliderTileId = getTileModel(self)?.id
-      const clearFilter = () => {
+      const clearFilter = (byType = false) => {
         if (sliderTileId && filteredDataSet && isAlive(filteredDataSet)) {
-          filteredDataSet.clearSliderFilter(sliderTileId)
+          filteredDataSet.clearSliderFilter(sliderTileId, byType)
         }
         filteredDataSet = undefined
       }
@@ -546,22 +546,26 @@ export const SliderModel = TileContentModel
           const applies = self.sliderType === "visibility" && !!dataSet && !!self.attribute &&
                           !self.attribute.hasFormula
           const hidden = applies ? self.sliderHiddenItemIds : undefined
-          return { dataSet, hidden, low: self.rangeLow, high: self.rangeHigh }
+          return { dataSet, hidden, low: self.rangeLow, high: self.rangeHigh, sliderType: self.sliderType }
         },
-        ({ dataSet, hidden, low, high }, previous) => {
-          if (filteredDataSet !== dataSet) clearFilter()
+        ({ dataSet, hidden, low, high, sliderType }, previous) => {
+          // the user changing the slider's type, rather than e.g. its attribute being deleted
+          const byType = !!previous?.hidden && sliderType !== "visibility"
+          if (filteredDataSet !== dataSet) clearFilter(byType)
           if (sliderTileId && dataSet && hidden) {
             // skip a change that hides the same cases, which would regroup the whole dataset for nothing
             const current = dataSet.sliderFilteredOutItemIds.get(sliderTileId)
             if (!current || !areSetsEqual(current, hidden)) {
-              // whether the range moved (or the slider began hiding) rather than the data changing
-              const byRange = !current || low !== previous?.low || high !== previous?.high
+              // Whether the user moved the range of a slider that was already hiding, rather than the data changing or
+              // the slider starting to hide (as when a document loads). Starting to hide only hides, so a selection
+              // slider has nothing to add.
+              const byRange = !!current && !!previous?.hidden && (low !== previous.low || high !== previous.high)
               dataSet.setSliderFilter(sliderTileId, hidden, byRange)
             }
             filteredDataSet = dataSet
           }
           else {
-            clearFilter()
+            clearFilter(byType)
           }
         }, { name: "SliderModel [visibility filter]", fireImmediately: true }
       ))

@@ -284,8 +284,9 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   }
   // Opening the attribute menu, by pointer or key, isn't a selection gesture (choosing an attribute resumes the slider
   // when it binds it), so it leaves the selection alone.
+  // Only the primary pointer's main button, which is all the thumb and track accept, e.g. not a right-click.
   const handlePointerDownCapture = (e: React.PointerEvent) => {
-    if (isSelectionGesture(e)) resumeSelection()
+    if (!e.button && e.isPrimary !== false && isSelectionGesture(e)) resumeSelection()
   }
   const handleTrackKeyDownCapture = (e: React.KeyboardEvent) => {
     if (kResumeSelectionKeys.has(e.key) && isSelectionGesture(e)) resumeSelection()

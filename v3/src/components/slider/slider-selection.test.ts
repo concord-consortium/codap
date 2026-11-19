@@ -505,3 +505,39 @@ describe("selectExactly notifications", () => {
     expect(result.removedCases).toHaveLength(1)
   })
 })
+
+describe("selection slider when a visibility slider stops hiding", () => {
+  // a selection slider on a3 at [2, 4] owning, and a visibility slider on a4 showing a3 3..6 (a4 -3..-6)
+  async function setupBoth() {
+    const setup = await setupSelectionSlider()
+    const { content, dataSet, slider } = setup
+    const visibility = addSlider(content, dataSet, "visibility")
+    visibility.configureFromAttribute(dataSet, dataSet.attrFromName("a4")!.id)
+    visibility.setRange(-6, -3)
+    slider.setRange(2, 4)
+    slider.resumeSelection()
+    expect(selectedA3(dataSet)).toEqual([3, 4])
+    return { ...setup, visibility }
+  }
+
+  it("doesn't select cases shown because the visibility slider's attribute was deleted", async () => {
+    const { dataSet, slider } = await setupBoth()
+    dataSet.removeAttribute(dataSet.attrFromName("a4")!.id)
+    dataSet.validateCases()
+    expect(selectedA3(dataSet)).toEqual([3, 4])
+    expect(slider.ownsSelection).toBe(true)
+  })
+
+  it("doesn't select cases shown because a formula was added to the visibility slider's attribute", async () => {
+    const { dataSet } = await setupBoth()
+    dataSet.attrFromName("a4")!.setDisplayExpression("caseIndex")
+    dataSet.validateCases()
+    expect(selectedA3(dataSet)).toEqual([3, 4])
+  })
+
+  it("selects cases shown because the visibility slider's type was changed", async () => {
+    const { dataSet, visibility } = await setupBoth()
+    visibility.setSliderType("variable")
+    expect(selectedA3(dataSet)).toEqual([2, 3, 4])
+  })
+})

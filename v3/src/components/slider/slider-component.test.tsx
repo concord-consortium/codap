@@ -577,6 +577,26 @@ describe("SliderComponent: resuming a selection slider", () => {
       expect(selectedA3(dataSet)).toEqual([6])
     })
 
+    it("a right-click or middle-click on a paused slider doesn't take the selection", async () => {
+      const { tile, dataSet, slider } = await setupPausedSelectionSlider()
+      renderSlider(tile)
+      // JSDom has no PointerEvent, so fireEvent would drop the button; polyfill it from MouseEvent for these events
+      // only, after rendering, so it doesn't change how React Aria sets up the slider
+      const OriginalPointerEvent = window.PointerEvent
+      window.PointerEvent = class extends MouseEvent {} as any
+      try {
+        fireEvent.pointerDown(screen.getByTestId("slider-range-body"), { button: 2 })
+        fireEvent.pointerDown(screen.getByTestId("slider-range-body"), { button: 1 })
+        expect(slider.ownsSelection).toBe(false)
+        expect(selectedA3(dataSet)).toEqual([6])
+        fireEvent.pointerDown(screen.getByTestId("slider-range-body"), { button: 0 })
+        expect(slider.ownsSelection).toBe(true)
+      }
+      finally {
+        window.PointerEvent = OriginalPointerEvent
+      }
+    })
+
     it("Enter on the attribute menu button of a paused slider doesn't take the selection", async () => {
       const { tile, dataSet, slider } = await setupPausedSelectionSlider()
       renderSlider(tile)

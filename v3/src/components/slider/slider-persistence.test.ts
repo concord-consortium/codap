@@ -328,4 +328,27 @@ describe("selection slider persistence", () => {
       appState.document.treeMonitor!.disableMonitoring()
     }
   })
+
+  it("loading doesn't re-select when a visibility slider restored after it installs its filter", async () => {
+    for (const format of ["v3", "v2"] as const) {
+      const { content, dataSet } = await setupSelectionSlider()
+      const result = diComponentHandler.create!({}, { type: "slider" })
+      const visibility = content.tileMap.get(toV3Id(kSliderIdPrefix, (result.values as DIComponentInfo).id!))!
+        .content as ISliderModel
+      visibility.setSliderType("visibility")
+      visibility.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      visibility.setRange(1, 5)
+      expect(selectedA3(dataSet)).toEqual([2, 3, 4])
+      // a data edit shows a3 = 6 as 3, within the selection slider's range, without selecting it
+      const a3 = dataSet.attrFromName("a3")!.id
+      const six = dataSet.itemIdsIgnoringSliderFilters.find(itemId => dataSet.getNumeric(itemId, a3) === 6)!
+      dataSet.setCaseValues([{ __id__: six, [a3]: 3 }])
+      expect(dataSet.selection.has(six)).toBe(false)
+
+      await reloadDocument(format)
+      const restoredData = findDataSet("a3")
+      expect(restoredData.selection.size).toBe(3)
+      expect(findSelectionSlider().ownsSelection).toBe(true)
+    }
+  })
 })
