@@ -34,5 +34,21 @@ describe("MultiLegend", () => {
     const props = mockLegendProps.mock.calls.at(-1)[0]
     expect(props.onChangeAttribute).toBe(onChangeAttribute)
     expect(props.onDropAttribute).toBe(onDropAttribute)
+    expect(props.numericLegendBottomClearance).toBeUndefined()
+  })
+
+  it("passes the numeric legend bottom clearance to each legend", () => {
+    const layer = {
+      id: "LAYER1", layerIndex: 0, isVisible: true,
+      dataConfiguration: { attributeID: () => "ATTR7", legendAttributeIsInoperable: false }
+    }
+    const dataDisplayModel = { layers: [layer], placeCanAcceptAttributeIDDrop: () => true } as any
+    render(
+      <BaseDataDisplayModelContext.Provider value={dataDisplayModel}>
+        <MultiLegend divElt={null} onDropAttribute={jest.fn()} onChangeAttribute={jest.fn()}
+          numericLegendBottomClearance={10} />
+      </BaseDataDisplayModelContext.Provider>
+    )
+    expect(mockLegendProps.mock.calls.at(-1)[0].numericLegendBottomClearance).toBe(10)
   })
 })
