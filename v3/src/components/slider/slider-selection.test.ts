@@ -356,3 +356,63 @@ describe("selection slider triggers", () => {
     expect(dataSet.selectionChanges).toBe(changes)
   })
 })
+
+describe("selection slider with a visibility slider", () => {
+  it("an owning selection slider adds newly visible cases in range and drops hidden ones", async () => {
+    const { content, dataSet, slider } = await setupSelectionSlider()
+    const visibility = addSlider(content, dataSet, "visibility")
+    visibility.setRange(1, 3)
+    slider.setRange(2, 6)
+    slider.resumeSelection()
+    expect(selectedA3(dataSet)).toEqual([2, 3])
+    visibility.setRange(1, 5)
+    expect(selectedA3(dataSet)).toEqual([2, 3, 4, 5])
+    visibility.setRange(4, 6)
+    expect(selectedA3(dataSet)).toEqual([4, 5, 6])
+    // nothing hidden stays selected
+    expect(dataSet.selection.size).toBe(3)
+  })
+
+  it("a paused selection slider ignores visibility changes", async () => {
+    const { content, dataSet, slider } = await setupSelectionSlider()
+    const visibility = addSlider(content, dataSet, "visibility")
+    visibility.setRange(1, 6)
+    slider.setRange(2, 6)
+    slider.resumeSelection()
+    setSelectedCases([2, 5].map(v => idOf(dataSet, v)), dataSet)
+    visibility.setRange(1, 3)
+    // regrouped, as the display does when the cases change, which deselects the hidden a3 = 5
+    dataSet.validateCases()
+    expect(selectedA3(dataSet)).toEqual([2])
+    visibility.setRange(1, 6)
+    // hiding deselected a3 = 5, and showing it again doesn't reselect it
+    expect(selectedA3(dataSet)).toEqual([2])
+    expect(slider.isSelectionPaused).toBe(true)
+  })
+
+  it("stays owned through a visibility change that only hides", async () => {
+    const { content, dataSet, slider } = await setupSelectionSlider()
+    const visibility = addSlider(content, dataSet, "visibility")
+    visibility.setRange(1, 6)
+    slider.setRange(2, 6)
+    slider.resumeSelection()
+    visibility.setRange(3, 6)
+    expect(slider.ownsSelection).toBe(true)
+    expect(selectedA3(dataSet)).toEqual([3, 4, 5, 6])
+    expect(slider.isSelectionPaused).toBe(false)
+  })
+
+  it("follows repeated visibility steps, as during playback", async () => {
+    const { content, dataSet, slider } = await setupSelectionSlider()
+    const visibility = addSlider(content, dataSet, "visibility")
+    visibility.setRange(1, 2)
+    slider.setRange(2, 5)
+    slider.resumeSelection()
+    const expected = [[2], [2, 3], [3, 4], [4, 5], [5]]
+    expected.forEach((values, i) => {
+      visibility.moveRange(i + 1)
+      expect(selectedA3(dataSet)).toEqual(values)
+      expect(slider.ownsSelection).toBe(true)
+    })
+  })
+})
