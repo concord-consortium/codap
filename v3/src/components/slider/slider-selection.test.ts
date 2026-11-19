@@ -541,3 +541,40 @@ describe("selection slider when a visibility slider stops hiding", () => {
     expect(selectedA3(dataSet)).toEqual([2, 3, 4])
   })
 })
+
+describe("selection slider and visibility changes it should follow", () => {
+  it("re-selects cases a visibility slider hid (and the dataset deselected) when they're shown again", async () => {
+    const { content, dataSet, slider } = await setupSelectionSlider()
+    slider.setRange(2, 4)
+    slider.resumeSelection()
+    // binding a visibility slider at [1, 1.5] hides a3 2..6, which regrouping deselects
+    const visibility = addSlider(content, dataSet, "visibility")
+    dataSet.validateCases()
+    expect(dataSet.selection.size).toBe(0)
+    expect(slider.ownsSelection).toBe(true)
+    visibility.setRange(1, 6)
+    dataSet.validateCases()
+    expect(selectedA3(dataSet)).toEqual([2, 3, 4])
+    expect(slider.ownsSelection).toBe(true)
+  })
+
+  it("follows a visibility slider rebound to another attribute with the same range", async () => {
+    const { content, dataSet, slider } = await setupSelectionSlider()
+    // b runs opposite to a3 over the same extent, so the same range shows different cases
+    const b = dataSet.addAttribute({ name: "b" })
+    const a3 = a3Id(dataSet)
+    dataSet.setCaseValues(dataSet.itemIds.map(itemId =>
+      ({ __id__: itemId, [b.id]: 7 - dataSet.getNumeric(itemId, a3)! })))
+    const visibility = addSlider(content, dataSet, "visibility")
+    slider.setRange(1, 6)
+    slider.resumeSelection()
+    dataSet.validateCases()
+    expect(selectedA3(dataSet)).toEqual([1])
+    const [low, high] = [visibility.rangeLow, visibility.rangeHigh]
+    visibility.configureFromAttribute(dataSet, b.id)
+    expect([visibility.rangeLow, visibility.rangeHigh]).toEqual([low, high])
+    dataSet.validateCases()
+    expect(selectedA3(dataSet)).toEqual([6])
+    expect(slider.ownsSelection).toBe(true)
+  })
+})

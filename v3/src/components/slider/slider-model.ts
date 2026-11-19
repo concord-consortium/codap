@@ -441,6 +441,13 @@ export const SliderModel = TileContentModel
     releaseSelection() {
       self.appliedItemIds = undefined
     },
+    // while owning the selection, takes it as is (e.g. once the dataset deselects the cases it hides)
+    syncAppliedSelection() {
+      const selection = self.dataSet?.selection
+      if (selection && self.appliedItemIds && selection.size !== self.appliedItemIds.size) {
+        self.appliedItemIds = new Set(selection)
+      }
+    },
     // On opening a document, a slider saved owning the selection owns the restored selection, whatever it is now;
     // the selection itself isn't changed. Only the first time the slider is bound after loading.
     restoreSavedOwnership() {
@@ -533,9 +540,9 @@ export const SliderModel = TileContentModel
       // filter is volatile, so it's recomputed rather than saved, and it never becomes a history entry.
       let filteredDataSet: IDataSet | undefined
       const sliderTileId = getTileModel(self)?.id
-      const clearFilter = (byType = false) => {
+      const clearFilter = (byUser = false) => {
         if (sliderTileId && filteredDataSet && isAlive(filteredDataSet)) {
-          filteredDataSet.clearSliderFilter(sliderTileId, byType)
+          filteredDataSet.clearSliderFilter(sliderTileId, byUser)
         }
         filteredDataSet = undefined
       }
@@ -546,9 +553,10 @@ export const SliderModel = TileContentModel
           const applies = self.sliderType === "visibility" && !!dataSet && !!self.attribute &&
                           !self.attribute.hasFormula
           const hidden = applies ? self.sliderHiddenItemIds : undefined
-          return { dataSet, hidden, low: self.rangeLow, high: self.rangeHigh, sliderType: self.sliderType }
+          const { rangeLow: low, rangeHigh: high, sliderType, attributeId } = self
+          return { dataSet, hidden, low, high, sliderType, attributeId }
         },
-        ({ dataSet, hidden, low, high, sliderType }, previous) => {
+        ({ dataSet, hidden, low, high, sliderType, attributeId }, previous) => {
           // the user changing the slider's type, rather than e.g. its attribute being deleted
           const byType = !!previous?.hidden && sliderType !== "visibility"
           if (filteredDataSet !== dataSet) clearFilter(byType)
@@ -556,11 +564,12 @@ export const SliderModel = TileContentModel
             // skip a change that hides the same cases, which would regroup the whole dataset for nothing
             const current = dataSet.sliderFilteredOutItemIds.get(sliderTileId)
             if (!current || !areSetsEqual(current, hidden)) {
-              // Whether the user moved the range of a slider that was already hiding, rather than the data changing or
-              // the slider starting to hide (as when a document loads). Starting to hide only hides, so a selection
-              // slider has nothing to add.
-              const byRange = !!current && !!previous?.hidden && (low !== previous.low || high !== previous.high)
-              dataSet.setSliderFilter(sliderTileId, hidden, byRange)
+              // Whether the user changed the range or attribute of a slider that was already hiding, rather than the
+              // data changing or the slider starting to hide (as when a document loads). Starting to hide only hides,
+              // so a selection slider has nothing to add.
+              const byUser = !!current && !!previous?.hidden &&
+                (low !== previous.low || high !== previous.high || attributeId !== previous.attributeId)
+              dataSet.setSliderFilter(sliderTileId, hidden, byUser)
             }
             filteredDataSet = dataSet
           }
@@ -582,17 +591,21 @@ export const SliderModel = TileContentModel
       ))
       // Once the selection is no longer the one the slider made, the slider lets go of it for good, so a selection
       // that later happens to match (e.g. once a visibility slider hides the differences) doesn't become its own.
+      // While it's still the slider's, the slider keeps track of it as the dataset deselects the cases it hides, so
+      // when they're shown again they're missing from both, rather than only from the selection.
       addDisposer(self, reaction(
-        () => !!self.appliedItemIds && !self.ownsSelection,
-        lost => {
-          if (lost) self.releaseSelection()
-        }, { name: "SliderModel [selection lost]" }
+        () => ({ owns: self.ownsSelection, size: self.dataSet?.selection.size }),
+        ({ owns }) => {
+          if (!self.appliedItemIds) return
+          if (!owns) self.releaseSelection()
+          else self.syncAppliedSelection()
+        }, { name: "SliderModel [selection ownership]", equals: comparer.structural }
       ))
       // While a selection slider owns the selection, it follows changes to its range (by dragging, playback, undo,
       // or a plugin) and changes to what visibility sliders hide that their ranges caused. A data edit that changes
       // what they hide doesn't count, so editing data never selects anything.
       addDisposer(self, reaction(
-        () => [self.rangeLow, self.rangeHigh, self.dataSet?.sliderRangeFilterChanges],
+        () => [self.rangeLow, self.rangeHigh, self.dataSet?.sliderFilterChangesByUser],
         () => {
           if (self.ownsSelection) self.applySelection()
         }, { name: "SliderModel [selection triggers]", equals: comparer.shallow }
