@@ -9,6 +9,7 @@ import { PaletteCheckbox } from "../../../palette-checkbox"
 import { IMapPointLayerModel } from "../../models/map-point-layer-model"
 import { HotSpotColorRamp } from "../../utilities/hot-spot-color-ramps"
 import { ColorRampSelect } from "./color-ramp-select"
+import { MapHotSpotResolutionSlider } from "./map-hot-spot-resolution-slider"
 
 // Announce the opacity to screen readers as a percentage (e.g. "75%") rather than a raw fraction
 const kOpacityFormatOptions: Intl.NumberFormatOptions = { style: "percent" }
@@ -37,7 +38,13 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ mapPointL
     })
   }
 
-  const handleOpacityChangeEnd = (opacity: number) => {
+  const commitOpacity = (opacity: number) => {
+    if (opacity === hotSpotModel.opacity) {
+      // Nothing to commit, so just end the in-progress change.
+      hotSpotModel.setDynamicOpacity(undefined)
+      return
+    }
+
     hotSpotModel.applyModelChange(() => {
       hotSpotModel.setOpacity(opacity)
     }, {
@@ -93,6 +100,11 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ mapPointL
     )
   }
 
+  const handleOpacityBlur = () => {
+    const { dynamicOpacity } = hotSpotModel
+    if (dynamicOpacity != null) commitOpacity(dynamicOpacity)
+  }
+
   return (
     <div className="map-hot-spot-controls palette-form">
       <PaletteCheckbox
@@ -102,6 +114,7 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ mapPointL
       >
         {t("V3.Inspector.map.hotSpot")}
       </PaletteCheckbox>
+      <MapHotSpotResolutionSlider mapPointLayerModel={mapPointLayerModel}/>
       <Slider
         minValue={0}
         maxValue={1}
@@ -109,14 +122,14 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ mapPointL
         formatOptions={kOpacityFormatOptions}
         value={hotSpotModel.displayOpacity}
         onChange={(val: number) => hotSpotModel.setDynamicOpacity(val)}
-        onChangeEnd={handleOpacityChangeEnd}
         isDisabled={disabled}
+        onChangeEnd={commitOpacity}
         data-testid="map-hot-spot-opacity-slider"
       >
         <div className="palette-row slider-row">
           <Label className="form-label">{t("V3.Inspector.map.hotSpotOpacity")}</Label>
           <SliderTrack>
-            <SliderThumb />
+            <SliderThumb onBlur={handleOpacityBlur}/>
           </SliderTrack>
         </div>
       </Slider>

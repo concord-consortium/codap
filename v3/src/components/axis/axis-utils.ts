@@ -357,6 +357,8 @@ export function zoomAxis(
   )
 }
 
+export const kAxisLabelArrowWidth = 24
+
 interface IRenderLabelBackgroundOptions<GElement extends BaseType> {
   gSelection: Selection<GElement, unknown, any, any>
   textSelector: string
@@ -377,9 +379,8 @@ export function renderLabelBackground<GElement extends BaseType>(
 
   const paddingX = labelPaddingX
   const paddingY = labelPaddingY
-  const arrowWidth = 24
 
-  const rectWidth = textBBox.width + paddingX + arrowWidth
+  const rectWidth = textBBox.width + paddingX + kAxisLabelArrowWidth
   const rectHeight = textBBox.height + paddingY * 2
   const rectX = textBBox.x - paddingX
   const rectY = textBBox.y - paddingY
@@ -400,7 +401,7 @@ export function renderLabelBackground<GElement extends BaseType>(
   rectSelection.lower()
 
   const arrowX = textBBox.x + textBBox.width
-  const arrowY = textBBox.y + (textBBox.height - arrowWidth) / 2
+  const arrowY = textBBox.y + (textBBox.height - kAxisLabelArrowWidth) / 2
 
   // Safari/WebKit doesn't apply the transform attribute to a nested <svg> element, so we
   // use a <g> and fold the (arrowX, arrowY) position into its transform via translate.

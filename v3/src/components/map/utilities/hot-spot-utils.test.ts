@@ -2,12 +2,61 @@ import { Map as LeafletMap, Point, Projection } from "leaflet"
 import { greatCircleDistance } from "../../../utilities/geo-utils"
 import { getHotSpotRampInterpolator } from "./hot-spot-color-ramps"
 import {
-  bandwidthToWorldUnits, buildColorLUT, colorizeDensityGrid, computeDefaultBandwidth, computeDensityGrid,
-  computeHotSpotSurface, computeMaxDensity, hotSpotFade, IDensityGridRegion, IKernel, kColorLUTSize, kernelWeight,
-  kFallbackBandwidthMeters, kHotSpotFadeFloor, kHotSpotFadeFull, kMaxMercatorLatitude, kWebMercatorRadiusMeters,
-  kWorldSize, latLongToWorldPoint, projectHotSpotKernels, renderHotSpotSurface, wrapWorldDelta
+  bandwidthToResolution, bandwidthToWorldUnits, buildColorLUT, colorizeDensityGrid, computeApproximateMaxDensity,
+  computeDefaultBandwidth, computeDensityGrid, computeHotSpotSurface, computeMaxDensity, hotSpotFade,
+  IDensityGridRegion, IKernel, kColorLUTSize, kDefaultBandwidthDivisor, kernelWeight, kFallbackBandwidthMeters,
+  kHotSpotFadeFloor, kHotSpotFadeFull, kMaxMercatorLatitude, kResolutionRangeFactor, kWebMercatorRadiusMeters,
+  kWorldSize, latLongToWorldPoint, projectHotSpotKernels, renderHotSpotSurface, resolutionLimit, resolutionToBandwidth,
+  wrapWorldDelta
 } from "./hot-spot-utils"
 import { createLatLongProjector } from "./map-utils"
+
+describe("resolution slider scale", () => {
+  it("puts the default bandwidth at 0 and the ends of the range at ±1", () => {
+    expect(bandwidthToResolution(5000, 5000)).toBeCloseTo(0)
+    expect(bandwidthToResolution(5000 / kResolutionRangeFactor, 5000)).toBeCloseTo(1)
+    expect(bandwidthToResolution(5000 * kResolutionRangeFactor, 5000)).toBeCloseTo(-1)
+  })
+
+  it("converts resolutions back to bandwidths on a log scale", () => {
+    expect(resolutionToBandwidth(0, 5000)).toBeCloseTo(5000)
+    expect(resolutionToBandwidth(1, 5000)).toBeCloseTo(5000 / kResolutionRangeFactor)
+    expect(resolutionToBandwidth(-1, 5000)).toBeCloseTo(5000 * kResolutionRangeFactor)
+    // halfway to the end of the range is the geometric mean
+    expect(resolutionToBandwidth(0.5, 5000)).toBeCloseTo(5000 / Math.sqrt(kResolutionRangeFactor))
+    expect(bandwidthToResolution(resolutionToBandwidth(0.37, 5000), 5000)).toBeCloseTo(0.37)
+  })
+
+  it("spans from a little below ArcGIS's default bandwidth to about a tenth of it, default in the center", () => {
+    const arcGISBandwidth = 5000
+    const defaultBandwidth = arcGISBandwidth / kDefaultBandwidthDivisor
+    const atResolution = (resolution: number) => resolutionToBandwidth(resolution, defaultBandwidth) / arcGISBandwidth
+    expect(atResolution(-1)).toBeCloseTo(10 ** -0.07)
+    expect(atResolution(0)).toBeCloseTo(10 ** -0.52)
+    expect(atResolution(1)).toBeCloseTo(10 ** -0.97)
+    // even the widest setting is narrower than ArcGIS's default
+    expect(atResolution(-1)).toBeLessThan(1)
+  })
+
+  it("widens the limit to include resolutions outside the usual range", () => {
+    expect(resolutionLimit(0, 0.01)).toBe(1)
+    expect(resolutionLimit(-0.8, 0.01)).toBe(1)
+    expect(resolutionLimit(1.234, 0.01)).toBeCloseTo(1.24)
+    expect(resolutionLimit(-2.5, 0.01)).toBeCloseTo(2.5)
+  })
+
+  it("ignores floating-point noise in the resolution", () => {
+    expect(resolutionLimit(1.0000000000000002, 0.01)).toBe(1)
+    expect(resolutionLimit(-1.0000000000000002, 0.01)).toBe(1)
+    expect(resolutionLimit(1.2300000000000002, 0.01)).toBeCloseTo(1.23)
+    // converting the ends of the range back to resolutions adds noise for this default
+    const defaultBandwidth = 3333.3
+    for (const end of [-1, 1]) {
+      const resolution = bandwidthToResolution(resolutionToBandwidth(end, defaultBandwidth), defaultBandwidth)
+      expect(resolutionLimit(resolution, 0.01)).toBe(1)
+    }
+  })
+})
 
 describe("hot spot constants", () => {
   it("match Leaflet's Web Mercator projection", () => {
@@ -58,7 +107,8 @@ describe("computeDefaultBandwidth", () => {
   it("uses the standard distance when it is smaller than the median term", () => {
     // mean center (0, 0); distances [d, 0, d]; SD = √(2/3)·d < √(1/ln 2)·d
     const latLongs = [{ lat: 0, long: -1 }, { lat: 0, long: 0 }, { lat: 0, long: 1 }]
-    expect(computeDefaultBandwidth(latLongs)).toBeCloseTo(0.9 * Math.sqrt(2 / 3) * oneDegree * 3 ** -0.2, 3)
+    expect(computeDefaultBandwidth(latLongs))
+      .toBeCloseTo(0.9 * Math.sqrt(2 / 3) * oneDegree * 3 ** -0.2 / kDefaultBandwidthDivisor, 3)
   })
 
   it("uses the median term when it is smaller than the standard distance", () => {
@@ -67,7 +117,8 @@ describe("computeDefaultBandwidth", () => {
       { lat: 0, long: 0 }, { lat: 0, long: 0.1 }, { lat: 0, long: -0.1 }, { lat: 0, long: 5 }, { lat: 0, long: -5 }
     ]
     const median = greatCircleDistance(0, 0, 0, 0.1)
-    expect(computeDefaultBandwidth(latLongs)).toBeCloseTo(0.9 * Math.sqrt(1 / Math.LN2) * median * 5 ** -0.2, 3)
+    expect(computeDefaultBandwidth(latLongs))
+      .toBeCloseTo(0.9 * Math.sqrt(1 / Math.LN2) * median * 5 ** -0.2 / kDefaultBandwidthDivisor, 3)
   })
 
   it("uses the standard distance when more than half the points are at the mean center", () => {
@@ -75,7 +126,8 @@ describe("computeDefaultBandwidth", () => {
     const latLongs = [
       { lat: 0, long: 0 }, { lat: 0, long: 0 }, { lat: 0, long: 0 }, { lat: 0, long: 1 }, { lat: 0, long: -1 }
     ]
-    expect(computeDefaultBandwidth(latLongs)).toBeCloseTo(0.9 * Math.sqrt(2 / 5) * oneDegree * 5 ** -0.2, 3)
+    expect(computeDefaultBandwidth(latLongs))
+      .toBeCloseTo(0.9 * Math.sqrt(2 / 5) * oneDegree * 5 ** -0.2 / kDefaultBandwidthDivisor, 3)
   })
 
   it("falls back when there is no spread", () => {
@@ -168,11 +220,40 @@ describe("computeMaxDensity", () => {
   })
 })
 
+describe("computeApproximateMaxDensity", () => {
+  it("returns 0 for no points and 1 for one point", () => {
+    expect(computeApproximateMaxDensity([])).toBe(0)
+    expect(computeApproximateMaxDensity([{ x: 100, y: 100, h: 1 }])).toBe(1)
+  })
+
+  it("evaluates only at the points, so it misses a maximum between them", () => {
+    // f = 1 + e⁻² ≈ 1.135 at each point, but 2e^(−½) ≈ 1.213 at the midpoint
+    const kernels = [{ x: 100, y: 100, h: 1 }, { x: 102, y: 100, h: 1 }]
+    expect(computeApproximateMaxDensity(kernels)).toBeCloseTo(1 + Math.exp(-2))
+    expect(computeApproximateMaxDensity(kernels)).toBeLessThan(computeMaxDensity(kernels))
+  })
+
+  it("measures points across the antimeridian as neighbors", () => {
+    // 1 world unit apart across the wrap, not 255
+    const kernels = [{ x: 255.5, y: 100, h: 1 }, { x: 0.5, y: 100, h: 1 }]
+    expect(computeApproximateMaxDensity(kernels)).toBeCloseTo(1 + Math.exp(-0.5))
+  })
+
+  it("is a lower bound on computeMaxDensity", () => {
+    const kernels = [[100, 100], [101.2, 100.5], [100.4, 101.6], [103, 102], [99, 103.1], [102.2, 99.1], [105, 100]]
+      .map(([x, y], i) => ({ x, y, h: i % 2 ? 1.5 : 1 }))
+    const maxAtPoints = Math.max(...kernels.map(p =>
+      kernels.reduce((sum, k) => sum + kernelWeight(k.x - p.x, k.y - p.y, k.h), 0)))
+    expect(computeApproximateMaxDensity(kernels)).toBeCloseTo(maxAtPoints)
+    expect(computeApproximateMaxDensity(kernels)).toBeLessThanOrEqual(computeMaxDensity(kernels))
+  })
+})
+
 describe("computeHotSpotSurface", () => {
   const latLongs = [{ lat: 40, long: -100 }, { lat: 41, long: -101 }, { lat: 39, long: -99 }]
 
   it("is undefined without points", () => {
-    expect(computeHotSpotSurface([])).toBeUndefined()
+    expect(computeHotSpotSurface([], 20000)).toBeUndefined()
   })
 
   it("projects each point to world coordinates with its own bandwidth", () => {
@@ -187,9 +268,9 @@ describe("computeHotSpotSurface", () => {
     expect(surface.maxDensity).toBe(computeMaxDensity(surface.points))
   })
 
-  it("computes a default bandwidth when none is given or it isn't positive", () => {
-    expect(computeHotSpotSurface(latLongs)!.bandwidthMeters).toBe(computeDefaultBandwidth(latLongs))
-    expect(computeHotSpotSurface(latLongs, 0)!.bandwidthMeters).toBe(computeDefaultBandwidth(latLongs))
+  it("approximates the maximum density when optimizing", () => {
+    const surface = computeHotSpotSurface(latLongs, 200000, true)!
+    expect(surface.maxDensity).toBe(computeApproximateMaxDensity(surface.points))
   })
 })
 
