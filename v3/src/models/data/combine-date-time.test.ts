@@ -1,6 +1,7 @@
 import {
-  addCombinedDateTimeAttribute, combineDateTimeFormula, defaultCombinedAttributeName, getCombineDateTimePartners,
-  getCombineDateTimePreview, getDateTimeRoles, isDateOrTimeAttribute, isTimeOnlyAttribute
+  addCombinedDateTimeAttribute, combineDateTimeFormula, defaultCombinedAttributeName, getCombinedDatePrecision,
+  getCombineDateTimePartners, getCombineDateTimePreview, getDateTimeRoles, hasTimeOfDay, isDateOrTimeAttribute,
+  isTimeOnlyAttribute
 } from "./combine-date-time"
 import { DataSet, IDataSet, toCanonical } from "./data-set"
 
@@ -59,7 +60,9 @@ describe("combine date/time", () => {
     const parentId = data.getCollectionForAttribute("day")!.id
     const childId = data.getCollectionForAttribute("time")!.id
     const ids = (attrId: string, rejectedId: string) =>
-      getCombineDateTimePartners(data, attrId, collectionId => collectionId !== rejectedId).map(a => a.id)
+      getCombineDateTimePartners(data, attrId, {
+        canAddToCollection: (collectionId: string) => collectionId !== rejectedId
+      }).map(a => a.id)
     expect(ids("day", parentId)).toEqual(["time", "stamp", "clock"])
     expect(ids("day", childId)).toEqual([])
   })
@@ -90,10 +93,50 @@ describe("combine date/time", () => {
     const roles2 = getDateTimeRoles(attr(data, "day"), attr(data, "time"))
     expect(roles2.dateAttr.id).toBe("day")
     expect(roles2.timeAttr.id).toBe("time")
-    // two full dates: the first supplies the date
-    const roles3 = getDateTimeRoles(attr(data, "stamp"), attr(data, "day"))
-    expect(roles3.dateAttr.id).toBe("stamp")
-    expect(roles3.timeAttr.id).toBe("day")
+  })
+
+  it("assigns the time role to the only attribute with a time of day", () => {
+    const data = createData()
+    // stamp has times, Obs Date doesn't, so stamp supplies the time whichever menu it's opened from
+    for (const [first, second] of [["stamp", "day"], ["day", "stamp"]]) {
+      const roles = getDateTimeRoles(attr(data, first), attr(data, second))
+      expect(roles.dateAttr.id).toBe("day")
+      expect(roles.timeAttr.id).toBe("stamp")
+    }
+  })
+
+  it("lets the first attribute supply the date when both have times of day", () => {
+    const data = createData()
+    data.addAttribute({ id: "stamp2", name: "stamp2" })
+    data.setCaseValues([{ __id__: data.items[0].__id__, stamp2: "2026-11-01 10:30" }])
+    const roles = getDateTimeRoles(attr(data, "stamp2"), attr(data, "stamp"))
+    expect(roles.dateAttr.id).toBe("stamp2")
+    expect(roles.timeAttr.id).toBe("stamp")
+  })
+
+  it("identifies attributes with a time of day", () => {
+    const data = createData()
+    expect(hasTimeOfDay(attr(data, "time"))).toBe(true)
+    expect(hasTimeOfDay(attr(data, "stamp"))).toBe(true)
+    expect(hasTimeOfDay(attr(data, "day"))).toBe(false)
+    expect(hasTimeOfDay(attr(data, "name"))).toBe(false)
+  })
+
+  it("excludes pairs in which neither attribute has a time of day", () => {
+    const data = createData()
+    data.addAttribute({ id: "end", name: "End" })
+    data.setCaseValues(data.items.map(item => ({ __id__: item.__id__, end: "2026-10-30" })))
+    const ids = (attrId: string) => getCombineDateTimePartners(data, attrId).map(a => a.id)
+    expect(ids("day")).toEqual(["time", "stamp", "clock"])
+    expect(ids("end")).toEqual(["time", "stamp", "clock"])
+    // from stamp, the date-only attributes are offered, since stamp supplies the time
+    expect(ids("stamp")).toEqual(["day", "time", "clock", "end"])
+  })
+
+  it("excludes hidden attributes", () => {
+    const data = createData()
+    const ids = getCombineDateTimePartners(data, "day", { isHidden: attrId => attrId === "clock" }).map(a => a.id)
+    expect(ids).toEqual(["time", "stamp"])
   })
 
   it("builds a formula, escaping names that aren't valid identifiers", () => {
@@ -116,6 +159,7 @@ describe("combine date/time", () => {
     const newAttr = addCombinedDateTimeAttribute(data, roles, "when")!
     expect(newAttr.name).toBe("when")
     expect(newAttr.formula?.display).toBe(combineDateTimeFormula("Obs Date", "time"))
+    expect(newAttr.datePrecision).toBe("minute")
     expect(data.attributes.map(a => a?.name)).toEqual(["name", "Obs Date", "time", "when", "stamp", "clock"])
   })
 
@@ -137,11 +181,27 @@ describe("combine date/time", () => {
     expect(childCollection.attributes.map(a => a?.name)).toEqual(["name", "time", "when", "stamp", "clock"])
   })
 
+  it("uses second precision only when some time has seconds", () => {
+    const data = createData()
+    expect(getCombinedDatePrecision(attr(data, "time"))).toBe("minute")
+    data.setCaseValues([{ __id__: data.items[1].__id__, time: "08:05:30" }])
+    expect(getCombinedDatePrecision(attr(data, "time"))).toBe("second")
+    const roles = getDateTimeRoles(attr(data, "day"), attr(data, "time"))
+    expect(addCombinedDateTimeAttribute(data, roles, "when")?.datePrecision).toBe("second")
+  })
+
   describe("getCombineDateTimePreview", () => {
     it("previews the first case that has both a date and a time", () => {
       const data = createData()
       const preview = getCombineDateTimePreview(getDateTimeRoles(attr(data, "day"), attr(data, "clock")))
       expect(preview).toEqual({ dateValue: "2026-10-27", timeValue: "1:45 PM", result: "10/27/2026, 1:45 PM" })
+    })
+
+    it("shows the time at midnight, as the combined attribute's minute precision does", () => {
+      const data = createData()
+      data.setCaseValues([{ __id__: data.items[0].__id__, clock: "12:00 AM" }])
+      const preview = getCombineDateTimePreview(getDateTimeRoles(attr(data, "day"), attr(data, "clock")))
+      expect(preview?.result).toBe("10/27/2026, 12:00 AM")
     })
 
     it("skips cases with a missing time", () => {

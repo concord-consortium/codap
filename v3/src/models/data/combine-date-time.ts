@@ -1,28 +1,37 @@
-import { isTimeOfDayString } from "../../utilities/date-parser"
-import { formatDate } from "../../utilities/date-utils"
+import { isTimeOfDayString, parseTimeOfDay } from "../../utilities/date-parser"
+import { convertToDate, DatePrecision, formatDate } from "../../utilities/date-utils"
 import { uniqueName } from "../../utilities/js-utils"
 import { dateFunctions } from "../formula/functions/date-functions"
 import { asFormulaIdentifier } from "../formula/utils/name-mapping-utils"
 import { IAttribute } from "./attribute"
 import { IDataSet } from "./data-set"
 
-interface ITimeOnlyCacheEntry {
+interface ITimeInfo {
+  // every non-empty value is a time of day with no date, e.g. "13:45" or "1:45 PM"
+  isTimeOnly: boolean
+  // the values can supply a time of day: time-only values, or dates with a time other than midnight
+  hasTimeOfDay: boolean
+}
+interface ITimeInfoCacheEntry extends ITimeInfo {
   changeCount: number
   strValues: string[]
-  isTimeOnly: boolean
 }
-const timeOnlyCache = new WeakMap<IAttribute, ITimeOnlyCacheEntry>()
+const timeInfoCache = new WeakMap<IAttribute, ITimeInfoCacheEntry>()
+
+function hasNonMidnightTime(value: string) {
+  const date = convertToDate(value)
+  return !!date && (date.getHours() !== 0 || date.getMinutes() !== 0 || date.getSeconds() !== 0)
+}
 
 /**
- * True if the attribute has at least one value and every non-empty value is a time of day with no date,
- * e.g. "13:45" or "1:45 PM".
+ * Classifies the attribute's values as time-only and/or able to supply a time of day.
  * Reads `changeCount` and `strValues` so observers react to value edits, and caches the result until either
- * changes, so repeated calls (e.g. on each render of the dialog) don't rescan the values.
+ * changes, so repeated calls don't rescan the values.
  */
-export function isTimeOnlyAttribute(attr: IAttribute) {
+function getTimeInfo(attr: IAttribute): ITimeInfo {
   const { changeCount, strValues } = attr
-  const cached = timeOnlyCache.get(attr)
-  if (cached?.changeCount === changeCount && cached.strValues === strValues) return cached.isTimeOnly
+  const cached = timeInfoCache.get(attr)
+  if (cached?.changeCount === changeCount && cached.strValues === strValues) return cached
 
   let count = 0
   const isEveryValueTimeOrEmpty = strValues.every(value => {
@@ -31,8 +40,21 @@ export function isTimeOnlyAttribute(attr: IAttribute) {
     return isTimeOfDayString(value)
   })
   const isTimeOnly = isEveryValueTimeOrEmpty && count > 0
-  timeOnlyCache.set(attr, { changeCount, strValues, isTimeOnly })
-  return isTimeOnly
+  const hasTime = isTimeOnly ||
+    (attr.type === "date" && strValues.some(value => !!value && hasNonMidnightTime(value)))
+  const entry = { changeCount, strValues, isTimeOnly, hasTimeOfDay: hasTime }
+  timeInfoCache.set(attr, entry)
+  return entry
+}
+
+/** True if the attribute has at least one value and every non-empty value is a time of day with no date. */
+export function isTimeOnlyAttribute(attr: IAttribute) {
+  return getTimeInfo(attr).isTimeOnly
+}
+
+/** True if the attribute can supply a time of day: it's time-only, or it holds dates with non-midnight times. */
+export function hasTimeOfDay(attr: IAttribute) {
+  return getTimeInfo(attr).hasTimeOfDay
 }
 
 /** True if the attribute holds dates (with or without times) or times of day. */
@@ -50,22 +72,30 @@ export function getCombinedAttributeCollection(data: IDataSet, attr1: IAttribute
   return data.collections[Math.max(index1, index2)]
 }
 
+export interface ICombinePartnerOptions {
+  // rejects collections the combined attribute can't be added to, e.g. ones a plugin locks
+  canAddToCollection?: (collectionId: string) => boolean
+  // excludes attributes the user can't see
+  isHidden?: (attrId: string) => boolean
+}
+
 /**
  * Returns the attributes that can be combined with the specified attribute: the other date/time attributes
- * in the data set, excluding pairs in which both attributes are times of day (there would be no date) and,
- * if `canAddToCollection` is provided, pairs whose combined attribute would go in a collection it rejects
- * (e.g. one a plugin prevents from being reorganized).
- * Returns an empty array if the specified attribute isn't itself a date/time attribute.
+ * in the data set for which the pair has a date and a time of day. That excludes pairs of time-only
+ * attributes (no date) and pairs in which neither attribute has a time of day (the result would always be
+ * midnight). Hidden attributes and pairs whose combined attribute would go in a rejected collection are
+ * excluded too. Returns an empty array if the specified attribute isn't itself a date/time attribute.
  */
 export function getCombineDateTimePartners(
-  data: IDataSet, attrId: string, canAddToCollection?: (collectionId: string) => boolean
+  data: IDataSet, attrId: string, options: ICombinePartnerOptions = {}
 ): IAttribute[] {
+  const { canAddToCollection, isHidden } = options
   const attr = data.getAttribute(attrId)
   if (!attr || !isDateOrTimeAttribute(attr)) return []
-  const isAttrTimeOnly = isTimeOnlyAttribute(attr)
   return data.attributes.filter(other => {
-    if (!other || other.id === attrId || !isDateOrTimeAttribute(other)) return false
-    if (isAttrTimeOnly && isTimeOnlyAttribute(other)) return false
+    if (!other || other.id === attrId || isHidden?.(other.id) || !isDateOrTimeAttribute(other)) return false
+    if (isTimeOnlyAttribute(attr) && isTimeOnlyAttribute(other)) return false
+    if (!hasTimeOfDay(attr) && !hasTimeOfDay(other)) return false
     if (!canAddToCollection) return true
     const collection = getCombinedAttributeCollection(data, attr, other)
     return !!collection && canAddToCollection(collection.id)
@@ -79,10 +109,13 @@ export interface IDateTimeRoles {
 
 /**
  * Decides which attribute supplies the date and which supplies the time. A time-only attribute always
- * supplies the time. If both attributes contain dates, the first one supplies the date.
+ * supplies the time. Otherwise, if only one attribute has a time of day, it supplies the time. If both do,
+ * the first one supplies the date.
  */
 export function getDateTimeRoles(first: IAttribute, second: IAttribute): IDateTimeRoles {
-  return isTimeOnlyAttribute(first)
+  const isFirstTime = isTimeOnlyAttribute(first) ||
+    (!isTimeOnlyAttribute(second) && hasTimeOfDay(first) && !hasTimeOfDay(second))
+  return isFirstTime
     ? { dateAttr: second, timeAttr: first }
     : { dateAttr: first, timeAttr: second }
 }
@@ -93,6 +126,20 @@ export function combineDateTimeFormula(dateName: string, timeName: string) {
   return `date(year(${d}), month(${d}), dayOfMonth(${d}), hours(${tm}), minutes(${tm}), seconds(${tm}))`
 }
 
+/**
+ * Returns the date precision for the combined attribute: "second" if any time value has seconds, otherwise
+ * "minute". The combined attribute stores it, so the column shows the time even at midnight, and the preview
+ * uses it too, so the two match.
+ */
+export function getCombinedDatePrecision(timeAttr: IAttribute): DatePrecision {
+  const hasSeconds = timeAttr.strValues.some(value => {
+    if (!value) return false
+    const seconds = convertToDate(value)?.getSeconds() ?? parseTimeOfDay(value)?.seconds
+    return !!seconds
+  })
+  return hasSeconds ? "second" : "minute"
+}
+
 export interface ICombineDateTimePreview {
   dateValue: string
   timeValue: string
@@ -101,7 +148,8 @@ export interface ICombineDateTimePreview {
 
 /**
  * Returns an example of the combination, using the first case that has both a date and a time value.
- * It evaluates the same functions as the generated formula, so it matches what the new attribute will show.
+ * It evaluates the same functions as the generated formula and formats the result with the precision the
+ * combined attribute is created with, so it matches what the new attribute will show.
  */
 export function getCombineDateTimePreview(roles: IDateTimeRoles): ICombineDateTimePreview | undefined {
   const { dateAttr, timeAttr } = roles
@@ -117,7 +165,7 @@ export function getCombineDateTimePreview(roles: IDateTimeRoles): ICombineDateTi
   )
   if (!(combined instanceof Date)) return
 
-  const result = formatDate(combined, combined.getSeconds() ? "second" : "minute")
+  const result = formatDate(combined, getCombinedDatePrecision(timeAttr))
   return result ? { dateValue, timeValue, result } : undefined
 }
 
@@ -131,8 +179,8 @@ export function defaultCombinedAttributeName(data: IDataSet, roles: IDateTimeRol
 
 /**
  * Adds a formula attribute that combines the date from one attribute with the time from another.
- * It's placed after whichever source attribute comes last, in the more deeply nested of the two
- * source collections, so the formula can reference both sources. Call within `applyModelChange`.
+ * It's placed after whichever source attribute comes last, in the collection chosen by
+ * `getCombinedAttributeCollection`. Call within `applyModelChange`.
  */
 export function addCombinedDateTimeAttribute(data: IDataSet, roles: IDateTimeRoles, name: string) {
   const { dateAttr, timeAttr } = roles
@@ -145,6 +193,7 @@ export function addCombinedDateTimeAttribute(data: IDataSet, roles: IDateTimeRol
 
   return data.addAttribute({
     name: uniqueAttributeName(data, name.trim() || `${dateAttr.name}_${timeAttr.name}`),
-    formula: { display: combineDateTimeFormula(dateAttr.name, timeAttr.name) }
+    formula: { display: combineDateTimeFormula(dateAttr.name, timeAttr.name) },
+    precision: getCombinedDatePrecision(timeAttr)
   }, { collection: collection.id, before })
 }

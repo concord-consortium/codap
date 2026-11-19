@@ -1,21 +1,21 @@
 import {
-  Button, FormControl, FormLabel, Input, Menu, MenuButton, MenuItemOption, MenuList, MenuOptionGroup,
+  Box, Button, FormControl, FormLabel, Input, Menu, MenuButton, MenuItemOption, MenuList, MenuOptionGroup,
   ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Text, Tooltip
 } from "@chakra-ui/react"
 import { ChevronDownIcon } from "@chakra-ui/icons"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useId, useState } from "react"
+import React, { useId, useState } from "react"
 import { useDataSet } from "../../../hooks/use-data-set"
 import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { IAttribute } from "../../../models/data/attribute"
 import {
-  addCombinedDateTimeAttribute, defaultCombinedAttributeName, getCombineDateTimePartners, getCombineDateTimePreview,
-  getDateTimeRoles, isTimeOnlyAttribute
+  addCombinedDateTimeAttribute, defaultCombinedAttributeName, getCombineDateTimePreview, getDateTimeRoles,
+  isTimeOnlyAttribute
 } from "../../../models/data/combine-date-time"
 import { createAttributesNotification } from "../../../models/data/data-set-notifications"
-import { preventCollectionReorg } from "../../../utilities/plugin-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
+import { getAvailableCombineDateTimePartners } from "./combine-date-time-utils"
 import AttributeIcon from "../../../assets/icons/attribute-icon.svg"
 
 import "./attribute-menu.scss"
@@ -30,47 +30,46 @@ interface IProps {
 export const CombineDateTimeModal = observer(function CombineDateTimeModal(
   { attributeId, finalFocusRef, isOpen, onClose }: IProps
 ) {
-  const { data } = useDataSet()
+  const { data, metadata } = useDataSet()
   const attribute = data?.getAttribute(attributeId)
-  const canAddToCollection = (collectionId: string) => !preventCollectionReorg(data, collectionId)
-  const partners = isOpen && data ? getCombineDateTimePartners(data, attributeId, canAddToCollection) : []
-  const [partnerId, setPartnerId] = useState<string>()
-  const [newName, setNewName] = useState("")
+  const partners = isOpen && data ? getAvailableCombineDateTimePartners(data, metadata, attributeId) : []
+  // the dialog is mounted each time it opens, so its initial state is the starting state of each invocation
+  const [partnerId, setPartnerId] = useState<string | undefined>(() => partners[0]?.id)
+  const [newName, setNewName] = useState(() => defaultName(partners[0]))
+  // once the user edits the name, changing the partner no longer replaces it with a default
+  const [isNameEdited, setIsNameEdited] = useState(false)
   const partner = partners.find(p => p.id === partnerId)
   const roles = attribute && partner ? getDateTimeRoles(attribute, partner) : undefined
   const preview = roles ? getCombineDateTimePreview(roles) : undefined
   // the attribute the menu was opened from is fixed; the dialog chooses the attribute for the other role
-  const isAttributeTime = !!attribute && isTimeOnlyAttribute(attribute)
-  const dateLabel = t("V3.CaseTable.combineDateTime.dateColumn")
-  const timeLabel = t("V3.CaseTable.combineDateTime.timeColumn")
+  const isAttributeTime = roles ? roles.timeAttr === attribute : !!attribute && isTimeOnlyAttribute(attribute)
+  const dateLabel = t("V3.CaseTable.combineDateTime.dateAttribute")
+  const timeLabel = t("V3.CaseTable.combineDateTime.timeAttribute")
   const fixedLabel = isAttributeTime ? timeLabel : dateLabel
   const partnerLabel = isAttributeTime ? dateLabel : timeLabel
-  // the partner MenuButton isn't a form field, so FormLabel can't label it; use aria-labelledby instead
+  // the partner MenuButton isn't a form field, so a FormLabel can't label it; use aria-labelledby instead
   const partnerLabelId = useId()
   const partnerValueId = useId()
 
-  const updateDefaultName = (_partner?: IAttribute) => {
+  function defaultName(_partner?: IAttribute) {
     const _roles = data && attribute && _partner ? getDateTimeRoles(attribute, _partner) : undefined
-    setNewName(data && _roles ? defaultCombinedAttributeName(data, _roles) : "")
+    return data && _roles ? defaultCombinedAttributeName(data, _roles) : ""
   }
-
-  useEffect(() => {
-    // reset the dialog contents on each invocation
-    if (isOpen) {
-      const firstPartner = data ? getCombineDateTimePartners(data, attributeId, canAddToCollection)[0] : undefined
-      setPartnerId(firstPartner?.id)
-      updateDefaultName(firstPartner)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attributeId, isOpen])
 
   const handlePartnerChange = (id: string) => {
     setPartnerId(id)
-    updateDefaultName(partners.find(p => p.id === id))
+    if (!isNameEdited) setNewName(defaultName(partners.find(p => p.id === id)))
+  }
+
+  const handleNameChange = (name: string) => {
+    setNewName(name)
+    setIsNameEdited(true)
   }
 
   const applyChanges = () => {
-    if (data && roles) {
+    // nothing to create, e.g. if a plugin removed the partner while the dialog was open
+    if (!roles) return
+    if (data) {
       let newAttr: IAttribute | undefined
       data.applyModelChange(() => {
         newAttr = addCombinedDateTimeAttribute(data, roles, newName)
@@ -129,10 +128,10 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
       </ModalHeader>
       <ModalBody className="combine-date-time-body">
         <Text className="combine-date-time-fixed" data-testid="combine-date-time-fixed">
-          {t("V3.CaseTable.combineDateTime.fixedColumn", { vars: [fixedLabel, attribute?.name ?? ""] })}
+          {t("V3.CaseTable.combineDateTime.fixedAttribute", { vars: [fixedLabel, attribute?.name ?? ""] })}
         </Text>
-        <FormControl>
-          <FormLabel id={partnerLabelId} className="combine-date-time-label">{partnerLabel}</FormLabel>
+        <Box>
+          <Text id={partnerLabelId} className="combine-date-time-label">{partnerLabel}</Text>
           <Menu matchWidth>
             <MenuButton as={Button} className="attr-menu-select combine-date-time-select"
                 aria-labelledby={`${partnerLabelId} ${partnerValueId}`}
@@ -150,11 +149,11 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
               </MenuOptionGroup>
             </MenuList>
           </Menu>
-        </FormControl>
+        </Box>
         <FormControl>
           <FormLabel className="combine-date-time-label">{t("V3.CaseTable.combineDateTime.newName")}</FormLabel>
           <Input size="sm" className="combine-date-time-input" value={newName} onFocus={(e) => e.target.select()}
-              onChange={event => setNewName(event.target.value)} onKeyDown={handleKeyDown}
+              onChange={event => handleNameChange(event.target.value)} onKeyDown={handleKeyDown}
               data-testid="combine-date-time-name-input"
           />
         </FormControl>
@@ -165,7 +164,7 @@ export const CombineDateTimeModal = observer(function CombineDateTimeModal(
           </Text>
         }
       </ModalBody>
-      <ModalFooter mt="-5">
+      <ModalFooter>
         {buttons.map((b, i) => {
           const key = `${i}-${b.label}`
           return (

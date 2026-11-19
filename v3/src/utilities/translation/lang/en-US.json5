@@ -1477,9 +1477,9 @@
     "V3.CaseCardTable.Inspector.Delete": "Delete",
     "V3.CaseTable.headerMenuItems.combineDateTime": "Combine with Another Date/Time Attribute...",
     "V3.CaseTable.combineDateTime.title": "Combine date and time",
-    "V3.CaseTable.combineDateTime.dateColumn": "Date column",
-    "V3.CaseTable.combineDateTime.timeColumn": "Time column",
-    "V3.CaseTable.combineDateTime.fixedColumn": "%@1: %@2", /* %@1 replaced with "Date column" or "Time column", %@2 with the attribute name */
+    "V3.CaseTable.combineDateTime.dateAttribute": "Date attribute",
+    "V3.CaseTable.combineDateTime.timeAttribute": "Time attribute",
+    "V3.CaseTable.combineDateTime.fixedAttribute": "%@1: %@2", /* %@1 replaced with "Date attribute" or "Time attribute", %@2 with the attribute name */
     "V3.CaseTable.combineDateTime.newName": "New attribute name",
     "V3.CaseTable.combineDateTime.preview": "Preview: %@1 + %@2 → %@3", /* %@1 replaced with a date value, %@2 with a time value, %@3 with the combined result */
     "V3.CaseTable.combineDateTime.create": "Create",
