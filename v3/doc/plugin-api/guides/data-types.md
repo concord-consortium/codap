@@ -83,8 +83,13 @@ To send a moment in time unambiguously, send it with a numeric offset.
 ## Booleans
 
 `true` and `false`, whether sent as booleans or as text, are categories like any other text: an
-attribute holding them is `categorical`. See [Known limitations](#known-limitations) for what
-reading one back returns.
+attribute holding them is `categorical`. CODAP stores them as text, but plugins read the lowercase
+words back as booleans, as v2 returned the booleans it was sent: `get` on items and cases,
+`allCases`, the `caseSearch`, `caseFormulaSearch` and `itemSearch` replies, the set-aside items in
+`get dataContext`, and the `updateCases`, `deleteCases` and `selectCases` notices all return `true`
+and `false`. The text `true` typed into a table, imported from a file, or set by a checkbox reads
+back as a boolean too, where v2 returned the text. Only the lowercase words are converted; `TRUE`
+stays text. `get document` returns the stored text.
 
 ## Colors
 
@@ -144,11 +149,6 @@ described above. This is a known bug.
 items, and searches, return the number it reads: an item created with `"12"` reads back as `12`,
 `"0x1F"` as `31` and `"1e3"` as `1000`, and with the `numeric` type `"$12.50"` reads back as
 `12.5`. v2 returned each value exactly as it was sent. This is a known bug.
-
-**A boolean is stored as text.** A value sent as `true` reads back as the text `"true"`, and
-searches compare it as text; see [`item`](../resources/item-by-id.md#known-limitations) and
-[`caseSearch`](../resources/case-search.md#known-limitations). v2 kept the boolean. This is a known
-bug.
 
 ## See also
 

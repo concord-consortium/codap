@@ -212,13 +212,13 @@ first entry. v2 listed them in the order they were created, whatever the current
 sort or an earlier move the same array can pair entries with different items. Read the items with
 `get` first if the pairing matters.
 
-**A boolean value does not match.** CODAP v3 stores every value a plugin sends as either a
-number or text, so an item created with `"Endangered": true` holds the text `true`. The search
-`Endangered==true` compares that text with the boolean `true` and finds no items, and
-`Endangered==false` finds only the items with no value or `0`. v2 kept the boolean, so `==true` found
-the `true` items and `==false` the `false` ones, which is the intended behavior. This is a known
-bug. Until it is fixed, use [`caseFormulaSearch`](case-formula-search.md) with `Endangered=true`
-on the data context's last collection.
+**The text `true` and `false` matches as a boolean.** `Endangered==true` finds the items a plugin
+created with `"Endangered": true`, as in v2. CODAP stores every value as a number or text, so the
+text `true` typed into a table, imported from a file, or set by a checkbox matches too, where v2
+compared it as text and did not match. This is a deliberate difference. As in v2,
+`Endangered==false` also finds the items with an empty value or `0`, `Endangered==1` finds the
+`true` items, and `Endangered==true` finds the items holding `1`. An item created without the
+attribute matches `Endangered==false` too, where v2 did not match it.
 
 ## Notifications
 

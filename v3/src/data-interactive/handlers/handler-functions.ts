@@ -1,19 +1,22 @@
 import {
-  createCasesNotification, deleteCasesNotification, deleteItemsNotification, updateCasesNotificationFromIds,
-  updateItemsNotification
+  createCasesNotification, deleteCasesNotification, deleteItemsNotification, moveCasesNotification,
+  updateCasesNotificationFromIds, updateItemsNotification
 } from "../../models/data/data-set-notifications"
 import { IDataSet } from "../../models/data/data-set"
 import { getGroupedCases } from "../../models/data/data-set-utils"
 import { ICase } from "../../models/data/data-set-types"
 import { toV2Id, toV3CaseId, toV3ItemId } from "../../utilities/codap-utils"
-import { DIResources, DISuccessResult, DIValues } from "../data-interactive-types"
+import { DICaseOrderNotify, DIResources, DISuccessResult, DIValues } from "../data-interactive-types"
 import {
   DIRequestCase, DIRequestCaseValues, DIUpdateCase, DIUpdateItemResult
 } from "../data-interactive-data-set-types"
 import { getV2ItemResult, getCaseRequestResultValues } from "../data-interactive-type-utils"
 import { resolveAttrNames } from "../data-interactive-utils"
+import { t } from "../../utilities/translation/translate"
+import { planCaseMove } from "./case-move-utils"
 import {
-  caseNotFoundResult, dataContextNotFoundResult, fieldRequiredResult, itemNotFoundResult, valuesRequiredResult
+  caseNotFoundResult, dataContextNotFoundResult, errorResult, fieldRequiredResult, itemNotFoundResult,
+  valuesRequiredResult
 } from "./di-results"
 
 export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
@@ -56,6 +59,56 @@ export function deleteItem(resources: DIResources, item?: ICase | string[]) {
   })
 
   return { success: true as const, values: itemIds.map(itemId => toV2Id(itemId)) }
+}
+
+// As in V2, `notify` with `caseOrder` ("first", "last" or a position) moves a case to that position in its
+// collection. A case stays grouped under its parent, so a position among another parent's cases is clamped to
+// the first or last place among the case's siblings (V2 moved it there anyway).
+export function moveCaseBy(resources: DIResources, values: DIValues | undefined, aCase: ICase | undefined,
+                           resourceName: string) {
+  const { dataContext } = resources
+  if (!dataContext) return dataContextNotFoundResult
+  if (!aCase) return caseNotFoundResult
+  if (!values) return fieldRequiredResult("notify", resourceName, "values")
+  const { caseOrder } = values as DICaseOrderNotify
+  if (caseOrder == null) return fieldRequiredResult("notify", resourceName, "values.caseOrder")
+
+  const caseId = aCase.__id__
+  const collectionId = dataContext.caseInfoMap.get(caseId)?.collectionId
+  if (!collectionId) return caseNotFoundResult
+  const otherCases = dataContext.getCasesForCollection(collectionId).filter(({ __id__ }) => __id__ !== caseId)
+  const position = caseOrder === "first" ? 0
+    : caseOrder === "last" ? otherCases.length
+    : typeof caseOrder === "number" || (typeof caseOrder === "string" && caseOrder.trim() !== "")
+      ? Number(caseOrder)
+      : NaN
+  if (!isFinite(position)) return { success: false as const }
+
+  // the case's siblings are together in the collection; a position before them puts the case first among them,
+  // and one past them puts it last
+  const parentId = dataContext.getParentCaseId(caseId)
+  const siblings = otherCases.filter(({ __id__ }) => dataContext.getParentCaseId(__id__) === parentId)
+  const firstSiblingIndex = siblings.length > 0 ? otherCases.indexOf(siblings[0]) : 0
+  const siblingIndex = Math.min(Math.max(Math.trunc(position) - firstSiblingIndex, 0), siblings.length)
+  const shownSiblingIds = dataContext.getCasesForCollection(collectionId)
+    .filter(({ __id__ }) => dataContext.getParentCaseId(__id__) === parentId).map(({ __id__ }) => __id__)
+
+  // as in V2, a case already in place isn't moved, but moveCases is still sent
+  let itemIds: Maybe<string[]>
+  if (shownSiblingIds.indexOf(caseId) !== siblingIndex) {
+    const level = dataContext.getCollectionIndex(collectionId)
+    itemIds = planCaseMove(dataContext, aCase, level, parentId, siblings, siblingIndex)
+    if (!itemIds) return errorResult(t("V3.DI.Error.caseCannotMove"))
+  }
+
+  dataContext.applyModelChange(() => {
+    itemIds && dataContext.setItemOrder(itemIds)
+  }, {
+    // as in V2, moveCases lists the case, with its values, and is sent even when the case was already in place
+    notify: moveCasesNotification(dataContext, [aCase])
+  })
+
+  return { success: true as const }
 }
 
 export function getCaseBy(resources: DIResources, aCase?: ICase) {

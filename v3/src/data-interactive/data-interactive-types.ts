@@ -65,6 +65,10 @@ export interface DIInteractiveFrame {
   blockAPIRequestsWhileEditing?: boolean
   cannotClose?: boolean
   codapVersion?: string
+  contentDimensions?: {
+    height?: number
+    width?: number
+  }
   dimensions?: {
     height?: number
     width?: number
@@ -96,6 +100,10 @@ export interface DINotification {
 }
 export interface DIItemSearchNotify {
   itemOrder?: "first" | "last" | number | number[]
+}
+export interface DICaseOrderNotify {
+  // "first", "last", or a position, which may be given as text
+  caseOrder?: "first" | "last" | number | string
 }
 
 export interface DILogMessage {
@@ -152,8 +160,8 @@ export interface DIResources {
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DINotifyAttribute | DIAttributeLocationValues | DICase | DIDataContext |
   DIDocument | DINotifyDataContext | DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase |
-  DIRequestCase | DIUpdateCase | DINotification | DIItemSearchNotify | DILogMessage | DIUpdateConfigurationValue |
-  DIUrl | V2SpecificComponent | DIAdornmentValues | DISelectionExpression
+  DIRequestCase | DIUpdateCase | DINotification | DIItemSearchNotify | DICaseOrderNotify | DILogMessage |
+  DIUpdateConfigurationValue | DIUrl | V2SpecificComponent | DIAdornmentValues | DISelectionExpression
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API

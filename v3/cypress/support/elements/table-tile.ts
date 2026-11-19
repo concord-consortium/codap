@@ -138,6 +138,15 @@ export const TableTileElements = {
   },
   openAttributeMenu(name: string, collectionIndex = 1) {
     this.getAttribute(name, collectionIndex).click({force: true})
+    // Menu items can be found and clicked while the menu is still hidden, so wait for this
+    // attribute's menu to become visible. A menu that opens but never appears then fails here
+    // rather than at some later step.
+    this.getAttribute(name, collectionIndex)
+      .should("have.attr", "aria-expanded", "true")
+      .invoke("attr", "aria-controls")
+      .then(menuId => {
+        cy.get(`[id='${menuId}']`).should("have.attr", "style").and("contain", "visibility: visible")
+      })
   },
   closeAttributeMenu() {
     // On CI the menu occasionally closes on its own before the test closes it, for reasons not
@@ -433,15 +442,16 @@ export const TableTileElements = {
   getCollapsedIndex(rowIndex: number, collectionIndex = 1) {
     return this.getIndexCellInRow(rowIndex, collectionIndex)
   },
+  // rowIndex is the aria-rowindex of the parent row (2 for the first case)
   getRowExpandCollapseButton(rowIndex: number, collectionIndex = 1) {
-    return this.getCollection(collectionIndex).find(".spacer-mid-layer .expand-collapse-button img")
+    return this.getCollection(collectionIndex).find(".spacer-mid-layer [data-testid=expand-collapse-button]")
       .eq(Number(rowIndex)-2)
   },
   verifyRowCollapsedButton(rowIndex: number, collectionIndex = 1) {
-    this.getRowExpandCollapseButton(rowIndex, collectionIndex).should("have.class", "closed")
+    this.getRowExpandCollapseButton(rowIndex, collectionIndex).should("have.attr", "aria-expanded", "false")
   },
   verifyRowExpandedButton(rowIndex: number, collectionIndex = 1) {
-    this.getRowExpandCollapseButton(rowIndex, collectionIndex).should("have.class", "open")
+    this.getRowExpandCollapseButton(rowIndex, collectionIndex).should("have.attr", "aria-expanded", "true")
   },
   verifyCollapsedRows(childCases: string[], collectionIndex = 1) {
     for (let childCaseIndex = 0; childCaseIndex < childCases.length; childCaseIndex++) {
