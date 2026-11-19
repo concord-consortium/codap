@@ -1882,10 +1882,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 }))
 .actions(self => ({
   // Moves the given items, in their current order, before or after another item, or to the end. The order
-  // includes set-aside and filtered-out items. Built in one pass, so moving any number of items is safe.
+  // includes set-aside and filtered-out items.
   moveItems(itemIds: string[], options?: IMoveItemsOptions) {
-    const moving = new Set(itemIds.filter(itemId => self.getItemIndex(itemId) != null))
-    if (!moving.size) return
+    const moving = new Set(itemIds)
     const movingIds = self._itemIds.filter(itemId => moving.has(itemId))
     const otherIds = self._itemIds.filter(itemId => !moving.has(itemId))
     const beforeIndex = options?.before ? otherIds.indexOf(options.before) : -1

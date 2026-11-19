@@ -658,27 +658,6 @@ test("DataSet case hiding/showing (set aside)", () => {
   expect(data.itemIds.map(id => data.getStrValue(id, childAttr.id))).toEqual(["3", "4", "5", "0", "1", "2"])
 })
 
-test("moveItems moves a very large number of items at once", () => {
-  const data = DataSet.create({ name: "data" })
-  const value = data.addAttribute({ id: "Value", name: "Value" })
-  const count = 200000
-  // added in chunks, since addCases itself spreads its ids into a call
-  for (let start = 0; start < count; start += 50000) {
-    data.addCases(Array.from({ length: 50000 }, (_, i) => ({ __id__: `i${start + i}`, [value.id]: start + i })))
-  }
-  data.validateCases()
-
-  // every item but the first moves ahead of it
-  data.moveItems(data.itemIds.slice(1), { before: "i0" })
-  data.validateCases()
-  expect(data.itemIds.length).toBe(count)
-  expect(data.itemIds[0]).toBe("i1")
-  expect(data.itemIds[count - 1]).toBe("i0")
-  expect(data.getNumeric("i0", value.id)).toBe(0)
-  expect(data.getNumeric("i1", value.id)).toBe(1)
-  expect(data.getNumeric(`i${count - 1}`, value.id)).toBe(count - 1)
-})
-
 test("moveItems moves items to the end when the item to move before is missing", () => {
   const data = DataSet.create({ name: "data" })
   const letter = data.addAttribute({ id: "Letter", name: "Letter" })

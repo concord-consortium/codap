@@ -8,15 +8,9 @@ import {
 } from "./di-results"
 import { deleteItemsNotifications } from "./handler-functions"
 
-// The index at which v2 inserted an item for an `itemOrder` position: "first" and "last" are the ends, and
-// anything else is read as Array.prototype.splice reads its start: converted to a number and truncated, with
-// a negative position counting from the end and text that isn't a number meaning the start
+// "first" and "last" are the ends; v2 passed any other position to splice as its start
 function itemOrderIndex(position: unknown, length: number) {
-  if (position === "first") return 0
-  if (position === "last") return length
-  const index = Math.trunc(Number(position))
-  if (isNaN(index)) return 0
-  return index < 0 ? Math.max(length + index, 0) : Math.min(index, length)
+  return position === "first" ? 0 : position === "last" ? length : position as number
 }
 
 export const diItemSearchHandler: DIHandler = {

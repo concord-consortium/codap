@@ -55,6 +55,10 @@ describe("DataInteractive ItemSearchHandler", () => {
     expect(notify({ dataContext }, last).success).toBe(false)
     expect(notify({ dataContext, itemSearch }).success).toBe(false)
     expect(notify({ dataContext, itemSearch }, {}).success).toBe(false)
+    // as in v2, a single 0 is refused like a missing itemOrder and leaves the order unchanged
+    const priorItemIds = Array.from(dataContext.itemIds)
+    expect(notify({ dataContext, itemSearch }, { itemOrder: 0 }).success).toBe(false)
+    expect(dataContext.itemIds).toEqual(priorItemIds)
 
     expect(notify({ dataContext, itemSearch }, last).success).toBe(true)
     expect(dataContext.itemIds[dataContext.itemIds.length - 1]).toBe(item.__id__)
@@ -133,6 +137,7 @@ describe("DataInteractive ItemSearchHandler", () => {
     }
     // a fraction is truncated
     expect(move([6], [1.5])).toEqual([1, 6, 2, 3, 4, 5])
+    expect(move([6], [-1.5])).toEqual([1, 2, 3, 4, 6, 5])
     // a negative position counts from the end
     expect(move([6], [-1])).toEqual([1, 2, 3, 4, 6, 5])
     expect(move([6], [-99])).toEqual([6, 1, 2, 3, 4, 5])

@@ -105,7 +105,7 @@ items decides the order of cases in a case table and of the rows a plugin reads 
 
 | Property | Type | Notes |
 |---|---|---|
-| `itemOrder` | String, Number or Array | required. `"first"` moves the matching items to the start, and `"last"` to the end. An array of numbers gives each matching item its own position, below. Any other single value is a position that every matching item moves to, one after another, as in v2, so the moved items end up in reverse order. A single `0` is refused like a missing value, as in v2; use `"first"` |
+| `itemOrder` | String, Number or Array | required. `"first"` moves the matching items to the start, and `"last"` to the end. An array of numbers gives each matching item its own position, below. Any other single value is a position that every matching item moves to, one after another, as in v2, so the moved items need not keep their order: those that start at or after the position end up reversed. A single `0` is refused like a missing value, as in v2; use `"first"` |
 
 With `"first"` or `"last"`, the matching items keep their order relative to one another. v2 kept
 it for `"last"` but reversed it for `"first"`, so a plugin that must also run there should not
@@ -236,7 +236,7 @@ order. See
 | `DataContext not found` | The selector names a data context that does not exist |
 | `Unable to parse query.` | The search expression is missing or empty, is neither `*` nor a comparison, or names no attribute of the data context |
 | `A values object is required for this request.` | `notify` with no `values` |
-| `<action> <resource>: <field> required` | `notify` whose `values` has no `itemOrder` |
+| `<action> <resource>: <field> required` | `notify` whose `values` has no `itemOrder`, or an `itemOrder` of `0`, `""`, `false`, `null` or `NaN`, as v2's truthiness check refused them |
 
 v2 reported an invalid expression, and a `notify` with no `itemOrder`, with `success: false` and
 no error message. v3 adds the messages. v2 reported a data context that does not exist as an

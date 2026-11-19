@@ -99,7 +99,7 @@ export interface DINotification {
   cursorMode?: boolean | string
 }
 export interface DIItemSearchNotify {
-  itemOrder?: "first" | "last" | number | number[]
+  itemOrder?: "first" | "last" | number | string | Array<number | string | null>
 }
 export interface DICaseOrderNotify {
   // "first", "last", or a position, which may be given as text
