@@ -88,8 +88,8 @@ deletes the set-aside items under the case too, so restoring the set-aside cases
 back. This is an improvement on v2, which left them, so the deleted case came back on restore. Only
 the case named is affected: deleting a child case leaves the set-aside items of its parent, even
 when the parent disappears from view, and a case table's delete and item deletes leave set-aside
-items alone, as in v2. Items hidden by a filter formula are not deleted. `delete` replies with the
-deleted case's id:
+items alone, as in v2. Items hidden only by a filter formula are not deleted, since a filter is a
+view of the data. `delete` replies with the deleted case's id:
 
 ```json
 { "success": true, "values": [ 53 ] }

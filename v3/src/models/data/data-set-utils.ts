@@ -222,7 +222,7 @@ export function getGroupedCases(data: IDataSet, caseOrItemIds: string[]) {
 
 // The shown cases, in every collection, whose shown items are all among the given items, so that removing
 // the items removes the cases too. As in V2, whose deleteCases listed every case that regenerating the
-// cases removed, a case that keeps only set-aside items counts, since set-aside items have no cases.
+// cases removed, a case that keeps only set-aside or filtered-out items counts, since those items have no cases.
 export function getVanishingCases(data: IDataSet, itemIds: Iterable<string>) {
   data.validateCases()
   const removing = new Set(itemIds)

@@ -167,7 +167,7 @@ export function updateCasesNotificationFromIds(data: IDataSet, caseIds?: string[
   return updateCasesNotification(data, cases)
 }
 
-// withCaseIds adds the cases' ids as caseIDs, the field V2's item deletes sent (data_context.js:918-931)
+// withCaseIds adds the cases' ids as caseIDs, the field V2's item deletes sent (data_context.js:919-945)
 export function deleteCasesNotification(data: IDataSet, cases?: ICase[], withCaseIds = false) {
   const adapter = getDataSetNotificationAdapter()
   const result = {

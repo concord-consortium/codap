@@ -23,7 +23,7 @@ export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
 
   const pseudoCase = dataContext.caseInfoMap.get(aCase.__id__)
   // unlike V2, the case's set-aside items go too, so restoring set-aside cases can't bring it back;
-  // items hidden by a filter formula are left alone
+  // items hidden only by a filter formula are left alone, since the filter is a view of the data
   const setAsideItemIds = pseudoCase?.hiddenChildItemIds.filter(itemId => dataContext.isItemSetAside(itemId)) ?? []
   const itemIds = pseudoCase ? [...pseudoCase.childItemIds, ...setAsideItemIds] : [aCase.__id__]
 

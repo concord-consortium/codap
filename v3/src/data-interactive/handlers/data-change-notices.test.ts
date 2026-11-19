@@ -359,6 +359,7 @@ describe("API data changes send dataContextChangeNotice", () => {
     dataset.validateCases()
     await request("delete", `collection[collection2].caseByID[${toV2Id(ax)}]`)
     // as in V2, the notice lists only the deleted case
+    expect(operations()).toEqual(["deleteCases"])
     expect(caseIDsOf(changes()[0])).toEqual([toV2Id(ax)])
     expect(dataset.getItemIndex(item0)).toBeUndefined()
     expect(dataset.getItemIndex(item4)).toBeUndefined()
@@ -378,6 +379,29 @@ describe("API data changes send dataContextChangeNotice", () => {
     await request("delete", `collection[collection2].caseByID[${toV2Id(ax)}]`)
     expect(dataset.getItemIndex(item0)).toBeUndefined()
     expect(dataset.getItemIndex(item4)).toBeDefined()
+    expect(dataset.setAsideItemIds).toEqual([])
+  })
+
+  it("delete caseByID removes a set-aside item that is also hidden by a filter formula", async () => {
+    const item4 = dataset.itemIds[4]
+    const ax = dataset.getParentCaseId(childCase(0))!
+    dataset.hideCasesOrItems([item4])
+    dataset.updateFilterFormulaResults([{ itemId: item4, result: false }], { replaceAll: true })
+    dataset.validateCases()
+    await request("delete", `collection[collection2].caseByID[${toV2Id(ax)}]`)
+    expect(dataset.getItemIndex(item4)).toBeUndefined()
+    expect(dataset.setAsideItemIds).toEqual([])
+  })
+
+  it("delete caseByID removes set-aside items two levels below the case", async () => {
+    const item4 = dataset.itemIds[4]
+    const a = dataset.getParentCaseId(dataset.getParentCaseId(childCase(0))!)!
+    dataset.hideCasesOrItems([item4])
+    dataset.validateCases()
+    await request("delete", `collection[collection1].caseByID[${toV2Id(a)}]`)
+    expect(operations()).toEqual(["deleteCases"])
+    expect(caseIDsOf(changes()[0])).toEqual([toV2Id(a)])
+    expect(dataset.getItemIndex(item4)).toBeUndefined()
     expect(dataset.setAsideItemIds).toEqual([])
   })
 
