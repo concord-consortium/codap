@@ -10,16 +10,16 @@ import { AttributeType } from "../../../models/data/attribute-types"
 import { IDataSet } from "../../../models/data/data-set"
 import { GraphPlace, isVertical } from "../../axis-graph-shared"
 import { labelMargin, labelPaddingY } from "../../axis/axis-types"
-import { elideStringToFit, getStringBounds, renderLabelBackground } from "../../axis/axis-utils"
+import {
+  elideStringToFit, getStringBounds, kAxisLabelArrowWidth, renderLabelBackground
+} from "../../axis/axis-utils"
+import { kResizeHandleSize } from "../../constants"
 import { AttributeLabel } from "../../data-display/components/attribute-label"
 import { getAxisPlaceTraits, graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { ClickableAxisLabel } from "./clickable-axis-label"
 import { StaticAxisLabel } from "./static-axis-label"
 
 import vars from "../../vars.scss"
-
-const kResizeCornerSize = 24
-const kLabelArrowWidth = 24
 
 interface IAttributeLabelProps {
   place: GraphPlace
@@ -236,7 +236,7 @@ export const GraphAttributeLabel =
         // so that the centered title and the dropdown arrow after it stop short of the handle.
         label = place === 'bottom' && layout.getComputedBounds('legend').height === 0
           ? elideStringToFit(fullLabel,
-              2 * (layout.tileWidth - kResizeCornerSize - kLabelArrowWidth - (bounds.left + halfRange)),
+              2 * (layout.tileWidth - kResizeHandleSize - kAxisLabelArrowWidth - (bounds.left + halfRange)),
               labelFont)
           : fullLabel,
         labelBounds = getStringBounds(label, labelFont),
