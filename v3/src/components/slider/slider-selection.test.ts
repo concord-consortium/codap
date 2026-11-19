@@ -13,7 +13,8 @@ import { ISliderModel } from "./slider-model"
 import { rangeChangeOptions } from "./slider-range-change"
 import { kSliderIdPrefix } from "./slider-registration"
 import { selectExactly, visibleSetsEqual } from "./slider-selection"
-import { addDates, setupSliderAndData } from "./slider-test-utils"
+import { setupTestDataset } from "../../test/dataset-test-utils"
+import { addDataSetCopy, addDates, setupSliderAndData } from "./slider-test-utils"
 
 // adds another slider of the given type to the document, bound to the dataset's a3
 function addSlider(content: IDocumentContentModel, dataSet: IDataSet, sliderType: "selection" | "visibility") {
@@ -576,5 +577,20 @@ describe("selection slider and visibility changes it should follow", () => {
     dataSet.validateCases()
     expect(selectedA3(dataSet)).toEqual([6])
     expect(slider.ownsSelection).toBe(true)
+  })
+})
+
+describe("selection slider rebound to another dataset", () => {
+  it("doesn't own the new dataset's selection until touched", async () => {
+    const { content, dataSet, slider } = await setupSelectionSlider()
+    slider.setRange(2, 4)
+    slider.resumeSelection()
+    const other = addDataSetCopy(content, setupTestDataset().dataset)
+    // rebound without a gesture (e.g. by undo); the other dataset has nothing selected
+    slider.configureFromAttribute(other, other.attrFromName("a3")!.id)
+    expect(slider.ownsSelection).toBe(false)
+    slider.setRange(2, 4)
+    expect(other.selection.size).toBe(0)
+    expect(dataSet.selection.size).toBe(3)
   })
 })

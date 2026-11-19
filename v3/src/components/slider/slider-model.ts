@@ -579,14 +579,14 @@ export const SliderModel = TileContentModel
         }, { name: "SliderModel [visibility filter]", fireImmediately: true }
       ))
       addDisposer(self, clearFilter)
-      // A selection slider that stops being bound lets go of the selection. One that becomes bound doesn't take it,
-      // even if it happens to match, except that on opening a document a slider saved owning the selection owns it
-      // again. Neither changes the selection.
+      // A selection slider that stops being bound, or is bound to another dataset, lets go of the selection. One
+      // that becomes bound doesn't take it, even if it happens to match, except that on opening a document a slider
+      // saved owning the selection owns it again. Neither changes the selection.
       addDisposer(self, reaction(
         () => [self.isBoundSelectionSlider, self.dataSet],
-        ([bound]) => {
+        ([bound, dataSet], previous) => {
+          if (!bound || (previous && previous[1] !== dataSet)) self.releaseSelection()
           if (bound) self.restoreSavedOwnership()
-          else self.releaseSelection()
         }, { name: "SliderModel [selection binding]", fireImmediately: true, equals: comparer.shallow }
       ))
       // Once the selection is no longer the one the slider made, the slider lets go of it for good, so a selection
