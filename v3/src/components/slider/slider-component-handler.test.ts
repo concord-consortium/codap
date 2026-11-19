@@ -287,6 +287,17 @@ describe("Slider ComponentHandler", () => {
     const getResult = handler.get!({ component: tile })
     expect(getResult.success).toBe(true)
     expect((getResult.values as any).value).toBe(25)
+
+    // numeric text is read as a number, as update global does
+    expect(handler.update!({ component: tile }, { value: "3" } as any).success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(3)
+    // anything else is refused before the other values are applied
+    for (const value of [false, "", "abc"]) {
+      const refused = handler.update!({ component: tile }, { value, upperBound: 99, lowerBound: 1 })
+      expect(refused).toEqual({ success: false, values: { error: "global values must be numbers" } })
+      expect(sliderModel.globalValue.value).toBe(3)
+      expect(sliderModel.axis.max).toBe(50)
+    }
   })
 
   test("update slider with a global value", () => {

@@ -228,7 +228,8 @@ properties, or set them with a following `update`.
 `lowerBound` and `upperBound` apply only when **both** are given; one alone is ignored.
 
 `animationDirection` and `animationMode` are numeric indexes, not names. `value` is honored on
-`update` only.
+`update` only, and must be a number or text that reads as one, as for `update global`; anything
+else is refused with `global values must be numbers`, and nothing changes.
 
 <!-- BEGIN GENERATED: values-slider source=V2Slider -->
 | Property | Type | | Declared in |
