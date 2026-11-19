@@ -15,9 +15,9 @@ jest.mock("../../../utilities/translation/translate", () => ({
   translate: (key: string) => key
 }))
 
-// Mock PointColorSetting to render a simple swatch button that exposes closeTrigger
-jest.mock("./point-color-setting", () => ({
-  PointColorSetting: ({ propertyLabel, closeTrigger, onColorChange, swatchBackgroundColor }: any) => (
+// Mock ColorSetting to render a simple swatch button that exposes closeTrigger
+jest.mock("../../common/color-setting", () => ({
+  ColorSetting: ({ propertyLabel, closeTrigger, onColorChange, swatchBackgroundColor }: any) => (
     <button data-testid={`color-swatch-${propertyLabel}`}
       data-close-trigger={closeTrigger ?? ""}
       onClick={() => onColorChange("#123456")}

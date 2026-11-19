@@ -2,11 +2,11 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Button, DialogTrigger, Popover } from "react-aria-components"
-import { ColorPickerPalette } from "../../common/color-picker-palette"
-import { useColorPickerPopoverOffset } from "../../common/use-color-picker-popover-offset"
-import { t } from "../../../utilities/translation/translate"
+import { t } from "../../utilities/translation/translate"
+import { ColorPickerPalette } from "./color-picker-palette"
+import { useColorPickerPopoverOffset } from "./use-color-picker-popover-offset"
 
-interface ColorPickerIProps {
+interface IColorSettingProps {
   closeTrigger?: number
   disabled?: boolean
   onColorChange: (color: string) => void
@@ -16,8 +16,8 @@ interface ColorPickerIProps {
   testIdSuffix: string | number
 }
 
-export const PointColorSetting = observer(function PointColorSetting({ closeTrigger, disabled,
-  onColorChange, propertyLabel, swatchBackgroundColor, testIdSuffix }: ColorPickerIProps) {
+export const ColorSetting = observer(function ColorSetting({ closeTrigger, disabled,
+  onColorChange, propertyLabel, swatchBackgroundColor, testIdSuffix }: IColorSettingProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [inputValue, setInputValue] = useState(swatchBackgroundColor)
   const { popoverRef, popoverOffset, handleExpandedChange, resetPopoverOffset } = useColorPickerPopoverOffset()
@@ -91,4 +91,4 @@ export const PointColorSetting = observer(function PointColorSetting({ closeTrig
   )
 })
 
-PointColorSetting.displayName = "PointColorSetting"
+ColorSetting.displayName = "ColorSetting"

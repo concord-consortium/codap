@@ -6,7 +6,7 @@ import {
 import { logStringifiedObjectMessage } from "../../../../lib/log-message"
 import { isFeatureEnabled } from "../../../../models/feature-flags/feature-flag-manager"
 import { t } from "../../../../utilities/translation/translate"
-import { PointColorSetting } from "../../../data-display/inspector/point-color-setting"
+import { ColorSetting } from "../../../common/color-setting"
 import { PaletteCheckbox } from "../../../palette-checkbox"
 import { IMapPointLayerModel } from "../../models/map-point-layer-model"
 import {
@@ -99,7 +99,7 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ mapPointL
         aria-disabled={customColorsDisabled || undefined}
       >
         <label className="form-label color-picker">{label}</label>
-        <PointColorSetting
+        <ColorSetting
           propertyLabel={label}
           testIdSuffix={`hot-spot-${end.toLowerCase()}`}
           disabled={customColorsDisabled}
