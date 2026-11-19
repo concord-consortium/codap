@@ -324,19 +324,6 @@ export const useSubAxis = ({
     return () => disposer()
   }, [axisPlace, axisProvider, layout, renderSubAxis])
 
-  // Install reaction to bring about rerender when layout's computedBounds changes
-  useEffect(() => {
-    const disposer = reaction(
-      () => layout.getComputedBounds(axisPlace),
-      () => {
-        isCategorical && setupCategories()
-        renderSubAxis()
-      },
-      {name: "useSubAxis [layout.getComputedBounds()"}
-    )
-    return () => disposer()
-  }, [axisPlace, layout, isCategorical, renderSubAxis, setupCategories])
-
   // update d3 scale and axis when axis domain changes
   useEffect(function installDomainSync() {
     return mstAutorun(() => {
@@ -454,21 +441,24 @@ export const useSubAxis = ({
     }
   }, [axisPlace, axisProvider, dataConfig, updateDomainAndRenderSubAxis])
 
-  // Set up and render the sub-axis on mount, when the callbacks change, and when the axis
-  // length, number of sub-axes, categorical domain or attribute type changes.
+  // Set up and render the sub-axis on mount, when the callbacks change (including when the axis
+  // becomes categorical), and when the axis bounds, sub-axis length, number of sub-axes,
+  // categorical domain or attribute type changes.
   useEffect(function syncSubAxis() {
     return mstReaction(
       () => {
         const multiScale = layout.getAxisMultiScale(axisPlace)
-        return [layout.getAxisLength(axisPlace), multiScale?.repetitions, multiScale?.changeCount,
-                dataConfig?.dataset?.getAttribute(attrId)?.type]
+        return [layout.getComputedBounds(axisPlace), multiScale?.cellLength, multiScale?.repetitions,
+                multiScale?.changeCount, dataConfig?.dataset?.getAttribute(attrId)?.type]
       },
       () => {
-        isCategorical && setupCategories()
+        // This can run before React re-renders with a new axis type, so check the current axis
+        // model rather than the isCategorical captured when the effect was created.
+        isAnyCategoricalAxisModel(axisProvider.getAxis(axisPlace)) && setupCategories()
         renderSubAxis()
       },
       { name: "useSubAxis.syncSubAxis", equals: comparer.structural, fireImmediately: true }, dataConfig
     )
-  }, [attrId, axisPlace, dataConfig, isCategorical, layout, renderSubAxis, setupCategories])
+  }, [attrId, axisPlace, axisProvider, dataConfig, isCategorical, layout, renderSubAxis, setupCategories])
 
 }

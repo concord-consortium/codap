@@ -231,7 +231,7 @@ export const usePlotResponders = (props: IPlotResponderProps) => {
   // Observe numberOfCategoriesLimitByRole directly rather than the rendered category arrays — those
   // also change on reorder/hide-show, which respondToCategorySetChanges and respondToCasesChange
   // already handle (with animation). Firing here on those would race the animation-driven mask
-  // reapply and clip sprites mid-flight. The raw limit changes every ~12px of sub-axis length, so the
+  // reapply and clip sprites mid-flight. The raw limit changes repeatedly during a resize, so the
   // effect only acts when the change moves an effective limit (see effectiveCategoriesLimitForRole);
   // mask sizes follow the plot size separately, in Graph.
   useEffect(function respondToCellLayoutChanges() {

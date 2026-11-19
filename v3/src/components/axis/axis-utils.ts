@@ -64,10 +64,10 @@ export const collisionExists = (props: ICollisionProps) => {
 }
 
 /**
- * Returns the number of categories that fit on one repetition of a categorical axis. When the axis
- * is split (e.g. by an attribute on the right or top), each sub-axis gets only its cell's share of
- * the axis length, so the limit is based on the cell length rather than the full axis length.
- * The result is at least 1, since a limit of 0 is stored as "no limit".
+ * Returns the number of categories that fit on one sub-axis of a categorical axis. A split axis
+ * repeats once per category of the split attribute, so the limit comes from the length of one
+ * sub-axis (MultiScale.cellLength) rather than the full axis length. The result is at least 1,
+ * since a limit of 0 is stored as "no limit"; a sub-axis too short for one label shows only OTHER.
  */
 export const getNumberOfCategoriesLimit = (layout: IAxisLayout, axisPlace: AxisPlace) => {
   const length = layout.getAxisMultiScale(axisPlace)?.cellLength || layout.getAxisLength(axisPlace)

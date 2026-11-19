@@ -220,7 +220,9 @@ context("Test graph axes with split, multi-y, bars, and overflow configurations"
     const verifySplit = (unsplitCount: number) => {
       subAxes().should("have.length", 3).each(wrapper => {
         cy.wrap(wrapper).find("[data-testid=category-on-axis] [data-testid=category-label]")
-          .should("have.length.lessThan", unsplitCount)
+          // Adding the split doesn't change the length of this axis, so each of the three
+          // sub-axes has room for about a third of the unsplit categories.
+          .should("have.length.at.most", Math.ceil(unsplitCount / 3) + 1)
           .last().should("have.text", "OTHER")
       })
     }
