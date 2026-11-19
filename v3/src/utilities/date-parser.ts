@@ -207,7 +207,9 @@ export interface ITimeOfDay {
 }
 
 // h:mm, h:mm:ss, h:mm:ss.SSS, each optionally followed by am/pm, e.g. "13:45", "1:45 PM", "09:05:30"
-const timeOfDayRE = /^(\d\d?):(\d\d)(?::(\d\d)(?:[.,]\d+)?)?(?: ?(am|pm))?$/i
+// the separator before am/pm may also be a no-break space (U+00A0) or narrow no-break space (U+202F),
+// which some sources (e.g. text copied from formatted dates) use
+const timeOfDayRE = /^(\d\d?):(\d\d)(?::(\d\d)(?:[.,]\d+)?)?(?:[ \u00A0\u202F]?(am|pm))?$/i
 
 /**
  * Parses a string containing only a time of day (no date).

@@ -337,6 +337,8 @@ describe('parseTimeOfDay', () => {
     expect(parseTimeOfDay('12:30 am')).toEqual({ hours: 0, minutes: 30, seconds: 0 })
     expect(parseTimeOfDay('12:30 PM')).toEqual({ hours: 12, minutes: 30, seconds: 0 })
     expect(parseTimeOfDay('11:59:59 PM')).toEqual({ hours: 23, minutes: 59, seconds: 59 })
+    expect(parseTimeOfDay('1:45\u00A0PM')).toEqual({ hours: 13, minutes: 45, seconds: 0 })
+    expect(parseTimeOfDay('1:45\u202FPM')).toEqual({ hours: 13, minutes: 45, seconds: 0 })
   })
   test('rejects out-of-range values', () => {
     expect(parseTimeOfDay('24:00')).toBeUndefined()
