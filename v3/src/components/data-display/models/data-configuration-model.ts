@@ -285,10 +285,12 @@ export const DataConfigurationModel = types
       return Object.entries(descriptions).every(([role, {attributeID}]) => {
         // can still plot the case without a caption or a legend
         if (["caption", "legend"].includes(role)) return true
-        switch (self.attributeType(role as AttrRole)) {
-          // TODO: handle "date" type
+        const roleType = self.attributeType(role as AttrRole)
+        switch (roleType) {
+          // A split role never arrives here as a date: setupAxes retypes a split role categorical.
+          case "date":
           case "numeric":
-            return isFiniteNumber(dataDisplayGetNumericValue(data, caseID, attributeID, true))
+            return isFiniteNumber(dataDisplayGetNumericValue(data, caseID, attributeID, roleType === "numeric"))
           case "categorical":
             // Treat 0 as a string and return true for all non-empty strings
             return !!data.getStrValue(caseID, attributeID)

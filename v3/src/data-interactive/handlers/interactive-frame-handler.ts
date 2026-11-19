@@ -6,6 +6,7 @@ import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
 import { gLocale } from "../../utilities/translation/locale"
 import { registerDIHandler } from "../data-interactive-handler"
+import { contentDimensionsFromTile, tileDimensionsFromContent, validDimensions } from "../data-interactive-utils"
 import { DIHandler, DINotification, DIResources, DIValues, DIInteractiveFrame } from "../data-interactive-types"
 import { noInteractiveFrameResult, valuesRequiredResult } from "./di-results"
 
@@ -25,6 +26,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       allowEmptyAttributeDeletion,
       blockAPIRequestsWhileEditing,
       codapVersion: appState.getVersion(),
+      contentDimensions: dimensions && contentDimensionsFromTile(dimensions),
       dimensions,
       externalUndoAvailable: !uiState.standaloneMode,
       id: toV2Id(interactiveFrame.id),
@@ -89,11 +91,12 @@ export const diInteractiveFrameHandler: DIHandler = {
     const { interactiveFrame } = resources
     if (!interactiveFrame) return noInteractiveFrameResult
     const webViewContent = isWebViewModel(interactiveFrame.content) ? interactiveFrame.content : undefined
+    if (!values) return valuesRequiredResult
     // CODAP v2 seems to ignore interactiveFrame updates when an array is passed for values
     if (Array.isArray(values)) return { success: true }
 
     const {
-      allowEmptyAttributeDeletion, blockAPIRequestsWhileEditing, cannotClose, dimensions,
+      allowEmptyAttributeDeletion, blockAPIRequestsWhileEditing, cannotClose, contentDimensions, dimensions,
       handlesLocaleChange, name, preventAttributeDeletion, preventBringToFront,
       preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute,
       subscribeToDocuments, title, version
@@ -103,11 +106,15 @@ export const diInteractiveFrameHandler: DIHandler = {
         webViewContent?.setAllowEmptyAttributeDeletion(allowEmptyAttributeDeletion)
       }
       if (cannotClose != null) interactiveFrame.setCannotClose(!!cannotClose)
-      if (dimensions) {
-        appState.document.content?.setTileDimensions(interactiveFrame.id, dimensions)
+      // dimensions is the whole tile, as in V2 (component_view.js:490-500); contentDimensions, which wins side by
+      // side, is the plugin's own area, to which CODAP adds its title bar. As in V2, a side not given is left as it is.
+      const tileDimensions = {
+        ...validDimensions(dimensions), ...tileDimensionsFromContent(validDimensions(contentDimensions))
       }
-      if (name && !interactiveFrame.userSetTitle) {
-        interactiveFrame.setTitle(String(name))
+      if (Object.keys(tileDimensions).length) {
+        const { content } = appState.document
+        const currentDimensions = content?.getTileDimensions(interactiveFrame.id) ?? {}
+        content?.setTileDimensions(interactiveFrame.id, { ...currentDimensions, ...tileDimensions })
       }
       if (blockAPIRequestsWhileEditing != null) {
         webViewContent?.setBlockAPIRequestsWhileEditing(blockAPIRequestsWhileEditing)
@@ -122,8 +129,11 @@ export const diInteractiveFrameHandler: DIHandler = {
       if (subscribeToDocuments != null) {
         webViewContent?.setSubscribeToDocuments(subscribeToDocuments)
       }
-      if (title && !interactiveFrame.userSetTitle) {
-        interactiveFrame.setTitle(String(title))
+      // As in V2 (title || name), any name that isn't null clears the title when title is falsy; an empty title
+      // also clears it, as it does for update component, where V2 ignored it
+      const newTitle = title || name || (title === "" || name != null ? "" : undefined)
+      if (newTitle != null && !interactiveFrame.userSetTitle) {
+        interactiveFrame.setTitle(String(newTitle) || undefined)
       }
       if (version) webViewContent?.setVersion(version)
       if (handlesLocaleChange != null) webViewContent?.setHandlesLocaleChange(handlesLocaleChange)

@@ -35,7 +35,9 @@ import {MarqueeState} from "../../data-display/models/marquee-state"
 import {MarqueeStateContext} from "../../data-display/hooks/use-marquee-state"
 import { setNumberOfCategoriesLimit } from "../../axis/axis-utils"
 import {Adornments} from "../adornments/components/adornments"
-import {IPlotProps, kDropZoneGap, kDropZoneSize, kGraphClass, PlotType} from "../graphing-types"
+import {
+  IPlotProps, kDropZoneGap, kDropZoneSize, kGraphClass, kNumericLegendBottomClearance, PlotType
+} from "../graphing-types"
 import {useGraphContentModelContext} from "../hooks/use-graph-content-model-context"
 import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
@@ -559,6 +561,7 @@ export const Graph = observer(function Graph({
             divElt={graphRef.current}
             onDropAttribute={handleChangeAttribute}
             onChangeAttribute={handleChangeAttributeFromMenu}
+            numericLegendBottomClearance={kNumericLegendBottomClearance}
           />
           <Adornments/>
           {renderDroppableAddAttributes()}

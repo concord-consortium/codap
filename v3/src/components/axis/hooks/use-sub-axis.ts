@@ -92,7 +92,12 @@ export const useSubAxis = ({
       const multiScale = layout.getAxisMultiScale(axisPlace)
       if (!multiScale) return // no scale, no axis (But this shouldn't happen)
 
-      axisProvider.getAxisHelper(axisModel.place, subAxisIndex)?.render()
+      // When the axis model is replaced without going through an action that discards its helper
+      // (e.g. by undo), the provider still holds the previous axis's helper until the
+      // [axisModelChange] reaction below replaces it. That helper's axis model is defunct and must
+      // not be rendered: a date helper reads a defunct model's placeholder domain as calendar years.
+      const helper = axisProvider.getAxisHelper(axisModel.place, subAxisIndex)
+      if (helper?.axisModel === axisModel) helper.render()
     }, [axisPlace, axisProvider, layout, subAxisIndex]),
 
     onDragStart = useCallback((event: any) => {

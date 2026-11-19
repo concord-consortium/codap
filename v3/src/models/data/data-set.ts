@@ -1566,46 +1566,6 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         }
       },
 
-      moveItems(itemIds: string[], options?: IMoveItemsOptions) {
-        // getItemIndex indexes _itemIds, which includes set-aside and filtered-out items
-        const itemIndices = Array.from(new Set(itemIds))
-          .map(itemId => ({ itemId, index: self.getItemIndex(itemId) }))
-          .filter((info): info is { itemId: string, index: number } => info.index != null)
-          .sort((a, b) => b.index - a.index) // Reverse order
-        const items = itemIndices.map(({ itemId, index }) => ({
-          itemId,
-          values: self.attributes.map(attr => ({
-            strValue: attr.strValues[index],
-            numValue: attr.numValues[index]
-          }))
-        })).reverse() // Normal order
-
-        // Remove from ordered arrays
-        itemIndices.forEach(({ index }) => {
-          self._itemIds.splice(index, 1)
-          self.attributes.forEach(attr => attr.removeValues(index))
-        })
-
-        // Determine position to re-insert items
-        const beforeIndex = options?.before ? self._itemIds.indexOf(options.before) : undefined
-        const afterIndex = options?.after ? self._itemIds.indexOf(options.after) + 1 : undefined
-        const insertIndex = afterIndex ?? beforeIndex ?? self._itemIds.length
-
-        // Add back to ordered arrays
-        self._itemIds.splice(insertIndex, 0, ...items.map(({ itemId }) => itemId))
-        self.attributes.forEach((attr, index) => {
-          attr.strValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].strValue))
-          attr.numValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].numValue))
-        })
-
-        // Fix indices
-        for (let i = 0; i < self._itemIds.length; ++i) {
-          const itemId = self._itemIds[i]
-          const itemInfo = self.itemInfoMap.get(itemId)
-          if (itemInfo) itemInfo.index = i
-        }
-      },
-
       selectAll(select = true) {
         if (select) {
           self.items.forEach(({__id__}) => self.selection.add(__id__))
@@ -1845,6 +1805,21 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     })
     self.removeCollection(collection)
   },
+  // Puts the items in the given order, which must list every item, set-aside ones included, exactly once
+  setItemOrder(itemIds: string[]) {
+    if (itemIds.length !== self._itemIds.length) return
+    if (itemIds.every((itemId, index) => itemId === self._itemIds[index])) return
+    // current positions come from _itemIds itself, since itemInfoMap can be stale (e.g. after a sort)
+    const currentIndex = new Map(self._itemIds.map((itemId, index) => [itemId, index]))
+    const origIndices = itemIds.map(itemId => currentIndex.get(itemId)!)
+    self.attributes.forEach(attr => attr.orderValues(origIndices))
+    self._itemIds.replace(itemIds)
+    // keep item lookups right until the cases are next validated
+    itemIds.forEach((itemId, index) => {
+      const itemInfo = self.itemInfoMap.get(itemId)
+      if (itemInfo) itemInfo.index = index
+    })
+  },
   sortByAttribute(attributeId: string, direction: "ascending" | "descending" = "ascending") {
     self.validateCases()
 
@@ -1903,6 +1878,19 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     self._itemIds.replace(finalItemIds)
 
     return itemIdToIndexMap
+  }
+}))
+.actions(self => ({
+  // Moves the given items, in their current order, before or after another item, or to the end. The order
+  // includes set-aside and filtered-out items.
+  moveItems(itemIds: string[], options?: IMoveItemsOptions) {
+    const moving = new Set(itemIds)
+    const movingIds = self._itemIds.filter(itemId => moving.has(itemId))
+    const otherIds = self._itemIds.filter(itemId => !moving.has(itemId))
+    const beforeIndex = options?.before ? otherIds.indexOf(options.before) : -1
+    const afterIndex = options?.after ? otherIds.indexOf(options.after) : -1
+    const insertIndex = afterIndex >= 0 ? afterIndex + 1 : beforeIndex >= 0 ? beforeIndex : otherIds.length
+    self.setItemOrder(otherIds.slice(0, insertIndex).concat(movingIds, otherIds.slice(insertIndex)))
   }
 }))
 // performs the specified action so that response actions are included and undo/redo strings assigned

@@ -349,6 +349,23 @@ context("Slider UI", () => {
       .find("text")
       .contains(`${currentYear}`)
   })
+
+  it("restores the numeric scale on undo of a scale type change", () => {
+    c.selectTile("slider", 0)
+    slider.selectScaleType("date")
+    slider.getVariableValueInput().invoke("val").should("match", /\//)
+    slider.closePalette()
+
+    cy.log("Undo returns the slider to its numeric scale")
+    toolbar.getUndoTool().click()
+    slider.getVariableValueInput().should("have.value", initialSliderValue)
+    slider.getSliderTile().find("[data-testid=axis-bottom] text").should("contain", "11")
+      .and("not.contain", "Jan")
+
+    cy.log("Redo returns it to the date scale")
+    toolbar.getRedoTool().click()
+    slider.getVariableValueInput().invoke("val").should("match", /\//)
+  })
   it("checks editing variable value in one slider only affects that slider", () => {
     const newVariableValue = "0.5"
     c.getIconFromToolShelf("slider").click()
