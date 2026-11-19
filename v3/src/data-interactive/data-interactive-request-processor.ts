@@ -12,6 +12,7 @@ import {
 } from "./data-interactive-types"
 import { createItemsInSegments } from "./handlers/item-handler"
 import { errorResult } from "./handlers/di-results"
+import { withNoticeBatch } from "./notification-batch"
 import { withNotificationRequester } from "./notification-requester"
 import { RequestWorkUnit, takeNextWorkUnit, workUnitSize } from "./request-coalescer"
 import { parseResourceSelector, resolveResources } from "./resource-parser"
@@ -49,7 +50,12 @@ export async function processAction(
   const func = getDIHandler(type)?.[a]
   if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", { vars: [a, type] }))
 
-  const actionResult = await withNotificationRequester(tile?.id, () => func(resources, action.values))
+  // The notices of the changes the handler makes before it first waits go out together when it returns or
+  // first waits, with each data context's combined into one, as V2 sent a whole message's changes together
+  // (data_interactive_phone_handler.js:495-505). Nothing is held while a handler waits, so other plugins and
+  // the user's own changes aren't held up.
+  const actionResult = await withNotificationRequester(tile?.id,
+                                                       () => withNoticeBatch(() => func(resources, action.values)))
   return actionResult ?? errorResult(t("V3.DI.Error.undefinedResponse"))
 }
 

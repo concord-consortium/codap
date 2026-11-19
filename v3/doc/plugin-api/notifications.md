@@ -90,7 +90,12 @@ one notification:
 }
 ```
 
-Each notification currently reports one change; see [Known limitations](#known-limitations).
+As in v2, the changes made together arrive in one notification per data context: the changes from
+one of a plugin's requests, or from one change made in CODAP, such as an edit in a case table that
+regroups cases. They are listed in the order they were made, and a change made as part of
+another, such as the `createCases` behind a `createItems`, comes first. A request's notification
+is sent before the plugin that sent it gets its reply. Changes made separately arrive in separate
+notifications; see [Known limitations](#known-limitations) for requests sent together in an array.
 
 **Some notifications have no `operation`.** A `logMessageNotice` carries the log event itself, and
 the value notice on `global[<name>]` carries only the new value:
@@ -410,11 +415,10 @@ name alongside the old one and go through [deprecation](conventions.md#deprecate
 
 ## Known limitations
 
-**Data changes arrive one at a time.** v2 collected the changes made together and sent one
-`dataContextChangeNotice[<context>]` whose `values` array holds all of them. CODAP sends one
-notification per change, each with a `values` array of one. A plugin that iterates over `values`
-sees the same changes, but across several notifications rather than one. This is a known bug; the
-intended behavior is v2's.
+**Each request in an array gets its own notification.** v2 sent one notification for all the
+changes made by a message, including every request in an array. CODAP sends one for each request.
+A plugin that iterates over `values` sees the same changes, in the same order, but across one
+notification per request. This is a known limitation.
 
 **Formula recalculation rarely sends `dependentCases`.** v2 sent `dependentCases` for formula
 attributes whose values had to be recalculated:
