@@ -4,13 +4,13 @@ import { useState } from "react"
 import { Label, Slider, SliderTrack } from "react-aria-components"
 import { ValueTextSliderThumb } from "./value-text-slider-thumb"
 
-function TestSlider({ isDisabled = false }: { isDisabled?: boolean }) {
+function TestSlider({ isDisabled = false, onBlur }: { isDisabled?: boolean, onBlur?: () => void }) {
   const [value, setValue] = useState(50)
   return (
     <Slider value={value} onChange={setValue} isDisabled={isDisabled}>
       <Label>Speed</Label>
       <SliderTrack>
-        <ValueTextSliderThumb valueText={`${value} mph`}/>
+        <ValueTextSliderThumb valueText={`${value} mph`} onBlur={onBlur}/>
       </SliderTrack>
     </Slider>
   )
@@ -44,6 +44,16 @@ describe("ValueTextSliderThumb", () => {
     expect(thumb).not.toHaveAttribute("data-focus-visible")
     await user.tab()
     expect(thumb).toHaveAttribute("data-focus-visible", "true")
+  })
+
+  it("calls onBlur when the thumb loses focus", () => {
+    const onBlur = jest.fn()
+    render(<TestSlider onBlur={onBlur}/>)
+    const input = screen.getByRole("slider")
+    act(() => input.focus())
+    expect(onBlur).not.toHaveBeenCalled()
+    act(() => input.blur())
+    expect(onBlur).toHaveBeenCalledTimes(1)
   })
 
   it("is disabled with the slider", () => {

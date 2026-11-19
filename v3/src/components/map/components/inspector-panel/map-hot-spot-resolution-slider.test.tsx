@@ -80,6 +80,37 @@ describe("MapHotSpotResolutionSlider", () => {
     expect(hotSpotModel.shouldOptimize).toBe(false)
   })
 
+  it("commits an in-progress bandwidth when the slider loses focus", () => {
+    const pointLayer = createPointLayer()
+    const { hotSpotModel } = pointLayer
+    hotSpotModel.setIsVisible(true)
+    render(<MapHotSpotResolutionSlider mapPointLayerModel={pointLayer}/>)
+
+    const slider = screen.getByRole("slider")
+    act(() => slider.focus())
+    // as if focus left in the middle of a change
+    act(() => hotSpotModel.setDynamicBandwidth(5000))
+    act(() => slider.blur())
+    expect(hotSpotModel.bandwidth).toBe(5000)
+    expect(hotSpotModel.dynamicBandwidth).toBeUndefined()
+  })
+
+  it("doesn't change the model when the slider loses focus with no change in progress", () => {
+    const pointLayer = createPointLayer()
+    const { hotSpotModel } = pointLayer
+    hotSpotModel.setIsVisible(true)
+    render(<MapHotSpotResolutionSlider mapPointLayerModel={pointLayer}/>)
+
+    const actions: ISerializedActionCall[] = []
+    const disposer = onAction(hotSpotModel, action => actions.push(action))
+    const slider = screen.getByRole("slider")
+    act(() => slider.focus())
+    act(() => slider.blur())
+    disposer()
+    expect(actions).toEqual([])
+    expect(hotSpotModel.bandwidth).toBeUndefined()
+  })
+
   it("widens the range to include a bandwidth outside the usual range", () => {
     const pointLayer = createPointLayer()
     // the 10 km default times the range factor squared (10^0.9, about 79 km) is at resolution -2

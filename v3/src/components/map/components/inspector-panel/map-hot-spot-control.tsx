@@ -31,7 +31,13 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ mapPointL
     })
   }
 
-  const handleOpacityChangeEnd = (opacity: number) => {
+  const commitOpacity = (opacity: number) => {
+    if (opacity === hotSpotModel.opacity) {
+      // Nothing to commit, so just end the in-progress change.
+      hotSpotModel.setDynamicOpacity(undefined)
+      return
+    }
+
     hotSpotModel.applyModelChange(() => {
       hotSpotModel.setOpacity(opacity)
     }, {
@@ -40,6 +46,11 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ mapPointL
       log: logStringifiedObjectMessage("mapAction: %@",
         { mapAction: "changeHotSpotOpacity", opacity, dataset: datasetName })
     })
+  }
+
+  const handleOpacityBlur = () => {
+    const { dynamicOpacity } = hotSpotModel
+    if (dynamicOpacity != null) commitOpacity(dynamicOpacity)
   }
 
   return (
@@ -59,14 +70,14 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ mapPointL
         formatOptions={kOpacityFormatOptions}
         value={hotSpotModel.displayOpacity}
         onChange={(val: number) => hotSpotModel.setDynamicOpacity(val)}
-        onChangeEnd={handleOpacityChangeEnd}
+        onChangeEnd={commitOpacity}
         isDisabled={!hotSpotModel.isVisible}
         data-testid="map-hot-spot-opacity-slider"
       >
         <div className="palette-row slider-row">
           <Label className="form-label">{t("V3.Inspector.map.hotSpotOpacity")}</Label>
           <SliderTrack>
-            <SliderThumb />
+            <SliderThumb onBlur={handleOpacityBlur}/>
           </SliderTrack>
         </div>
       </Slider>

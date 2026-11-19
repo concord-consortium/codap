@@ -35,8 +35,7 @@ export const MapHotSpotResolutionSlider = observer(function MapHotSpotResolution
     kResolutionStep)
   const bandwidthText = formatBandwidth(displayBandwidth)
 
-  const handleChangeEnd = (newResolution: number) => {
-    const bandwidth = resolutionToBandwidth(newResolution, defaultBandwidth)
+  const commitBandwidth = (bandwidth: number) => {
     if (bandwidth === hotSpotModel.effectiveBandwidth) {
       // Nothing to commit, so just end the in-progress change.
       hotSpotModel.setDynamicBandwidth(undefined)
@@ -54,6 +53,16 @@ export const MapHotSpotResolutionSlider = observer(function MapHotSpotResolution
     })
   }
 
+  const handleChangeEnd = (newResolution: number) => {
+    commitBandwidth(resolutionToBandwidth(newResolution, defaultBandwidth))
+  }
+
+  // Commit any in-progress change if focus leaves before the change ends
+  const handleBlur = () => {
+    const { dynamicBandwidth } = hotSpotModel
+    if (dynamicBandwidth != null) commitBandwidth(dynamicBandwidth)
+  }
+
   return (
     <Slider
       minValue={-limit}
@@ -68,7 +77,7 @@ export const MapHotSpotResolutionSlider = observer(function MapHotSpotResolution
       <div className="palette-row slider-row">
         <Label className="form-label">{t("V3.Inspector.map.hotSpotResolution")}</Label>
         <SliderTrack>
-          <ValueTextSliderThumb valueText={bandwidthText}/>
+          <ValueTextSliderThumb valueText={bandwidthText} onBlur={handleBlur}/>
         </SliderTrack>
       </div>
     </Slider>

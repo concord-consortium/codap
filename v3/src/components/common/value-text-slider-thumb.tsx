@@ -1,4 +1,4 @@
-import { useContext, useRef } from "react"
+import { FocusEvent, useContext, useRef } from "react"
 import { mergeProps, useFocusRing, useHover, useSliderThumb, VisuallyHidden } from "react-aria"
 import { SliderStateContext, SliderTrackContext, useSlottedContext } from "react-aria-components"
 
@@ -8,14 +8,14 @@ interface IProps {
   // Announced by screen readers in place of the thumb's numeric value
   valueText: string
   index?: number
+  onBlur?: (e: FocusEvent<Element>) => void
 }
 
 /**
  * A replacement for React Aria Components' <SliderThumb>, for use inside a <SliderTrack>, that sets the input's
- * aria-valuetext, which <SliderThumb> doesn't support. Like <SliderThumb>, it is built on useSliderThumb, which labels
- * the input from the slider's <Label>, and it renders the same class and data attributes, so the same styles apply.
+ * aria-valuetext, which <SliderThumb> doesn't support.
  */
-export function ValueTextSliderThumb({ valueText, index = 0 }: IProps) {
+export function ValueTextSliderThumb({ valueText, index = 0, onBlur }: IProps) {
   const state = useContext(SliderStateContext)
   if (!state) throw new Error("ValueTextSliderThumb must be rendered inside a Slider")
 
@@ -24,7 +24,7 @@ export function ValueTextSliderThumb({ valueText, index = 0 }: IProps) {
   const trackRef = trackContextRef && typeof trackContextRef !== "function" ? trackContextRef : kNoTrackRef
   const inputRef = useRef<HTMLInputElement>(null)
   const { thumbProps, inputProps, isDragging, isFocused, isDisabled } = useSliderThumb(
-    { index, trackRef, inputRef }, state
+    { index, trackRef, inputRef, onBlur }, state
   )
   const { focusProps, isFocusVisible } = useFocusRing()
   const { hoverProps, isHovered } = useHover({})
