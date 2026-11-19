@@ -37,7 +37,8 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
   .views(self => ({
     // The bandwidth that has been set (ignoring any in-progress slider value), or the default if none has been set
     get effectiveBandwidth() {
-      return self.bandwidth && self.bandwidth > 0 ? self.bandwidth : self.defaultBandwidth
+      return self.bandwidth && self.bandwidth > 0 && Number.isFinite(self.bandwidth)
+        ? self.bandwidth : self.defaultBandwidth
     }
   }))
   .views(self => ({

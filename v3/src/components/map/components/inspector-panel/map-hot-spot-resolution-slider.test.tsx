@@ -15,10 +15,11 @@ jest.mock("../../../../utilities/translation/translate", () => ({
 const createPointLayer = () => MapPointLayerModel.create(undefined, { historyService: new AppHistoryService() })
 
 describe("formatBandwidth", () => {
-  it("uses meters below a kilometer and kilometers above, with two significant digits", () => {
-    expect(formatBandwidth(850)).toBe("850 m")
-    expect(formatBandwidth(2345)).toBe("2.3 km")
-    expect(formatBandwidth(1000000)).toBe("1,000 km")
+  it("uses meters below a kilometer and kilometers above, with three significant digits", () => {
+    expect(formatBandwidth(850)).toBe("850 meters")
+    expect(formatBandwidth(1000)).toBe("1 kilometer")
+    expect(formatBandwidth(2346)).toBe("2.35 kilometers")
+    expect(formatBandwidth(1000000)).toBe("1,000 kilometers")
   })
 })
 
@@ -32,7 +33,7 @@ describe("MapHotSpotResolutionSlider", () => {
     expect(slider).toHaveAttribute("max", "1")
     expect(slider).toHaveAttribute("value", "0")
     // with no points the default is the 10 km fallback, which is announced in place of the slider position
-    expect(slider).toHaveAttribute("aria-valuetext", "10 km")
+    expect(slider).toHaveAttribute("aria-valuetext", "10 kilometers")
     expect(screen.getByTestId("map-hot-spot-resolution-slider")).toHaveAttribute("data-disabled", "true")
   })
 
@@ -50,7 +51,7 @@ describe("MapHotSpotResolutionSlider", () => {
     expect(hotSpotModel.bandwidth).toBeCloseTo(hotSpotModel.defaultBandwidth / kResolutionRangeFactor)
     expect(hotSpotModel.dynamicBandwidth).toBeUndefined()
     // 10 km / 10^0.45
-    expect(slider).toHaveAttribute("aria-valuetext", "3.5 km")
+    expect(slider).toHaveAttribute("aria-valuetext", "3.55 kilometers")
   })
 
   it("doesn't change the model when released at the committed bandwidth", async () => {
@@ -121,6 +122,6 @@ describe("MapHotSpotResolutionSlider", () => {
     expect(slider).toHaveAttribute("min", "-2")
     expect(slider).toHaveAttribute("max", "2")
     expect(Number(slider.getAttribute("value"))).toBeCloseTo(-2)
-    expect(slider).toHaveAttribute("aria-valuetext", "79 km")
+    expect(slider).toHaveAttribute("aria-valuetext", "79.4 kilometers")
   })
 })

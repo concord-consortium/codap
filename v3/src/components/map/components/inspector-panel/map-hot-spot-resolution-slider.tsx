@@ -9,10 +9,10 @@ import { bandwidthToResolution, resolutionLimit, resolutionToBandwidth } from ".
 
 const kResolutionStep = 0.01
 
-/** Formats a bandwidth for screen readers, e.g. "850 m" or "2.3 km" */
+/** Formats a bandwidth for screen readers, e.g. "850 meters" or "2.35 kilometers" */
 export function formatBandwidth(bandwidthMeters: number) {
   const [value, unit] = bandwidthMeters < 1000 ? [bandwidthMeters, "meter"] : [bandwidthMeters / 1000, "kilometer"]
-  return gLocale.formatNumber(value, { style: "unit", unit, maximumSignificantDigits: 2 })
+  return gLocale.formatNumber(value, { style: "unit", unit, maximumSignificantDigits: 3, unitDisplay: "long" })
 }
 
 interface IProps {
