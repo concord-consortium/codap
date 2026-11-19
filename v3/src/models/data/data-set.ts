@@ -214,10 +214,10 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   // clears only its own set
   // (shallow, so each set is stored as given rather than copied; invalidateCases does the signaling)
   sliderFilteredOutItemIds: observable.map<string, ReadonlySet<string>>({}, { deep: false }),
-  // Counts the changes to what visibility sliders hide that a user's change to a slider (its range, attribute or
-  // type) caused, rather than a change to the data or loading a document. A selection slider follows only these
-  // (see SliderModel).
-  sliderFilterChangesByUser: 0,
+  // Counts the changes to what visibility sliders hide that a change to a slider itself caused (its range,
+  // attribute, type or dataset, or closing it), rather than a change to the data or a document loading. A selection
+  // slider follows only these, so editing data never selects anything (see SliderModel).
+  sliderFilterChangesBySlider: 0,
   filterFormulaError: "",
 
   // Init: this object does not need to change when a snapshot is applied.
@@ -949,17 +949,17 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     return created
   },
   // hides the given items on behalf of the visibility slider in the tile with the given id
-  // (byUser: the user changed the slider's range or attribute, rather than the data; see sliderFilterChangesByUser)
-  setSliderFilter(sliderTileId: string, hiddenItemIds: ReadonlySet<string>, byUser = false) {
+  // (bySlider: see sliderFilterChangesBySlider)
+  setSliderFilter(sliderTileId: string, hiddenItemIds: ReadonlySet<string>, bySlider = false) {
     self.sliderFilteredOutItemIds.set(sliderTileId, hiddenItemIds)
-    if (byUser) ++self.sliderFilterChangesByUser
+    if (bySlider) ++self.sliderFilterChangesBySlider
     self.invalidateCases()
   },
   // stops hiding items on behalf of the visibility slider in the tile with the given id
-  // (byUser: the user changed the slider's type, rather than e.g. its attribute being deleted)
-  clearSliderFilter(sliderTileId: string, byUser = false) {
+  // (bySlider: see sliderFilterChangesBySlider)
+  clearSliderFilter(sliderTileId: string, bySlider = false) {
     if (self.sliderFilteredOutItemIds.delete(sliderTileId)) {
-      if (byUser) ++self.sliderFilterChangesByUser
+      if (bySlider) ++self.sliderFilterChangesBySlider
       self.invalidateCases()
     }
   },

@@ -556,7 +556,7 @@ describe("SliderComponent: resuming a selection slider", () => {
     })
   })
 
-  describe("review fixes", () => {
+  describe("keeping the user's selection", () => {
     const status = () => within(screen.getByTestId("slider-drop-overlay")).getByRole("status")
 
     it("keeps playing when a case it selected is deleted", async () => {
@@ -607,15 +607,78 @@ describe("SliderComponent: resuming a selection slider", () => {
       expect(selectedA3(dataSet)).toEqual([6])
     })
 
-    it("choosing Selection from the Config palette's menu announces nothing", async () => {
-      const { tile, dataSet, slider } = await setupSliderAndData()
-      slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    it("choosing Selection from the Config palette's menu announces nothing, even after a pause", async () => {
+      const { tile, slider } = await setupPausedSelectionSlider()
       renderSlider(tile)
       render(<SliderConfigPalette sliderModel={slider} setShowPalette={jest.fn()}/>)
+      await userEvent.click(screen.getByTestId("slider-type-button"))
+      await userEvent.click(screen.getByRole("option", { name: "Visibility" }))
       await userEvent.click(screen.getByTestId("slider-type-button"))
       await userEvent.click(screen.getByRole("option", { name: "Selection" }))
       expect(slider.ownsSelection).toBe(true)
       expect(status()).toHaveTextContent(/^$/)
+    })
+
+    it("pressing play from the keyboard resumes a paused slider", async () => {
+      const { tile, slider } = await setupPausedSelectionSlider()
+      renderSlider(tile)
+      act(() => screen.getByTestId("slider-play-pause").focus())
+      await userEvent.keyboard("{Enter}")
+      expect(slider.ownsSelection).toBe(true)
+      await userEvent.click(screen.getByTestId("slider-play-pause"))
+    })
+
+    it("a press by a secondary pointer doesn't take the selection", async () => {
+      const { tile, slider } = await setupPausedSelectionSlider()
+      renderSlider(tile)
+      const OriginalPointerEvent = window.PointerEvent
+      window.PointerEvent = class extends MouseEvent {
+        isPrimary: boolean
+        constructor(type: string, init?: PointerEventInit) {
+          super(type, init)
+          this.isPrimary = init?.isPrimary ?? true
+        }
+      } as any
+      try {
+        fireEvent.pointerDown(screen.getByTestId("slider-range-body"), { button: 0, isPrimary: false })
+        expect(slider.ownsSelection).toBe(false)
+      }
+      finally {
+        window.PointerEvent = OriginalPointerEvent
+      }
+    })
+
+    it("dropping an attribute on a paused slider announces the attribute and the resume", async () => {
+      const { tile, dataSet } = await setupPausedSelectionSlider()
+      renderSlider(tile)
+      act(() => { configureSliderFromAttribute(tile, dataSet, dataSet.attrFromName("a4")!.id) })
+      expect(status()).toHaveTextContent("Attribute set to a4. Selection resumed")
+    })
+
+    it("stopping playback from the keyboard on a stale slider announces only the stop", async () => {
+      const { tile, dataSet, slider } = await setupPausedSelectionSlider()
+      // slow enough that no playback step re-selects before the stop
+      slider.setAnimationRate(0.1)
+      renderSlider(tile)
+      await userEvent.click(screen.getByTestId("slider-play-pause"))
+      const a3 = dataSet.attrFromName("a3")!.id
+      const unselected = dataSet.itemIds.find(itemId => !dataSet.selection.has(itemId))!
+      act(() => dataSet.setCaseValues([{ __id__: unselected, [a3]: (slider.rangeLow + slider.rangeHigh) / 2 }]))
+      expect(slider.isSelectionPaused).toBe(true)
+      // by keyboard: a click would be a press on the slider, which resumes it
+      act(() => screen.getByTestId("slider-play-pause").focus())
+      await userEvent.keyboard("{Enter}")
+      expect(screen.getByTestId("slider-play-pause")).toHaveAccessibleName("Play slider")
+      expect(status()).toHaveTextContent(/^Slider animation stopped$/)
+    })
+
+    it("describes the handles as paused while the slider is paused", async () => {
+      const { tile } = await setupPausedSelectionSlider()
+      renderSlider(tile)
+      const handle = within(screen.getByTestId("slider-range-high")).getByRole("slider")
+      expect(handle).toHaveAccessibleDescription(/Selection paused/)
+      fireEvent.pointerDown(screen.getByTestId("slider-range-body"))
+      expect(handle).not.toHaveAccessibleDescription(/Selection paused/)
     })
 
     it("choosing an attribute from the slider's menu announces nothing about selection", async () => {

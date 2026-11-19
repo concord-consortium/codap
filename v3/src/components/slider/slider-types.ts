@@ -1,7 +1,8 @@
 export const kSliderClass = "slider-wrapper"
 export const kSliderClassSelector = `.${kSliderClass}`
-// Marks an element within a slider whose presses aren't gestures on the slider (e.g. the attribute menu), so a press
-// there doesn't resume a paused selection slider. Spread the props onto the element; test for it with the selector.
+// Marks an element within a slider whose presses and keys aren't gestures on the slider, so they don't resume a paused
+// selection slider: e.g. the attribute menu, where choosing an attribute resumes the slider when it binds it. Spread
+// the props onto the element; test for it with the selector.
 export const kNoSelectionResumeProps = { "data-no-selection-resume": "" } as const
 export const kNoSelectionResumeSelector = "[data-no-selection-resume]"
 

@@ -185,16 +185,13 @@ export const SliderModel = TileContentModel
     }
   }))
   .views(self => ({
-    // A test of whether a value lies within the inclusive range; a missing value never does. The tolerance keeps a
-    // case at either end when floating point leaves the bound a hair inside it. The bounds are worked out once, so
-    // a pass over every case doesn't recompute them per value.
+    // A test of whether a value lies within the inclusive range; a missing or non-finite value never does (nor does
+    // any value once the range reaches the end of the number range). The tolerance keeps a case at either end when
+    // floating point leaves the bound a hair inside it. The bounds are worked out once per pass over the cases.
     get rangeTest(): (value?: number | null) => boolean {
       const low = self.rangeLow - 8 * Number.EPSILON * Math.max(1, Math.abs(self.rangeLow))
       const high = self.rangeHigh + 8 * Number.EPSILON * Math.max(1, Math.abs(self.rangeHigh))
       return value => value != null && isFinite(value) && value >= low && value <= high
-    },
-    isValueInRange(value?: number | null) {
-      return this.rangeTest(value)
     },
     // whether this is a selection slider bound to an attribute it can select by (the visibility slider's condition)
     get isBoundSelectionSlider() {
@@ -428,8 +425,7 @@ export const SliderModel = TileContentModel
     }
   }))
   .actions(self => ({
-    // Selects the visible cases in range and takes ownership of the selection. Selection isn't undoable, so this
-    // makes no history entry.
+    // selects the visible cases in range and takes ownership of the selection
     applySelection() {
       const dataSet = self.dataSet
       if (!self.isBoundSelectionSlider || !dataSet) return
@@ -540,9 +536,9 @@ export const SliderModel = TileContentModel
       // filter is volatile, so it's recomputed rather than saved, and it never becomes a history entry.
       let filteredDataSet: IDataSet | undefined
       const sliderTileId = getTileModel(self)?.id
-      const clearFilter = (byUser = false) => {
+      const clearFilter = (bySlider = false) => {
         if (sliderTileId && filteredDataSet && isAlive(filteredDataSet)) {
-          filteredDataSet.clearSliderFilter(sliderTileId, byUser)
+          filteredDataSet.clearSliderFilter(sliderTileId, bySlider)
         }
         filteredDataSet = undefined
       }
@@ -557,28 +553,29 @@ export const SliderModel = TileContentModel
           return { dataSet, hidden, low, high, sliderType, attributeId }
         },
         ({ dataSet, hidden, low, high, sliderType, attributeId }, previous) => {
-          // the user changing the slider's type, rather than e.g. its attribute being deleted
-          const byType = !!previous?.hidden && sliderType !== "visibility"
-          if (filteredDataSet !== dataSet) clearFilter(byType)
+          // the slider stopped hiding because its type or dataset changed, rather than e.g. its attribute being deleted
+          const stoppedBySlider = !!previous?.hidden && (sliderType !== "visibility" || dataSet !== previous.dataSet)
+          if (filteredDataSet !== dataSet) clearFilter(stoppedBySlider)
           if (sliderTileId && dataSet && hidden) {
             // skip a change that hides the same cases, which would regroup the whole dataset for nothing
             const current = dataSet.sliderFilteredOutItemIds.get(sliderTileId)
             if (!current || !areSetsEqual(current, hidden)) {
-              // Whether the user changed the range or attribute of a slider that was already hiding, rather than the
-              // data changing or the slider starting to hide (as when a document loads). Starting to hide only hides,
-              // so a selection slider has nothing to add.
-              const byUser = !!current && !!previous?.hidden &&
+              // Whether the range or attribute of a slider that was already hiding changed, rather than the data
+              // changing or the slider starting to hide (as when a document loads). Starting to hide only hides, so a
+              // selection slider has nothing to add.
+              const bySlider = !!current && !!previous?.hidden &&
                 (low !== previous.low || high !== previous.high || attributeId !== previous.attributeId)
-              dataSet.setSliderFilter(sliderTileId, hidden, byUser)
+              dataSet.setSliderFilter(sliderTileId, hidden, bySlider)
             }
             filteredDataSet = dataSet
           }
           else {
-            clearFilter(byType)
+            clearFilter(stoppedBySlider)
           }
         }, { name: "SliderModel [visibility filter]", fireImmediately: true }
       ))
-      addDisposer(self, clearFilter)
+      // closing the slider shows what it hid
+      addDisposer(self, () => clearFilter(true))
       // A selection slider that stops being bound, or is bound to another dataset, lets go of the selection. One
       // that becomes bound doesn't take it, even if it happens to match, except that on opening a document a slider
       // saved owning the selection owns it again. Neither changes the selection.
@@ -602,10 +599,9 @@ export const SliderModel = TileContentModel
         }, { name: "SliderModel [selection ownership]", equals: comparer.structural }
       ))
       // While a selection slider owns the selection, it follows changes to its range (by dragging, playback, undo,
-      // or a plugin) and changes to what visibility sliders hide that their ranges caused. A data edit that changes
-      // what they hide doesn't count, so editing data never selects anything.
+      // or a plugin) and changes to the visibility sliders themselves (see DataSet.sliderFilterChangesBySlider).
       addDisposer(self, reaction(
-        () => [self.rangeLow, self.rangeHigh, self.dataSet?.sliderFilterChangesByUser],
+        () => [self.rangeLow, self.rangeHigh, self.dataSet?.sliderFilterChangesBySlider],
         () => {
           if (self.ownsSelection) self.applySelection()
         }, { name: "SliderModel [selection triggers]", equals: comparer.shallow }

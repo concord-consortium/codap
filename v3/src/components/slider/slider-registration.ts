@@ -118,7 +118,8 @@ registerV2TileExporter(kSliderTileType, ({ tile }) => {
         dataContext: dataSetId ? toV2Id(dataSetId) : undefined,
         attribute: attributeId ? toV2Id(attributeId) : undefined,
         rangeWidth: rangeWidth ?? 0,
-        ownsSelection: sliderModel.ownsSelection || undefined
+        // prepared for saving (see SliderModel.prepareSnapshot), including ownership not yet restored after loading
+        ownsSelection: sliderModel.snapOwnsSelection
       }
     : {}
   const v3: ICodapV2SliderStorage["v3"] = { scaleType, multipleOf, dateMultipleOfUnit, ...rangeStorage }

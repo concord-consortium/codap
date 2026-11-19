@@ -7,6 +7,7 @@ import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet, IDataSet, toCanonical } from "../../models/data/data-set"
 import { addSetAsideCases, setSelectedCases } from "../../models/data/data-set-utils"
 import { IDocumentContentModel } from "../../models/document/document-content"
+import { getTileModel } from "../../models/tiles/tile-model"
 import { TreeManager } from "../../models/history/tree-manager"
 import { toV3Id } from "../../utilities/codap-utils"
 import { ISliderModel } from "./slider-model"
@@ -47,25 +48,25 @@ const idOf = (dataSet: IDataSet, value: number) => {
   return dataSet.itemIdsIgnoringSliderFilters.find(itemId => dataSet.getNumeric(itemId, a3) === value)!
 }
 
-describe("isValueInRange", () => {
+describe("rangeTest", () => {
   it("includes both ends and excludes values just outside them", async () => {
     const { slider } = await setupSelectionSlider()
     slider.setRange(2, 4)
-    expect([1.999, 2, 3, 4, 4.001].map(v => slider.isValueInRange(v))).toEqual([false, true, true, true, false])
+    expect([1.999, 2, 3, 4, 4.001].map(v => slider.rangeTest(v))).toEqual([false, true, true, true, false])
   })
 
   it("tolerates floating-point error at the bounds, but no more", async () => {
     const { slider } = await setupSelectionSlider()
     slider.setRange(2, 4)
-    expect(slider.isValueInRange(4 + 4 * Number.EPSILON)).toBe(true)
-    expect(slider.isValueInRange(2 - 4 * Number.EPSILON)).toBe(true)
-    expect(slider.isValueInRange(4 + 1e-9)).toBe(false)
+    expect(slider.rangeTest(4 + 4 * Number.EPSILON)).toBe(true)
+    expect(slider.rangeTest(2 - 4 * Number.EPSILON)).toBe(true)
+    expect(slider.rangeTest(4 + 1e-9)).toBe(false)
   })
 
   it("never includes a missing or non-finite value", async () => {
     const { slider } = await setupSelectionSlider()
     slider.setRange(1, 6)
-    expect([null, undefined, NaN, Infinity, -Infinity].map(v => slider.isValueInRange(v)))
+    expect([null, undefined, NaN, Infinity, -Infinity].map(v => slider.rangeTest(v)))
       .toEqual([false, false, false, false, false])
   })
 })
@@ -493,6 +494,19 @@ describe("selectExactly notifications", () => {
     return data
   }
 
+  it("deselects a selected hidden item without reporting it", () => {
+    const notify = jest.fn()
+    const data = makeDataSet(notify)
+    data.setSliderFilter("s", new Set(["i2"]))
+    data.validateCases()
+    // e.g. selected by a plugin through the raw path while hidden
+    data.selectCases(["i2"])
+    notify.mockClear()
+    selectExactly(data, new Set(["i1"]))
+    expect(data.selection.has("i2")).toBe(false)
+    expect(notify.mock.calls[0][0].values.result.removedCases).toHaveLength(0)
+  })
+
   it("tells plugins which cases were selected and deselected", () => {
     const notify = jest.fn()
     const data = makeDataSet(notify)
@@ -534,6 +548,19 @@ describe("selection slider when a visibility slider stops hiding", () => {
     dataSet.attrFromName("a4")!.setDisplayExpression("caseIndex")
     dataSet.validateCases()
     expect(selectedA3(dataSet)).toEqual([3, 4])
+  })
+
+  it("selects cases shown because the visibility slider was closed", async () => {
+    const { content, dataSet, visibility } = await setupBoth()
+    content.deleteTile(getTileModel(visibility)!.id)
+    expect(selectedA3(dataSet)).toEqual([2, 3, 4])
+  })
+
+  it("selects cases shown because the visibility slider was bound to another dataset", async () => {
+    const { content, dataSet, visibility } = await setupBoth()
+    const other = addDataSetCopy(content, setupTestDataset().dataset)
+    visibility.configureFromAttribute(other, other.attrFromName("a4")!.id)
+    expect(selectedA3(dataSet)).toEqual([2, 3, 4])
   })
 
   it("selects cases shown because the visibility slider's type was changed", async () => {

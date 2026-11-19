@@ -50,6 +50,7 @@ registerTileCollisionDetection(kSliderIdBase, sliderCollisionDetection)
 export const SliderComponent = observer(function SliderComponent({ tile } : ITileBaseProps) {
   const sliderModel = isAliveSafe(tile?.content) && isSliderModel(tile?.content) ? tile?.content : undefined
   const instanceId = useNextInstanceId("slider")
+  const pausedDescriptionId = `${instanceId}-selection-paused`
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
   const { setOverlayRef, ...dropHighlight } = useSliderAttributeDrop(instanceId, tile)
@@ -73,6 +74,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   // the message being announced, which a stop of playback caused by the same change adds to
   const statusMessageRef = useRef("")
   const prevRunningRef = useRef(false)
+  // whether playback is stopping because the selection slider paused, whose announcement the stop is added to
+  const stoppedByPauseRef = useRef(false)
   const multiScale = layout.getAxisMultiScale("bottom")
   const trackRef = useRef<HTMLDivElement | null>(null)
 
@@ -192,11 +195,12 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       const key = running ? "DG.SliderView.animationStarted" : "DG.SliderView.animationStopped"
       // A change that brings up the prompt stops playback after announcing itself, so the stop is added to that
       // announcement rather than replacing it.
-      const cause = !running && (isPrompting || sliderModel?.isSelectionPaused) ? statusMessageRef.current : ""
+      const cause = !running && (isPrompting || stoppedByPauseRef.current) ? statusMessageRef.current : ""
       showStatusMessage(cause ? t("V3.Slider.messageThenStopped", { vars: [cause, t(key)] }) : t(key))
       prevRunningRef.current = running
+      stoppedByPauseRef.current = false
     }
-  }, [isPrompting, running, showStatusMessage, sliderModel])
+  }, [isPrompting, running, showStatusMessage])
 
   // When another component takes the selection, a selection slider pauses: it stops playback and says so. Only a
   // change of ownership is announced; a slider that merely looks paused because the data changed keeps playing.
@@ -209,10 +213,17 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       () => sliderModel.ownsSelection,
       owns => {
         if (!sliderModel.isBoundSelectionSlider) return
-        const announce = !isQuietSliderChange(sliderModel) && (!owns || wasPaused)
-        if (announce) showStatusMessage(t(owns ? "V3.Slider.selectionResumed" : "V3.Slider.selectionPaused"))
+        if (!isQuietSliderChange(sliderModel) && (!owns || wasPaused)) {
+          const message = t(owns ? "V3.Slider.selectionResumed" : "V3.Slider.selectionPaused")
+          // a resume caused by a change that announced itself (e.g. dropping an attribute) adds to that announcement
+          const prior = owns ? statusMessageRef.current : ""
+          showStatusMessage(prior ? t("V3.Slider.messageThenMessage", { vars: [prior, message] }) : message)
+        }
         wasPaused = !owns
-        if (!owns) setRunning(false)
+        if (!owns) {
+          stoppedByPauseRef.current = true
+          setRunning(false)
+        }
       }, { name: "SliderComponent [selection ownership]" }
     )
   }, [sliderModel, showStatusMessage])
@@ -268,13 +279,14 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   }
 
   const toggleRunning = () => {
-    // pressing play resumes a paused selection slider at its current range before it steps
+    // Pressing play resumes a paused selection slider at its current range before it steps. (A click already has, by
+    // its press; Enter or Space on the button hasn't.)
     if (!running) sliderModel?.resumeSelection()
     setRunning(!running)
   }
 
-  // Touching the slider resumes a paused selection slider (and re-selects for an active one, which changes nothing).
-  // Capture runs before the thumb and track stop the events from propagating.
+  // Touching the slider resumes a paused selection slider, or re-selects for an active one. Capture runs before the
+  // thumb and track stop the events from propagating.
   const resumeSelection = () => sliderModel?.resumeSelection()
   // whether an event within the slider is a gesture on it, i.e. not in a marked element (see kNoSelectionResumeProps)
   // or a menu portaled out of the slider, whose events still reach it through React
@@ -282,9 +294,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     const target = e.target as Element
     return e.currentTarget.contains(target) && !target.closest?.(kNoSelectionResumeSelector)
   }
-  // Opening the attribute menu, by pointer or key, isn't a selection gesture (choosing an attribute resumes the slider
-  // when it binds it), so it leaves the selection alone.
-  // Only the primary pointer's main button, which is all the thumb and track accept, e.g. not a right-click.
+  // only the primary pointer's main button, which is all the thumb and track accept, e.g. not a right-click
   const handlePointerDownCapture = (e: React.PointerEvent) => {
     if (!e.button && e.isPrimary !== false && isSelectionGesture(e)) resumeSelection()
   }
@@ -331,8 +341,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                                                               "selection-paused": sliderModel.isSelectionPaused})}
                ref={setWrapperRef} data-testid="slider-drop-overlay" onPointerDownCapture={handlePointerDownCapture}>
             <If condition={showPrompt}>
-              <div className="slider-attribute-prompt" data-testid="slider-attribute-prompt"
-                   {...kNoSelectionResumeProps}>
+              <div className="slider-attribute-prompt" data-testid="slider-attribute-prompt">
                 {/* choosing removes the prompt, so focus moves to the attribute label's menu that replaces it */}
                 <SliderAttributeMenu className="slider-attribute-prompt-button"
                                      onSelect={() => setFocusAttributeLabel(true)}>
@@ -367,10 +376,16 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                       </>}
                 </div>
                 {sliderModel.isSelectionPaused &&
-                  <span className="slider-selection-paused-badge" data-testid="slider-selection-paused-badge"
-                        title={t("V3.Slider.selectionPaused.tooltip")}>
-                    {t("V3.Slider.selectionPaused.badge")}
-                  </span>}
+                  <>
+                    <span className="slider-selection-paused-badge" data-testid="slider-selection-paused-badge"
+                          title={t("V3.Slider.selectionPaused.tooltip")} aria-hidden="true">
+                      {t("V3.Slider.selectionPaused.badge")}
+                    </span>
+                    {/* the handles' description while paused (see SliderRangeThumb) */}
+                    <span id={pausedDescriptionId} className="codap-visually-hidden">
+                      {t("V3.Slider.selectionPaused.description")}
+                    </span>
+                  </>}
               </div>
               <div {...trackProps} style={{ ...trackProps.style, position: "absolute" }}
                    ref={trackRef} className="slider" data-testid="slider-track"
@@ -378,6 +393,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                 {sliderModel.isRangeSlider
                   ? <SliderRangeThumb sliderModel={sliderModel} tile={tile} running={running} setRunning={setRunning}
                                       state={state} trackRef={trackRef}
+                                      describedBy={sliderModel.isSelectionPaused ? pausedDescriptionId : undefined}
                     />
                   : <CodapSliderThumb sliderModel={sliderModel} running={running} setRunning={setRunning}
                                       state={state} trackRef={trackRef}

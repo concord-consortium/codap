@@ -29,6 +29,8 @@ interface IHandleProps {
   moveHandlers?: IMoveHandlers
   state: SliderState
   trackRef: RefObject<HTMLDivElement | null>
+  // the id of an element describing the handle, e.g. that a selection slider is paused
+  describedBy?: string
 }
 
 // The handles are the two halves of the variable slider's thumb icon (see ThumbIcon), split at its point:
@@ -47,7 +49,7 @@ const RangeHandleIcon = ({ index }: { index: 0 | 1 }) => (
 
 // one edge of the range; React Aria provides dragging, role="slider", and arrow/Home/End keys
 const RangeHandle = function RangeHandle({
-  index, label, valueText, left, moveHandlers, state, trackRef
+  index, label, valueText, left, moveHandlers, state, trackRef, describedBy
 }: IHandleProps) {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const { thumbProps, inputProps, isDragging } = useSliderThumb({ index, trackRef, inputRef, "aria-label": label },
@@ -80,7 +82,7 @@ const RangeHandle = function RangeHandle({
       <RangeHandleIcon index={index} />
       {/* the handle's own name, without the group's (see sliderGroupLabel) */}
       <input {...mergeProps(inputProps, focusProps)} ref={inputRef} className="codap-visually-hidden"
-             aria-valuetext={valueText} aria-labelledby={undefined} />
+             aria-valuetext={valueText} aria-labelledby={undefined} aria-describedby={describedBy} />
     </div>
   )
 }
@@ -92,6 +94,7 @@ interface IProps {
   setRunning: (running: boolean) => void
   state: SliderState
   trackRef: RefObject<HTMLDivElement | null>
+  describedBy?: string
 }
 
 // width of a range handle; each handle's point is at its inner edge, so the low handle sits just left of
@@ -99,7 +102,7 @@ interface IProps {
 const kHandleWidth = 12
 
 export const SliderRangeThumb = observer(function SliderRangeThumb({
-  sliderModel: _sliderModel, tile, running, setRunning, state, trackRef
+  sliderModel: _sliderModel, tile, running, setRunning, state, trackRef, describedBy
 }: IProps) {
   const sliderModel = isAliveSafe(_sliderModel) ? _sliderModel : undefined
   const layout = useAxisLayoutContext()
@@ -176,10 +179,10 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
            onLostPointerCapture={handleBodyPointerUp} />
       <RangeHandle index={0} label={handleLabel("V3.Slider.rangeLowOf")} valueText={valueText(0)}
                    left={lowX - kHandleWidth}
-                   moveHandlers={collapsedMoveHandlers} state={state} trackRef={trackRef} />
+                   moveHandlers={collapsedMoveHandlers} state={state} trackRef={trackRef} describedBy={describedBy} />
       <RangeHandle index={1} label={handleLabel("V3.Slider.rangeHighOf")}
                    valueText={valueText(1)} left={highX}
-                   moveHandlers={collapsedMoveHandlers} state={state} trackRef={trackRef} />
+                   moveHandlers={collapsedMoveHandlers} state={state} trackRef={trackRef} describedBy={describedBy} />
     </div>
   )
 })

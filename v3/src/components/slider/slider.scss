@@ -348,9 +348,12 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
   }
 }
 
-// a selection slider that has stepped aside for a selection made elsewhere: the thumb dims and a badge says so
+// a paused selection slider (see SliderModel.isSelectionPaused): the thumb's graphics dim, but not the handles' focus
+// rings, and a badge says so
 .slider-wrapper.selection-paused .slider-range-thumb {
-  opacity: 0.5;
+  .slider-range-body, .slider-range-handle svg {
+    opacity: 0.5;
+  }
 }
 
 .slider-selection-paused-badge {
