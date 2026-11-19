@@ -44,6 +44,12 @@ export const kFeatureFlags = {
     added: "2026-07-24",
     expires: "2027-07-31"
   },
+  mapHotSpot: {
+    description: "Hot spot layer on the map",
+    owner: "MappingTime",
+    added: "2026-11-04",
+    expires: "2027-11-30"
+  },
   pointShapes: {
     description: "Per-legend-category point shapes on the graph and map",
     owner: "LEADS",

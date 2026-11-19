@@ -504,7 +504,7 @@ describe("selectExactly notifications", () => {
     notify.mockClear()
     selectExactly(data, new Set(["i1"]))
     expect(data.selection.has("i2")).toBe(false)
-    expect(notify.mock.calls[0][0].values.result.removedCases).toHaveLength(0)
+    expect(notify.mock.calls[0][0].values[0].result.removedCases).toHaveLength(0)
   })
 
   it("tells plugins which cases were selected and deselected", () => {
@@ -512,10 +512,10 @@ describe("selectExactly notifications", () => {
     const data = makeDataSet(notify)
     selectExactly(data, new Set(["i1", "i2"]))
     expect(notify).toHaveBeenCalledTimes(1)
-    expect(notify.mock.calls[0][0].values.result.cases).toHaveLength(2)
+    expect(notify.mock.calls[0][0].values[0].result.cases).toHaveLength(2)
     notify.mockClear()
     selectExactly(data, new Set(["i2", "i3"]))
-    const { result } = notify.mock.calls[0][0].values
+    const { result } = notify.mock.calls[0][0].values[0]
     expect(result.cases).toHaveLength(1)
     expect(result.removedCases).toHaveLength(1)
   })

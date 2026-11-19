@@ -114,9 +114,9 @@ interface IMenuItemsForCollectionProps {
 }
 function MenuItemsForCollection({ collectionInfo, onSelect }: IMenuItemsForCollectionProps) {
   const { attrs, data } = collectionInfo
-  return attrs.map((attr) => {
+  return attrs.map((attr, attrIndex) => {
     return (
-      <MenuItem onClick={() => onSelect(data, attr.id)} key={attr.id}>
+      <MenuItem onClick={() => onSelect(data, attr.id)} key={attr.id} data-testid={`attribute-option-${attrIndex}`}>
         {attr.name}
       </MenuItem>
     )
@@ -126,6 +126,8 @@ function MenuItemsForCollection({ collectionInfo, onSelect }: IMenuItemsForColle
 // A MenuItem for a collection, which contains a submenu of the collection's attributes
 interface ICollectionMenuProps {
   collectionInfo: IShownCollection
+  // the collection's index among the collections the menu shows
+  collectionIndex: number
   containerRef: React.RefObject<HTMLElement | null>
   isOpen: boolean
   maxMenuHeight: string
@@ -138,7 +140,7 @@ interface ICollectionMenuProps {
   submenuTestId?: string
 }
 const CollectionMenu = observer(function CollectionMenu({
-  collectionInfo, containerRef, isOpen, maxMenuHeight, onCancelPendingHover,
+  collectionInfo, collectionIndex, containerRef, isOpen, maxMenuHeight, onCancelPendingHover,
   onCloseSubmenu, onOpenSubmenu, onPointerOver, onSelect, submenuClassName, submenuTestId
 }: ICollectionMenuProps) {
   const { collection } = collectionInfo
@@ -175,6 +177,7 @@ const CollectionMenu = observer(function CollectionMenu({
         className="collection-menu-item"
         closeOnSelect={false}
         data-collection-id={collection.id}
+        data-testid={`collection-menu-item-${collectionIndex}`}
         key={collection.id}
         onClick={onOpenSubmenu}
         onPointerOver={onPointerOver}
@@ -199,7 +202,8 @@ interface IAttributePickerMenuItemsProps {
   onSelect: AttributePickerSelect
   submenus: AttributePickerSubmenus
   submenuClassName?: string
-  submenuTestId?: (collectionId: string) => string
+  // the test id of a collection's submenu, from the collection's index among those shown
+  submenuTestId?: (collectionIndex: number) => string
 }
 export const AttributePickerMenuItems = observer(function AttributePickerMenuItems({
   containerRef, entries, isAttributeAllowed, maxMenuHeight, onSelect, submenus, submenuClassName, submenuTestId
@@ -211,13 +215,16 @@ export const AttributePickerMenuItems = observer(function AttributePickerMenuIte
 
   if (!shownEntries.length) {
     return (
-      <MenuItem isDisabled isFocusable>{t("V3.DataDisplayMenu.noAttributesAvailable")}</MenuItem>
+      <MenuItem isDisabled isFocusable data-testid="no-attributes-available-item">
+        {t("V3.DataDisplayMenu.noAttributesAvailable")}
+      </MenuItem>
     )
   }
   if (shownEntries.length === 1 && shownEntries[0] !== "divider") {
     return <MenuItemsForCollection collectionInfo={shownEntries[0]} onSelect={onSelect}/>
   }
   let dividerCount = 0
+  let collectionIndex = 0
   return (
     <>
       {shownEntries.map(entry => {
@@ -225,9 +232,11 @@ export const AttributePickerMenuItems = observer(function AttributePickerMenuIte
           return <MenuDivider key={`divider-${dividerCount++}`} />
         }
         const { collection } = entry
+        const thisIndex = collectionIndex++
         return (
           <CollectionMenu
             collectionInfo={entry}
+            collectionIndex={thisIndex}
             containerRef={containerRef}
             isOpen={openCollectionId === collection.id}
             key={collection.id}
@@ -238,7 +247,7 @@ export const AttributePickerMenuItems = observer(function AttributePickerMenuIte
             onPointerOver={() => handleCollectionHover(collection.id)}
             onSelect={onSelect}
             submenuClassName={submenuClassName}
-            submenuTestId={submenuTestId?.(collection.id)}
+            submenuTestId={submenuTestId?.(thisIndex)}
           />
         )
       })}

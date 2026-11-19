@@ -62,6 +62,29 @@ jobs:
       - name: Check the reference against the code
         working-directory: v3
         run: npm run plugin-api:check
+      # The live plugin API Tester's templates are generated from the reference but live in
+      # codap-data-interactives, so this only warns when they differ from this branch's reference.
+      - name: Check the live plugin API Tester templates
+        if: ${{ !cancelled() }}
+        working-directory: v3
+        continue-on-error: true
+        run: |
+          live="$RUNNER_TEMP/reference-templates.json"
+          if ! curl -fsSL -o "$live" \
+            https://raw.githubusercontent.com/concord-consortium/codap-data-interactives/gh-pages/DataInteractiveAPITester/resources/reference-templates.json
+          then
+            echo "::warning::Could not fetch the live tester templates; skipped"
+            exit 0
+          fi
+          status=0
+          node scripts/plugin-api/generate-tester-templates.mjs --check --out "$live" 2> "$RUNNER_TEMP/tester.err" || status=$?
+          cat "$RUNNER_TEMP/tester.err" >&2
+          if [ "$status" -eq 1 ]; then
+            echo "::warning::The live plugin API Tester templates differ from this branch's reference; regenerate them after it merges (see the plugin-api-docs skill)"
+          elif [ "$status" -eq 2 ]; then
+            echo "::warning::The reference's request examples have problems that would leave tester templates out: $(tr '\n' ' ' < "$RUNNER_TEMP/tester.err")"
+          fi
+          exit "$status"
 
   build:
     name: Build
@@ -139,6 +162,9 @@ jobs:
       - name: Run Tests
         working-directory: v3
         run: npm run test:coverage -- --maxWorkers=${{ steps.cpu-cores.outputs.count }}
+      - name: Run Date Parser Tests in a Non-UTC Time Zone
+        working-directory: v3
+        run: TZ=Asia/Kolkata npx jest src/utilities/date-parser
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:

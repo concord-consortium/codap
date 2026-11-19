@@ -2,7 +2,7 @@ import { useDndContext } from "@dnd-kit/core"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
 import { Menu, MenuItem, MenuList, MenuButton, MenuDivider, Portal } from "@chakra-ui/react"
-import React, { CSSProperties, useEffect, useRef, useState } from "react"
+import React, { CSSProperties, useEffect, useId, useRef, useState } from "react"
 import { useDocumentContainerContext } from "../../../hooks/use-document-container-context"
 import { useFreeTileLayoutContext } from "../../../hooks/use-free-tile-layout-context"
 import { IUseDraggableAttribute, useDraggableAttribute } from "../../../hooks/use-drag-drop"
@@ -21,18 +21,19 @@ import {
 } from "../../common/attribute-picker-menu-items"
 import { GraphPlace } from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
+import { removeAttributeLabel } from "../../data-display/remove-attribute-label"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
+import { placeTestId as axisPlaceTestId, isAxisPlace } from "../axis-types"
+
+// Maps GraphPlace values to lowercase kebab-case for data-testid values.
+// yPlus is the only camelCase value outside AxisPlace; others delegate to axisPlaceTestId.
+const graphPlaceTestId = (place: GraphPlace): string => {
+  if (place === "yPlus") return "y-plus"
+  if (isAxisPlace(place)) return axisPlaceTestId(place)
+  return place
+}
 
 import "./axis-or-legend-attribute-menu.scss"
-
-const removeAttrItemLabelKeys: Record<string, string> = {
-  "x": "DG.DataDisplayMenu.removeAttribute_x",
-  "y": "DG.DataDisplayMenu.removeAttribute_y",
-  "rightNumeric": "DG.DataDisplayMenu.removeAttribute_y2",
-  "legend": "DG.DataDisplayMenu.removeAttribute_legend",
-  "topSplit": "DG.DataDisplayMenu.removeAttribute_top",
-  "rightSplit": "DG.DataDisplayMenu.removeAttribute_right"
-}
 
 // The full menu
 interface IProps {
@@ -52,6 +53,11 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const containerRef = useDocumentContainerContext()
   const layout = useFreeTileLayoutContext()
   const maxMenuHeight = `min(${layout?.height ?? 340}px, 50vh)`
+  // Chakra's useIds(menuIdBase, "menu-button", "menu-list") produces id="menu-button-{menuIdBase}" on the
+  // rendered MenuButton and id="menu-list-{menuIdBase}" on the MenuList. We reference the button id from
+  // aria-labelledby so SR users get axis context on menu entry. The test guards the prefix convention.
+  const menuIdBase = useId()
+  const buttonId = `menu-button-${menuIdBase}`
   const dataConfiguration = useDataConfigurationContext()
   const isAttributeAllowed = dataConfiguration?.placeCanAcceptAttributeIDDrop
     ? (aPlace: GraphPlace, data: IDataSet, anAttrId: string) =>
@@ -65,7 +71,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
   const instanceId = useInstanceIdContext()
   const attribute = attrId ? dataSet?.attrFromID(attrId) : null
   const nativeType = attribute?.type || ''
-  const removeAttrItemLabel = t(removeAttrItemLabelKeys[role], {vars: [attribute?.name]})
+  const removeAttrItemLabel = removeAttributeLabel(role, attribute?.name)
   const attrType = dataConfiguration?.attributeType(role) || ''
   const treatAs = (nativeType === 'date' && attrType === 'categorical') ? 'date'
     : ['numeric', 'date'].includes(attrType) ? "categorical" : "numeric"
@@ -204,7 +210,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
 
   return (
     <div className={clsx("axis-legend-attribute-menu", place)} ref={menuRef} title={description + clickLabel}>
-      <Menu placement="auto" onOpen={handleOpenMenu} onClose={resetMenuState}>
+      <Menu id={menuIdBase} placement="auto" onOpen={handleOpenMenu} onClose={resetMenuState}>
         {({ isOpen, onClose }) => {
           onCloseMenuRef.current = onClose
           return (
@@ -221,11 +227,12 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
                 {attribute?.name}
               </MenuButton>
               <Portal containerRef={containerRef}>
-                <MenuList ref={mainMenuListRef} className="attribute-picker-menu"
+                <MenuList ref={mainMenuListRef} className="attribute-picker-menu axis-legend-menu"
+                          aria-labelledby={buttonId}
                           maxH={adjustedMainMenuHeight ?? maxMenuHeight} overflowY="auto"
                           onFocus={handleMenuItemFocus}
                           onKeyDown={handleMainMenuKeyDown}
-                          data-testid={`axis-legend-attribute-menu-list-${place}`}>
+                          data-testid={`axis-attr-menu-${graphPlaceTestId(place)}`}>
                   <AttributePickerMenuItems
                     containerRef={containerRef}
                     entries={pickerEntries}
@@ -234,7 +241,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
                     onSelect={handleSelectAttribute}
                     submenus={submenus}
                     submenuClassName="axis-legend-submenu"
-                    submenuTestId={collectionId => `axis-legend-attribute-menu-list-${place}-${collectionId}`}
+                    submenuTestId={index => `axis-attr-submenu-${graphPlaceTestId(place)}-${index}`}
                   />
                   { attribute &&
                     <>
@@ -242,6 +249,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
                       <MenuItem
                         onClick={() => onRemoveAttribute(place, attrId)}
                         onPointerOver={() => handleCollectionHover(null)}
+                        data-testid={`remove-attribute-menu-item-${graphPlaceTestId(place)}`}
                       >
                         {removeAttrItemLabel}
                       </MenuItem>
@@ -249,6 +257,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
                         <MenuItem
                           onClick={() => onTreatAttributeAs(place, attribute?.id, treatAs)}
                           onPointerOver={() => handleCollectionHover(null)}
+                          data-testid={`treat-as-menu-item-${graphPlaceTestId(place)}-${treatAs}`}
                         >
                           {treatAs === "categorical" && t("DG.DataDisplayMenu.treatAsCategorical")}
                           {treatAs === "numeric" && t("DG.DataDisplayMenu.treatAsNumeric")}

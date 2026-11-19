@@ -8,7 +8,7 @@ const params = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning&fea
 function setupRangeSlider() {
   cy.visit(`${Cypress.config("index")}${params}`)
   // the slider's value reads 0 briefly before the document's 0.5 is applied
-  cy.get('.codap-case-table [data-testid="codap-attribute-button Sleep"]').should("be.visible")
+  cy.get('.codap-case-table [data-testid^="codap-attribute-button-"][data-label="Sleep"]').should("be.visible")
   slider.getVariableValue().should("eq", "0.5")
   cy.dragAttributeToTarget("table", "Sleep", "slider")
   slider.getRangeLowInput().should("have.value", "2")
@@ -204,7 +204,7 @@ context("Slider range thumb", () => {
 
   it("changes nothing when a handle is pressed in place after the slider was dragged as a variable slider", () => {
     cy.visit(`${Cypress.config("index")}${params}`)
-    cy.get('.codap-case-table [data-testid="codap-attribute-button Sleep"]').should("be.visible")
+    cy.get('.codap-case-table [data-testid^="codap-attribute-button-"][data-label="Sleep"]').should("be.visible")
     slider.getVariableValue().should("eq", "0.5")
     // a press on the variable slider's thumb, with real mouse events as a user makes them
     slider.getSliderThumbIcon().realMouseDown({ position: "center" }).realMouseMove(30, 0, { position: "center" })

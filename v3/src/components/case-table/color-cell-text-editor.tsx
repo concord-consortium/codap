@@ -7,7 +7,7 @@ import { logMessageWithReplacement } from "../../lib/log-message"
 import { selectAllCases } from "../../models/data/data-set-utils"
 import { uiState } from "../../models/ui-state"
 import { parseColor, parseColorToHex } from "../../utilities/color-utils"
-import { blockAPIRequestsWhileEditing } from "../../utilities/plugin-utils"
+import { blockAPIRequestsWhileEditing, editingBlockedPluginId } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { ColorPickerPalette } from "../common/color-picker-palette"
 import { useColorPickerPopoverOffset } from "../common/use-color-picker-popover-offset"
@@ -97,7 +97,7 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
         attribute: column.key, old: initialInputValue.current, new: value }))
     if (blockAPIRequests && value !== initialInputValue.current) {
       // Only block API requests if the user has actually changed the value.
-      uiState.setIsEditingBlockingCell()
+      data && uiState.setIsEditingBlockingCell(() => editingBlockedPluginId(data))
     }
   }, [blockAPIRequests, column.key, data, onRowChange, row, setPendingLogMessage])
 
@@ -131,11 +131,12 @@ export default function ColorCellTextEditor({ row, column, onRowChange, onClose 
     ? (
         <div className={"color-cell-text-editor"}>
           <DialogTrigger isOpen={isPaletteOpen} onOpenChange={handlePaletteOpenChange}>
-            <Button className="cell-edit-color-swatch"
+            <Button className="cell-edit-color-swatch" data-testid="cell-edit-color-swatch"
               aria-label={t("V3.CaseTable.colorSwatchButtonAriaLabel", { vars: [attrName] })}>
               <div className="cell-edit-color-swatch-interior" style={swatchStyle}/>
             </Button>
             <Popover ref={popoverRef} shouldFlip={false} offset={popoverOffset}
+              data-testid="color-picker-popover"
               className={({defaultClassName}) => `${defaultClassName} color-picker-popover`}
               aria-label={t("V3.Inspector.colorPicker.dialogLabel")}>
               <ColorPickerPalette inputValue={inputValue || "#ffffff"}

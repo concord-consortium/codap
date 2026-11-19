@@ -8,7 +8,7 @@ const baseParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning
 // to settle: it reads 0 briefly before the document's 0.5 is applied
 function visitMammals(extraParams = "") {
   cy.visit(`${Cypress.config("index")}${baseParams}${extraParams}`)
-  cy.get('.codap-case-table [data-testid="codap-attribute-button Sleep"]').should("be.visible")
+  cy.get('.codap-case-table [data-testid^="codap-attribute-button-"][data-label="Sleep"]').should("be.visible")
   slider.getVariableValue().should("eq", "0.5")
 }
 
@@ -65,7 +65,7 @@ context("Slider configured from an attribute", () => {
   // droppable contains the element there, so the slider's droppable must contain its painted content.
   it("has a drop target that contains what is painted over it", () => {
     visitMammals("&features=visibilitySlider")
-    cy.get('[data-testid="slider-drop-overlay"]').first().then($drop => {
+    cy.get('[data-testid="slider"]').first().then($drop => {
       const drop = $drop[0]
       const rect = drop.getBoundingClientRect()
       const topElt = drop.ownerDocument.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)

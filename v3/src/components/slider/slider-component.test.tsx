@@ -141,10 +141,10 @@ describe("SliderComponent", () => {
   it("marks itself selected while its tile is, which shows its menu's caret", async () => {
     const { tile } = await setupSliderAndData()
     const { unmount } = renderSlider(tile)
-    expect(screen.getByTestId("slider-drop-overlay")).not.toHaveClass("tile-selected")
+    expect(screen.getByTestId("slider")).not.toHaveClass("tile-selected")
     unmount()
     renderSlider(tile, true)
-    expect(screen.getByTestId("slider-drop-overlay")).toHaveClass("tile-selected")
+    expect(screen.getByTestId("slider")).toHaveClass("tile-selected")
   })
 
   it("uses the shared attribute-label caret", async () => {
@@ -366,7 +366,7 @@ describe("SliderComponent for screen readers", () => {
       await userEvent.click(screen.getByRole("option", { name: "Visibility" }))
       expect(slider.sliderType).toBe("visibility")
       // the palette has groups of its own
-      expect(within(screen.getByTestId("slider-drop-overlay")).getByRole("status")).toHaveTextContent(/^$/)
+      expect(within(screen.getByTestId("slider")).getByRole("status")).toHaveTextContent(/^$/)
     })
 
     it("announces a change after one chosen from a menu", async () => {
@@ -506,17 +506,17 @@ describe("SliderComponent: resuming a selection slider", () => {
   })
 
   describe("paused indicator and playback", () => {
-    const status = () => within(screen.getByTestId("slider-drop-overlay")).getByRole("status")
+    const status = () => within(screen.getByTestId("slider")).getByRole("status")
 
     it("shows the paused badge and class while paused, and clears them on resume", async () => {
       const { tile, slider } = await setupPausedSelectionSlider()
       renderSlider(tile)
       expect(screen.getByTestId("slider-selection-paused-badge")).toHaveTextContent("Paused")
-      expect(screen.getByTestId("slider-drop-overlay")).toHaveClass("selection-paused")
+      expect(screen.getByTestId("slider")).toHaveClass("selection-paused")
       fireEvent.pointerDown(screen.getByTestId("slider-range-body"))
       expect(slider.isSelectionPaused).toBe(false)
       expect(screen.queryByTestId("slider-selection-paused-badge")).not.toBeInTheDocument()
-      expect(screen.getByTestId("slider-drop-overlay")).not.toHaveClass("selection-paused")
+      expect(screen.getByTestId("slider")).not.toHaveClass("selection-paused")
     })
 
     it("stops playback when another component takes the selection", async () => {
@@ -557,7 +557,7 @@ describe("SliderComponent: resuming a selection slider", () => {
   })
 
   describe("keeping the user's selection", () => {
-    const status = () => within(screen.getByTestId("slider-drop-overlay")).getByRole("status")
+    const status = () => within(screen.getByTestId("slider")).getByRole("status")
 
     it("keeps playing when a case it selected is deleted", async () => {
       const { tile, dataSet } = await setupPausedSelectionSlider()

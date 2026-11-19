@@ -132,6 +132,21 @@ The last three behaviors also occur with `embeddedServer=yes` alone.
 | Transparent background | ✗ | ✗ | ✓ |
 | iframe-phone server | ✗ (✓ with `embeddedServer=yes`) | ✗ | ✓ |
 
+## Clipboard Access
+
+Chromium-based browsers (Chrome, Edge) only let a cross-origin iframe use the Clipboard API if the embedding page grants it:
+
+```html
+<iframe src="https://codap.concord.org/app/..." allow="clipboard-read; clipboard-write"></iframe>
+```
+
+Without it, CODAP still works, using fallbacks:
+
+- **Copy to Clipboard** falls back to `document.execCommand("copy")`. If that fails too, CODAP suggests using Export Case Data instead.
+- **Import from Clipboard** opens a dialog where the user pastes the data with Cmd/Ctrl-V.
+
+Only the embedding page can grant this access. When the embedding page's policy blocks clipboard reading, the paste dialog doesn't suggest changing site settings, since that can't help.
+
 ## iframe-phone Communication
 
 When running in embedded mode (or with `embeddedServer=yes`), CODAP establishes an iframe-phone RPC endpoint for communication with the parent window.

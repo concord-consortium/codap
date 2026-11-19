@@ -62,12 +62,12 @@ describe("percentile() in a hierarchical (parent-child) context", () => {
     const ptileV = dataSet.attrIDFromName("ptileV")!
 
     // median (unaffected by the bug) establishes the expected per-group values.
-    expect(dataSet.getValueAtItemIndex(0, medV)).toEqual(10)
-    expect(dataSet.getValueAtItemIndex(16, medV)).toEqual(-10)
+    expect(dataSet.getValueAtFullItemIndex(0, medV)).toEqual(10)
+    expect(dataSet.getValueAtFullItemIndex(16, medV)).toEqual(-10)
 
     // percentile must match median for p = 0.5; group B previously leaked group A's cached value (10).
-    expect(dataSet.getValueAtItemIndex(0, ptileV)).toEqual(10)
-    expect(dataSet.getValueAtItemIndex(16, ptileV)).toEqual(-10)
+    expect(dataSet.getValueAtFullItemIndex(0, ptileV)).toEqual(10)
+    expect(dataSet.getValueAtFullItemIndex(16, ptileV)).toEqual(-10)
   })
 
   it("computes distinct percentiles across three groups with differing spreads", () => {
@@ -85,8 +85,8 @@ describe("percentile() in a hierarchical (parent-child) context", () => {
     )
     const q1 = dataSet.attrIDFromName("q1")!
 
-    expect(dataSet.getValueAtItemIndex(0, q1)).toEqual(3)    // group A (items 0-3)
-    expect(dataSet.getValueAtItemIndex(4, q1)).toEqual(200)  // group B (items 4-8)
-    expect(dataSet.getValueAtItemIndex(9, q1)).toEqual(30)   // group C (items 9-11)
+    expect(dataSet.getValueAtFullItemIndex(0, q1)).toEqual(3)    // group A (items 0-3)
+    expect(dataSet.getValueAtFullItemIndex(4, q1)).toEqual(200)  // group B (items 4-8)
+    expect(dataSet.getValueAtFullItemIndex(9, q1)).toEqual(30)   // group C (items 9-11)
   })
 })

@@ -301,13 +301,13 @@ context("Formula Engine", () => {
         cy.get("[data-testid=formula-insert-function-button]").should("have.focus")
         // Tab to Cancel button
         cy.realPress("Tab")
-        cy.get("[data-testid=Cancel-button]").should("have.focus")
+        cy.get("[data-testid=formula-cancel-button]").should("have.focus")
         // Tab to Clear button
         cy.realPress("Tab")
-        cy.get("[data-testid=Clear-button]").should("have.focus")
+        cy.get("[data-testid=formula-clear-button]").should("have.focus")
         // Tab to Apply button
         cy.realPress("Tab")
-        cy.get("[data-testid=Apply-button]").should("have.focus")
+        cy.get("[data-testid=formula-apply-button]").should("have.focus")
         // Tab wraps to the close button in the header
         cy.realPress("Tab")
         cy.get("[data-testid=formula-modal-close-button]").should("have.focus")
@@ -329,13 +329,13 @@ context("Formula Engine", () => {
         cy.get("[data-testid=formula-modal-close-button]").should("have.focus")
         // Shift+Tab wraps to the Apply button
         cy.realPress(["Shift", "Tab"])
-        cy.get("[data-testid=Apply-button]").should("have.focus")
+        cy.get("[data-testid=formula-apply-button]").should("have.focus")
         // Shift+Tab to Clear button
         cy.realPress(["Shift", "Tab"])
-        cy.get("[data-testid=Clear-button]").should("have.focus")
+        cy.get("[data-testid=formula-clear-button]").should("have.focus")
         // Shift+Tab to Cancel button
         cy.realPress(["Shift", "Tab"])
-        cy.get("[data-testid=Cancel-button]").should("have.focus")
+        cy.get("[data-testid=formula-cancel-button]").should("have.focus")
         // Shift+Tab to Insert Function menu button
         cy.realPress(["Shift", "Tab"])
         cy.get("[data-testid=formula-insert-function-button]").should("have.focus")

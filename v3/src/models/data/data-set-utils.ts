@@ -58,6 +58,17 @@ export function isAnyChildSelected(data: IDataSet, caseId: string): boolean {
           : childItemIds?.some(childItemId => data.isCaseSelected(childItemId))
 }
 
+// returns the ids of the given ancestor case's descendants in the specified collection
+export function getDescendantCaseIds(data: IDataSet, ancestorCaseId: string, collectionId: string) {
+  let caseIds = [ancestorCaseId]
+  let currCollectionId = data.caseInfoMap.get(ancestorCaseId)?.collectionId
+  while (currCollectionId && currCollectionId !== collectionId) {
+    caseIds = caseIds.flatMap(caseId => data.caseInfoMap.get(caseId)?.childCaseIds ?? [])
+    currCollectionId = data.getChildCollection(currCollectionId)?.id
+  }
+  return currCollectionId ? caseIds : []
+}
+
 /**
  * Returns the collection containing the attribute from the given array that is closest to the
  * root of the data set. If there is an attribute that is not in any collection, then we return undefined
@@ -89,10 +100,9 @@ interface IMoveAttributeParameters {
   includeNotifications?: boolean
   sourceCollection?: ICollectionModel
   targetCollection: ICollectionModel
-  undoable?: boolean
 }
 export function moveAttribute({
-  afterAttrId, attrId, dataset, includeNotifications, sourceCollection, targetCollection, undoable
+  afterAttrId, attrId, dataset, includeNotifications, sourceCollection, targetCollection
 }: IMoveAttributeParameters) {
   const firstAttr: IAttribute | undefined = getCollectionAttrs(targetCollection, dataset)[0]
   const options: IMoveAttributeOptions =
@@ -102,8 +112,8 @@ export function moveAttribute({
   if (attrId === options.after || attrId === options.before) return
 
   const notifications = includeNotifications ? moveAttributeNotification(dataset) : undefined
-  const undoStringKey = undoable ? "DG.Undo.dataContext.moveAttribute" : undefined
-  const redoStringKey = undoable ? "DG.Redo.dataContext.moveAttribute" : undefined
+  const undoStringKey = "DG.Undo.dataContext.moveAttribute"
+  const redoStringKey = "DG.Redo.dataContext.moveAttribute"
   const logMessage = logMessageWithReplacement("Moved attribute %@ to %@ collection",
                         { attrId, collection: targetCollection.name ?? "new" })
   const modelChangeOptions = { notify: notifications, undoStringKey, redoStringKey, log: logMessage }
@@ -204,7 +214,8 @@ export function selectAndDeselectCases(
 // Set aside helper functions
 
 // For case ids, returns the grouped case. For item ids, returns the childmost grouped case containing that item.
-function getGroupedCases(data: IDataSet, caseOrItemIds: string[]) {
+export function getGroupedCases(data: IDataSet, caseOrItemIds: string[]) {
+  data.validateCases()
   return caseOrItemIds.map(caseId => data.caseInfoMap.get(caseId) ?? data.itemIdChildCaseMap.get(caseId))
     .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
 }

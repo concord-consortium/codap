@@ -1,12 +1,17 @@
-import {Instance, SnapshotIn, types} from "mobx-state-tree"
+import {comparer, reaction, untracked} from "mobx"
+import {addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
 import {ICollectionModel} from "../../../models/data/collection"
+import {isCaseValueChangeAction} from "../../../models/data/data-set-actions"
+import {onAnyAction} from "../../../utilities/mst-utils"
 import {IDataDisplayLayerModel} from "../../data-display/models/data-display-layer-model"
-import {kMapPointLayerType} from "../map-types"
+import {ILatLong, kMapPointLayerType} from "../map-types"
 import {MapLayerModel} from "./map-layer-model"
 import {IDataSet} from "../../../models/data/data-set"
 import {getMetadataFromDataSet} from "../../../models/shared/shared-data-utils"
 import {computePointRadius} from "../../data-display/data-display-utils"
+import {getCaseLatLong} from "../utilities/map-utils"
 import {MapGridModel} from "./map-grid-model"
+import {MapHotSpotModel} from "./map-hot-spot-model"
 
 export const MapPointDisplayTypes = ["points", "heatmap"] as const
 export type MapPointDisplayType = typeof MapPointDisplayTypes[number]
@@ -19,14 +24,43 @@ export const MapPointLayerModel = MapLayerModel
   .props({
     type: types.optional(types.literal(kMapPointLayerType), kMapPointLayerType),
     gridModel: types.optional(MapGridModel, () => MapGridModel.create()),
+    hotSpotModel: types.optional(MapHotSpotModel, () => MapHotSpotModel.create()),
     pointsAreVisible: true, // This is different than layer visibility
     connectingLinesAreVisible: false,
     displayType: types.optional(types.enumeration([...MapPointDisplayTypes]), "points"),
   })
-  .actions(self => ({
-    afterCreate() {
-      self.gridModel.setDataConfiguration(self.dataConfiguration)
+  .volatile(() => ({
+    // Bumped when the set of plotted cases changes (cases added, removed, hidden, filtered, set aside)
+    pointCasesVersion: 0,
+    // Bumped when plotted coordinate values may have changed (value edits, lat/long attribute type or id changes).
+    // This is needed because dataConfiguration.caseDataHash hashes only which cases are plotted, not their
+    // values, so it doesn't change when a lat/long value is edited.
+    pointValuesVersion: 0,
+    // Whether the latest pointValuesVersion bump came from a value change made while the dataset was
+    // caching, in which case only selected cases changed
+    pointValuesChangedWhileCaching: false
+  }))
+  .views(self => ({
+    // Changes whenever either version changes, for consumers that don't care which kind of change happened
+    get pointDataVersion() {
+      return self.pointCasesVersion + self.pointValuesVersion
     },
+    get pointAttributes() {
+      const latId = self.dataConfiguration.attributeID('lat')
+      const longId = self.dataConfiguration.attributeID('long')
+      return latId && longId ? { latId, longId } : undefined
+    }
+  }))
+  .actions(self => ({
+    bumpPointCasesVersion() {
+      self.pointCasesVersion++
+    },
+    bumpPointValuesVersion(whileCaching = false) {
+      self.pointValuesChangedWhileCaching = whileCaching
+      self.pointValuesVersion++
+    }
+  }))
+  .actions(self => ({
     setPointAttributes(dataSet: IDataSet, latAttrId: string, longAttrId: string) {
       self.dataConfiguration.setDataset(dataSet, getMetadataFromDataSet(dataSet))
       self.dataConfiguration.setAttribute('lat', {attributeID: latAttrId})
@@ -43,10 +77,10 @@ export const MapPointLayerModel = MapLayerModel
     }
   }))
   .views(self => ({
-    get pointAttributes() {
-      const latId = self.dataConfiguration.attributeID('lat')
-      const longId = self.dataConfiguration.attributeID('long')
-      return latId && longId ? { latId, longId } : undefined
+    getCaseLatLong(caseID: string) {
+      const { dataset } = self.dataConfiguration
+      const attrs = self.pointAttributes
+      return dataset && attrs ? getCaseLatLong(dataset, caseID, attrs.latId, attrs.longId) : undefined
     },
     getPointRadius(use: 'normal' | 'hover-drag' | 'select' = 'normal') {
       return computePointRadius(self.dataConfiguration.getCaseDataArray(0).length,
@@ -58,6 +92,71 @@ export const MapPointLayerModel = MapLayerModel
     get titleCollection(): Maybe<ICollectionModel> {
       const latId = self.dataConfiguration.attributeID('lat')
       return latId ? self.dataConfiguration.dataset?.getCollectionForAttribute(latId) : undefined
+    }
+  }))
+  .views(self => ({
+    /**
+     * The coordinates of the plotted cases that have valid lat/long values. Like the points, this excludes hidden,
+     * set-aside, and filtered-out cases, and respects "display only selected cases". It doesn't depend on
+     * pointsAreVisible or legend grouping, so hot spots built from it draw even when the points are hidden and
+     * combine all legend categories.
+     */
+    get plottedLatLongs(): ILatLong[] {
+      // Update when pointDataVersion changes.
+      void self.pointDataVersion
+      // Don't track anything else. Doing so causes multiple invalidations per change.
+      return untracked(() => {
+        const latLongs: ILatLong[] = []
+        self.dataConfiguration.getCaseDataArray(0).forEach(({ caseID }) => {
+          const latLong = self.getCaseLatLong(caseID)
+          if (latLong) latLongs.push(latLong)
+        })
+        return latLongs
+      })
+    }
+  }))
+  .actions(self => ({
+    afterCreate() {
+      self.gridModel.setDataConfiguration(self.dataConfiguration)
+      self.gridModel.setPointDataSource(self)
+      self.hotSpotModel.setLatLongSource(self)
+      const { dataConfiguration } = self
+
+      // The set of plotted cases changed (added, removed, hidden, filtered, set aside)
+      addDisposer(self, reaction(
+        () => dataConfiguration.caseDataHash,
+        () => self.bumpPointCasesVersion(),
+        { name: "MapPointLayerModel.pointCasesVersion" }
+      ))
+
+      // Changing a lat/long attribute's type or id changes its numeric values and which cases are valid
+      addDisposer(self, reaction(
+        () => [
+          dataConfiguration.attributeID("lat"), dataConfiguration.attributeID("long"),
+          dataConfiguration.attributeType("lat"), dataConfiguration.attributeType("long")
+        ],
+        () => {
+          dataConfiguration.invalidateCases()
+          self.bumpPointValuesVersion()
+        },
+        { name: "MapPointLayerModel.latLongTypeChange", equals: comparer.structural }
+      ))
+
+      // Value changes and case additions/removals in whichever dataset the layer is showing
+      let disposeActionListener: Maybe<() => void>
+      addDisposer(self, reaction(
+        () => dataConfiguration.dataset,
+        dataset => {
+          disposeActionListener?.()
+          disposeActionListener = dataset && onAnyAction(dataset, action => {
+            if (isCaseValueChangeAction(action)) {
+              self.bumpPointValuesVersion(dataset.isCaching())
+            }
+          })
+        },
+        { name: "MapPointLayerModel.datasetActions", fireImmediately: true }
+      ))
+      addDisposer(self, () => disposeActionListener?.())
     }
   }))
 

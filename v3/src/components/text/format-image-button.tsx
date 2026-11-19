@@ -168,6 +168,7 @@ function ImageDialog({ isOpen, onClose, onSave, editImage }: IImageDialogProps) 
 
   return (
     <CodapModal
+      data-testid="image-dialog-modal"
       isOpen={isOpen}
       onClose={onClose}
       onKeyDown={handleKeyDown}
@@ -175,7 +176,7 @@ function ImageDialog({ isOpen, onClose, onSave, editImage }: IImageDialogProps) 
       modalHeight={"311px"}
     >
       <ModalHeader h="34px" className="codap-modal-header-v3" fontSize="md" data-testid="codap-modal-header">
-        <div className="codap-modal-icon-container-v3">
+        <div className="codap-modal-icon-container-v3" aria-hidden="true">
           <AddImageIcon />
         </div>
         <div className="codap-header-title-v3">Insert Image</div>
@@ -248,16 +249,19 @@ function ImageDialog({ isOpen, onClose, onSave, editImage }: IImageDialogProps) 
                 >
                   {placementLabel}
                 </MenuButton>
-                <MenuList>
-                  <MenuItem onClick={() => setPlacement("inline")}>
+                <MenuList data-testid="image-dialog-placement-menu-list">
+                  <MenuItem onClick={() => setPlacement("inline")}
+                      data-testid="image-dialog-placement-inline">
                     <InlineImageIcon />
                     {placementLabels.inline}
                   </MenuItem>
-                  <MenuItem onClick={() => setPlacement("left")}>
+                  <MenuItem onClick={() => setPlacement("left")}
+                      data-testid="image-dialog-placement-left">
                     <FloatLeftImageIcon />
                     {placementLabels.left}
                   </MenuItem>
-                  <MenuItem onClick={() => setPlacement("right")}>
+                  <MenuItem onClick={() => setPlacement("right")}
+                      data-testid="image-dialog-placement-right">
                     <FloatRightImageIcon />
                     {placementLabels.right}
                   </MenuItem>

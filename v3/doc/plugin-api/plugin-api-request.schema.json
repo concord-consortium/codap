@@ -83,12 +83,14 @@
         "caseByID": [
           "get",
           "update",
-          "delete"
+          "delete",
+          "notify"
         ],
         "caseByIndex": [
           "get",
           "update",
-          "delete"
+          "delete",
+          "notify"
         ],
         "caseCount": [
           "get"
@@ -204,6 +206,11 @@
         "tourElements": [
           "get"
         ],
+        "uiNotificationMonitor": [
+          "update",
+          "delete",
+          "notify"
+        ],
         "undoChangeNotice": [
           "notify"
         ]
@@ -235,7 +242,8 @@
         "itemSearch",
         "logMessage",
         "tourElements",
-        "type"
+        "type",
+        "uiNotificationMonitor"
       ]
     }
   }

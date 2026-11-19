@@ -7,7 +7,7 @@ const params = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning&fea
 // Sleep ranges over [2, 20] in the Mammals sample, so the configured range starts at [2, 3.8]
 function setupSelectionSlider() {
   cy.visit(`${Cypress.config("index")}${params}`)
-  cy.get('.codap-case-table [data-testid="codap-attribute-button Sleep"]').should("be.visible")
+  cy.get('.codap-case-table [data-testid^="codap-attribute-button-"][data-label="Sleep"]').should("be.visible")
   slider.getVariableValue().should("eq", "0.5")
   cy.dragAttributeToTarget("table", "Sleep", "slider")
   slider.getRangeLowInput().should("have.value", "2")

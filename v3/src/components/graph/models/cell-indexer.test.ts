@@ -1,4 +1,4 @@
-import { kOther } from "../../data-display/data-display-types"
+import { GraphSplitAttrRole, kOther } from "../../data-display/data-display-types"
 import { kImpossible } from "../utilities/cell-key-utils"
 import { CellIndexer, ICellIndexerOptions } from "./cell-indexer"
 
@@ -213,5 +213,100 @@ describe("CellIndexer", () => {
     expect(indexer.indexForSlots({ top: 1, right: 0, y: 0, x: 0 })).toBe(12)
     expect(indexer.indexForSlots({ top: 1, right: 1, y: 0, x: 0 })).toBe(18)
     expect(indexer.indexForSlots({ top: 1, right: 1, y: 2, x: 1 })).toBe(23)
+  })
+
+  describe("indicesMatchingSlots", () => {
+    const indexer = new CellIndexer(makeOptions({
+      xAttrId: "xId", xCats: ["x0", "x1"],
+      yAttrId: "yId", yCats: ["y0", "y1", kOther],
+      rightAttrId: "rId", rightCats: ["r0", "r1"],
+      topAttrId: "tId", topCats: ["t0", "t1"]
+    }))
+
+    it("returns every index when no role is constrained", () => {
+      expect(indexer.indicesMatchingSlots({})).toEqual(Array.from({ length: indexer.cellCount }, (_, i) => i))
+    })
+
+    // hand-derived: index = top*12 + right*6 + y*2 + x
+    it("varies only the unconstrained roles", () => {
+      // a row: one cell per x category
+      expect(indexer.indicesMatchingSlots({ y: 2, rightSplit: 1, topSplit: 0 })).toEqual([10, 11])
+      // a column: one cell per y category
+      expect(indexer.indicesMatchingSlots({ x: 1, rightSplit: 0, topSplit: 1 })).toEqual([13, 15, 17])
+    })
+
+    it("matches nothing for a negative or out-of-range slot", () => {
+      expect(indexer.indicesMatchingSlots({ y: -1 })).toEqual([])
+      expect(indexer.indicesMatchingSlots({ x: 2 })).toEqual([])
+    })
+
+    const roles = ["topSplit", "rightSplit", "y", "x"] as const
+    const cats = (prefix: string, count: number) => Array.from({ length: count }, (_, i) => `${prefix}${i}`)
+    const grids: Record<string, ICellIndexerOptions> = {
+      // every count differs, so a count used for the wrong role changes the answer
+      "2 x 3 x 4 x 5": makeOptions({
+        topAttrId: "tId", topCats: cats("t", 2), rightAttrId: "rId", rightCats: cats("r", 3),
+        yAttrId: "yId", yCats: cats("y", 4), xAttrId: "xId", xCats: cats("x", 5)
+      }),
+      // single-slot roles between multi-slot ones
+      "3 x 1 x 4 x 1": makeOptions({
+        topAttrId: "tId", topCats: cats("t", 3), rightAttrId: "rId", rightCats: cats("r", 1),
+        yAttrId: "yId", yCats: cats("y", 4), xAttrId: "xId", xCats: cats("x", 1)
+      })
+    }
+
+    it.each(Object.keys(grids))("agrees with a brute-force search for every constraint on a %s grid", name => {
+      const options = grids[name]
+      const grid = new CellIndexer(options)
+      const counts = {
+        topSplit: options.topCats.length, rightSplit: options.rightCats.length,
+        y: options.yCats.length, x: options.xCats.length
+      }
+      // every combination of constrained roles, each with every valid slot plus -1 and one past the end
+      let constraints: Array<Partial<Record<GraphSplitAttrRole, number>>> = [{}]
+      for (const role of roles) {
+        const slotChoices = Array.from({ length: counts[role] + 2 }, (_, i) => i - 1)
+        constraints = constraints.flatMap(c => [c, ...slotChoices.map(slot => ({ ...c, [role]: slot }))])
+      }
+      constraints.forEach(slots => {
+        const expected = Array.from({ length: grid.cellCount }, (_, i) => i).filter(i => {
+          const cellSlots = grid.slotsForIndex(i)
+          return roles.every(role => slots[role] === undefined || cellSlots[role] === slots[role])
+        })
+        expect(grid.indicesMatchingSlots(slots)).toEqual(expected)
+      })
+    })
+
+    it("treats a role with no attribute as a single slot 0", () => {
+      // callers pass slot 0 for a role with no attribute (slotFor returns 0)
+      const grid = new CellIndexer(makeOptions({ xAttrId: "xId", xCats: cats("x", 3) }))
+      expect(grid.slotFor("y", "anything")).toBe(0)
+      expect(grid.indicesMatchingSlots({ y: 0 })).toEqual([0, 1, 2])
+      expect(grid.indicesMatchingSlots({ y: 1 })).toEqual([])
+    })
+  })
+
+  describe("slotsForIndex", () => {
+    it.each([
+      ["2 x 3 x 4 x 5", [2, 3, 4, 5]],
+      ["3 x 1 x 4 x 1", [3, 1, 4, 1]]
+    ])("inverts indexForSlots on a %s grid", (_name, [top, right, y, x]) => {
+      const grid = new CellIndexer(makeOptions({
+        topAttrId: "tId", topCats: Array.from({ length: top }, (_, i) => `t${i}`),
+        rightAttrId: "rId", rightCats: Array.from({ length: right }, (_, i) => `r${i}`),
+        yAttrId: "yId", yCats: Array.from({ length: y }, (_, i) => `y${i}`),
+        xAttrId: "xId", xCats: Array.from({ length: x }, (_, i) => `x${i}`)
+      }))
+      for (let t = 0; t < top; t++) {
+        for (let r = 0; r < right; r++) {
+          for (let yy = 0; yy < y; yy++) {
+            for (let xx = 0; xx < x; xx++) {
+              const index = grid.indexForSlots({ top: t, right: r, y: yy, x: xx })
+              expect(grid.slotsForIndex(index)).toEqual({ topSplit: t, rightSplit: r, y: yy, x: xx })
+            }
+          }
+        }
+      }
+    })
   })
 })

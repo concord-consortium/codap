@@ -4,7 +4,7 @@ import { observer } from "mobx-react-lite"
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { ICoreNotification } from "../../data-interactive/notification-core-types"
 import { CollectionContext, ParentCollectionContext } from "../../hooks/use-collection-context"
-import { useDataSetContext } from "../../hooks/use-data-set-context"
+import { useDataSet } from "../../hooks/use-data-set"
 import { isDragAttributeData, useTileDropOverlay } from "../../hooks/use-drag-drop"
 import { useInstanceIdContext } from "../../hooks/use-instance-id-context"
 import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
@@ -21,6 +21,7 @@ import { AttributeHeaderDividerContext } from "../case-tile-common/use-attribute
 import { AttributeDragOverlay } from "../drag-drop/attribute-drag-overlay"
 import { IScrollOptions } from "./case-table-types"
 import { CollectionTable } from "./collection-table"
+import { getRenderedCollections } from "./rendered-collections"
 import { CaseTableAnnounceContext } from "./use-case-table-announce"
 import { useCaseTableModel } from "./use-case-table-model"
 import { useSyncScrolling } from "./use-sync-scrolling"
@@ -32,7 +33,7 @@ export const CaseTable = observer(function CaseTable() {
   const instanceId = useInstanceIdContext() || "case-table"
   // pass in the instance id since the context hasn't been provided yet
   const { setNodeRef } = useTileDropOverlay(instanceId)
-  const data = useDataSetContext()
+  const { data, metadata } = useDataSet()
   const tableModel = useCaseTableModel()
   const tileSelection = useTileSelectionContext()
   const { handleWhiteSpaceClick } = useWhiteSpaceClick()
@@ -173,7 +174,7 @@ export const CaseTable = observer(function CaseTable() {
   return prf.measure("Table.render", () => {
     if (!tableModel || !data) return null
 
-    const collections = data.collections
+    const collections = getRenderedCollections(data.collections, attrId => !!metadata?.isHidden(attrId))
     const handleContentClick = (event: React.MouseEvent<HTMLDivElement>) => {
       if (tileSelection.isTileSelected() && event.target === contentRef.current) {
         handleWhiteSpaceClick()

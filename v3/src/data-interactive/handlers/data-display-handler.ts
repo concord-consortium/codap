@@ -27,14 +27,12 @@ export const diDataDisplayHandler: DIAsyncHandler = {
       const handler = diDataDisplayHandlers.get(v2Type)
       const imgSnapshotRes = await handler?.get(component?.content)
       const { exportDataUri, success } = imgSnapshotRes ?? {}
-      const values = success
-        ? { exportDataUri }
-        : { error: dataDisplayNotFoundResult }
+      if (!success) return dataDisplayNotFoundResult
 
-      return { success, values }
+      return { success: true, values: { exportDataUri } }
     } catch (e) {
       console.error("Error in diDataDisplayHandler", e)
-      return { success: false, values: { error: dataDisplayNotFoundResult } }
+      return dataDisplayNotFoundResult
     }
   }
 }

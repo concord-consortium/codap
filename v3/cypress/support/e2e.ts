@@ -25,10 +25,16 @@ import "@cypress/code-coverage/support"
 // add support for dispatching native events (https://github.com/dmtrKovalenko/cypress-real-events)
 import "cypress-real-events"
 
-// https://github.com/quasarframework/quasar/issues/2233#issuecomment-1006506083
-Cypress.on("uncaught:exception", err => !err.message.includes("ResizeObserver"))
-
-Cypress.on("uncaught:exception", err => !err.message.includes("not a function"))
+// Some uncaught exceptions are ignored so they don't fail the test, but an ignored exception can
+// still leave the app in a broken state (e.g. one thrown inside framer-motion's frame loop stops
+// all of its animations). Log every exception so that a later failure can be traced back to it.
+Cypress.on("uncaught:exception", err => {
+  Cypress.log({ name: "uncaught exception", message: err.message })
+  console.error("[cypress] uncaught exception:", err)
+  // https://github.com/quasarframework/quasar/issues/2233#issuecomment-1006506083
+  const isIgnored = err.message.includes("ResizeObserver") || err.message.includes("not a function")
+  return !isIgnored
+})
 
 // Suppress the AnnouncementBanner during Cypress runs. The banner is fetched
 // from S3 on mount and, if successful, adds a 50px top offset to the workspace.
@@ -38,6 +44,15 @@ Cypress.on("uncaught:exception", err => !err.message.includes("not a function"))
 // eslint-disable-next-line mocha/no-top-level-hooks
 beforeEach(() => {
   cy.intercept("GET", "**/notifications/v3-announcement-banner.json", { statusCode: 404 })
+})
+
+// Hide the About dialog's welcome view, which opens on every load and would cover what tests interact with.
+// Tests of the welcome view set Cypress.env("showWelcome", true) first.
+Cypress.on("window:before:load", (win) => {
+  if (Cypress.env("showWelcome")) return
+  const kPersistentStateKey = "persistentState"
+  const stored = JSON.parse(win.localStorage.getItem(kPersistentStateKey) || "{}")
+  win.localStorage.setItem(kPersistentStateKey, JSON.stringify({ ...stored, hideWelcome: true }))
 })
 
 // Capture console.log/warn/error from the application and display in Cypress command log

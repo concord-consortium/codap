@@ -34,7 +34,7 @@ import { SliderRangeThumb } from "./slider-range-thumb"
 import { SliderRangeValues } from "./slider-range-values"
 import { CodapSliderThumb } from "./slider-thumb"
 import { kNoSelectionResumeProps, kNoSelectionResumeSelector, kSliderClass } from "./slider-types"
-import { rangeFromHandles, sliderGroupLabel, sliderStep, valueChangeNotification } from "./slider-utils"
+import { rangeFromHandles, sliderGroupLabel, sliderStep } from "./slider-utils"
 
 import "./slider.scss"
 
@@ -130,7 +130,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       () => sliderModel.isRangeSlider
         ? sliderModel.setDynamicRange(...rangeForHandles(values))
         : sliderModel.setDynamicValue(values[0]),
-      { noDirty: true, notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+      // the global value's observer sends `global[<name>]`
+      { noDirty: true }
     )
   }, [rangeForHandles, sliderModel])
 
@@ -157,9 +158,9 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       () => sliderModel.setValue(values[0]),
       {
         // V2 emits `change slider value` on mouseUp after drag (slider_view.js:330).
-        // Mirror that here. The during-drag handleChange above continues to fire the
-        // `global[<name>]` notification per tick, which V2 also does via the model
-        // observer; the component-resource notification fires only on drag completion.
+        // Mirror that here. The global value's observer (global-value-notifications.ts) sends
+        // `global[<name>]` on each change during the drag, as V2's model observer does; the
+        // component-resource notification fires only on drag completion.
         notify: () => changeSliderValueNotification(tile, values[0]),
         undoStringKey: "DG.Undo.slider.change",
         redoStringKey: "DG.Redo.slider.change",
@@ -339,7 +340,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                                                               hasAttributeLabel: !!attributeLabel,
                                                               "tile-selected": isTileSelected(),
                                                               "selection-paused": sliderModel.isSelectionPaused})}
-               ref={setWrapperRef} data-testid="slider-drop-overlay" onPointerDownCapture={handlePointerDownCapture}>
+               ref={setWrapperRef} data-testid="slider" onPointerDownCapture={handlePointerDownCapture}>
             <If condition={showPrompt}>
               <div className="slider-attribute-prompt" data-testid="slider-attribute-prompt">
                 {/* choosing removes the prompt, so focus moves to the attribute label's menu that replaces it */}

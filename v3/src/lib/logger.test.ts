@@ -228,7 +228,7 @@ describe("Logger", () => {
     })
   })
 
-  describe("excludeAnalytics option", () => {
+  describe("Google Analytics", () => {
     const originalIsLoggingEnabled = Logger.isLoggingEnabled
     let gtag: jest.Mock
 
@@ -249,6 +249,37 @@ describe("Logger", () => {
       Logger.initializeLogger(mockDocument)
       Logger.log("testEvent")
       expect(gtag).toHaveBeenCalledTimes(1)
+    })
+
+    it("sends the args named in analyticsArgs as top-level parameters and drops the rest", () => {
+      Logger.initializeLogger(mockDocument)
+      Logger.log("testEvent", { bannerId: "banner-1", url: "https://example.com", other: "x" }, "banner",
+        { analyticsArgs: ["bannerId", "url"] })
+      expect(gtag).toHaveBeenCalledWith("event", "testEvent", {
+        eventCategory: "banner",
+        eventAction: "testEvent",
+        eventLabel: "CODAPV3",
+        bannerId: "banner-1",
+        url: "https://example.com"
+      })
+    })
+
+    it("sends no args to Google Analytics by default, but still sends them to listeners", () => {
+      Logger.initializeLogger(mockDocument)
+      const listener = jest.fn()
+      Logger.registerLogListener(listener)
+
+      Logger.log("WebView initialized", { url: "https://example.com/student-doc" }, "plugin")
+
+      expect(gtag).toHaveBeenCalledWith("event", "WebView initialized",
+        { eventCategory: "plugin", eventAction: "WebView initialized", eventLabel: "CODAPV3" })
+      expect(listener.mock.calls[0][0].parameters).toEqual({ url: "https://example.com/student-doc" })
+    })
+
+    it("respects analyticsArgs for events queued before initialization", () => {
+      Logger.log("testEvent", { bannerId: "banner-1" }, "banner", { analyticsArgs: ["bannerId"] })
+      Logger.initializeLogger(mockDocument)
+      expect(gtag.mock.calls[0][2]).toHaveProperty("bannerId", "banner-1")
     })
 
     it("doesn't send excluded events to Google Analytics, but still sends them to listeners", () => {

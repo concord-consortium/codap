@@ -105,6 +105,7 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
           isVisible: grid.isVisible,
           _gridMultiplier: grid.gridMultiplier,
         },
+        hotSpotModel: v2LayerModel.v3?.hotSpot,
         pointsAreVisible: pointsShouldBeVisible,
         connectingLinesAreVisible: connectingLines.isVisible
       }

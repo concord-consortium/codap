@@ -291,11 +291,14 @@ export const stringFunctions = {
 
       const ratingsAttribute = otherAttrId ? dataSet.attrFromID(otherAttrId) : undefined
 
+      // only the shown words count: set-aside items are skipped, as in V2, and so are filtered-out ones
+      const words = dataSet.itemIds.map(itemId => dataSet.getStrValue(itemId, attrId) ?? "")
       const wordRatingMap: Record<string, number> = {}
-      wordAttribute.strValues.forEach((word, index) => wordRatingMap[word] = ratingsAttribute?.numValue(index) ?? 1)
+      dataSet.itemIds.forEach((itemId, i) =>
+        wordRatingMap[words[i]] = ratingsAttribute ? dataSet.getNumeric(itemId, ratingsAttribute.id) ?? 1 : 1)
 
       let result = 0
-      wordAttribute.strValues.forEach(word => {
+      words.forEach(word => {
         if (word) {
           const isRegEx = word.startsWith("/") && word.endsWith("/")
           const pattern = isRegEx ? word.substring(1, word.length - 1) : `\\b${escapeStringRegexp(word)}\\b`
