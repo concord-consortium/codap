@@ -108,7 +108,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
 export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2Attribute {
   const metadata = dataContext && getMetadataFromDataSet(dataContext)
-  const { cid, name, type, title, description, id, effectivePrecision } = attribute
+  const { cid, name, userType, title, description, id, effectivePrecision } = attribute
   const v2Id = toV2Id(id)
   const _defaultRange = metadata?.getAttributeDefaultRange(attribute.id)
   const defaultRange = _defaultRange ? { defaultMin: _defaultRange[0], defaultMax: _defaultRange[1] } : undefined
@@ -133,7 +133,8 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
 
   return {
     name,
-    type,
+    // as in V2, a type CODAP inferred from the values is reported as null
+    type: userType ?? null,
     title,
     cid,
     description,

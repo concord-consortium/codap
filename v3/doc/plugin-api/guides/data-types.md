@@ -1,6 +1,6 @@
 # Data types
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-11-10
+> **Applies to:** CODAP v3 · **Verified:** 2026-11-19
 
 A plugin doesn't have to declare what kind of data it sends. Values go to CODAP as JavaScript
 numbers or strings, and CODAP works out from the values themselves whether an attribute holds
@@ -27,7 +27,7 @@ with no cases has no type yet, and one whose values are all empty is categorical
 
 The values themselves are kept as you sent them: deciding that an attribute is numeric doesn't
 change the text of its values, and you can change the type without losing anything. See
-[Known limitations](#known-limitations) for what `get` returns.
+[Reading values back](#reading-values-back) for what `get` returns.
 
 ## Numbers
 
@@ -123,7 +123,25 @@ What changes with each type:
 - **`date`**: values are read as [dates](#dates).
 
 `get` on `attribute` returns the explicit type when there is one, and `null` for an attribute
-whose type is inferred; see [Known limitations](#known-limitations).
+whose type is inferred, as in v2. So do `get` on `collection` and `dataContext` for their
+attributes.
+
+## Reading values back
+
+`get` on cases and items, `allCases`, searches, set-aside items in `get` on `dataContext`, and the
+cases in notifications return each value as it was sent, as in v2, with two exceptions:
+
+- **Numbers.** CODAP keeps every value as text, so it can't tell `12` from `"12"`: text that is
+  exactly how JavaScript writes a finite number reads back as that number. Other text that counts
+  as a number reads back unchanged, so `"0x1F"`, `"1e3"`, `"12.50"` and `"02134"` come back as
+  sent, and so does `"$12.50"` in a `numeric` attribute. `Infinity` and `NaN` come back as text.
+  This is a deliberate difference.
+- **Booleans.** The text `true` and `false` reads back as a boolean; see [Booleans](#booleans).
+
+Surrounding spaces are removed when a value is stored, so `" abc "` reads back as `"abc"`.
+
+`caseSearch` and `itemSearch` compare the number a value counts as, so `code==31` finds `"0x1F"`,
+and `price==12.5` finds `"$12.50"` in a `numeric` attribute.
 
 ## Compared with v2
 
@@ -138,17 +156,8 @@ These are improvements on v2 that a plugin written for it could notice:
 
 ## Known limitations
 
-**`get` on `attribute` returns the inferred type.** For an attribute with no explicit `type`,
-`type` in the result is the type CODAP inferred, such as `numeric`, rather than `null`, so a
-plugin can't tell an inferred type from one that was set. This is a known bug.
-
 **A two-digit year of `49` is 2049, not 1949.** The years 2000–2048 and 1950–1999 are read as
 described above. This is a known bug.
-
-**A number sent as text reads back as a number.** CODAP keeps the text, but `get` on cases and
-items, and searches, return the number it reads: an item created with `"12"` reads back as `12`,
-`"0x1F"` as `31` and `"1e3"` as `1000`, and with the `numeric` type `"$12.50"` reads back as
-`12.5`. v2 returned each value exactly as it was sent. This is a known bug.
 
 ## See also
 

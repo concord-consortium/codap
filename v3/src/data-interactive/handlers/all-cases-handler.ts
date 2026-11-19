@@ -39,7 +39,7 @@ export const diAllCasesHandler: DIHandler = {
       }
       const values: Record<string, IValueType> = {}
       attributes.forEach(attr => {
-        if (attr) values[attr.name] = toPluginValue(dataContext.getValue(__id__, attr.id))
+        if (attr) values[attr.name] = toPluginValue(dataContext.getStrValue(__id__, attr.id))
       })
       return {
         case: { id: toV2Id(__id__), parent, children, values },
