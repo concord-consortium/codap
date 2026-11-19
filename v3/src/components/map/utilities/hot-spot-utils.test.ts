@@ -43,6 +43,18 @@ describe("resolution slider scale", () => {
     expect(resolutionLimit(1.234, 0.01)).toBeCloseTo(1.24)
     expect(resolutionLimit(-2.5, 0.01)).toBeCloseTo(2.5)
   })
+
+  it("ignores floating-point noise in the resolution", () => {
+    expect(resolutionLimit(1.0000000000000002, 0.01)).toBe(1)
+    expect(resolutionLimit(-1.0000000000000002, 0.01)).toBe(1)
+    expect(resolutionLimit(1.2300000000000002, 0.01)).toBeCloseTo(1.23)
+    // converting the ends of the range back to resolutions adds noise for this default
+    const defaultBandwidth = 3333.3
+    for (const end of [-1, 1]) {
+      const resolution = bandwidthToResolution(resolutionToBandwidth(end, defaultBandwidth), defaultBandwidth)
+      expect(resolutionLimit(resolution, 0.01)).toBe(1)
+    }
+  })
 })
 
 describe("hot spot constants", () => {

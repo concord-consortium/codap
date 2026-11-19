@@ -104,7 +104,9 @@ export function resolutionToBandwidth(resolution: number, defaultBandwidthMeters
  * still in the center.
  */
 export function resolutionLimit(resolution: number, step: number) {
-  return Math.max(1, Math.ceil(Math.abs(resolution) / step) * step)
+  // Subtract 1e-9 because converting a bandwidth to a resolution can add floating-point noise
+  // (e.g. 1.0000000000000002 for the end of the range), which mustn't round up to the next step
+  return Math.max(1, Math.ceil(Math.abs(resolution) / step - 1e-9) * step)
 }
 
 /** A Gaussian kernel centered at (x, y) with bandwidth h, all in the same units */
