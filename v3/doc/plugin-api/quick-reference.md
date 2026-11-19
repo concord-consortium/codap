@@ -129,11 +129,14 @@ the string is what reaches your plugin.
 <!-- BEGIN GENERATED: error-catalog -->
 | Error | Prebuilt result |
 |---|---|
+| `<value> must be a number or a string.` | — |
 | `<value> must be a number.` | — |
 | `<value> must be a string.` | — |
+| `<value> must be an object.` | — |
 | `<value> must be true or false.` | — |
 | `<value1> <value2>: <value3> required` | — |
 | `<value1> contains an invalid attribute name or ID.` | — |
+| `<value1> must be one of <value2>.` | — |
 | `<value1> selectionList requires a list of case IDs.` | — |
 | `A values object is required for this request.` | `valuesRequiredResult` |
 | `Action handler returned undefined.` | — |

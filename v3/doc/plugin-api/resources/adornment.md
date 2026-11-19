@@ -169,7 +169,7 @@ page does not yet cover, except for these:
 | all of the types below, and `Mean`, `Median`, `Standard Deviation`, `Mean Absolute Deviation` and `Normal Curve` | `isVisible` | `update` shows or hides the adornment; `create` always shows it |
 | `Box Plot` | `showOutliers` | shows outliers separately, as the inspector's checkbox does |
 | `Box Plot` | `showICI` | shows the informal confidence interval. The inspector offers this only when CODAP is opened with the `ICI` URL parameter, or while it is on; the API sets it either way |
-| `Standard Error` | `_numStErrs` | the number of standard errors shown, as `get` reports it. Any finite value of 0 or more is accepted, as in v2; the inspector shows it rounded to the nearest 0.5. A negative value, or one that isn't a finite number, is ignored |
+| `Standard Error` | `_numStErrs` | the number of standard errors shown, as `get` reports it. Any finite value of 0 or more is accepted, as in v2; the inspector shows it rounded to the nearest 0.5. A negative value is ignored, as v2's inspector ignored one |
 | `Movable Line` | `slope`, `intercept` | the line, in every cell the graph has at the time of the request; a cell added later starts where the inspector puts it. Either may be sent alone. While the graph's intercept is locked, `intercept` stays 0. Unlike a drag, nothing keeps the line within the axes |
 | `Movable Point` | `x`, `y` | the point, in every cell the graph has at the time of the request; a cell added later starts where the inspector puts it. Either may be sent alone. `get` reports them under the attributes' names. Nothing keeps the point within the axes |
 | `Plotted Function` | `formula` (or `expression`) | the function of `x` to plot; `""` clears it. `get` reports `formula` JSON-encoded (`2*x` comes back as `"\"2*x\""`), so a plugin `JSON.parse`s it before sending it back |
@@ -188,11 +188,20 @@ If both `formula` and `expression` are sent, `formula` is used; a `null` value i
 absent, so `{ "formula": null, "expression": "3*x" }` uses the expression and `{ "slope": null }`
 changes nothing.
 
-`create` and `update` refuse a value of the wrong type, and change nothing: for every type, an
-`isVisible` that isn't `true` or `false`; for `Box Plot`, a `showOutliers` or `showICI` that isn't
-either; for `Movable Line` and `Movable Point`, a `slope`, `intercept`, `x` or `y` that isn't a
-finite number; and for `Plotted Function` and `Plotted Value`, a formula that isn't a string. The
-error names the property, as in `isVisible must be true or false.`
+`create` and `update` refuse a value of the wrong type, and change nothing:
+
+- for every type, an `isVisible` that isn't `true` or `false`
+- for `Box Plot`, a `showOutliers` or `showICI` that isn't either, and for `LSRL`, a
+  `showConfidenceBands`, `showR` or `showRSquared` that isn't either
+- for `Standard Error`, a `_numStErrs` that isn't a finite number, and for `Movable Line` and
+  `Movable Point`, a `slope`, `intercept`, `x` or `y` that isn't one
+- for `Count` and `Percent`, a `percentType` other than `cell`, `column` or `row`
+- for `Region of Interest`, a `primary` or `secondary` that isn't an object, a `position` or
+  `extent` in it that isn't a number or a string, or a `secondary` `axis` other than `y`; the
+  error names the range, as in `secondary.position must be a number or a string.`
+- for `Plotted Function` and `Plotted Value`, a formula that isn't a string
+
+The error names the property, as in `isVisible must be true or false.`
 
 ## Examples
 
@@ -299,9 +308,12 @@ Only changes made in the graph itself send them; no `adornment` request sends a 
 | `Adornment list not found.` | `adornmentList` on a component whose adornment list could not be resolved. |
 | `Unsupported adornment type` | The adornment exists but has no registered handler. |
 | `The <type> adornment does not currently support <action> requests.` | `create` for a type CODAP doesn't have. (`update` for one replies `Adornment not found.`) |
-| `<property> must be a number.` | `create` or `update` on `Movable Line` or `Movable Point` with a `slope`, `intercept`, `x` or `y` that isn't a finite number. |
+| `<property> must be a number.` | `create` or `update` on `Standard Error` with a `_numStErrs`, or on `Movable Line` or `Movable Point` with a `slope`, `intercept`, `x` or `y`, that isn't a finite number. |
+| `<property> must be one of <values>.` | `create` or `update` on `Count` or `Percent` with a `percentType`, or on `Region of Interest` with a `secondary` `axis`, that isn't one of the values listed. |
+| `<property> must be an object.` | `create` or `update` on `Region of Interest` with a `primary` or `secondary` that isn't an object. |
+| `<property> must be a number or a string.` | `create` or `update` on `Region of Interest` with a `position` or `extent` that is neither. |
 | `<property> must be a string.` | `create` or `update` on `Plotted Function` or `Plotted Value` with a `formula` or `expression` that isn't a string. |
-| `<property> must be true or false.` | `create` or `update` with an `isVisible`, or a `Box Plot`'s `showOutliers` or `showICI`, that isn't a boolean. |
+| `<property> must be true or false.` | `create` or `update` with an `isVisible`, a `Box Plot`'s `showOutliers` or `showICI`, or an `LSRL`'s `showConfidenceBands`, `showR` or `showRSquared`, that isn't a boolean. |
 | `Not a(n) <type> adornment.` | Internal type mismatch between the resolved adornment and its handler. |
 | `Adornment not supported by plot type.` | The adornment cannot be displayed by the graph's current plot type. |
 | `The current plot type does not support Percent.` | `create` with `type: "Percent"` on a plot that cannot show percentages. |

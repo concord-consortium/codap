@@ -19,6 +19,8 @@ export interface DIAdornmentHandler {
   delete?: (args: ICreateArgs) => DIHandlerFnResult | DIErrorResult
   get: (adornment: IAdornmentModel, component: IGraphContentModel) => Maybe<Record<string, any>>
   update?: (args: ICreateArgs) => DIHandlerFnResult | DIErrorResult
+  // refuses a value of the wrong type in `create` and `update`, before anything changes
+  validate?: (values: Record<string, unknown>) => DIErrorResult | undefined
 }
 
 const diAdornmentHandlers = new Map<string, DIAdornmentHandler>()
@@ -28,9 +30,11 @@ function withoutHistoryEntry<T>(graphContent: IGraphContentModel, fn: () => T): 
   return graphContent.applyModelChange(fn)
 }
 
-// every type's `create` and `update` refuse an `isVisible` that isn't a boolean
-function visibilityError(values: DIValues) {
-  return booleanValuesError(values as Record<string, unknown>, ["isVisible"])
+// every type's `create` and `update` refuse an `isVisible` that isn't a boolean, and each type its own values
+// of the wrong type
+function valuesError(handler: DIAdornmentHandler, values: DIValues) {
+  const _values = values as Record<string, unknown>
+  return booleanValuesError(_values, ["isVisible"]) ?? handler.validate?.(_values)
 }
 
 export const registerAdornmentHandler = (type: string, handler: DIAdornmentHandler, alias?: string) => {
@@ -57,7 +61,7 @@ export const diAdornmentHandler: DIHandler = {
       const handler = diAdornmentHandlers.get(resolvedType)
 
       if (handler?.create) {
-        const error = visibilityError(values)
+        const error = valuesError(handler, values)
         if (error) return error
         return withoutHistoryEntry(graphContent, () => handler.create!({graphContent, values}))
       }
@@ -142,7 +146,7 @@ export const diAdornmentHandler: DIHandler = {
 
       const handler = diAdornmentHandlers.get(resolvedType)
       if (handler?.update) {
-        const error = visibilityError(values)
+        const error = valuesError(handler, values)
         if (error) return error
         return withoutHistoryEntry(graphContent, () => handler.update!({graphContent, values}))
       } else {
