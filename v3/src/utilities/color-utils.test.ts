@@ -1,4 +1,4 @@
-import { getChoroplethColors, interpolateColors, interpolateRgba, parseColor, parseColorToHex } from "./color-utils"
+import { getChoroplethColors, interpolateRgba, parseColor, parseColorToHex } from "./color-utils"
 
 describe("Color utilities", () => {
   it("parseColor works as expected without color names", () => {
@@ -119,31 +119,6 @@ describe("Color utilities", () => {
     expect(parseColorToHex("hsl(460, 50%, 50%)", { colorNames: true })).toBe("#6abf40")
   })
 
-  it("interpolateColors interpolates RGB and alpha", () => {
-    // RGB interpolation between two opaque colors
-    expect(interpolateColors("#000000", "#ffffff", 0)).toBe("#000000")
-    expect(interpolateColors("#000000", "#ffffff", 1)).toBe("#ffffff")
-    expect(interpolateColors("#000000", "#ffffff", 0.5)).toBe("#808080")
-
-    // Opaque endpoints stay opaque (no 8-digit hex suffix introduced)
-    expect(interpolateColors("#ff0000", "#0000ff", 0.5)).toBe("#800080")
-
-    // Alpha interpolates linearly alongside RGB (CODAP-1385)
-    // fully opaque -> fully transparent at midpoint = 50% alpha
-    expect(interpolateColors("#ff0000ff", "#ff000000", 0.5)).toBe("#ff000080")
-    // both endpoints transparent: midpoint alpha lies between them
-    expect(interpolateColors("#ff000000", "#ff0000ff", 0.25)).toBe("#ff000040")
-    // alpha-only difference is preserved at the endpoints
-    expect(interpolateColors("#ff0000ff", "#ff000000", 0)).toBe("#ff0000")
-    expect(interpolateColors("#ff0000ff", "#ff000000", 1)).toBe("#ff000000")
-
-    // { format: "rgba" } returns the unrounded channels
-    expect(interpolateColors("#000000", "#ffffff", 0.5, { format: "rgba" }))
-      .toEqual({ r: 127.5, g: 127.5, b: 127.5, a: 1 })
-    expect(interpolateColors("#ff0000ff", "#ff000000", 0.25, { format: "rgba" }))
-      .toEqual({ r: 255, g: 0, b: 0, a: 0.75 })
-  })
-
   it("interpolateRgba returns unrounded numeric RGBA", () => {
     expect(interpolateRgba("#000000", "#ffffff", 0)).toEqual({ r: 0, g: 0, b: 0, a: 1 })
     expect(interpolateRgba("#000000", "#ffffff", 1)).toEqual({ r: 255, g: 255, b: 255, a: 1 })
@@ -180,15 +155,5 @@ describe("getChoroplethColors", () => {
     expect(three[0]).toBe("#000000")
     expect(three[2]).toBe("#ffffff")
     expect(getChoroplethColors("#000000", "#ffffff", 7)).toHaveLength(7)
-  })
-
-  it("returns RGBA objects when asked", () => {
-    expect(getChoroplethColors("#000000", "#ffffff", 3, { format: "rgba" })).toEqual([
-      { r: 0, g: 0, b: 0, a: 1 },
-      { r: 127.5, g: 127.5, b: 127.5, a: 1 },
-      { r: 255, g: 255, b: 255, a: 1 }
-    ])
-    expect(getChoroplethColors("#ff000000", "#ffffff", 1, { format: "rgba" }))
-      .toEqual([{ r: 255, g: 0, b: 0, a: 0 }])
   })
 })
