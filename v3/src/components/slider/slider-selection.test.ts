@@ -4,7 +4,7 @@ import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
 import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
-import { IDataSet } from "../../models/data/data-set"
+import { DataSet, IDataSet, toCanonical } from "../../models/data/data-set"
 import { addSetAsideCases, setSelectedCases } from "../../models/data/data-set-utils"
 import { IDocumentContentModel } from "../../models/document/document-content"
 import { TreeManager } from "../../models/history/tree-manager"
@@ -457,5 +457,51 @@ describe("a paused selection slider and a visibility slider", () => {
     dataSet.validateCases()
     expect(slider.ownsSelection).toBe(false)
     expect(selectedA3(dataSet)).toEqual([2])
+  })
+})
+
+describe("selection slider and data edits with a visibility slider", () => {
+  it("doesn't select a case a data edit brings into view and into range", async () => {
+    const { content, dataSet, slider } = await setupSelectionSlider()
+    const visibility = addSlider(content, dataSet, "visibility")
+    visibility.setRange(1, 5)
+    slider.setRange(2, 4)
+    slider.resumeSelection()
+    expect(selectedA3(dataSet)).toEqual([2, 3, 4])
+    // a3 = 6 is hidden; editing it to 3 shows it, within the selection slider's range
+    const six = idOf(dataSet, 6)
+    dataSet.setCaseValues([{ __id__: six, [a3Id(dataSet)]: 3 }])
+    dataSet.validateCases()
+    expect(dataSet.selection.has(six)).toBe(false)
+    expect(slider.ownsSelection).toBe(true)
+    expect(slider.isSelectionPaused).toBe(true)
+    // moving the visibility slider is a gesture on a slider, so then it's selected
+    visibility.setRange(1, 4)
+    expect(dataSet.selection.has(six)).toBe(true)
+  })
+})
+
+describe("selectExactly notifications", () => {
+  function makeDataSet(notify: jest.Mock) {
+    const data = DataSet.create({ name: "data" }, { notify })
+    data.addAttribute({ id: "aId", name: "a" })
+    data.addCases(toCanonical(data, [
+      { __id__: "i1", a: 1 }, { __id__: "i2", a: 2 }, { __id__: "i3", a: 3 }
+    ]))
+    data.validateCases()
+    return data
+  }
+
+  it("tells plugins which cases were selected and deselected", () => {
+    const notify = jest.fn()
+    const data = makeDataSet(notify)
+    selectExactly(data, new Set(["i1", "i2"]))
+    expect(notify).toHaveBeenCalledTimes(1)
+    expect(notify.mock.calls[0][0].values.result.cases).toHaveLength(2)
+    notify.mockClear()
+    selectExactly(data, new Set(["i2", "i3"]))
+    const { result } = notify.mock.calls[0][0].values
+    expect(result.cases).toHaveLength(1)
+    expect(result.removedCases).toHaveLength(1)
   })
 })

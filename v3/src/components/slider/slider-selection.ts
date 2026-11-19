@@ -20,11 +20,14 @@ export function visibleSetsEqual(dataSet: IDataSet, a: Iterable<string>, b: Iter
 }
 
 // Selects exactly the given items, changing only those whose selection state differs, so plugins are notified of
-// the change rather than of the whole selection.
+// the change rather than of the whole selection. Plugins are told about cases, so each item is passed as its
+// childmost case, as the marquee does (an item with none, e.g. a hidden one, is deselected but not reported).
 export function selectExactly(dataSet: IDataSet, itemIds: ReadonlySet<string>) {
+  dataSet.validateCases()
+  const toCaseId = (itemId: string) => dataSet.getItemChildCaseId(itemId) ?? itemId
   const add: string[] = []
-  itemIds.forEach(id => { if (!dataSet.selection.has(id)) add.push(id) })
+  itemIds.forEach(id => { if (!dataSet.selection.has(id)) add.push(toCaseId(id)) })
   const remove: string[] = []
-  dataSet.selection.forEach(id => { if (!itemIds.has(id)) remove.push(id) })
+  dataSet.selection.forEach(id => { if (!itemIds.has(id)) remove.push(toCaseId(id)) })
   selectAndDeselectCases(add, remove, dataSet)
 }

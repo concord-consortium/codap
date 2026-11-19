@@ -546,15 +546,17 @@ export const SliderModel = TileContentModel
           const applies = self.sliderType === "visibility" && !!dataSet && !!self.attribute &&
                           !self.attribute.hasFormula
           const hidden = applies ? self.sliderHiddenItemIds : undefined
-          return { dataSet, hidden }
+          return { dataSet, hidden, low: self.rangeLow, high: self.rangeHigh }
         },
-        ({ dataSet, hidden }) => {
+        ({ dataSet, hidden, low, high }, previous) => {
           if (filteredDataSet !== dataSet) clearFilter()
           if (sliderTileId && dataSet && hidden) {
             // skip a change that hides the same cases, which would regroup the whole dataset for nothing
             const current = dataSet.sliderFilteredOutItemIds.get(sliderTileId)
             if (!current || !areSetsEqual(current, hidden)) {
-              dataSet.setSliderFilter(sliderTileId, hidden)
+              // whether the range moved (or the slider began hiding) rather than the data changing
+              const byRange = !current || low !== previous?.low || high !== previous?.high
+              dataSet.setSliderFilter(sliderTileId, hidden, byRange)
             }
             filteredDataSet = dataSet
           }
@@ -583,9 +585,10 @@ export const SliderModel = TileContentModel
         }, { name: "SliderModel [selection lost]" }
       ))
       // While a selection slider owns the selection, it follows changes to its range (by dragging, playback, undo,
-      // or a plugin) and to what visibility sliders hide. Each new filter is a new set, so they compare by identity.
+      // or a plugin) and changes to what visibility sliders hide that their ranges caused. A data edit that changes
+      // what they hide doesn't count, so editing data never selects anything.
       addDisposer(self, reaction(
-        () => [self.rangeLow, self.rangeHigh, ...(self.dataSet?.sliderFilteredOutItemIds.values() ?? [])],
+        () => [self.rangeLow, self.rangeHigh, self.dataSet?.sliderRangeFilterChanges],
         () => {
           if (self.ownsSelection) self.applySelection()
         }, { name: "SliderModel [selection triggers]", equals: comparer.shallow }
