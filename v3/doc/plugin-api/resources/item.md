@@ -308,7 +308,8 @@ collection (for a case id, that case), `createCases` if the change regroups case
 `updateItems`, with the items' ids. v2 sent no `createCases` for a regroup; its `updateCases`
 result listed the cases created and deleted instead. An update that names no known attribute
 sends nothing; v2 changed nothing but still sent `updateCases` and `updateItems`. `delete` sends
-`deleteCases`, then `deleteItems`, with the deleted items' ids; v2 sent no `deleteItems`.
+`deleteCases` for every case the delete removes, in every collection, with their ids in `caseIDs`
+as in v2, then `deleteItems` with the deleted items' ids; v2 sent no `deleteItems`.
 See [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext)
 for what each carries.
 

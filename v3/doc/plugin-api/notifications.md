@@ -133,7 +133,7 @@ plugin watching one data set can filter on it.
 | `unhideAttributes`, `showAttributes` | hidden attributes are shown again with "Show all hidden attributes". Both are sent, one after the other |
 | `createCases` | cases are added |
 | `updateCases` | case values change |
-| `deleteCases` | cases are removed |
+| `deleteCases` | cases are removed. `cases` lists the deleted cases. When items are deleted through an item resource, it lists every case that disappears, in every collection, including a parent case whose last shown item goes, and `caseIDs` lists the same cases' ids, as in v2. Deleting a case lists only that case, as in v2 |
 | `moveCases` | cases are reordered |
 | `dependentCases` | case values change as a consequence of another change: random values are rerandomized, or a join adds values |
 | `selectCases` | the selection changes |
