@@ -55,19 +55,19 @@ export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayer
     // Observing the surface keeps MobX's cached copy alive while the hot spots are shown.
     // Install this before the first draw so that draw reads the cached surface.
     const disposeReaction = mstReaction(
-      () => [hotSpotModel.hotSpotSurface, hotSpotModel.lowColor, hotSpotModel.highColor],
+      () => [hotSpotModel.hotSpotSurface, hotSpotModel.colorRamp, hotSpotModel.lowColor, hotSpotModel.highColor],
       () => redraw(),
       { name: "MapHotSpotLayer.redraw" },
       hotSpotModel
     )
 
     layer.setDrawFunction((context, region) => {
-      const { highColor, lowColor, hotSpotSurface } = hotSpotModel
+      const { colorRamp, highColor, lowColor, hotSpotSurface } = hotSpotModel
       if (!hotSpotSurface) return
 
       const imageData = context.createImageData(region.cols, region.rows)
       const zoomScale = leafletMap.getZoomScale(leafletMap.getZoom(), 0)
-      const lut = buildColorLUT(getHotSpotRampInterpolator("custom", lowColor, highColor))
+      const lut = buildColorLUT(getHotSpotRampInterpolator(colorRamp, lowColor, highColor))
       renderHotSpotSurface(hotSpotSurface, createLatLongProjector(leafletMap), zoomScale, region, lut, imageData.data)
       context.putImageData(imageData, 0, 0)
     })
