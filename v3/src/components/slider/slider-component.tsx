@@ -192,11 +192,25 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       const key = running ? "DG.SliderView.animationStarted" : "DG.SliderView.animationStopped"
       // A change that brings up the prompt stops playback after announcing itself, so the stop is added to that
       // announcement rather than replacing it.
-      const cause = !running && isPrompting ? statusMessageRef.current : ""
+      const cause = !running && (isPrompting || sliderModel?.isSelectionPaused) ? statusMessageRef.current : ""
       showStatusMessage(cause ? t("V3.Slider.messageThenStopped", { vars: [cause, t(key)] }) : t(key))
       prevRunningRef.current = running
     }
-  }, [isPrompting, running, showStatusMessage])
+  }, [isPrompting, running, showStatusMessage, sliderModel])
+
+  // When another component takes the selection, a selection slider pauses: it stops playback and says so. Only a
+  // change of ownership is announced; a slider that merely looks paused because the data changed keeps playing.
+  useEffect(() => {
+    if (!sliderModel) return
+    return reaction(
+      () => sliderModel.ownsSelection,
+      owns => {
+        if (!sliderModel.isBoundSelectionSlider) return
+        showStatusMessage(t(owns ? "V3.Slider.selectionResumed" : "V3.Slider.selectionPaused"))
+        if (!owns) setRunning(false)
+      }, { name: "SliderComponent [selection ownership]" }
+    )
+  }, [sliderModel, showStatusMessage])
 
   // Announce a change to the slider's type or attribute, whether made by a drop, by undo or redo, or by a plugin, but
   // not one chosen from a menu (see makeQuietSliderChange), or the slider's state when it appears. The attribute's
@@ -296,7 +310,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
         <AxisLayoutContext.Provider value={layout}>
           <div {...groupProps} className={clsx(kSliderClass, {twoLevel: sliderModel.axisRequiresTwoLevels(),
                                                               hasAttributeLabel: !!attributeLabel,
-                                                              "tile-selected": isTileSelected()})}
+                                                              "tile-selected": isTileSelected(),
+                                                              "selection-paused": sliderModel.isSelectionPaused})}
                ref={setWrapperRef} data-testid="slider-drop-overlay" onPointerDownCapture={resumeSelection}>
             <If condition={showPrompt}>
               <div className="slider-attribute-prompt" data-testid="slider-attribute-prompt">
@@ -333,6 +348,11 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                                            onStatusMessage={showStatusMessage}/>
                       </>}
                 </div>
+                {sliderModel.isSelectionPaused &&
+                  <span className="slider-selection-paused-badge" data-testid="slider-selection-paused-badge"
+                        title={t("V3.Slider.selectionPaused.tooltip")}>
+                    {t("V3.Slider.selectionPaused.badge")}
+                  </span>}
               </div>
               <div {...trackProps} style={{ ...trackProps.style, position: "absolute" }}
                    ref={trackRef} className="slider" data-testid="slider-track"

@@ -504,4 +504,56 @@ describe("SliderComponent: resuming a selection slider", () => {
     expect(slider.ownsSelection).toBe(true)
     expect(selectedA3(dataSet)).toEqual([1])
   })
+
+  describe("paused indicator and playback", () => {
+    const status = () => within(screen.getByTestId("slider-drop-overlay")).getByRole("status")
+
+    it("shows the paused badge and class while paused, and clears them on resume", async () => {
+      const { tile, slider } = await setupPausedSelectionSlider()
+      renderSlider(tile)
+      expect(screen.getByTestId("slider-selection-paused-badge")).toHaveTextContent("Paused")
+      expect(screen.getByTestId("slider-drop-overlay")).toHaveClass("selection-paused")
+      fireEvent.pointerDown(screen.getByTestId("slider-range-body"))
+      expect(slider.isSelectionPaused).toBe(false)
+      expect(screen.queryByTestId("slider-selection-paused-badge")).not.toBeInTheDocument()
+      expect(screen.getByTestId("slider-drop-overlay")).not.toHaveClass("selection-paused")
+    })
+
+    it("stops playback when another component takes the selection", async () => {
+      const { tile, dataSet, slider } = await setupPausedSelectionSlider()
+      renderSlider(tile)
+      await userEvent.click(screen.getByTestId("slider-play-pause"))
+      expect(screen.getByTestId("slider-play-pause")).toHaveAccessibleName("Pause slider")
+      act(() => setSelectedCases([dataSet.itemIds[0]], dataSet))
+      expect(slider.ownsSelection).toBe(false)
+      expect(screen.getByTestId("slider-play-pause")).toHaveAccessibleName("Play slider")
+      // the stop is added to the pause's announcement rather than replacing it
+      expect(status()).toHaveTextContent("Selection paused. Slider animation stopped")
+    })
+
+    it("keeps playing when the slider is merely stale", async () => {
+      const { tile, dataSet, slider } = await setupPausedSelectionSlider()
+      renderSlider(tile)
+      await userEvent.click(screen.getByTestId("slider-play-pause"))
+      const a3 = dataSet.attrFromName("a3")!.id
+      // move a case that isn't selected into the range, which the slider doesn't select until it next moves
+      const unselected = dataSet.itemIds.find(itemId => !dataSet.selection.has(itemId))!
+      const inRange = (slider.rangeLow + slider.rangeHigh) / 2
+      act(() => dataSet.setCaseValues([{ __id__: unselected, [a3]: inRange }]))
+      expect(slider.isSelectionPaused).toBe(true)
+      expect(slider.ownsSelection).toBe(true)
+      expect(screen.getByTestId("slider-play-pause")).toHaveAccessibleName("Pause slider")
+      await userEvent.click(screen.getByTestId("slider-play-pause"))
+    })
+
+    it("announces pause and resume", async () => {
+      const { tile, dataSet } = await setupPausedSelectionSlider()
+      renderSlider(tile)
+      fireEvent.pointerDown(screen.getByTestId("slider-range-body"))
+      expect(status()).toHaveTextContent("Selection resumed")
+      act(() => setSelectedCases([dataSet.itemIds[0]], dataSet))
+      expect(status()).toHaveTextContent("Selection paused")
+    })
+  })
 })
+
