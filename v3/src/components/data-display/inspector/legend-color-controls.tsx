@@ -15,6 +15,7 @@ import { missingColor } from "../../../utilities/color-utils"
 import { binBoundaryDecimalPlaces } from "../../../utilities/math-utils"
 import { PointShape } from "../../../utilities/point-shape-utils"
 import { t } from "../../../utilities/translation/translate"
+import { ColorSetting } from "../../common/color-setting"
 import { If } from "../../common/if"
 import { PaletteCheckbox } from "../../palette-checkbox"
 import { getLegendBoundaries } from "../components/legend/choropleth-legend/choropleth-legend"
@@ -25,7 +26,6 @@ import {
 } from "../data-display-notifications"
 import { IDataConfigurationModel, kDefaultLegendBinCount } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
-import { ColorSetting } from "../../common/color-setting"
 import { PointShapeSetting } from "./point-shape-setting"
 
 interface ILegendColorControlsProps {

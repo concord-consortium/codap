@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 import { t } from "../../../utilities/translation/translate"
-import { PaletteCheckbox } from "../../palette-checkbox"
 import { ColorSetting } from "../../common/color-setting"
+import { PaletteCheckbox } from "../../palette-checkbox"
 
 interface IPlotBackgroundControlsProps {
   isTransparent?: boolean
