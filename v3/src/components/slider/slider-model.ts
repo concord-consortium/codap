@@ -22,6 +22,7 @@ import {
 } from "../axis/models/numeric-axis-models"
 import { dataDisplayGetNumericExtent, dataDisplayGetNumericValue } from "../data-display/data-display-value-utils"
 import { kSliderTileType } from "./slider-defs"
+import { selectExactly, visibleSetsEqual } from "./slider-selection"
 import {
   AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, FixValueFn, ISliderScaleType,
   kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultAnimationRate, kDefaultDateMultipleOfUnit,
@@ -61,7 +62,10 @@ export const SliderModel = TileContentModel
   .volatile(() => ({
     axisHelper: undefined as Maybe<AxisHelper>,
     _isAxisAnimating: false,
-    dynamicRangeWidth: undefined as number | undefined
+    dynamicRangeWidth: undefined as number | undefined,
+    // The items a selection slider last selected, or undefined when it doesn't own the selection. Never saved: on
+    // load the slider owns the selection only if the saved selection is what it would select (see selectionBinding).
+    appliedItemIds: undefined as ReadonlySet<string> | undefined
    }))
   .views(self => ({
     get name() {
@@ -174,20 +178,53 @@ export const SliderModel = TileContentModel
     }
   }))
   .views(self => ({
-    // The cases a visibility slider hides: those whose value is missing or outside the inclusive range.
-    // The tolerance keeps a case at either end when floating point leaves the bound a hair inside it.
-    get sliderHiddenItemIds(): ReadonlySet<string> {
+    // Whether a value lies within the inclusive range; a missing value never does. The tolerance keeps a case at
+    // either end when floating point leaves the bound a hair inside it.
+    isValueInRange(value?: number | null) {
       const low = self.rangeLow
       const high = self.rangeHigh
       const lowTolerance = 8 * Number.EPSILON * Math.max(1, Math.abs(low))
       const highTolerance = 8 * Number.EPSILON * Math.max(1, Math.abs(high))
+      return value != null && isFinite(value) && value >= low - lowTolerance && value <= high + highTolerance
+    },
+    // whether this is a selection slider bound to an attribute it can select by (the visibility slider's condition)
+    get isBoundSelectionSlider() {
+      return self.sliderType === "selection" && !!self.dataSet && !!self.attribute && !self.attribute.hasFormula
+    }
+  }))
+  .views(self => ({
+    // The cases a visibility slider hides: those whose value is missing or outside the inclusive range.
+    get sliderHiddenItemIds(): ReadonlySet<string> {
       const hidden = new Set<string>()
       self.attributeValues.forEach(({ itemId, value }) => {
-        if (value == null || !isFinite(value) || value < low - lowTolerance || value > high + highTolerance) {
-          hidden.add(itemId)
-        }
+        if (!self.isValueInRange(value)) hidden.add(itemId)
       })
       return hidden
+    },
+    // The cases a bound selection slider selects: the visible ones whose value lies within the inclusive range.
+    get selectionTargetItemIds(): ReadonlySet<string> {
+      const target = new Set<string>()
+      const dataSet = self.dataSet
+      if (!self.isBoundSelectionSlider || !dataSet) return target
+      self.attributeValues.forEach(({ itemId, value }) => {
+        if (self.isValueInRange(value) && !dataSet.isCaseOrItemHidden(itemId)) target.add(itemId)
+      })
+      return target
+    }
+  }))
+  .views(self => ({
+    // Whether the selection is still the one this slider made: the user hasn't selected some other way since.
+    get ownsSelection() {
+      const dataSet = self.dataSet
+      return !!self.appliedItemIds && self.isBoundSelectionSlider && !!dataSet &&
+              visibleSetsEqual(dataSet, dataSet.selection, self.appliedItemIds)
+    },
+    // Whether a bound selection slider shows as paused: the user has selected some other way, or the selection no
+    // longer covers the visible cases in range (e.g. after a data edit), which only touching the slider fixes.
+    get isSelectionPaused() {
+      const dataSet = self.dataSet
+      if (!self.isBoundSelectionSlider || !dataSet) return false
+      return !this.ownsSelection || !visibleSetsEqual(dataSet, self.appliedItemIds!, self.selectionTargetItemIds)
     },
     constrainValue(value: number) {
       if (self.isRangeSlider) {
@@ -582,6 +619,35 @@ export const SliderModel = TileContentModel
       self.dynamicRangeWidth = undefined
       // the global value tracks the low end of the range, which a multiple restriction mustn't snap away from
       self.globalValue.setValue(min)
+    }
+  }))
+  .actions(self => ({
+    // Selects the visible cases in range and takes ownership of the selection. Selection isn't undoable, so this
+    // makes no history entry.
+    applySelection() {
+      const dataSet = self.dataSet
+      if (!self.isBoundSelectionSlider || !dataSet) return
+      const target = self.selectionTargetItemIds
+      selectExactly(dataSet, target)
+      self.appliedItemIds = target
+    },
+    // stops owning the selection, leaving it as it is
+    releaseSelection() {
+      self.appliedItemIds = undefined
+    },
+    // Takes ownership of the selection only if it's already what this slider would select. It never changes the
+    // selection, so binding a slider or opening a document can't take away a selection the user made.
+    adoptSelectionIfMatching() {
+      const dataSet = self.dataSet
+      if (!self.isBoundSelectionSlider || !dataSet) return
+      const target = self.selectionTargetItemIds
+      if (visibleSetsEqual(dataSet, dataSet.selection, target)) self.appliedItemIds = target
+    }
+  }))
+  .actions(self => ({
+    // for the user's direct gestures on the slider, which resume a paused slider
+    resumeSelection() {
+      self.applySelection()
     }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
