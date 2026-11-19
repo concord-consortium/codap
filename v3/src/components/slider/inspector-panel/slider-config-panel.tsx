@@ -66,8 +66,9 @@ export const SliderConfigPalette =
         redoStringKey: "V3.Redo.slider.changeType",
         log: logStringifiedObjectMessage("sliderType: %@", {name: sliderModel.name, sliderType: newType})
       }))
-      // choosing the type is a gesture on the slider, so a selection slider selects its range
-      sliderModel.resumeSelection()
+      // choosing the type is a gesture on the slider, so a selection slider selects its range (quietly, as the menu
+      // announces its own choice)
+      makeQuietSliderChange(sliderModel, () => sliderModel.resumeSelection())
     }
 
     // commits a pending edit, in the given unit (by default the one shown)

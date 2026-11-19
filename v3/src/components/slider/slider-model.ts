@@ -534,12 +534,14 @@ export const SliderModel = TileContentModel
       ))
       addDisposer(self, clearFilter)
       // A selection slider that becomes bound (including on load) owns the selection only if the selection is
-      // already what it would select; one that stops being bound lets go of it. Neither changes the selection.
+      // already what it would select; one that stops being bound lets go of it. Neither changes the selection. On
+      // load, a visibility slider restored after this one hides cases only once it's attached, so adoption is tried
+      // again as the visibility filters arrive.
       addDisposer(self, reaction(
-        () => ({ bound: self.isBoundSelectionSlider, dataSet: self.dataSet }),
-        ({ bound }) => {
-          if (bound) self.adoptSelectionIfMatching()
-          else self.releaseSelection()
+        () => [self.isBoundSelectionSlider, self.dataSet, ...(self.dataSet?.sliderFilteredOutItemIds.values() ?? [])],
+        ([bound]) => {
+          if (!bound) self.releaseSelection()
+          else if (!self.ownsSelection) self.adoptSelectionIfMatching()
         }, { name: "SliderModel [selection binding]", fireImmediately: true, equals: comparer.shallow }
       ))
       // While a selection slider owns the selection, it follows changes to its range (by dragging, playback, undo,

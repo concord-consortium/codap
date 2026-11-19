@@ -33,7 +33,7 @@ import { rangeChangeOptions } from "./slider-range-change"
 import { SliderRangeThumb } from "./slider-range-thumb"
 import { SliderRangeValues } from "./slider-range-values"
 import { CodapSliderThumb } from "./slider-thumb"
-import { kSliderClass } from "./slider-types"
+import { kNoSelectionResumeProps, kNoSelectionResumeSelector, kSliderClass } from "./slider-types"
 import { rangeFromHandles, sliderGroupLabel, sliderStep, valueChangeNotification } from "./slider-utils"
 
 import "./slider.scss"
@@ -200,13 +200,18 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
 
   // When another component takes the selection, a selection slider pauses: it stops playback and says so. Only a
   // change of ownership is announced; a slider that merely looks paused because the data changed keeps playing.
+  // Resuming is announced only after a pause (a slider that starts selecting when it's bound hasn't resumed), and a
+  // choice from a menu, which announces itself, announces neither (see makeQuietSliderChange).
   useEffect(() => {
     if (!sliderModel) return
+    let wasPaused = sliderModel.isSelectionPaused
     return reaction(
       () => sliderModel.ownsSelection,
       owns => {
         if (!sliderModel.isBoundSelectionSlider) return
-        showStatusMessage(t(owns ? "V3.Slider.selectionResumed" : "V3.Slider.selectionPaused"))
+        const announce = !isQuietSliderChange(sliderModel) && (!owns || wasPaused)
+        if (announce) showStatusMessage(t(owns ? "V3.Slider.selectionResumed" : "V3.Slider.selectionPaused"))
+        wasPaused = !owns
         if (!owns) setRunning(false)
       }, { name: "SliderComponent [selection ownership]" }
     )
@@ -271,6 +276,14 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   // Touching the slider resumes a paused selection slider (and re-selects for an active one, which changes nothing).
   // Capture runs before the thumb and track stop the events from propagating.
   const resumeSelection = () => sliderModel?.resumeSelection()
+  // Opening the attribute menu isn't a selection gesture (choosing an attribute resumes the slider when it binds it),
+  // so a press there leaves the selection alone. That includes presses in menus portaled out of the slider, whose
+  // events still reach it through React.
+  const handlePointerDownCapture = (e: React.PointerEvent) => {
+    const target = e.target as Element
+    if (!e.currentTarget.contains(target)) return
+    if (!target.closest?.(kNoSelectionResumeSelector)) resumeSelection()
+  }
   const handleTrackKeyDownCapture = (e: React.KeyboardEvent) => {
     if (kResumeSelectionKeys.has(e.key)) resumeSelection()
   }
@@ -312,9 +325,10 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                                                               hasAttributeLabel: !!attributeLabel,
                                                               "tile-selected": isTileSelected(),
                                                               "selection-paused": sliderModel.isSelectionPaused})}
-               ref={setWrapperRef} data-testid="slider-drop-overlay" onPointerDownCapture={resumeSelection}>
+               ref={setWrapperRef} data-testid="slider-drop-overlay" onPointerDownCapture={handlePointerDownCapture}>
             <If condition={showPrompt}>
-              <div className="slider-attribute-prompt" data-testid="slider-attribute-prompt">
+              <div className="slider-attribute-prompt" data-testid="slider-attribute-prompt"
+                   {...kNoSelectionResumeProps}>
                 {/* choosing removes the prompt, so focus moves to the attribute label's menu that replaces it */}
                 <SliderAttributeMenu className="slider-attribute-prompt-button"
                                      onSelect={() => setFocusAttributeLabel(true)}>
@@ -379,6 +393,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                 <If condition={!!attributeLabel}>
                   {/* keep presses on the label's menu from reaching the track, which would move a range handle */}
                   <div className="slider-attribute-label" style={axisStyle} data-testid="slider-attribute-label"
+                       {...kNoSelectionResumeProps}
                        onPointerDown={stopTrackPress} onMouseDown={stopTrackPress} onTouchStart={stopTrackPress}>
                     <SliderAttributeMenu className="slider-attribute-label-button"
                                          autoFocus={focusAttributeLabel} onAutoFocus={clearFocusAttributeLabel}>

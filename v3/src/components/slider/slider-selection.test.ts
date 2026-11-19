@@ -416,3 +416,17 @@ describe("selection slider with a visibility slider", () => {
     })
   })
 })
+
+describe("selection slider and deleted cases", () => {
+  it("keeps owning the selection when a case it selected is deleted", async () => {
+    const { dataSet, slider } = await setupSelectionSlider()
+    slider.setRange(2, 4)
+    slider.resumeSelection()
+    dataSet.removeCases([idOf(dataSet, 3)])
+    expect(slider.ownsSelection).toBe(true)
+    expect(slider.isSelectionPaused).toBe(false)
+    expect(selectedA3(dataSet)).toEqual([2, 4])
+    slider.setRange(4, 6)
+    expect(selectedA3(dataSet)).toEqual([4, 5, 6])
+  })
+})

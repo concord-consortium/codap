@@ -8,7 +8,11 @@ import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { convertToDate } from "../../utilities/date-utils"
 import { ICodapV2DocumentJson, ICodapV2SliderStorage } from "../../v2/codap-v2-types"
+import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
+import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { toV3Id } from "../../utilities/codap-utils"
 import { ISliderModel, isSliderModel } from "./slider-model"
+import { kSliderIdPrefix } from "./slider-registration"
 import { addDataSetCopy, setupSliderAndData } from "./slider-test-utils"
 
 // saves the current document in the given format and loads the result in its place
@@ -220,6 +224,8 @@ describe("selection slider persistence", () => {
     return dataSet.itemIds.filter(itemId => dataSet.selection.has(itemId))
       .map(itemId => dataSet.getNumeric(itemId, a3)).sort()
   }
+  const findSelectionSlider = () => Array.from(appState.document.content!.tileMap.values())
+    .map(tile => tile.content).filter(isSliderModel).find(slider => slider.sliderType === "selection")!
   async function setupSelectionSlider() {
     const setup = await setupSliderAndData()
     setup.slider.setSliderType("selection")
@@ -253,5 +259,22 @@ describe("selection slider persistence", () => {
     // and it resumes when touched
     restored.resumeSelection()
     expect(selectedA3(restoredData)).toEqual([2, 3, 4])
+  })
+
+  it("reopens owning when a visibility slider created after it hides some of its range", async () => {
+    const { content, dataSet } = await setupSelectionSlider()
+    // a visibility slider created after the selection slider, so it's restored after it, too
+    const result = diComponentHandler.create!({}, { type: "slider" })
+    const visibility = content.tileMap.get(toV3Id(kSliderIdPrefix, (result.values as DIComponentInfo).id!))!
+      .content as ISliderModel
+    visibility.setSliderType("visibility")
+    visibility.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    findSelectionSlider().setRange(2, 6)
+    visibility.setRange(1, 3)
+    expect(selectedA3(dataSet)).toEqual([2, 3])
+    await reloadDocument("v3")
+    const restoredData = findDataSet("a3")
+    expect(selectedA3(restoredData)).toEqual([2, 3])
+    expect(findSelectionSlider().ownsSelection).toBe(true)
   })
 })

@@ -555,5 +555,48 @@ describe("SliderComponent: resuming a selection slider", () => {
       expect(status()).toHaveTextContent("Selection paused")
     })
   })
+
+  describe("review fixes", () => {
+    const status = () => within(screen.getByTestId("slider-drop-overlay")).getByRole("status")
+
+    it("keeps playing when a case it selected is deleted", async () => {
+      const { tile, dataSet } = await setupPausedSelectionSlider()
+      renderSlider(tile)
+      await userEvent.click(screen.getByTestId("slider-play-pause"))
+      const selected = dataSet.itemIds.find(itemId => dataSet.selection.has(itemId))!
+      act(() => { dataSet.removeCases([selected]) })
+      expect(screen.getByTestId("slider-play-pause")).toHaveAccessibleName("Pause slider")
+      await userEvent.click(screen.getByTestId("slider-play-pause"))
+    })
+
+    it("opening the attribute menu on a paused slider doesn't take the selection", async () => {
+      const { tile, dataSet, slider } = await setupPausedSelectionSlider()
+      renderSlider(tile)
+      fireEvent.pointerDown(screen.getByTestId("slider-attribute-menu-button"))
+      expect(slider.ownsSelection).toBe(false)
+      expect(selectedA3(dataSet)).toEqual([6])
+    })
+
+    it("choosing Selection from the Config palette's menu announces nothing", async () => {
+      const { tile, dataSet, slider } = await setupSliderAndData()
+      slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      renderSlider(tile)
+      render(<SliderConfigPalette sliderModel={slider} setShowPalette={jest.fn()}/>)
+      await userEvent.click(screen.getByTestId("slider-type-button"))
+      await userEvent.click(screen.getByRole("option", { name: "Selection" }))
+      expect(slider.ownsSelection).toBe(true)
+      expect(status()).toHaveTextContent(/^$/)
+    })
+
+    it("choosing an attribute from the slider's menu announces nothing about selection", async () => {
+      const { tile, slider } = await setupPausedSelectionSlider()
+      renderSlider(tile)
+      await userEvent.click(screen.getByTestId("slider-attribute-menu-button"))
+      const items = await screen.findAllByRole("menuitem", { hidden: true })
+      await userEvent.click(items.find(item => item.textContent === "a4")!)
+      expect(slider.ownsSelection).toBe(true)
+      expect(status()).not.toHaveTextContent("Selection")
+    })
+  })
 })
 
