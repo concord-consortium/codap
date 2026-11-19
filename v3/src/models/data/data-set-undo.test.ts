@@ -5,7 +5,8 @@ import { TreeManager } from "../history/tree-manager"
 import { getSharedModelManager } from "../tiles/tile-environment"
 import { SharedDataSet } from "../shared/shared-data-set"
 import {
-  removeCasesWithCustomUndoRedo, setAttributeFormulaWithCustomUndoRedo, setCaseValuesWithCustomUndoRedo
+  removeCasesWithCustomUndoRedo, setAttributeFormulaWithCustomUndoRedo, setCaseValuesWithCustomUndoRedo,
+  sortItemsWithCustomUndoRedo
 } from "./data-set-undo"
 
 describe("DataSet undo/redo", () => {
@@ -422,5 +423,111 @@ describe("DataSet undo/redo", () => {
     expect(attr.hasFormula).toBe(true)
     expect(attr.formula!.display).toBe("b * 10")
     expect(attr.name).toBe("renamed")
+  })
+
+  describe("undoing a sort after changes that can't be undone", () => {
+    // ITEM0 is a=1, b=2; I1, I2, I3 are a=2/0/1, b=x2/x0/x1
+    function setupSorted() {
+      const setup = setupDocument()
+      const { data } = setup
+      data.addCases([
+        { __id__: "I1", aId: 2, bId: "x2" }, { __id__: "I2", aId: 0, bId: "x0" }, { __id__: "I3", aId: 1, bId: "x1" }
+      ])
+      data.validateCases()
+      return setup
+    }
+    // each item's id with its values, read without validating the cases first
+    const rows = (data: ReturnType<typeof setupDocument>["data"]) =>
+      data._itemIds.map(id => `${id}:${data.getStrValue(id, "aId")}/${data.getStrValue(id, "bId")}`)
+
+    it("keeps each item's values when a plugin reordered items in between", async () => {
+      const { data, whenTreeManagerIsReady, undoManager } = setupSorted()
+      const before = rows(data)
+      sortItemsWithCustomUndoRedo(data, "aId")
+      await whenTreeManagerIsReady()
+      expect(rows(data)).toEqual(["I2:0/x0", "ITEM0:1/2", "I3:1/x1", "I1:2/x2"])
+
+      // a plugin's move, which can't be undone
+      data.applyModelChange(() => data.moveItems(["I1"], { before: "I2" }))
+      await whenTreeManagerIsReady()
+      expect(undoManager?.undoEntry?.clientData?.undoStringKey).toBe("DG.Undo.caseTable.sortCases")
+
+      undoManager?.undo()
+      await whenTreeManagerIsReady()
+      expect(rows(data)).toEqual(before)
+      data.validateCases()
+      expect(data.items.map(({ __id__ }) => data.getStrValue(__id__, "bId"))).toEqual(["2", "x2", "x0", "x1"])
+
+      undoManager?.redo()
+      await whenTreeManagerIsReady()
+      expect(rows(data)).toEqual(["I2:0/x0", "ITEM0:1/2", "I3:1/x1", "I1:2/x2"])
+    })
+
+    it("restores the order with no change in between, and again after a redo", async () => {
+      const { data, whenTreeManagerIsReady, undoManager } = setupSorted()
+      const before = rows(data)
+      sortItemsWithCustomUndoRedo(data, "aId", "descending")
+      await whenTreeManagerIsReady()
+      const sorted = rows(data)
+      expect(sorted).toEqual(["I1:2/x2", "ITEM0:1/2", "I3:1/x1", "I2:0/x0"])
+      for (let i = 0; i < 2; ++i) {
+        undoManager?.undo()
+        await whenTreeManagerIsReady()
+        expect(rows(data)).toEqual(before)
+        undoManager?.redo()
+        await whenTreeManagerIsReady()
+        expect(rows(data)).toEqual(sorted)
+      }
+    })
+
+    it("restores a set-aside item to its place", async () => {
+      const { data, whenTreeManagerIsReady, undoManager } = setupSorted()
+      data.hideCasesOrItems(["I2"])
+      data.validateCases()
+      const before = rows(data)
+      sortItemsWithCustomUndoRedo(data, "aId")
+      await whenTreeManagerIsReady()
+      data.applyModelChange(() => data.moveItems(["ITEM0"]))
+      await whenTreeManagerIsReady()
+
+      undoManager?.undo()
+      await whenTreeManagerIsReady()
+      expect(rows(data)).toEqual(before)
+      data.validateCases()
+      expect(data.items.map(({ __id__ }) => __id__)).toEqual(["ITEM0", "I1", "I3"])
+    })
+
+    it("keeps each item's values in a hierarchical data set", async () => {
+      const { data, whenTreeManagerIsReady, undoManager } = setupSorted()
+      // b's values group the items: ITEM0 alone, the x items together
+      data.applyModelChange(() => data.moveAttributeToNewCollection("bId"))
+      await whenTreeManagerIsReady()
+      data.validateCases()
+      const before = rows(data)
+      sortItemsWithCustomUndoRedo(data, "aId")
+      await whenTreeManagerIsReady()
+      data.applyModelChange(() => data.moveItems(["I1"], { before: "ITEM0" }))
+      await whenTreeManagerIsReady()
+
+      undoManager?.undo()
+      await whenTreeManagerIsReady()
+      expect(rows(data)).toEqual(before)
+    })
+
+    it("skips items deleted since and puts items added since at the end", async () => {
+      const { data, whenTreeManagerIsReady, undoManager } = setupSorted()
+      sortItemsWithCustomUndoRedo(data, "aId")
+      await whenTreeManagerIsReady()
+
+      data.applyModelChange(() => {
+        data.removeCases(["I3"])
+        data.addCases([{ __id__: "I4", aId: -1, bId: "x4" }], { before: "I2" })
+      })
+      await whenTreeManagerIsReady()
+
+      undoManager?.undo()
+      await whenTreeManagerIsReady()
+      expect(rows(data)).toEqual(["ITEM0:1/2", "I1:2/x2", "I2:0/x0", "I4:-1/x4"])
+    })
   })
 })

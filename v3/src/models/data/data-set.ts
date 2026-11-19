@@ -1809,7 +1809,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   setItemOrder(itemIds: string[]) {
     if (itemIds.length !== self._itemIds.length) return
     if (itemIds.every((itemId, index) => itemId === self._itemIds[index])) return
-    // current positions come from _itemIds itself, since itemInfoMap can be stale (e.g. after a sort)
+    // current positions come from _itemIds itself, since itemInfoMap can be stale until the cases are validated
     const currentIndex = new Map(self._itemIds.map((itemId, index) => [itemId, index]))
     const origIndices = itemIds.map(itemId => currentIndex.get(itemId)!)
     self.attributes.forEach(attr => attr.orderValues(origIndices))
@@ -1819,7 +1819,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       const itemInfo = self.itemInfoMap.get(itemId)
       if (itemInfo) itemInfo.index = index
     })
-  },
+  }
+}))
+.actions(self => ({
   sortByAttribute(attributeId: string, direction: "ascending" | "descending" = "ascending") {
     self.validateCases()
 
@@ -1867,20 +1869,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       finalItemIds.forEach((itemId, index) => itemIdToIndexMap[itemId].afterIndex = index)
     }
 
-    // if no changes then nothing to do
-    if (finalItemIds.every((itemId, index) => itemId === self._itemIds[index])) return
-
-    // apply the index mapping to each attribute's value arrays
-    const origIndices = finalItemIds.map(itemId => itemIdToIndexMap[itemId].beforeIndex)
-    self.attributes.forEach(attr => attr.orderValues(origIndices))
-
-    // update the _itemIds array
-    self._itemIds.replace(finalItemIds)
-
-    return itemIdToIndexMap
-  }
-}))
-.actions(self => ({
+    // moves each item's values with it and keeps item lookups right (does nothing if the order is unchanged)
+    self.setItemOrder(finalItemIds)
+  },
   // Moves the given items, in their current order, before or after another item, or to the end. The order
   // includes set-aside and filtered-out items.
   moveItems(itemIds: string[], options?: IMoveItemsOptions) {

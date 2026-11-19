@@ -365,7 +365,6 @@ interface ISortItemsCustomPatch extends ICustomPatch {
     attrId: string
     direction: "ascending" | "descending"
     beforeItemIds: string[]
-    itemIdToIndexMap: Record<string, { beforeIndex: number, afterIndex: number }>
   }
 }
 function isSortItemsCustomPatch(patch: ICustomPatch): patch is ISortItemsCustomPatch {
@@ -375,12 +374,18 @@ function isSortItemsCustomPatch(patch: ICustomPatch): patch is ISortItemsCustomP
 const sortItemsCustomUndoRedo: ICustomUndoRedoPatcher = {
   undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
     if (isSortItemsCustomPatch(patch)) {
-      const { dataId, beforeItemIds, itemIdToIndexMap } = patch.data
+      const { dataId, beforeItemIds } = patch.data
       const data = resolveIdentifier<typeof DataSet>(DataSet, node, dataId)
+      if (!data) return
 
-      const afterIndices = beforeItemIds.map(itemId => itemIdToIndexMap[itemId].afterIndex)
-      data?.attributes.forEach(attr => attr.orderValues(afterIndices))
-      data?._itemIds.replace(beforeItemIds)
+      // Restore the order by item id, since changes that aren't undoable (a plugin's reorder, create or
+      // delete) can come between the sort and its undo. Items deleted since are skipped, and items added
+      // since go to the end in their current order. A reorder made since the sort is undone with it, and
+      // the order restored is always the one from before the sort, even after a redo.
+      const current = new Set(data._itemIds)
+      const restored = beforeItemIds.filter(itemId => current.has(itemId))
+      const restoredSet = new Set(restored)
+      data.setItemOrder(restored.concat(data._itemIds.filter(itemId => !restoredSet.has(itemId))))
     }
   },
   redo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
@@ -401,8 +406,7 @@ export function sortItemsWithCustomUndoRedo(data: IDataSet, attrId: string, dire
       dataId: data.id,
       attrId,
       direction,
-      beforeItemIds: Array.from(data._itemIds),
-      itemIdToIndexMap: {}  // filled in later
+      beforeItemIds: Array.from(data._itemIds)
     }
   }
 
@@ -410,7 +414,7 @@ export function sortItemsWithCustomUndoRedo(data: IDataSet, attrId: string, dire
   data?.applyModelChange(() => {
     withCustomUndoRedo(undoRedoPatch, sortItemsCustomUndoRedo)
 
-    undoRedoPatch.data.itemIdToIndexMap = data?.sortByAttribute(attrId, direction) ?? {}
+    data?.sortByAttribute(attrId, direction)
   }, {
     log: logStringifiedObjectMessage("Sort cases by attribute: %@",
             { attributeId: attrId, attribute: data?.getAttribute(attrId)?.name }),

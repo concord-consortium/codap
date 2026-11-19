@@ -732,6 +732,17 @@ test("moveItems moves the right items when some items are set aside", () => {
   expect(letterValues()).toEqual(["d", "f", "a", "b", "e", "c"])
 })
 
+test("sortByAttribute keeps item lookups right before the cases are validated", () => {
+  const data = DataSet.create({ name: "data" })
+  const value = data.addAttribute({ id: "Value", name: "Value" })
+  data.addCases([3, 1, 2].map(v => ({ __id__: `i${v}`, [value.id]: v })))
+  data.validateCases()
+  data.sortByAttribute(value.id, "descending")
+  // as an itemSearch in the same request array reads them
+  expect(["i1", "i2", "i3"].map(id => data.getItemIndex(id))).toEqual([2, 1, 0])
+  expect(["i1", "i2", "i3"].map(id => data.getNumeric(id, value.id))).toEqual([1, 2, 3])
+})
+
 test("sortByAttribute with a flat DataSet", () => {
   const data = DataSet.create({ name: "data" })
   const a = data.addAttribute({ id: "AttrA", name: "A" })
@@ -758,6 +769,29 @@ test("sortByAttribute with a flat DataSet", () => {
   expect(a.values).toEqual(["A3", "A1", "A2", "1", "-1"])
   expect(b.values).toEqual(["5", "3", "0", "B1", "B0"])
   data.completeSnapshot()
+})
+
+test("sortByAttribute leaves items under a parent case whose items are all hidden in place", () => {
+  const data = DataSet.create({
+    name: "data",
+    collections: [{ id: "Parent", name: "Parents" }, { id: "Child", name: "Children" }]
+  })
+  const p = data.addAttribute({ id: "ParentAttr", name: "parentAttr" }, { collection: "Parents" })
+  const c = data.addAttribute({ id: "ChildAttr", name: "childAttr" }, { collection: "Children" })
+  data.addCases([
+    { __id__: "ITEM0", [p.id]: "A", [c.id]: "5" },
+    { __id__: "ITEM1", [p.id]: "B", [c.id]: "2" },
+    { __id__: "ITEM2", [p.id]: "A", [c.id]: "3" },
+    { __id__: "ITEM3", [p.id]: "B", [c.id]: "4" },
+    { __id__: "ITEM4", [p.id]: "A", [c.id]: "1" }
+  ])
+  // every item of the parent case B is set aside, so B has no case to sort within
+  data.hideCasesOrItems(["ITEM1", "ITEM3"])
+  data.validateCases()
+  data.sortByAttribute(c.id)
+  // the order includes the set-aside items
+  expect(Array.from(data._itemIds)).toEqual(["ITEM4", "ITEM1", "ITEM2", "ITEM3", "ITEM0"])
+  expect(data._itemIds.map(id => data.getStrValue(id, c.id))).toEqual(["1", "2", "3", "4", "5"])
 })
 
 test("sortByAttribute with a hierarchical DataSet", () => {
