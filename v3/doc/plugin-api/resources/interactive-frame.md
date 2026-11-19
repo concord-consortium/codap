@@ -104,7 +104,10 @@ honors fifteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAvai
 `name` and `title` both set the tile's title. When both are sent, a non-empty `title` wins, as in
 v2. Empty text clears the title, as `update component` does, so the tile shows its name. v2
 cleared it only for an empty `name`, and ignored an empty `title` sent alone. A number other than
-`0` given as `name` or `title` is used as text, as in v2; `0`, `false` and `null` are ignored. `cannotClose` may be any value; CODAP stores whether it is truthy.
+`0` is used as text, as in v2. As in v2, `0` or `false` as `name` clears the title, while `0`,
+`false` or `null` as `title` with no `name` is ignored.
+
+`cannotClose` may be any value; CODAP stores whether it is truthy.
 
 ### Sizing the plugin
 

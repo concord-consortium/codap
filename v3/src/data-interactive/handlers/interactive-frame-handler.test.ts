@@ -150,8 +150,13 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(update({ title: "" })).toBe("Sampler")
     expect(update({ name: "" })).toBe("Sampler")
     expect(update({ title: "", name: "" })).toBe("Sampler")
-    // other falsy values are ignored, as in V2
-    expect(update({ title: false, name: 0 } as any)).toBe("Before")
+    // as in V2, a falsy name clears the title, but a falsy title alone is ignored
+    expect(update({ name: 0 } as any)).toBe("Sampler")
+    expect(update({ name: false } as any)).toBe("Sampler")
+    expect(update({ title: false, name: 0 } as any)).toBe("Sampler")
+    expect(update({ title: 0 } as any)).toBe("Before")
+    expect(update({ title: false } as any)).toBe("Before")
+    expect(update({ title: 0, name: null } as any)).toBe("Before")
     expect(update({ title: "", name: "Name" })).toBe("Name")
     expect(update({ title: "Title", name: "Name" })).toBe("Title")
     expect(update({ name: "Name" })).toBe("Name")

@@ -129,9 +129,9 @@ export const diInteractiveFrameHandler: DIHandler = {
       if (subscribeToDocuments != null) {
         webViewContent?.setSubscribeToDocuments(subscribeToDocuments)
       }
-      // As in V2, a non-empty title takes precedence over name, and other falsy values are ignored. Empty text
-      // clears the title, as it does for update component; V2 cleared it only for an empty name.
-      const newTitle = title || name || (title === "" || name === "" ? "" : undefined)
+      // As in V2 (title || name), any name that isn't null clears the title when title is falsy; an empty title
+      // also clears it, as it does for update component, where V2 ignored it
+      const newTitle = title || name || (title === "" || name != null ? "" : undefined)
       if (newTitle != null && !interactiveFrame.userSetTitle) {
         interactiveFrame.setTitle(String(newTitle) || undefined)
       }

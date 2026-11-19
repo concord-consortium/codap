@@ -12,7 +12,7 @@ const illegalValueResult = { success: false, values: { error: t("V3.DI.Error.glo
 
 // A global value is a number, or text that reads as one. Unlike V2, which stored whatever it was sent,
 // anything else (booleans, empty text, other text) is refused, since sliders and formulas expect numbers.
-function toGlobalValue(value: unknown) {
+export function toGlobalValue(value: unknown) {
   const num = typeof value === "number" ? value
             : typeof value === "string" && value.trim() !== "" ? Number(value)
             : NaN
