@@ -245,4 +245,92 @@ context("Test graph axes with split, multi-y, bars, and overflow configurations"
   it("keeps the OTHER category on each bottom sub-axis when split from the top", () => {
     verifyCategoriesLimitOnSplit("bottom", "top", { open: "top", list: "top" })
   })
+
+  const bottomSubAxes = () => cy.get("[data-testid=graph]").find("[data-testid=axis-bottom]").find(".sub-axis-wrapper")
+  const subAxisLabels = (wrapper: JQuery<HTMLElement>) =>
+    wrapper.find("[data-testid=category-on-axis] [data-testid=category-label]").toArray()
+  // Every sub-axis shows the expected categories, left to right, with no two labels bunched together.
+  const verifyBottomCategoryOrder = (expected: string[]) => {
+    bottomSubAxes().should("have.length", 3).each(wrapper => {
+      cy.wrap(wrapper).should($wrapper => {
+        const labels = subAxisLabels($wrapper)
+        expect(labels.map(label => label.textContent)).to.deep.equal(expected)
+        const centers = labels.map(label => {
+          const { left, width } = label.getBoundingClientRect()
+          return left + width / 2
+        })
+        centers.slice(1).forEach((center, i) => {
+          expect(center - centers[i], "spacing between adjacent labels").to.be.greaterThan(20)
+        })
+      })
+    })
+  }
+  it("reorders the categories on every sub-axis when a label on one sub-axis is dragged", () => {
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("Diet", "bottom")
+    cy.dragAttributeToTarget("table", arrayOfAttributes[7], "top") // Habitat => top split
+    bottomSubAxes().should("have.length", 3)
+
+    bottomSubAxes().first().then($wrapper => {
+      const labels = subAxisLabels($wrapper)
+      const original = labels.map(label => label.textContent ?? "")
+      expect(original).to.have.length(3)
+      const moved = [original[1], original[0], original[2]]
+      verifyBottomCategoryOrder(original)
+
+      // Drag the first category one band to the right, in small steps as a user would.
+      const first = labels[0].getBoundingClientRect()
+      const second = labels[1].getBoundingClientRect()
+      const startX = first.left + first.width / 2
+      const y = first.top + first.height / 2
+      const distance = (second.left + second.width / 2) - startX
+      const steps = 5
+      cy.window().then(win => {
+        cy.wrap(labels[0]).trigger("mousedown", { button: 0, clientX: startX, clientY: y, view: win, force: true })
+        for (let i = 1; i <= steps; i++) {
+          cy.get("body").trigger("mousemove", { clientX: startX + distance * i / steps, clientY: y, view: win,
+                                                force: true })
+        }
+        cy.get("body").trigger("mouseup", { clientX: startX + distance, clientY: y, view: win, force: true })
+      })
+      verifyBottomCategoryOrder(moved)
+
+      toolbar.getUndoTool().click()
+      verifyBottomCategoryOrder(original)
+      toolbar.getRedoTool().click()
+      verifyBottomCategoryOrder(moved)
+    })
+  })
+
+  it("updates the category limit of each sub-axis when a split graph is resized", () => {
+    // A fresh graph from the toolbar is small enough that the 27 mammals overflow into OTHER.
+    c.closeComponent("graph")
+    c.getIconFromToolShelf("graph").click()
+    cy.wait(500)
+    ah.openAxisAttributeMenu("left")
+    ah.selectMenuAttribute("Mammal", "left")
+    cy.dragAttributeToTarget("table", arrayOfAttributes[8], "right") // Diet => split
+
+    const leftSubAxes = () => cy.get("[data-testid=graph]").find("[data-testid=axis-left]").find(".sub-axis-wrapper")
+    const verifyLabelCounts = (lengthAssertion: string, count: number) => {
+      leftSubAxes().should("have.length", 3).each(wrapper => {
+        cy.wrap(wrapper).find("[data-testid=category-on-axis] [data-testid=category-label]")
+          .should(lengthAssertion, count)
+          .last().should("have.text", "OTHER")
+      })
+    }
+
+    leftSubAxes().should("have.length", 3).first()
+      .find("[data-testid=category-on-axis] [data-testid=category-label]").its("length").then(initialCount => {
+        verifyLabelCounts("have.length", initialCount)
+        // Each arrow key press adds 20 pixels, so 6 presses add 40 pixels to each of the three sub-axes,
+        // enough room for 3 more categories on each. Keyboard resizing commits to the model on blur.
+        c.getComponentTitleBar("graph").trigger("click", { force: true })
+        c.getResizeControl("graph").focus().type("{downarrow}".repeat(6)).blur()
+        verifyLabelCounts("have.length.greaterThan", initialCount)
+
+        c.getResizeControl("graph").focus().type("{uparrow}".repeat(6)).blur()
+        verifyLabelCounts("have.length", initialCount)
+      })
+  })
 })
