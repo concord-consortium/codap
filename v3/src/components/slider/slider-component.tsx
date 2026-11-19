@@ -38,6 +38,11 @@ import { rangeFromHandles, sliderGroupLabel, sliderStep, valueChangeNotification
 
 import "./slider.scss"
 
+// the keys that operate the slider, which resume a paused selection slider when pressed on its thumb or track
+const kResumeSelectionKeys = new Set([
+  "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown", "Enter", " "
+])
+
 const kAxisMargin = 30
 
 registerTileCollisionDetection(kSliderIdBase, sliderCollisionDetection)
@@ -244,7 +249,16 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   }
 
   const toggleRunning = () => {
+    // pressing play resumes a paused selection slider at its current range before it steps
+    if (!running) sliderModel?.resumeSelection()
     setRunning(!running)
+  }
+
+  // Touching the slider resumes a paused selection slider (and re-selects for an active one, which changes nothing).
+  // Capture runs before the thumb and track stop the events from propagating.
+  const resumeSelection = () => sliderModel?.resumeSelection()
+  const handleTrackKeyDownCapture = (e: React.KeyboardEvent) => {
+    if (kResumeSelectionKeys.has(e.key)) resumeSelection()
   }
 
   const axisClasses = () => {
@@ -283,7 +297,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
           <div {...groupProps} className={clsx(kSliderClass, {twoLevel: sliderModel.axisRequiresTwoLevels(),
                                                               hasAttributeLabel: !!attributeLabel,
                                                               "tile-selected": isTileSelected()})}
-               ref={setWrapperRef} data-testid="slider-drop-overlay">
+               ref={setWrapperRef} data-testid="slider-drop-overlay" onPointerDownCapture={resumeSelection}>
             <If condition={showPrompt}>
               <div className="slider-attribute-prompt" data-testid="slider-attribute-prompt">
                 {/* choosing removes the prompt, so focus moves to the attribute label's menu that replaces it */}
@@ -321,7 +335,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                 </div>
               </div>
               <div {...trackProps} style={{ ...trackProps.style, position: "absolute" }}
-                   ref={trackRef} className="slider" data-testid="slider-track">
+                   ref={trackRef} className="slider" data-testid="slider-track"
+                   onKeyDownCapture={handleTrackKeyDownCapture}>
                 {sliderModel.isRangeSlider
                   ? <SliderRangeThumb sliderModel={sliderModel} tile={tile} running={running} setRunning={setRunning}
                                       state={state} trackRef={trackRef}

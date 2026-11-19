@@ -9,8 +9,11 @@ import { ITileSelection, TileSelectionContext } from "../../hooks/use-tile-selec
 import { appState } from "../../models/app-state"
 import { featureFlagManager } from "../../models/feature-flags/feature-flag-manager"
 import { TreeManager } from "../../models/history/tree-manager"
+import { IDataSet } from "../../models/data/data-set"
+import { setSelectedCases } from "../../models/data/data-set-utils"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { SliderConfigPalette } from "./inspector-panel/slider-config-panel"
+import { configureSliderFromAttribute } from "./slider-attribute-drop"
 import { SliderComponent } from "./slider-component"
 import { addDates, setupSliderAndData } from "./slider-test-utils"
 
@@ -425,5 +428,80 @@ describe("SliderComponent for screen readers", () => {
         appState.document.treeMonitor!.disableMonitoring()
       }
     })
+  })
+})
+
+describe("SliderComponent: resuming a selection slider", () => {
+  beforeEach(() => {
+    featureFlagManager.setServerConfig({ visibilitySlider: "on", selectionSlider: "on" })
+  })
+
+  afterEach(() => {
+    act(() => featureFlagManager.setServerConfig({}))
+  })
+
+  // a selection slider bound to a3 at [2, 4] that's paused because a3 = 6 was selected elsewhere
+  async function setupPausedSelectionSlider() {
+    const setup = await setupSliderAndData()
+    const { dataSet, slider } = setup
+    slider.setSliderType("selection")
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    slider.setRange(2, 4)
+    const a3 = dataSet.attrFromName("a3")!.id
+    setSelectedCases([dataSet.itemIds.find(itemId => dataSet.getNumeric(itemId, a3) === 6)!], dataSet)
+    expect(slider.isSelectionPaused).toBe(true)
+    return setup
+  }
+  const selectedA3 = (dataSet: IDataSet) => {
+    const a3 = dataSet.attrFromName("a3")!.id
+    return dataSet.itemIds.filter(itemId => dataSet.selection.has(itemId))
+      .map(itemId => dataSet.getNumeric(itemId, a3)).sort()
+  }
+
+  it("pressing the paused thumb resumes selection", async () => {
+    const { tile, dataSet, slider } = await setupPausedSelectionSlider()
+    renderSlider(tile)
+    fireEvent.pointerDown(screen.getByTestId("slider-range-body"))
+    expect(slider.ownsSelection).toBe(true)
+    expect(selectedA3(dataSet)).toEqual([2, 3, 4])
+  })
+
+  it("pressing play on a paused slider resumes it at its current range", async () => {
+    const { tile, dataSet, slider } = await setupPausedSelectionSlider()
+    renderSlider(tile)
+    await userEvent.click(screen.getByTestId("slider-play-pause"))
+    expect(slider.ownsSelection).toBe(true)
+    expect(selectedA3(dataSet)).toContain(2)
+    await userEvent.click(screen.getByTestId("slider-play-pause"))
+  })
+
+  it("an arrow key on the thumb resumes it; Tab doesn't", async () => {
+    const { tile, slider } = await setupPausedSelectionSlider()
+    renderSlider(tile)
+    const handle = within(screen.getByTestId("slider-range-high")).getByRole("slider")
+    fireEvent.keyDown(handle, { key: "Tab" })
+    expect(slider.ownsSelection).toBe(false)
+    fireEvent.keyDown(handle, { key: "ArrowRight" })
+    expect(slider.ownsSelection).toBe(true)
+  })
+
+  it("binding an attribute by drop or menu selects the range", async () => {
+    const { tile, dataSet, slider } = await setupSliderAndData()
+    slider.setSliderType("selection")
+    configureSliderFromAttribute(tile, dataSet, dataSet.attrFromName("a3")!.id)
+    expect(slider.ownsSelection).toBe(true)
+    expect(selectedA3(dataSet)).toEqual([1])
+  })
+
+  it("switching the type to selection in the Config panel selects the range", async () => {
+    const { tile, dataSet, slider } = await setupSliderAndData()
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    renderSlider(tile)
+    render(<SliderConfigPalette sliderModel={slider} setShowPalette={jest.fn()}/>)
+    await userEvent.click(screen.getByTestId("slider-type-button"))
+    await userEvent.click(screen.getByRole("option", { name: "Selection" }))
+    expect(slider.sliderType).toBe("selection")
+    expect(slider.ownsSelection).toBe(true)
+    expect(selectedA3(dataSet)).toEqual([1])
   })
 })
