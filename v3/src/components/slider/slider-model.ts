@@ -4,6 +4,7 @@ import { IDataSet } from "../../models/data/data-set"
 import { GlobalValue } from "../../models/global/global-value"
 import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { applyModelChange } from "../../models/history/apply-model-change"
+import { withoutUndo } from "../../models/history/without-undo"
 import { getAllTileDataSets } from "../../models/shared/shared-data-tile-utils"
 import { getDataSetFromId, getSharedDataSetFromDataSetId } from "../../models/shared/shared-data-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
@@ -57,15 +58,21 @@ export const SliderModel = TileContentModel
     dataSetId: types.maybe(types.string),
     attributeId: types.maybe(types.string),
     // width of the range thumb, in axis units (epoch seconds for dates); the global value is its low end
-    rangeWidth: types.maybe(types.number)
+    rangeWidth: types.maybe(types.number),
+    // for serialization only: whether a selection slider owned the selection when saved (see prepareSnapshot)
+    snapOwnsSelection: types.maybe(types.boolean)
   })
   .volatile(() => ({
     axisHelper: undefined as Maybe<AxisHelper>,
     _isAxisAnimating: false,
     dynamicRangeWidth: undefined as number | undefined,
-    // The items a selection slider last selected, or undefined when it doesn't own the selection. Never saved: on
-    // load the slider owns the selection only if the saved selection is what it would select (see selectionBinding).
-    appliedItemIds: undefined as ReadonlySet<string> | undefined
+    // The items a selection slider last selected, or undefined when it doesn't own the selection. Once the slider
+    // loses the selection this is cleared, so only a touch on the slider (resumeSelection) takes it back.
+    appliedItemIds: undefined as ReadonlySet<string> | undefined,
+    // whether the ownership saved with the document has been restored (see the selection binding reaction)
+    isSavedOwnershipRestored: false,
+    // between prepareSnapshot and completeSnapshot, while the saved ownership must be left as prepared
+    isSnapshotPending: false
    }))
   .views(self => ({
     get name() {
@@ -434,13 +441,37 @@ export const SliderModel = TileContentModel
     releaseSelection() {
       self.appliedItemIds = undefined
     },
-    // Takes ownership of the selection only if it's already what this slider would select. It never changes the
-    // selection, so binding a slider or opening a document can't take away a selection the user made.
-    adoptSelectionIfMatching() {
+    // On opening a document, a slider saved owning the selection owns the restored selection, whatever it is now;
+    // the selection itself isn't changed. Only the first time the slider is bound after loading.
+    restoreSavedOwnership() {
       const dataSet = self.dataSet
-      if (!self.isBoundSelectionSlider || !dataSet) return
-      const target = self.selectionTargetItemIds
-      if (visibleSetsEqual(dataSet, dataSet.selection, target)) self.appliedItemIds = target
+      if (self.isSavedOwnershipRestored || !self.isBoundSelectionSlider || !dataSet) return
+      self.isSavedOwnershipRestored = true
+      if (self.snapOwnsSelection) {
+        self.appliedItemIds = new Set(dataSet.selection)
+        // Used up, so a later snapshot (e.g. one undo restores after the tile is deleted) can't claim it again. A
+        // snapshot being taken (e.g. of a document just imported from V2) clears it when it completes instead.
+        if (!self.isSnapshotPending) {
+          withoutUndo({ noDirty: true, suppressWarning: true })
+          self.snapOwnsSelection = undefined
+        }
+      }
+    },
+    // should be called before retrieving snapshot (pre-serialization)
+    prepareSnapshot() {
+      // Ownership isn't model state (selection isn't undoable), so it's recorded only for saving. Saved ownership
+      // that hasn't been restored yet (e.g. a document imported and saved before its tiles are bound) is kept.
+      self.isSnapshotPending = true
+      withoutUndo({ noDirty: true, suppressWarning: true })
+      if (self.isSavedOwnershipRestored) self.snapOwnsSelection = self.ownsSelection || undefined
+      return Promise.resolve()
+    },
+    // should be called after retrieving snapshot (post-serialization)
+    completeSnapshot() {
+      self.isSnapshotPending = false
+      if (!self.isSavedOwnershipRestored) return
+      withoutUndo({ noDirty: true, suppressWarning: true })
+      self.snapOwnsSelection = undefined
     }
   }))
   .actions(self => ({
@@ -533,16 +564,23 @@ export const SliderModel = TileContentModel
         }, { name: "SliderModel [visibility filter]", fireImmediately: true }
       ))
       addDisposer(self, clearFilter)
-      // A selection slider that becomes bound (including on load) owns the selection only if the selection is
-      // already what it would select; one that stops being bound lets go of it. Neither changes the selection. On
-      // load, a visibility slider restored after this one hides cases only once it's attached, so adoption is tried
-      // again as the visibility filters arrive.
+      // A selection slider that stops being bound lets go of the selection. One that becomes bound doesn't take it,
+      // even if it happens to match, except that on opening a document a slider saved owning the selection owns it
+      // again. Neither changes the selection.
       addDisposer(self, reaction(
-        () => [self.isBoundSelectionSlider, self.dataSet, ...(self.dataSet?.sliderFilteredOutItemIds.values() ?? [])],
+        () => [self.isBoundSelectionSlider, self.dataSet],
         ([bound]) => {
-          if (!bound) self.releaseSelection()
-          else if (!self.ownsSelection) self.adoptSelectionIfMatching()
+          if (bound) self.restoreSavedOwnership()
+          else self.releaseSelection()
         }, { name: "SliderModel [selection binding]", fireImmediately: true, equals: comparer.shallow }
+      ))
+      // Once the selection is no longer the one the slider made, the slider lets go of it for good, so a selection
+      // that later happens to match (e.g. once a visibility slider hides the differences) doesn't become its own.
+      addDisposer(self, reaction(
+        () => !!self.appliedItemIds && !self.ownsSelection,
+        lost => {
+          if (lost) self.releaseSelection()
+        }, { name: "SliderModel [selection lost]" }
       ))
       // While a selection slider owns the selection, it follows changes to its range (by dragging, playback, undo,
       // or a plugin) and to what visibility sliders hide. Each new filter is a new set, so they compare by identity.

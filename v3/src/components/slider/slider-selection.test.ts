@@ -166,20 +166,28 @@ describe("selection slider target and ownership", () => {
     expect(selectedA3(dataSet)).toEqual([2, 3, 4])
   })
 
-  it("adopts only a matching selection, without writing", async () => {
+  it("doesn't take back a selection that happens to match, once paused", async () => {
     const { dataSet, slider } = await setupSelectionSlider()
     slider.setRange(2, 4)
-    setSelectedCases([2, 3, 4].map(v => idOf(dataSet, v)), dataSet)
-    const changes = dataSet.selectionChanges
-    slider.adoptSelectionIfMatching()
-    expect(slider.ownsSelection).toBe(true)
-    expect(dataSet.selectionChanges).toBe(changes)
-
-    slider.releaseSelection()
+    slider.resumeSelection()
     setSelectedCases([idOf(dataSet, 5)], dataSet)
-    slider.adoptSelectionIfMatching()
     expect(slider.ownsSelection).toBe(false)
-    expect(selectedA3(dataSet)).toEqual([5])
+    setSelectedCases([2, 3, 4].map(v => idOf(dataSet, v)), dataSet)
+    expect(slider.ownsSelection).toBe(false)
+    slider.setRange(4, 6)
+    expect(selectedA3(dataSet)).toEqual([2, 3, 4])
+  })
+
+  it("stays paused when the user deselects everything after it owned an empty selection", async () => {
+    const { dataSet, slider } = await setupSelectionSlider()
+    slider.setRange(1.2, 1.4)
+    slider.resumeSelection()
+    expect(selectedA3(dataSet)).toEqual([])
+    setSelectedCases([idOf(dataSet, 5)], dataSet)
+    setSelectedCases([], dataSet)
+    expect(slider.ownsSelection).toBe(false)
+    slider.setRange(2, 3)
+    expect(selectedA3(dataSet)).toEqual([])
   })
 
   it("release leaves the selection alone", async () => {
@@ -345,14 +353,14 @@ describe("selection slider triggers", () => {
     expect(slider.appliedItemIds).toBeUndefined()
   })
 
-  it("binding adopts a matching selection without writing", async () => {
+  it("binding doesn't claim a selection that happens to match, and doesn't write", async () => {
     const { dataSet, slider } = await setupSelectionSlider()
     slider.setSliderType("visibility")
     slider.setRange(2, 4)
     setSelectedCases([2, 3, 4].map(v => idOf(dataSet, v)), dataSet)
     const changes = dataSet.selectionChanges
     slider.setSliderType("selection")
-    expect(slider.ownsSelection).toBe(true)
+    expect(slider.ownsSelection).toBe(false)
     expect(dataSet.selectionChanges).toBe(changes)
   })
 })
@@ -428,5 +436,26 @@ describe("selection slider and deleted cases", () => {
     expect(selectedA3(dataSet)).toEqual([2, 4])
     slider.setRange(4, 6)
     expect(selectedA3(dataSet)).toEqual([4, 5, 6])
+  })
+})
+
+describe("a paused selection slider and a visibility slider", () => {
+  it("doesn't take ownership when a visibility slider hides every difference", async () => {
+    const { content, dataSet, slider } = await setupSelectionSlider()
+    const visibility = addSlider(content, dataSet, "visibility")
+    visibility.setRange(1, 6)
+    slider.setRange(2, 4)
+    slider.resumeSelection()
+    setSelectedCases([2, 5].map(v => idOf(dataSet, v)), dataSet)
+    // hides everything the two selections differ on, leaving both as {2}
+    visibility.setRange(1, 2)
+    dataSet.validateCases()
+    expect(slider.ownsSelection).toBe(false)
+    expect(selectedA3(dataSet)).toEqual([2])
+    // and showing the cases again doesn't select 3 and 4
+    visibility.setRange(1, 6)
+    dataSet.validateCases()
+    expect(slider.ownsSelection).toBe(false)
+    expect(selectedA3(dataSet)).toEqual([2])
   })
 })

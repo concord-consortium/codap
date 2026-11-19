@@ -276,16 +276,19 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   // Touching the slider resumes a paused selection slider (and re-selects for an active one, which changes nothing).
   // Capture runs before the thumb and track stop the events from propagating.
   const resumeSelection = () => sliderModel?.resumeSelection()
-  // Opening the attribute menu isn't a selection gesture (choosing an attribute resumes the slider when it binds it),
-  // so a press there leaves the selection alone. That includes presses in menus portaled out of the slider, whose
-  // events still reach it through React.
-  const handlePointerDownCapture = (e: React.PointerEvent) => {
+  // whether an event within the slider is a gesture on it, i.e. not in a marked element (see kNoSelectionResumeProps)
+  // or a menu portaled out of the slider, whose events still reach it through React
+  const isSelectionGesture = (e: React.SyntheticEvent) => {
     const target = e.target as Element
-    if (!e.currentTarget.contains(target)) return
-    if (!target.closest?.(kNoSelectionResumeSelector)) resumeSelection()
+    return e.currentTarget.contains(target) && !target.closest?.(kNoSelectionResumeSelector)
+  }
+  // Opening the attribute menu, by pointer or key, isn't a selection gesture (choosing an attribute resumes the slider
+  // when it binds it), so it leaves the selection alone.
+  const handlePointerDownCapture = (e: React.PointerEvent) => {
+    if (isSelectionGesture(e)) resumeSelection()
   }
   const handleTrackKeyDownCapture = (e: React.KeyboardEvent) => {
-    if (kResumeSelectionKeys.has(e.key)) resumeSelection()
+    if (kResumeSelectionKeys.has(e.key) && isSelectionGesture(e)) resumeSelection()
   }
 
   const axisClasses = () => {

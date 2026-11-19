@@ -577,6 +577,16 @@ describe("SliderComponent: resuming a selection slider", () => {
       expect(selectedA3(dataSet)).toEqual([6])
     })
 
+    it("Enter on the attribute menu button of a paused slider doesn't take the selection", async () => {
+      const { tile, dataSet, slider } = await setupPausedSelectionSlider()
+      renderSlider(tile)
+      const button = screen.getByTestId("slider-attribute-menu-button")
+      act(() => button.focus())
+      fireEvent.keyDown(button, { key: "Enter" })
+      expect(slider.ownsSelection).toBe(false)
+      expect(selectedA3(dataSet)).toEqual([6])
+    })
+
     it("choosing Selection from the Config palette's menu announces nothing", async () => {
       const { tile, dataSet, slider } = await setupSliderAndData()
       slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)

@@ -27,21 +27,27 @@ const pressRangeBody = () => {
   slider.getRangeBody().trigger("pointerup", { ...pointer, button: 0, buttons: 0 })
 }
 
+// the row indices of the given table rows, which identify the cases they show
+const rowIndices = ($rows: JQuery<HTMLElement>) => $rows.toArray().map(row => row.getAttribute("aria-rowindex") ?? "")
+
 context("Selection slider", () => {
   it("pauses for a selection made elsewhere and resumes when touched", () => {
     setupSelectionSlider()
     // choosing the Selection type selects the cases in range
     table.getSelectedRows().its("length").should("be.gt", 0)
     cy.get("[data-testid=slider-selection-paused-badge]").should("not.exist")
+    table.getSelectedRows().then($rows => cy.wrap(rowIndices($rows)).as("rangeRows"))
 
     // selecting a row in the table takes over: the slider pauses and leaves that selection alone
     table.getGridCell(2, 2).click()
     cy.get("[data-testid=slider-selection-paused-badge]").should("be.visible").and("have.text", "Paused")
     table.getSelectedRows().should("have.length", 1)
 
-    // touching the slider resumes it, re-selecting its range
+    // touching the slider resumes it, re-selecting its range: the same rows as before, not the table's selection
     pressRangeBody()
     cy.get("[data-testid=slider-selection-paused-badge]").should("not.exist")
-    table.getSelectedRows().its("length").should("be.gt", 0)
+    cy.get<string[]>("@rangeRows").then(rangeRows => {
+      table.getSelectedRows().should($rows => expect(rowIndices($rows)).to.deep.equal(rangeRows))
+    })
   })
 })

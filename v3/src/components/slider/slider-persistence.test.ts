@@ -1,10 +1,14 @@
+import { when } from "mobx"
+import { Instance } from "mobx-state-tree"
 import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet, IDataSet } from "../../models/data/data-set"
 import { setSelectedCases } from "../../models/data/data-set-utils"
 import { serializeCodapV2Document, serializeCodapV3Document } from "../../models/document/serialize-document"
 import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
+import { TreeManager } from "../../models/history/tree-manager"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { getTileModel } from "../../models/tiles/tile-model"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { convertToDate } from "../../utilities/date-utils"
 import { ICodapV2DocumentJson, ICodapV2SliderStorage } from "../../v2/codap-v2-types"
@@ -276,5 +280,52 @@ describe("selection slider persistence", () => {
     const restoredData = findDataSet("a3")
     expect(selectedA3(restoredData)).toEqual([2, 3])
     expect(findSelectionSlider().ownsSelection).toBe(true)
+  })
+
+  it("round-trips owning and paused through V2", async () => {
+    const { dataSet } = await setupSelectionSlider()
+    await reloadDocument("v2")
+    expect(findSelectionSlider().ownsSelection).toBe(true)
+    expect(selectedA3(findDataSet("a3"))).toEqual([2, 3, 4])
+
+    const restoredData = findDataSet("a3")
+    const a3 = restoredData.attrFromName("a3")!.id
+    setSelectedCases([restoredData.itemIds.find(itemId => restoredData.getNumeric(itemId, a3) === 6)!], restoredData)
+    await reloadDocument("v2")
+    expect(findSelectionSlider().ownsSelection).toBe(false)
+    expect(selectedA3(findDataSet("a3"))).toEqual([6])
+    void dataSet
+  })
+
+  it("doesn't claim the selection when a slider saved owning is paused, deleted, and restored by undo", async () => {
+    await setupSelectionSlider()
+    await reloadDocument("v3")
+    const dataSet = findDataSet("a3")
+    const a3 = dataSet.attrFromName("a3")!.id
+    expect(findSelectionSlider().ownsSelection).toBe(true)
+    // saving again, too, leaves no saved ownership behind in the document
+    await serializeCodapV3Document(appState.document)
+    setSelectedCases([dataSet.itemIds.find(itemId => dataSet.getNumeric(itemId, a3) === 6)!], dataSet)
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    appState.document.treeMonitor!.enableMonitoring()
+    try {
+      await settle()
+      const content = appState.document.content!
+      const tileId = getTileModel(findSelectionSlider())!.id
+      content.applyModelChange(() => content.deleteTile(tileId), {
+        undoStringKey: "DG.Undo.component.close", redoStringKey: "DG.Redo.component.close"
+      })
+      await settle()
+      appState.document.undoLastAction()
+      await settle()
+      const restored = findSelectionSlider()
+      expect(restored.ownsSelection).toBe(false)
+      restored.setRange(1, 3)
+      expect(selectedA3(dataSet)).toEqual([6])
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
   })
 })
