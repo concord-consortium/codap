@@ -201,6 +201,51 @@ describe("observeLookupDependencies", () => {
     dataSet.addCases(newCases)
     expect(recalculateCallback).toHaveBeenCalledTimes(3)
   })
+
+  it("should call recalculateCallback with ALL_CASES when the shown items or their order change", () => {
+    // lookupByIndex and lookupByKey read the shown items in order, so their results change with them
+    const dataSet = DataSet.create({ id: "ds1" })
+    dataSet.addAttribute({ id: "attr1", name: "a1" })
+    dataSet.addAttribute({ id: "attr2", name: "a2" })
+    dataSet.addCases([{ __id__: "case1" }, { __id__: "case2" }])
+    const formulaDependencies: ILookupDependency[] = [{ type: "lookup", dataSetId: "ds1", attrId: "attr1" }]
+    const recalculateCallback = jest.fn()
+    const dispose = observeLookupDependencies(formulaDependencies, new Map([["ds1", dataSet]]), recalculateCallback)
+
+    dataSet.hideCasesOrItems(["case1"])
+    expect(recalculateCallback).toHaveBeenCalledTimes(1)
+    dataSet.showHiddenCasesAndItems(["case1"])
+    expect(recalculateCallback).toHaveBeenCalledTimes(2)
+    dataSet.moveItems(["case2"], { before: "case1" })
+    expect(recalculateCallback).toHaveBeenCalledTimes(3)
+    dataSet.updateFilterFormulaResults([{ itemId: "case1", result: false }], {})
+    expect(recalculateCallback).toHaveBeenCalledTimes(4)
+    expect(recalculateCallback.mock.calls).toEqual(Array(4).fill(["ALL_CASES"]))
+    // a value change in an attribute the formula doesn't read
+    dataSet.setCaseValues([{ __id__: "case2", attr2: 1 }])
+    expect(recalculateCallback).toHaveBeenCalledTimes(4)
+    dispose()
+  })
+
+  it("should observe the items of each data set once, and not the formula's own data set", () => {
+    const ds1 = DataSet.create({ id: "ds1" })
+    const ds2 = DataSet.create({ id: "ds2" })
+    const dataSets = new Map([["ds1", ds1], ["ds2", ds2]])
+    const formulaDependencies: ILookupDependency[] = [
+      { type: "lookup", dataSetId: "ds1", attrId: "attr1" },
+      { type: "lookup", dataSetId: "ds1", attrId: "attr2" },
+      { type: "lookup", dataSetId: "ds2", attrId: "attr1" }
+    ]
+    const recalculateCallback = jest.fn()
+    // ds2 is the formula's own data set, which observeLocalAttributes observes
+    const dispose = observeLookupDependencies(formulaDependencies, dataSets, recalculateCallback, "ds2")
+
+    ds1.addCases([{ __id__: "case1" }])
+    expect(recalculateCallback).toHaveBeenCalledTimes(1)
+    ds2.addCases([{ __id__: "case2" }])
+    expect(recalculateCallback).toHaveBeenCalledTimes(1)
+    dispose()
+  })
 })
 
 describe("observeGlobalValues", () => {

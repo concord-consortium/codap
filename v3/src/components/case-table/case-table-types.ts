@@ -8,11 +8,16 @@ import { IGroupedCase, symFirstChild } from "../../models/data/data-set-types"
 export const kCaseTableIdBase = "case-table"
 
 export const symDom = Symbol.for("dom")
+// id of the row's ancestor case in the rendered collection to its left (see CollectionTableModel.createRows)
+export const symShownParent = Symbol.for("shownParent")
 
 // TRow extends IGroupedCase to facilitate interchange
 export interface TRow extends IGroupedCase {
-  // true if this row is the first child case of a given parent case
+  // true if this row is the first child case of a given (shown) parent case
   [symFirstChild]?: boolean
+  // the case's ancestor in the rendered parent collection, which is its parent case unless the
+  // collections between them aren't rendered
+  [symShownParent]?: string
   // ids of attributes whose DOM representation have been manipulated in performance mode
   [symDom]?: Set<string>
 }

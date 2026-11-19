@@ -4,6 +4,7 @@ import { DIResultAttributes } from "../data-interactive-data-set-types"
 import { DataSet } from "../../models/data/data-set"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { AppHistoryService } from "../../models/history/app-history-service"
+import * as SharedDataUtils from "../../models/shared/shared-data-utils"
 
 describe("DataInteractive AttributeHandler", () => {
   const handler = diAttributeHandler
@@ -92,6 +93,27 @@ describe("DataInteractive AttributeHandler", () => {
     expect(resultAttr2?.type).toBe(type)
   })
 
+  it("update sets editable to the value it is given", () => {
+    const { dataset: dataContext, metadata, a1 } = setupTestDataset()
+    const spy = jest.spyOn(SharedDataUtils, "getMetadataFromDataSet").mockReturnValue(metadata)
+    const editableResult = (editable: boolean) => {
+      const result = handler.update?.({ attribute: a1, dataContext }, { editable })
+      expect(result?.success).toBe(true)
+      return (result?.values as DIResultAttributes).attrs?.[0]?.editable
+    }
+
+    expect(editableResult(false)).toBe(false)
+    expect(metadata.isEditProtected(a1.id)).toBe(true)
+
+    expect(editableResult(true)).toBe(true)
+    expect(metadata.isEditProtected(a1.id)).toBe(false)
+
+    // an update that leaves out editable leaves it unchanged
+    expect(handler.update?.({ attribute: a1, dataContext }, { description: "no editable" })?.success).toBe(true)
+    expect(metadata.isEditProtected(a1.id)).toBe(false)
+    spy.mockRestore()
+  })
+
   it("update handles invalid precision values correctly", () => {
     const { dataset: dataContext, a1 } = setupTestDataset()
 
@@ -171,5 +193,28 @@ describe("DataInteractive AttributeHandler", () => {
     expect(dataContext.attributes.length).toBe(1)
     expect(handler.delete?.({ dataContext, attribute }).success).toEqual(true)
     expect(dataContext.attributes.length).toBe(0)
+  })
+
+  it("get includes _categoryMap only once the attribute's categories have been used, as in V2", () => {
+    const { dataset: dataContext, metadata, a1 } = setupTestDataset()
+    const spy = jest.spyOn(SharedDataUtils, "getMetadataFromDataSet").mockReturnValue(metadata)
+    const attrResult = () => (handler.get?.({ dataContext, attribute: a1 })?.values as any)
+    expect(attrResult()._categoryMap).toBeUndefined()
+    // reading the attribute creates no category set
+    expect(metadata.provisionalCategories.size).toBe(0)
+    metadata.getCategorySet(a1.id)
+    expect(attrResult()._categoryMap?.__order).toEqual(["a", "b"])
+    spy.mockRestore()
+  })
+
+  it("get includes _categoryMap with an attribute's assigned colors even without a category set, as in V2", () => {
+    const { dataset: dataContext, metadata, a1 } = setupTestDataset()
+    const spy = jest.spyOn(SharedDataUtils, "getMetadataFromDataSet").mockReturnValue(metadata)
+    metadata.setAttributeColor(a1.id, "#123456", "low")
+    const categoryMap = (handler.get?.({ dataContext, attribute: a1 })?.values as any)._categoryMap
+    expect(categoryMap?.["low-attribute-color"]).toBe("#123456")
+    expect(categoryMap?.__order).toEqual([])
+    expect(metadata.provisionalCategories.size).toBe(0)
+    spy.mockRestore()
   })
 })

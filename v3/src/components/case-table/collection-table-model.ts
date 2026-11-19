@@ -1,9 +1,10 @@
 import { action, computed, makeObservable, observable } from "mobx"
-import { symParent } from "../../models/data/data-set-types"
+import { IGroupedCase, symFirstChild, symIndex, symParent } from "../../models/data/data-set-types"
 import { IDataSetMetadata } from "../../models/shared/data-set-metadata"
 import { getNumericCssVariable } from "../../utilities/css-utils"
 import { uniqueId } from "../../utilities/js-utils"
-import { IScrollOptions, kDefaultRowHeaderHeight, kDefaultRowHeight, TRow } from "./case-table-types"
+import { IScrollOptions, kDefaultRowHeaderHeight, kDefaultRowHeight, symShownParent, TRow } from "./case-table-types"
+import { getRenderedCollections } from "./rendered-collections"
 
 const kDefaultRowCount = 12
 const kDefaultGridHeight = kDefaultRowHeaderHeight + (kDefaultRowCount * kDefaultRowHeight)
@@ -59,6 +60,69 @@ export class CollectionTableModel {
 
   destroy() {
     this.disableSyncScrollTimers.forEach(timerId => window.clearTimeout(timerId))
+  }
+
+  get data() {
+    return this.metadata?.data
+  }
+
+  // ids of the collections the case table renders, in parent-to-child order
+  @computed get renderedCollectionIds() {
+    const { data, metadata } = this
+    if (!data) return []
+    return getRenderedCollections(data.collections, attrId => !!metadata?.isHidden(attrId)).map(({ id }) => id)
+  }
+
+  // the rendered collection to the left of this one, whose cases this collection's rows are grouped by
+  @computed get shownParentCollectionId(): string | undefined {
+    const index = this.renderedCollectionIds.indexOf(this.collectionId)
+    return index > 0 ? this.renderedCollectionIds[index - 1] : undefined
+  }
+
+  isCollectionRendered(collectionId: string) {
+    return !this.renderedCollectionIds.length || this.renderedCollectionIds.includes(collectionId)
+  }
+
+  // returns the case's ancestor in the shown parent collection (if any)
+  getShownParentId(caseId: string) {
+    const { data, shownParentCollectionId } = this
+    if (!data || !shownParentCollectionId) return
+    let ancestorId = data.getParentCaseId(caseId)
+    while (ancestorId && data.caseInfoMap.get(ancestorId)?.collectionId !== shownParentCollectionId) {
+      ancestorId = data.getParentCaseId(ancestorId)
+    }
+    return ancestorId
+  }
+
+  // returns the outermost collapsed ancestor of the case, ignoring collapsed cases in collections
+  // that aren't rendered, since they have no expand/collapse controls
+  getCollapsedAncestor(caseId: string) {
+    return this.metadata?.getCollapsedAncestor(caseId, collectionId => this.isCollectionRendered(collectionId))
+  }
+
+  // returns true if the case or one of its rendered ancestors is collapsed
+  isCaseOrAncestorCollapsed(caseId: string) {
+    return !!this.metadata?.isCollapsed(caseId) || !!this.getCollapsedAncestor(caseId)
+  }
+
+  /**
+   * Returns rows for the given cases of this collection. Each row is grouped and numbered within
+   * its shown parent case, which is its parent case unless the collections between them aren't
+   * rendered. When no parent collection is rendered, rows are numbered straight through.
+   */
+  createRows(cases: readonly IGroupedCase[]): TRow[] {
+    let prevShownParent: string | undefined
+    let index = -1
+    return cases.map(({ __id__, [symParent]: parent }) => {
+      const shownParent = this.getShownParentId(__id__)
+      const isFirstChild = !!shownParent && shownParent !== prevShownParent
+      index = isFirstChild ? 0 : index + 1
+      prevShownParent = shownParent
+      return {
+        __id__, [symIndex]: index, [symParent]: parent, [symShownParent]: shownParent,
+        ...(isFirstChild ? { [symFirstChild]: true } : undefined)
+      }
+    })
   }
 
   get rowHeaderHeight() {
@@ -176,7 +240,7 @@ export class CollectionTableModel {
 
     const indexRanges: { id: string, firstChildIndex: number, lastChildIndex: number }[] = []
     this.rows.forEach((row, i) => {
-      const currAncestorId = this.metadata?.getCollapsedAncestor(row.__id__) ?? row[symParent]
+      const currAncestorId = this.getCollapsedAncestor(row.__id__) ?? row[symShownParent]
       if (currAncestorId) {
         if (currAncestorId !== controllingAncestorId) {
           const { firstOffset, lastOffset } = getOffsets()
@@ -227,6 +291,10 @@ export class CollectionTableModel {
 
   @action setElement(element: HTMLDivElement) {
     this.element = element
+    // A newly attached grid has its own scroll position (e.g. a collection that was hidden and shown
+    // again gets a new grid scrolled to the top), so the cached scroll state must match it.
+    this.scrollTop = this.targetScrollTop = element.scrollTop
+    this.scrollStep = this.lastScrollStep = 0
   }
 
   @action setInputRowIndex(inputRowIndex: number) {
@@ -369,13 +437,13 @@ export class CollectionTableModel {
     let firstChildOfFirstParent: string | undefined
     let lastChildOfLastParent: string | undefined
     for (let i = 0; i < this.rows.length; ++i) {
-      if (!firstChildOfFirstParent && (this.rows[i][symParent] === firstParentRow?.__id__)) {
+      if (!firstChildOfFirstParent && (this.rows[i][symShownParent] === firstParentRow?.__id__)) {
         firstChildOfFirstParent = this.rows[i].__id__
       }
-      if (this.rows[i][symParent] === lastParentRow?.__id__) {
+      if (this.rows[i][symShownParent] === lastParentRow?.__id__) {
         lastChildOfLastParent = this.rows[i].__id__
       }
-      if (lastChildOfLastParent && (this.rows[i][symParent] !== firstParentRow?.__id__)) {
+      if (lastChildOfLastParent && (this.rows[i][symShownParent] !== lastParentRow?.__id__)) {
         break
       }
     }
@@ -408,9 +476,9 @@ export class CollectionTableModel {
   scrollToAlignWithChild(childTableModel: CollectionTableModel) {
     if (this.isSyncScrollingResponseDisabled) return
     const firstChildRow = childTableModel.firstVisibleTargetRow
-    const firstChildRowParent = firstChildRow?.[symParent]
+    const firstChildRowParent = firstChildRow?.[symShownParent]
     const lastChildRow = childTableModel.lastVisibleTargetRow
-    const lastChildRowParent = lastChildRow?.[symParent]
+    const lastChildRowParent = lastChildRow?.[symShownParent]
     if (firstChildRowParent && lastChildRowParent) {
       const firstParentIndex = this.getRowIndexOfCase(firstChildRowParent)
       const lastParentIndex = this.getRowIndexOfCase(lastChildRowParent)

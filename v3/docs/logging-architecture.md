@@ -28,7 +28,7 @@ Player forwarding, and the Data Interactive log monitor API for plugins.
            ├─→ sendToLoggingService()                → matching plugins
            │     POST logger.concordqa.org/logs
            │
-           ├─→ sendToAnalyticsService()  [skipped if excludeAnalytics]
+           ├─→ sendToAnalyticsService()  [skipped if excludeAnalytics; args only if in analyticsArgs]
            │     window.gtag("event", ...)
            │
            └─→ logListeners.forEach(listener)
@@ -85,7 +85,8 @@ for events logged with the `excludeAnalytics` option):
 
 1. **Log server** — POST to `logger.concordqa.org/logs` (domain-gated to
    `*.concord.org` hosts, with a `DEBUG_LOGGER` localStorage override)
-2. **Google Analytics** — `window.gtag("event", ...)` with filename and URL
+2. **Google Analytics** — `window.gtag("event", ...)` with a limited set of args
+   (only those named in the `analyticsArgs` option), sent as top-level event parameters
 3. **Log listeners** — registered callbacks for extensibility
 
 Key features:
@@ -104,6 +105,30 @@ Key features:
 - **`excludeAnalytics` option**: `Logger.log(event, args, category, { excludeAnalytics: true })`
   sends the event to the log server and log listeners but not to GA. The option is kept
   for events queued before initialization. It is used by the `GA status` event below.
+- **`analyticsArgs` option**: `Logger.log(event, args, category, { analyticsArgs: ["url"] })`
+  names the args sent to GA. By default GA gets the event with no args, while the log
+  server and log listeners always get all of them. The banner events use it.
+
+### Google Analytics
+
+CODAP v3 reports to the `CODAP - GA4` property (measurement ID `G-ZYRHG9RN3K`). The
+property also has a stream for the codap.concord.org WordPress site, so filter reports
+by stream when the distinction matters.
+
+GA4 only reports an event parameter once it is registered as an event-scoped custom
+dimension (Admin → Data display → Custom definitions), and only from the date it is
+registered. When sending a new arg via `analyticsArgs`, register a dimension whose
+event parameter matches the arg name exactly. A property allows 50 such dimensions, and
+the WordPress site's MonsterInsights plugin already uses 27 of them, so prefer generic,
+reusable names (`url`, `filename`) over event-specific ones. Currently registered for
+CODAP: `bannerId`, `url`.
+
+Don't send args that may identify a user, such as document names or URLs a user entered
+(documents, web views). Students as young as middle school use CODAP.
+
+`DEBUG_LOGGER` shows the payload passed to `gtag()`, before gtag serializes it, so it
+can't confirm what GA receives. To verify, check the `ep.*` parameters of the
+`/g/collect` request in the browser's network tab, or use GA's Realtime report or DebugView.
 
 ### GA Status Event
 
@@ -248,7 +273,7 @@ The `logMessageNotice` payload delivered to matching plugins:
 | Application ID | `"CODAP"` | `"CODAPV3"` (temporary, see below) |
 | Session format | `YYMMDDHHMMSS-random` or `runKey` | `nanoid()` or `runKey` |
 | Log message format | Printf-style `%@` substitution | `ILogMessage { message, args, category }` |
-| Analytics | `ga('send', 'event', ...)` | `gtag('event', ...)` (limited to filename/URL) |
+| Analytics | `ga('send', 'event', ...)` | `gtag('event', ...)` (args only via `analyticsArgs`) |
 | Framework | SproutCore observer system | MobX-State-Tree + React |
 | LARA forwarding | Not present | Logger listener → `cfmClient.log()` → PR #419 → lara-interactive-api |
 | `appOptions.log` | Routes CFM events to `DG.logUser()` | No-op (loop prevention) |

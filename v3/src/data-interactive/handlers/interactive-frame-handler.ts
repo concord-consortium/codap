@@ -6,6 +6,7 @@ import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
 import { gLocale } from "../../utilities/translation/locale"
 import { registerDIHandler } from "../data-interactive-handler"
+import { contentDimensionsFromTile, tileDimensionsFromContent, validDimensions } from "../data-interactive-utils"
 import { DIHandler, DINotification, DIResources, DIValues, DIInteractiveFrame } from "../data-interactive-types"
 import { noInteractiveFrameResult, valuesRequiredResult } from "./di-results"
 
@@ -25,6 +26,7 @@ export const diInteractiveFrameHandler: DIHandler = {
       allowEmptyAttributeDeletion,
       blockAPIRequestsWhileEditing,
       codapVersion: appState.getVersion(),
+      contentDimensions: dimensions && contentDimensionsFromTile(dimensions),
       dimensions,
       externalUndoAvailable: !uiState.standaloneMode,
       id: toV2Id(interactiveFrame.id),
@@ -93,7 +95,7 @@ export const diInteractiveFrameHandler: DIHandler = {
     if (Array.isArray(values)) return { success: true }
 
     const {
-      allowEmptyAttributeDeletion, blockAPIRequestsWhileEditing, cannotClose, dimensions,
+      allowEmptyAttributeDeletion, blockAPIRequestsWhileEditing, cannotClose, contentDimensions, dimensions,
       handlesLocaleChange, name, preventAttributeDeletion, preventBringToFront,
       preventDataContextReorg, preventTopLevelReorg, respectEditableItemAttribute,
       subscribeToDocuments, title, version
@@ -102,12 +104,19 @@ export const diInteractiveFrameHandler: DIHandler = {
       if (allowEmptyAttributeDeletion != null) {
         webViewContent?.setAllowEmptyAttributeDeletion(allowEmptyAttributeDeletion)
       }
-      if (cannotClose) interactiveFrame.setCannotClose(cannotClose)
-      if (dimensions) {
-        appState.document.content?.setTileDimensions(interactiveFrame.id, dimensions)
+      if (cannotClose != null) interactiveFrame.setCannotClose(!!cannotClose)
+      // dimensions is the whole tile, as in V2 (component_view.js:490-500); contentDimensions, which wins side by
+      // side, is the plugin's own area, to which CODAP adds its title bar. As in V2, a side not given is left as it is.
+      const tileDimensions = {
+        ...validDimensions(dimensions), ...tileDimensionsFromContent(validDimensions(contentDimensions))
+      }
+      if (Object.keys(tileDimensions).length) {
+        const { content } = appState.document
+        const currentDimensions = content?.getTileDimensions(interactiveFrame.id) ?? {}
+        content?.setTileDimensions(interactiveFrame.id, { ...currentDimensions, ...tileDimensions })
       }
       if (name && !interactiveFrame.userSetTitle) {
-        interactiveFrame.setTitle(name)
+        interactiveFrame.setTitle(String(name))
       }
       if (blockAPIRequestsWhileEditing != null) {
         webViewContent?.setBlockAPIRequestsWhileEditing(blockAPIRequestsWhileEditing)
@@ -123,7 +132,7 @@ export const diInteractiveFrameHandler: DIHandler = {
         webViewContent?.setSubscribeToDocuments(subscribeToDocuments)
       }
       if (title && !interactiveFrame.userSetTitle) {
-        interactiveFrame.setTitle(title)
+        interactiveFrame.setTitle(String(title))
       }
       if (version) webViewContent?.setVersion(version)
       if (handlesLocaleChange != null) webViewContent?.setHandlesLocaleChange(handlesLocaleChange)

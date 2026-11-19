@@ -45,8 +45,8 @@ write applies to the whole data context. v2 narrowed writes to the named collect
 known bug — see [Known limitations](#known-limitations).
 
 <!-- BEGIN GENERATED: scope -->
-This resource is scoped to a data context. Omitting one selects `#default`, the first data
-context in the document — see [the index](../README.md#the-default-data-context).
+This resource is scoped to a data context. Omitting one selects `#default`, your plugin's
+own data context — see [the index](../README.md#the-default-data-context).
 <!-- END GENERATED: scope -->
 
 ## Values
@@ -81,6 +81,10 @@ The second is a **selection expression**, which selects by formula instead of by
 <!-- END GENERATED: values-write -->
 
 `collection` defaults to the childmost collection of the data context.
+
+The expression selects the cases for which its result is true, read as a
+[`caseFormulaSearch`](case-formula-search.md#search-formulas) reads it: values such as the text
+`false` in any case, `0` and an empty result do not select a case.
 
 ## Examples
 
@@ -175,8 +179,7 @@ IDs.` — no part of the selection is applied.
 
 Changing the selection causes CODAP to notify plugins that are listening to the data context,
 with the `selectCases` operation on `dataContextChangeNotice[<context>]`. The plugin that changed
-the selection is not meant to receive it, but today it does; see
-[Receiving them](../notifications.md#receiving-them).
+the selection does not receive it; see [Receiving them](../notifications.md#receiving-them).
 
 Selecting a parent case notifies for its whole group. See
 [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext).

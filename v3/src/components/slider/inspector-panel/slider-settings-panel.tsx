@@ -169,7 +169,7 @@ export const SliderSettingsPalette =
                   {getDateUnitLabel(sliderModel.dateMultipleOfUnit, multiplesCount)}
                   <span aria-hidden="true" className="select-arrow">▾</span>
                 </Button>
-                <Popover offset={0}>
+                <Popover offset={0} data-testid="slider-date-unit-popover">
                   <ListBox>
                     {dateUnits.map((aPrecision, index) => (
                       <ListBoxItem key={aPrecision} id={aPrecision}>
@@ -203,6 +203,7 @@ export const SliderSettingsPalette =
         setShowPalette={setShowPalette}
         panelRect={panelRect}
         buttonRect={buttonRect}
+        tileType="slider"
       >
         <div className={paletteFormClass}>
           <div className="palette-row">
@@ -216,6 +217,7 @@ export const SliderSettingsPalette =
             <span className="slider-input animation-rate" data-testid="slider-animation-rate">
               <input
                 id="slider-animation-rate-input"
+                data-testid="slider-animation-rate-input"
                 size={Math.max(1, animationRateValue.length)}
                 value={animationRateValue}
                 onChange={e => setAnimationRateValue(e.target.value)}
@@ -238,7 +240,7 @@ export const SliderSettingsPalette =
                 <SelectValue />
                 <span aria-hidden="true" className="select-arrow">▾</span>
               </Button>
-              <Popover offset={0}>
+              <Popover offset={0} data-testid="slider-animation-direction-popover">
                 <ListBox>
                   {AnimationDirections.map(aDirection => (
                     <ListBoxItem key={aDirection} id={aDirection}>
@@ -261,7 +263,7 @@ export const SliderSettingsPalette =
                 <SelectValue />
                 <span aria-hidden="true" className="select-arrow">▾</span>
               </Button>
-              <Popover offset={0}>
+              <Popover offset={0} data-testid="slider-animation-repetition-popover">
                 <ListBox>
                   {AnimationModes.map(aMode => (
                     <ListBoxItem key={aMode} id={aMode}>

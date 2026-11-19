@@ -47,6 +47,8 @@ type DateSpec = {
   min: number
   sec: number
   subsec: number
+  // explicit offset from UTC in minutes; when undefined the date is interpreted as local
+  tzOffsetMinutes?: number
 }
 
 const timePart = '(\\d\\d?)(?::(\\d\\d?)(?::(\\d\\d)(?:\\.(\\d+))?)?)?'
@@ -207,8 +209,21 @@ export function fixMonth(m: string) {
   return (monthIx % 12) + 1
 }
 
+// Returns the offset from UTC in minutes of an explicit numeric offset (e.g. "-07:00", "+0530", "GMT-0700").
+// Returns undefined for "Z", "GMT", zone abbreviations (e.g. "PDT"), and malformed offsets or offsets outside
+// the real-world range of -12:00 to +14:00 (e.g. "+05:3", "+14:30"), all of which are interpreted as local.
+export function parseTimeZoneOffset(timezone?: string) {
+  const match = timezone?.match(/^(?:GMT)?([+-])(\d\d):?(\d\d)(?!\d)/i)
+  if (!match) return undefined
+  const [, sign, hours, minutes] = match
+  if (Number(minutes) > 59) return undefined
+  const offset = (sign === "-" ? -1 : 1) * (Number(hours) * 60 + Number(minutes))
+  return offset >= -12 * 60 && offset <= 14 * 60 ? offset : undefined
+}
+
 export function extractDateProps(match: string[], map: GroupMap): DateSpec {
   return {
+    tzOffsetMinutes: parseTimeZoneOffset(match[map.timezone]),
     year: Number(fixYear(match[map.year])),
     month: fixMonth(match[map.month] || '1'),
     day: Number(match[map.day] || '1'),
@@ -266,8 +281,10 @@ export function parseDateV2Compatible(iValue: any, iLoose?: boolean) {
   if (spec && match && groupMap) {
     dateSpec = isValidDateSpec(extractDateProps(match, groupMap))
     if (dateSpec) {
-      date = new Date(dateSpec.year, (-1 + dateSpec.month), dateSpec.day,
-        dateSpec.hour, dateSpec.min, dateSpec.sec, dateSpec.subsec)
+      const { year, month, day, hour, min, sec, subsec, tzOffsetMinutes } = dateSpec
+      date = tzOffsetMinutes != null
+        ? new Date(Date.UTC(year, month - 1, day, hour, min - tzOffsetMinutes, sec, subsec))
+        : new Date(year, month - 1, day, hour, min, sec, subsec)
       return date
     }
   }

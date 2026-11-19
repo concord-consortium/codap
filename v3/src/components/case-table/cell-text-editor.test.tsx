@@ -4,6 +4,12 @@ import { DataSet } from "../../models/data/data-set"
 import { TCalculatedColumn } from "./case-table-types"
 import CellTextEditor from "./cell-text-editor"
 import { AppHistoryService } from "../../models/history/app-history-service"
+import { appState } from "../../models/app-state"
+import { createDefaultTileOfType } from "../../models/codap/add-default-content"
+import { uiState } from "../../models/ui-state"
+import { kWebViewTileType } from "../web-view/web-view-defs"
+import { IWebViewModel } from "../web-view/web-view-model"
+import "../web-view/web-view-registration"
 const mockUseDataSetContext = jest.fn()
 jest.mock("../../hooks/use-data-set-context", () => ({
   useDataSetContext: () => mockUseDataSetContext()
@@ -49,6 +55,27 @@ describe("CellTextEditor", () => {
     await user.keyboard("1")
     fireEvent.blur(editor)
     expect(onRowChange).toHaveBeenCalled()
+  })
+
+  it("holds the managing plugin's requests once the user changes the value", async () => {
+    const { content } = appState.document
+    const tile = createDefaultTileOfType(kWebViewTileType)!
+    content?.insertTileInDefaultRow(tile)
+    ;(tile.content as IWebViewModel).setBlockAPIRequestsWhileEditing(true)
+    const data = DataSet.create({ name: "data" }, {historyService: new AppHistoryService()})
+    data.addAttribute({ id: "columnKey", name: "columnName" })
+    const [caseId] = data.addCases([{ columnKey: "1" }])
+    data.setManagingControllerId(tile.id)
+    mockUseDataSetContext.mockImplementation(() => data)
+    const user = userEvent.setup()
+    const { unmount } = render(
+      <CellTextEditor row={{ __id__: caseId }} column={column} onRowChange={onRowChange} onClose={onClose}/>)
+    expect(uiState.isEditingBlockingRequestsFrom(tile.id)).toBe(false)
+    await user.keyboard("9")
+    expect(uiState.isEditingBlockingRequestsFrom(tile.id)).toBe(true)
+    unmount()
+    expect(uiState.isEditingBlockingRequestsFrom(tile.id)).toBe(false)
+    content?.deleteTile(tile.id)
   })
 
   it("should have aria-label with attribute name", () => {

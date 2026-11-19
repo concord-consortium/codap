@@ -122,11 +122,24 @@ export const isWithinBounds = (panelRight: number, palette: HTMLDivElement | nul
   return (panelRight + paletteRect.width + 10) < viewportRect.right
 }
 
-export const getPaletteTopPosition = (tempTop: number, paletteHeight: number, pointerMid: number) => {
-  const top = pointerMid-paletteHeight/2
-  if ((tempTop+top) > kCodapAppHeader + kGap) {
-    return top
-  } else {
-    return 0
-  }
+interface IPaletteTopPositionArgs {
+  // screen top of the inspector panel, which the palette is positioned relative to
+  panelTop: number
+  paletteHeight: number
+  // vertical midpoint of the palette's pointer, relative to the panel's top
+  pointerMid: number
+  // screen top of the area the palette must stay within, e.g. the bottom of the app header
+  minTop?: number
 }
+
+/**
+ * Returns the palette's top relative to the inspector panel's top. The palette is centered on its
+ * pointer, but its top is kept below `minTop`. Every input is independent of the palette's current
+ * position, so re-rendering with the result applied gives the same result.
+ */
+export const getPaletteTopPosition =
+  ({ panelTop, paletteHeight, pointerMid, minTop = kCodapAppHeader }: IPaletteTopPositionArgs) => {
+    const centeredTop = pointerMid - paletteHeight / 2
+    const minAllowedTop = minTop + kGap - panelTop
+    return Math.max(centeredTop, minAllowedTop)
+  }

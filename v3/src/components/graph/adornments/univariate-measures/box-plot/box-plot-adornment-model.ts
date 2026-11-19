@@ -30,8 +30,8 @@ export const BoxPlotAdornmentModel = UnivariateMeasureAdornmentModel
     type: types.optional(types.literal(kBoxPlotType), kBoxPlotType),
     labelTitle: types.optional(types.literal(kBoxPlotValueTitleKey), kBoxPlotValueTitleKey),
     showOutliers: false,
-    // showICI can only be set to true when the ICI=yes url parameter is present. But, if present in a saved
-    // document, the ICI will be shown.
+    // the inspector offers showICI only with the ICI url parameter or while it is on, but a saved
+    // document or a plugin can turn it on either way
     showICI: false  // show informal confidence interval
   })
   .volatile(() => ({

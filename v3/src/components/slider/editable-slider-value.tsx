@@ -9,7 +9,7 @@ import { t } from "../../utilities/translation/translate"
 import { MultiScale } from "../axis/models/multi-scale"
 import { ISliderModel } from "./slider-model"
 import { changeSliderValueNotification } from "./slider-notifications"
-import { formatSliderValue, valueChangeNotification } from "./slider-utils"
+import { formatSliderValue } from "./slider-utils"
 import { useSliderAxisAnimation } from "./use-slider-axis-animation"
 
 import './slider.scss'
@@ -63,10 +63,7 @@ export const EditableSliderValue = observer(function EditableSliderValue({slider
     const inputValue = parseValue(e.target.value)
     if (isFinite(inputValue)) {
       animateAxisToEncompass(inputValue, {
-        notify: [
-          () => valueChangeNotification(sliderModel.value, sliderModel.name),
-          () => changeSliderValueNotification(tile, sliderModel.value)
-        ],
+        notify: () => changeSliderValueNotification(tile, sliderModel.value),
         undoStringKey: "DG.Undo.slider.change",
         redoStringKey: "DG.Redo.slider.change",
         log: logMessageWithReplacement("sliderEdit: { expression: %@ = %@ }",

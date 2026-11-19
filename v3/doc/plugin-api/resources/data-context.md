@@ -7,8 +7,8 @@ A data context is one data set: its collections, its attributes, its cases, and 
 that describes where the data came from. Most plugins that bring data into CODAP start by
 creating one, and most plugins that read a document start by listing them.
 
-This page covers the data context as a whole. Its attributes have their own page; its
-collections, cases and items do not yet.
+This page covers the data context as a whole. Its [collections](collection.md),
+[attributes](attribute.md), [cases](case.md) and [items](item.md) have pages of their own.
 
 ## Supported actions
 
@@ -33,11 +33,12 @@ collections, cases and items do not yet.
 | `dataContext` | create |
 <!-- END GENERATED: selectors -->
 
-`<context>` accepts a data context's name, its title, or its numeric id.
+`<context>` accepts a data context's name, its title, or its numeric id. Accepting a title is new
+in v3; v2 accepted a name or id only.
 
 <!-- BEGIN GENERATED: scope -->
-This resource is scoped to a data context. Omitting one selects `#default`, the first data
-context in the document — see [the index](../README.md#the-default-data-context).
+This resource is scoped to a data context. Omitting one selects `#default`, your plugin's
+own data context — see [the index](../README.md#the-default-data-context).
 <!-- END GENERATED: scope -->
 
 Creating is the exception to the defaulting rule: there is nothing to default to before the
@@ -63,7 +64,7 @@ through `allCases`, `caseSearch` or the `item` resources instead.
 | `collections` | yes | each with its attributes — **not** its cases (see above) |
 | `flexibleGroupingChangeFlag` | yes | |
 | `preventReorg` | yes | |
-| `setAsideItems` | yes | the items currently set aside, with their values |
+| `setAsideItems` | yes | the items currently set aside, with their values; `true` and `false` read back as booleans, as on [`item`](item.md) |
 | `contextStorage` | yes | carries `_links_.selectedCases` |
 | `metadata` | no | `{description, source, importDate}` — present only when the data set carries at least one of them |
 | `v3.filterFormula` | no | present only when the data context has a filter formula |
@@ -130,6 +131,76 @@ Create a data context with one collection and two attributes:
 }
 ```
 
+Read it back, after one case has been added. The response describes the structure — collections
+and attributes — and has no cases:
+
+```json
+{
+  "action": "get",
+  "resource": "dataContext[Mammals]"
+}
+```
+
+```json
+{
+  "success": true,
+  "values": {
+    "type": "DG.DataContext",
+    "document": 1,
+    "guid": 41,
+    "id": 41,
+    "name": "Mammals",
+    "title": "Mammal measurements",
+    "collections": [
+      {
+        "attrs": [
+          {
+            "name": "Species",
+            "type": "categorical",
+            "title": "Species",
+            "cid": "ATTR43",
+            "editable": true,
+            "hidden": false,
+            "renameable": true,
+            "deleteable": true,
+            "guid": 43,
+            "id": 43
+          },
+          {
+            "name": "Mass",
+            "type": "numeric",
+            "title": "Mass",
+            "cid": "ATTR44",
+            "editable": true,
+            "hidden": false,
+            "renameable": true,
+            "deleteable": true,
+            "guid": 44,
+            "id": 44,
+            "precision": 2
+          }
+        ],
+        "guid": 42,
+        "id": 42,
+        "name": "Cases",
+        "title": "Cases",
+        "type": "DG.Collection"
+      }
+    ],
+    "flexibleGroupingChangeFlag": false,
+    "preventReorg": false,
+    "setAsideItems": [],
+    "contextStorage": { "_links_": { "selectedCases": [] } }
+  }
+}
+```
+
+Keys whose value is `undefined`, such as each attribute's `formula`, `description`, `unit` and
+`deletedFormula`, Species' `precision`, and the collection's `parent` and `defaults`, are left out
+above; a plugin receives them, as described under [What `get` returns](#what-get-returns). An
+attribute's `_categoryMap` appears only once something in CODAP has used its categories; see the
+`_categoryMap` row in [attribute's What `get` returns](attribute.md#what-get-returns).
+
 Sort a data context by one attribute, descending:
 
 ```json
@@ -158,7 +229,20 @@ Set two cases aside, then restore everything that is set aside:
 }
 ```
 
+Delete a data context, with all of its cases:
+
+```json
+{
+  "action": "delete",
+  "resource": "dataContext[Mammals]"
+}
+```
+
 ## Known limitations
+
+**`title` is `undefined` when the data context has no title of its own.** v2 reported the title
+CODAP shows for it instead: its collections' names joined with `/`, or failing that its name.
+This is a known bug.
 
 **`create` on an existing name returns the existing data context.** This is deliberate and
 matches v2. CODAP replies `success: true` with that data set's `name`, `id` and `title`, having

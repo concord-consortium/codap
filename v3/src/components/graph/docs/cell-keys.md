@@ -103,6 +103,8 @@ Without clamping, a cell whose key has a conflict holds no case. When a role fol
 
 `subPlotCases(cellKey)` resolves a key the grid generates straight to its bucket. When several cells share the key (see `kImpossible`), it returns all of their cases. A key the grid does not generate, such as a partial key or one built from a raw case value, falls back to matching every plotted case against the key.
 
+The percent denominators `cellCases`, `rowCases` and `columnCases` read from the same buckets. Each one fixes some roles to the cell's slots, lets the other roles vary, and gathers every bucket in that slice, so a `kOther` row or column includes the overflow cases it stands for. When several cells share the key, only the cells that hold cases define the slices, since a cell no case can occupy would add an unrelated row or column.
+
 ## Key Functions and Where to Find Them
 
 ### Creating Cell Keys
@@ -129,10 +131,10 @@ graphCellKeyFromCaseID(caseId: string): Record<string, string>
 // Get all cases in a subplot (cached)
 subPlotCases(cellKey: Record<string, string>): string[]
 
-// Get cases filtered by different dimensions (cached)
-cellCases(cellKey): string[]    // Only topSplit + rightSplit
-rowCases(cellKey): string[]     // y + topSplit + rightSplit
-columnCases(cellKey): string[]  // x + topSplit + rightSplit
+// Percent denominators: the cases sharing the cell's slots in the listed roles (cached)
+cellCases(cellKey): string[]    // rightSplit, plus topSplit when categorical
+rowCases(cellKey): string[]     // topSplit + rightSplit, plus y when categorical
+columnCases(cellKey): string[]  // topSplit + rightSplit, plus x when categorical
 ```
 
 ### Utility Functions

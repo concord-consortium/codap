@@ -113,7 +113,9 @@ export const CategoricalLegend =
           enter => {
             const group = enter.append('g')
               .attr('class', 'legend-key')
-              .attr('data-testid', 'legend-key')
+              .attr('role', 'img')
+              .attr('aria-label',
+                d => (d.category == null || d.category === '' ? null : String(d.category)))
               .on('click', handleLegendKeyClick)
               .call(dragBehavior)
             // An invisible full-box target under the key. A path takes pointer events on its ink
@@ -129,6 +131,9 @@ export const CategoricalLegend =
             return group
           }
         )
+        // Set on every render, not just on enter: the join is keyed by category, so a key that
+        // already exists keeps its element when categories are added or reordered.
+        .attr('data-testid', (_d, i) => `legend-key-${i}`)
 
       const dI = legendModel.dragInfo
 

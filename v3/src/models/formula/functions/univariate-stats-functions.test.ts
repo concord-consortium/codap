@@ -245,3 +245,30 @@ describe("variance", () => {
     expect(evaluate("variance(1, false)")).toEqual(UNDEF_RESULT)
   })
 })
+
+describe("filter arguments with 0/1 and \"true\"/\"false\" values", () => {
+  // Each filter selects the same cases as `Diet = 'plants'`, so each formula should give the same result.
+  const filters = [
+    "if(Diet = 'plants', 1, 0)",
+    "if(Diet = 'plants', '1', '0')",
+    "if(Diet = 'plants', 'true', 'false')",
+    "if(Diet = 'plants', 'TRUE', 'False')"
+  ]
+
+  it.each(filters)("filters aggregate functions with %s", filter => {
+    expect(evaluate(`count(Speed, ${filter})`)).toBe(evaluate("count(Speed, Diet = 'plants')"))
+    expect(evaluate(`mean(Speed, ${filter})`)).toBe(evaluate("mean(Speed, Diet = 'plants')"))
+    expect(evaluate(`percentile(Speed, 0.5, ${filter})`)).toBe(evaluate("percentile(Speed, 0.5, Diet = 'plants')"))
+    expect(evaluate(`uniqueValues(Order, ${filter})`)).toBe(evaluate("uniqueValues(Order, Diet = 'plants')"))
+    for (const casePointer of [1, 2, 7]) {
+      expect(evaluate(`rollingMean(Speed, 3, ${filter})`, 0, casePointer))
+        .toBe(evaluate("rollingMean(Speed, 3, Diet = 'plants')", 0, casePointer))
+    }
+  })
+
+  it("counts 0 and \"false\" values of the expression, but not boolean false (V2 parity)", () => {
+    expect(evaluate("count(if(Diet = 'plants', 1, 0))")).toBe(27)
+    expect(evaluate("count(if(Diet = 'plants', 'true', 'false'))")).toBe(27)
+    expect(evaluate("count(Diet = 'plants')")).toBe(evaluate("count(LifeSpan, Diet = 'plants')"))
+  })
+})
