@@ -32,16 +32,26 @@ export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
   const [importDate, setImportDate] = useState(initialImportDate)
 
   const handleCloseInfoModal = () => {
+    // applying the dialog without edits changes nothing, so it doesn't clear what could be redone
+    const isUnchanged = datasetTitle === (data?.displayTitle || "") && description === (metadata?.description || "") &&
+      source === (metadata?.source || "") && importDate === initialImportDate
+    if (isUnchanged) {
+      setShowInfoModal(false)
+      return
+    }
     data?.applyModelChange(() => {
       data.setUserTitle(datasetTitle)
       metadata?.setDescription(description)
       metadata?.setSource(source)
-      try {
-        // Save an ISO string if we can parse the submitted string as a date
-        metadata?.setImportDate(new Date(importDate).toISOString())
-      } catch (error) {
-        // Otherwise, just save the string
-        metadata?.setImportDate(importDate)
+      // an unchanged date is left as it is
+      if (importDate !== initialImportDate) {
+        try {
+          // Save an ISO string if we can parse the submitted string as a date
+          metadata?.setImportDate(new Date(importDate).toISOString())
+        } catch (error) {
+          // Otherwise, just save the string
+          metadata?.setImportDate(importDate)
+        }
       }
       setShowInfoModal(false)
     }, {

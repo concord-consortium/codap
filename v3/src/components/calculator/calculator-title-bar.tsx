@@ -23,6 +23,9 @@ export const CalculatorTitleBar =
         documentContent?.toggleSingletonTileVisibility(kCalculatorTileType)
       }, {
         notify: () => willActuallyHide ? componentShowHideNotification(tile, "hide") : undefined,
+        // as in V2, undoing shows it again and redoing hides it (document_controller.js:1644-1645)
+        undoNotify: () => willActuallyHide ? componentShowHideNotification(tile, "show") : undefined,
+        redoNotify: () => willActuallyHide ? componentShowHideNotification(tile, "hide") : undefined,
         undoStringKey: "DG.Undo.toggleComponent.delete.calcView",
         redoStringKey: "DG.Redo.toggleComponent.delete.calcView",
         log: logStringifiedObjectMessage("Close calculator", { type: kCalculatorTileType}, "component")

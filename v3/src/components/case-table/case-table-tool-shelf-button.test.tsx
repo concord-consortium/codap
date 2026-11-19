@@ -1,4 +1,7 @@
+import { when } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
+import { TreeManagerType } from "../../models/history/tree-manager"
+import { toV2Id } from "../../utilities/codap-utils"
 import { appState } from "../../models/app-state"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import "../case-card/case-card-registration"
@@ -54,5 +57,29 @@ describe("openTableOrCardForDatasetWithNotifications", () => {
     expect(createCall).toBeUndefined()
 
     broadcastSpy.mockRestore()
+  })
+
+  // CODAP-1713: undoing the open removes the table it made, and redoing makes it again, as V2's caseTable.open
+  // did (app_controller.js:122-123)
+  it("sends `delete` on undo and `create` on redo for a table it made", async () => {
+    const sharedDataSet = addDataset("fish1713")
+    const { document } = appState
+    document.treeMonitor!.enableMonitoring()
+    const settled = () => when(() => (document.treeManagerAPI as TreeManagerType).activeHistoryEntries.length === 0)
+    const tile = openTableOrCardForDatasetWithNotifications(sharedDataSet)!
+    await settled()
+    const componentNotices = (spy: jest.SpyInstance) => spy.mock.calls.map(([msg]: any[]) => msg)
+      .filter(msg => msg.resource === "component").map(msg => [msg.values.operation, msg.values.id])
+
+    const broadcastSpy = jest.spyOn(content, "broadcastMessage")
+    document.undoLastAction()
+    await settled()
+    expect(componentNotices(broadcastSpy)).toEqual([["delete", toV2Id(tile.id)]])
+    broadcastSpy.mockClear()
+    document.redoLastAction()
+    await settled()
+    expect(componentNotices(broadcastSpy)).toEqual([["create", toV2Id(tile.id)]])
+    broadcastSpy.mockRestore()
+    document.treeMonitor!.disableMonitoring()
   })
 })

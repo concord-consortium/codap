@@ -21,6 +21,8 @@ export interface CallEnv {
   undoable: boolean
   customPatches?: ICustomPatch[]
   clientData?: IClientUndoData
+  // an explicit change that can't be undone, which clears the redo list as V2's did (see AppHistoryService)
+  clearsRedo?: boolean
 }
 
 export function isValidCallEnv(env?: CallEnv): env is CallEnv {

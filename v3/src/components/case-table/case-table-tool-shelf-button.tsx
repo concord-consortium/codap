@@ -18,7 +18,7 @@ import {
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
 import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileModel } from "../../models/tiles/tile-model"
-import { createTileNotification } from "../../models/tiles/tile-notifications"
+import { createTileNotification, deleteTileNotification } from "../../models/tiles/tile-notifications"
 import { persistentState } from "../../models/persistent-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
@@ -56,6 +56,9 @@ export function openTableOrCardForDatasetWithNotifications(dataset: ISharedDataS
       () => (tile && !priorTileIds.has(tile.id) ? createTileNotification(tile) : undefined),
       () => openCaseTableNotification(tile)
     ],
+    // undoing removes a table this made, as V2's caseTable.open did (app_controller.js:122-123)
+    undoNotify: () => (tile && !priorTileIds.has(tile.id) ? deleteTileNotification(tile) : undefined),
+    redoNotify: () => (tile && !priorTileIds.has(tile.id) ? createTileNotification(tile) : undefined),
     undoStringKey: "DG.Undo.caseTable.open",
     redoStringKey: "DG.Redo.caseTable.open",
     log: "Create caseTable component"
@@ -120,6 +123,8 @@ const CaseTableToolShelfMenuList = observer(
         () => createTileNotification(tile),
         () => openCaseTableNotification(tile)
       ],
+      undoNotify: () => deleteTileNotification(tile),
+      redoNotify: () => createTileNotification(tile),
       undoStringKey: "V3.Undo.caseTable.create",
       redoStringKey: "V3.Redo.caseTable.create",
       log: {message: "Create New Empty DataSet", args: {}, category: "document"}

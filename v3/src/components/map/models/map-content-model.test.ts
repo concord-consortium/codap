@@ -555,4 +555,38 @@ describe("MapContentModel", () => {
       expect(treeManager.revisionId).toBe(baselineRevisionId)
     })
   })
+
+  // CODAP-1713: a plugin's autoScale, like the inspector's rescale button, fits the map through the leaflet
+  // state with undo strings and a log, so the move it causes is recorded as one labeled entry, as V2's
+  // map.fitBounds was (map_view.js:532-575)
+  describe("rescale", () => {
+    it("passes undo strings and a fitBounds log to the leaflet state when given strings, and neither otherwise",
+        async () => {
+      const points = DataSet.create({ name: "rescalePoints" })
+      points.addAttribute({ id: "lat", name: "Latitude" })
+      points.addAttribute({ id: "long", name: "Longitude" })
+      points.addCases([{ lat: 35, long: -75 }, { lat: 45, long: -65 }])
+      const sharedDataSet = SharedDataSet.create()
+      sharedDataSet.setDataSet(points)
+      sharedModelManager.addSharedModel(sharedDataSet)
+      sharedModelManager.addSharedModel(DataSetMetadata.create({ data: points.id }))
+      await new Promise(resolve => setTimeout(resolve, 0))
+      mapContent.setLeafletMap({ ...mockLeafletMap, eachLayer: jest.fn() } as unknown as LeafletMap)
+      expect(mapContent.latLongBounds).toBeDefined()
+      const adjustSpy = jest.spyOn(mapContent.leafletMapState, "adjustMapView").mockImplementation(() => null)
+
+      mapContent.rescale("DG.Undo.map.fitBounds", "DG.Redo.map.fitBounds")
+      const [options] = adjustSpy.mock.calls[0]
+      expect(options).toEqual(expect.objectContaining({
+        animate: true, undoStringKey: "DG.Undo.map.fitBounds", redoStringKey: "DG.Redo.map.fitBounds"
+      }))
+      expect(options.log?.().message).toMatch(/^mapEvent: fitBounds at /)
+
+      mapContent.rescale()
+      const [plainOptions] = adjustSpy.mock.calls[1]
+      expect(plainOptions).toEqual(expect.objectContaining({ animate: false, undoStringKey: "", redoStringKey: "" }))
+      expect(plainOptions.log).toBeUndefined()
+      adjustSpy.mockRestore()
+    })
+  })
 })
