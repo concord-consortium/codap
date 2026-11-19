@@ -414,6 +414,35 @@ export const SliderModel = TileContentModel
     }
   }))
   .actions(self => ({
+    // Selects the visible cases in range and takes ownership of the selection. Selection isn't undoable, so this
+    // makes no history entry.
+    applySelection() {
+      const dataSet = self.dataSet
+      if (!self.isBoundSelectionSlider || !dataSet) return
+      const target = self.selectionTargetItemIds
+      selectExactly(dataSet, target)
+      self.appliedItemIds = target
+    },
+    // stops owning the selection, leaving it as it is
+    releaseSelection() {
+      self.appliedItemIds = undefined
+    },
+    // Takes ownership of the selection only if it's already what this slider would select. It never changes the
+    // selection, so binding a slider or opening a document can't take away a selection the user made.
+    adoptSelectionIfMatching() {
+      const dataSet = self.dataSet
+      if (!self.isBoundSelectionSlider || !dataSet) return
+      const target = self.selectionTargetItemIds
+      if (visibleSetsEqual(dataSet, dataSet.selection, target)) self.appliedItemIds = target
+    }
+  }))
+  .actions(self => ({
+    // for the user's direct gestures on the slider, which resume a paused slider
+    resumeSelection() {
+      self.applySelection()
+    }
+  }))
+  .actions(self => ({
     afterCreate() {
       addDisposer(self, reaction(
         // the axis's dynamic state too, so committing a change that ends where the drag left the axis still fires
@@ -497,6 +526,23 @@ export const SliderModel = TileContentModel
         }, { name: "SliderModel [visibility filter]", fireImmediately: true }
       ))
       addDisposer(self, clearFilter)
+      // A selection slider that becomes bound (including on load) owns the selection only if the selection is
+      // already what it would select; one that stops being bound lets go of it. Neither changes the selection.
+      addDisposer(self, reaction(
+        () => ({ bound: self.isBoundSelectionSlider, dataSet: self.dataSet }),
+        ({ bound }) => {
+          if (bound) self.adoptSelectionIfMatching()
+          else self.releaseSelection()
+        }, { name: "SliderModel [selection binding]", fireImmediately: true, equals: comparer.shallow }
+      ))
+      // While a selection slider owns the selection, it follows changes to its range (by dragging, playback, undo,
+      // or a plugin) and to what visibility sliders hide. Each new filter is a new set, so they compare by identity.
+      addDisposer(self, reaction(
+        () => [self.rangeLow, self.rangeHigh, ...(self.dataSet?.sliderFilteredOutItemIds.values() ?? [])],
+        () => {
+          if (self.ownsSelection) self.applySelection()
+        }, { name: "SliderModel [selection triggers]", equals: comparer.shallow }
+      ))
     },
     destroyGlobalValue() {
       // the underlying global value should be removed when the slider model is destroyed
@@ -619,35 +665,6 @@ export const SliderModel = TileContentModel
       self.dynamicRangeWidth = undefined
       // the global value tracks the low end of the range, which a multiple restriction mustn't snap away from
       self.globalValue.setValue(min)
-    }
-  }))
-  .actions(self => ({
-    // Selects the visible cases in range and takes ownership of the selection. Selection isn't undoable, so this
-    // makes no history entry.
-    applySelection() {
-      const dataSet = self.dataSet
-      if (!self.isBoundSelectionSlider || !dataSet) return
-      const target = self.selectionTargetItemIds
-      selectExactly(dataSet, target)
-      self.appliedItemIds = target
-    },
-    // stops owning the selection, leaving it as it is
-    releaseSelection() {
-      self.appliedItemIds = undefined
-    },
-    // Takes ownership of the selection only if it's already what this slider would select. It never changes the
-    // selection, so binding a slider or opening a document can't take away a selection the user made.
-    adoptSelectionIfMatching() {
-      const dataSet = self.dataSet
-      if (!self.isBoundSelectionSlider || !dataSet) return
-      const target = self.selectionTargetItemIds
-      if (visibleSetsEqual(dataSet, dataSet.selection, target)) self.appliedItemIds = target
-    }
-  }))
-  .actions(self => ({
-    // for the user's direct gestures on the slider, which resume a paused slider
-    resumeSelection() {
-      self.applySelection()
     }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned

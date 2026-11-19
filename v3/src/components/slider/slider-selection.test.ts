@@ -1,7 +1,29 @@
-import { addSetAsideCases, setSelectedCases } from "../../models/data/data-set-utils"
+import { when } from "mobx"
+import { Instance } from "mobx-state-tree"
+import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
+import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { appState } from "../../models/app-state"
+import { gDataBroker } from "../../models/data/data-broker"
 import { IDataSet } from "../../models/data/data-set"
+import { addSetAsideCases, setSelectedCases } from "../../models/data/data-set-utils"
+import { IDocumentContentModel } from "../../models/document/document-content"
+import { TreeManager } from "../../models/history/tree-manager"
+import { toV3Id } from "../../utilities/codap-utils"
+import { ISliderModel } from "./slider-model"
+import { rangeChangeOptions } from "./slider-range-change"
+import { kSliderIdPrefix } from "./slider-registration"
 import { selectExactly, visibleSetsEqual } from "./slider-selection"
 import { addDates, setupSliderAndData } from "./slider-test-utils"
+
+// adds another slider of the given type to the document, bound to the dataset's a3
+function addSlider(content: IDocumentContentModel, dataSet: IDataSet, sliderType: "selection" | "visibility") {
+  const result = diComponentHandler.create!({}, { type: "slider" })
+  const tile = content.tileMap.get(toV3Id(kSliderIdPrefix, (result.values as DIComponentInfo).id!))!
+  const slider = tile.content as ISliderModel
+  slider.setSliderType(sliderType)
+  slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+  return slider
+}
 
 // the standard test dataset's a3 values are 1..6, so configuring from a3 gives axis [1, 6] and range [1, 1.5]
 async function setupSelectionSlider() {
@@ -205,5 +227,132 @@ describe("selection slider target and ownership", () => {
     slider.resumeSelection()
     expect(dataSet.selection.has(idOf(dataSet, 5))).toBe(true)
     expect(slider.ownsSelection).toBe(false)
+  })
+})
+
+describe("selection slider triggers", () => {
+  it("follows the range while owning, including mid-drag", async () => {
+    const { dataSet, slider } = await setupSelectionSlider()
+    slider.setRange(2, 4)
+    slider.resumeSelection()
+    slider.setRange(4, 6)
+    expect(selectedA3(dataSet)).toEqual([4, 5, 6])
+    slider.setDynamicRange(1, 2)
+    expect(selectedA3(dataSet)).toEqual([1, 2])
+  })
+
+  it("a range change while paused moves the range but not the selection", async () => {
+    const { dataSet, slider } = await setupSelectionSlider()
+    slider.setRange(2, 4)
+    slider.resumeSelection()
+    setSelectedCases([idOf(dataSet, 6)], dataSet)
+    slider.setRange(1, 3)
+    expect(selectedA3(dataSet)).toEqual([6])
+    expect(slider.isSelectionPaused).toBe(true)
+  })
+
+  it("undo of a range change re-selects only while owning", async () => {
+    const { dataSet, slider, tile } = await setupSelectionSlider()
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    const commitRange = (low: number, high: number) =>
+      slider.applyModelChange(() => slider.setRange(low, high), rangeChangeOptions(slider, tile))
+    appState.document.treeMonitor!.enableMonitoring()
+    try {
+      await settle()
+      commitRange(2, 4)
+      await settle()
+      slider.resumeSelection()
+      commitRange(4, 6)
+      await settle()
+      expect(selectedA3(dataSet)).toEqual([4, 5, 6])
+      appState.document.undoLastAction()
+      await settle()
+      expect([slider.rangeLow, slider.rangeHigh]).toEqual([2, 4])
+      expect(selectedA3(dataSet)).toEqual([2, 3, 4])
+
+      // paused: undo moves the range but leaves the user's selection
+      commitRange(4, 6)
+      await settle()
+      setSelectedCases([idOf(dataSet, 1)], dataSet)
+      appState.document.undoLastAction()
+      await settle()
+      expect([slider.rangeLow, slider.rangeHigh]).toEqual([2, 4])
+      expect(selectedA3(dataSet)).toEqual([1])
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
+  })
+
+  it("drag across an empty region empties the selection and stays owned", async () => {
+    const { dataSet, slider } = await setupSelectionSlider()
+    slider.setRange(2, 4)
+    slider.resumeSelection()
+    slider.setRange(1.2, 1.4)
+    expect(selectedA3(dataSet)).toEqual([])
+    expect(slider.ownsSelection).toBe(true)
+    slider.setRange(2, 3)
+    expect(selectedA3(dataSet)).toEqual([2, 3])
+  })
+
+  it("the last selection slider applied owns the selection", async () => {
+    const { content, dataSet, slider: a } = await setupSelectionSlider()
+    const b = addSlider(content, dataSet, "selection")
+    a.setRange(1, 2)
+    a.resumeSelection()
+    b.setRange(5, 6)
+    b.resumeSelection()
+    expect(a.ownsSelection).toBe(false)
+    expect(b.ownsSelection).toBe(true)
+    a.setRange(3, 4)
+    expect(selectedA3(dataSet)).toEqual([5, 6])
+  })
+
+  it("releases when the type changes, leaving the selection", async () => {
+    const { dataSet, slider } = await setupSelectionSlider()
+    slider.setRange(2, 4)
+    slider.resumeSelection()
+    slider.setSliderType("visibility")
+    expect(slider.appliedItemIds).toBeUndefined()
+    slider.setSliderType("variable")
+    expect(dataSet.selection.size).toBeGreaterThan(0)
+  })
+
+  it("releases when a formula is added to the bound attribute, leaving the selection", async () => {
+    const { dataSet, slider } = await setupSelectionSlider()
+    slider.setRange(2, 4)
+    slider.resumeSelection()
+    dataSet.attrFromName("a3")!.setDisplayExpression("caseIndex")
+    expect(slider.appliedItemIds).toBeUndefined()
+    expect(dataSet.selection.size).toBe(3)
+  })
+
+  it("releases when the bound attribute is deleted", async () => {
+    const { dataSet, slider } = await setupSelectionSlider()
+    slider.setRange(2, 4)
+    slider.resumeSelection()
+    dataSet.removeAttribute(a3Id(dataSet))
+    expect(slider.appliedItemIds).toBeUndefined()
+    expect(dataSet.selection.size).toBe(3)
+  })
+
+  it("releases without throwing when the dataset is removed", async () => {
+    const { dataSet, slider } = await setupSelectionSlider()
+    slider.setRange(2, 4)
+    slider.resumeSelection()
+    expect(() => gDataBroker.removeDataSet(dataSet.id)).not.toThrow()
+    expect(slider.appliedItemIds).toBeUndefined()
+  })
+
+  it("binding adopts a matching selection without writing", async () => {
+    const { dataSet, slider } = await setupSelectionSlider()
+    slider.setSliderType("visibility")
+    slider.setRange(2, 4)
+    setSelectedCases([2, 3, 4].map(v => idOf(dataSet, v)), dataSet)
+    const changes = dataSet.selectionChanges
+    slider.setSliderType("selection")
+    expect(slider.ownsSelection).toBe(true)
+    expect(dataSet.selectionChanges).toBe(changes)
   })
 })
