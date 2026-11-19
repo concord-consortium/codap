@@ -126,6 +126,7 @@ export const SliderConfigPalette =
         title={t("DG.Inspector.configuration")}
         Icon={<ConfigurationIcon/>}
         setShowPalette={setShowPalette}
+        tileType="slider"
         panelRect={panelRect}
         buttonRect={buttonRect}
       >
@@ -142,7 +143,7 @@ export const SliderConfigPalette =
                 <SelectValue />
                 <span aria-hidden="true" className="select-arrow">▾</span>
               </Button>
-              <Popover offset={0}>
+              <Popover offset={0} data-testid="slider-type-popover">
                 <ListBox>
                   {typeChoices.map(type => (
                     <ListBoxItem key={type} id={type} data-testid={`slider-type-${type}`}>
@@ -196,7 +197,7 @@ export const SliderConfigPalette =
                     <SelectValue>{isBound ? unitLabel : ""}</SelectValue>
                     <span aria-hidden="true" className="select-arrow">▾</span>
                   </Button>
-                  <Popover ref={unitPopoverRef} offset={0}>
+                  <Popover ref={unitPopoverRef} offset={0} data-testid="slider-range-width-unit-popover">
                     <ListBox>
                       {unitChoices.map(choice => (
                         <ListBoxItem key={choice} id={choice}>

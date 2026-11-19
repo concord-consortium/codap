@@ -57,7 +57,7 @@ export const CodapSliderThumb = observer(function CodapSliderThumb({
       {/* the value as the slider shows it, and the thumb's own name without the group's (see sliderGroupLabel) */}
       <input {...mergeProps(inputProps, focusProps)} ref={inputRef} className="codap-visually-hidden"
              aria-valuetext={sliderModel && formatSliderValue(sliderModel, scale, sliderModel.value)}
-             aria-labelledby={undefined} />
+             aria-labelledby={undefined} data-testid="slider-thumb-input" />
     </div>
   )
 })

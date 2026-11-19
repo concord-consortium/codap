@@ -62,11 +62,6 @@ export class DGCollection extends SCObject {
             .map(({ __id__ }) => new DGCase(this.data, __id__, this.api))
   }
 
-  getCaseIndexByID(caseId: string) {
-    // TODO: treat this as a case index rather than an item index
-    return this.data.getItemIndex(caseId)
-  }
-
   numberOfVisibleAttributes() {
     // TODO: retrieve hidden status from metadata
     return isCollectionModel(this.collection)

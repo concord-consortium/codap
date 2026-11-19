@@ -1,3 +1,4 @@
+import { degreesToRadians } from "../../../utilities/math-utils"
 import { PointShape } from "../../../utilities/point-shape-utils"
 import { Extent, Point } from "../data-display-types"
 
@@ -33,8 +34,6 @@ const K = {
   plusLen: 1.080    // arm half-length
 } as const
 
-const kDegToRad = Math.PI / 180
-
 /*
  * A circle is an arc rather than a vertex list, so callers switch on `kind` instead of receiving a
  * polygonal approximation. Both renderers can draw an arc directly, and approximating one would
@@ -54,8 +53,8 @@ function crossPoints(a: number, l: number, rotationDeg = 0): Point[] {
   ]
   if (!rotationDeg) return pts
 
-  const cos = Math.cos(rotationDeg * kDegToRad)
-  const sin = Math.sin(rotationDeg * kDegToRad)
+  const cos = Math.cos(degreesToRadians(rotationDeg))
+  const sin = Math.sin(degreesToRadians(rotationDeg))
   return pts.map(({ x, y }) => ({ x: x * cos - y * sin, y: x * sin + y * cos }))
 }
 
@@ -63,7 +62,7 @@ function crossPoints(a: number, l: number, rotationDeg = 0): Point[] {
 function starPoints(outerRadius: number, innerRatio: number): Point[] {
   const pts: Point[] = []
   for (let i = 0; i < 10; i++) {
-    const angle = (-90 + i * 36) * kDegToRad
+    const angle = degreesToRadians(-90 + i * 36)
     const radius = i % 2 === 0 ? outerRadius : outerRadius * innerRatio
     pts.push({ x: Math.cos(angle) * radius, y: Math.sin(angle) * radius })
   }
@@ -128,11 +127,11 @@ const kShapeDefs: Record<PointShape, IShapeDef> = {
     geometry: r => ({ kind: "polygon", points: starPoints(K.star * r, K.starInner) }),
     area: r => {
       const outer = K.star * r
-      return 5 * K.starInner * outer * outer * Math.sin(36 * kDegToRad)
+      return 5 * K.starInner * outer * outer * Math.sin(degreesToRadians(36))
     },
     extent: r => {
       const outer = K.star * r
-      return { w: 2 * outer * Math.sin(72 * kDegToRad), h: outer * (1 + Math.cos(36 * kDegToRad)) }
+      return { w: 2 * outer * Math.sin(degreesToRadians(72)), h: outer * (1 + Math.cos(degreesToRadians(36))) }
     }
   },
 

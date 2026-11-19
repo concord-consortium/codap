@@ -8,14 +8,12 @@ import { DataSetMetadataContext } from "../../hooks/use-data-set-metadata"
 import { InstanceIdContext } from "../../hooks/use-instance-id-context"
 import { ITileSelection, TileSelectionContext } from "../../hooks/use-tile-selection-context"
 import { DataSet, toCanonical } from "../../models/data/data-set"
-import { symParent } from "../../models/data/data-set-types"
 import { DataSetMetadata } from "../../models/shared/data-set-metadata"
 import { TileModel } from "../../models/tiles/tile-model"
 import { t } from "../../utilities/translation/translate"
 import { CaseTable } from "./case-table"
 import { CaseTableModel, ICaseTableModel } from "./case-table-model"
 import "./case-table-registration"
-import { TRow } from "./case-table-types"
 import { CaseTableModelContext } from "./use-case-table-model"
 import { CaseTableAnnounceContext, useCaseTableAnnounce } from "./use-case-table-announce"
 
@@ -121,21 +119,17 @@ describe("Case Table aria-live announcements", () => {
       const tile = TileModel.create({ content: getSnapshot(CaseTableModel.create()) })
       tableModel = tile.content as ICaseTableModel
 
+      // The tile isn't in a document, so give the collection table models the metadata a document
+      // would provide (they use it to determine collapse state).
+      data.collections.forEach(collection => {
+        tableModel.getCollectionTableModel(collection.id).metadata = tree.metadata
+      })
+
       // Pre-populate the child collection table model's rows so individual
       // expand/collapse buttons render (RDG doesn't populate rows in jsdom).
-      const parentCollection = data.collections[0]
       const childCollection = data.collections[1]
       const childTableModel = tableModel.getCollectionTableModel(childCollection.id)
-      const parentCases = data.getCasesForCollection(parentCollection.id)
-      const childCases = data.getCasesForCollection(childCollection.id)
-      const rows: TRow[] = childCases.map(c => {
-        const parentCase = parentCases.find(pc => {
-          const info = data.caseInfoMap.get(pc.__id__)
-          return info?.childCaseIds?.includes(c.__id__) || info?.childItemIds?.includes(c.__id__)
-        })
-        return { __id__: c.__id__, [symParent]: parentCase?.__id__ ?? "" }
-      })
-      childTableModel.resetRows(rows)
+      childTableModel.resetRows(childTableModel.createRows(data.getCasesForCollection(childCollection.id)))
     })
 
     function renderCaseTable() {

@@ -33,8 +33,7 @@ function AttributeHeaderDivider_({ before = false, columnKey, cellElt, getDivide
         dataset,
         includeNotifications: true,
         sourceCollection,
-        targetCollection,
-        undoable: true
+        targetCollection
       })
     }
   })

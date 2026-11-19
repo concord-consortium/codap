@@ -82,7 +82,7 @@ export const AxisHelper = {
   },
   verifyAxisMenuIsClosed(axis: string) {
     // When the menu is closed, the portalled MenuList may still be in the DOM but not visible
-    cy.get(`[data-testid="axis-legend-attribute-menu-list-${axis}"]`).should("not.be.visible")
+    cy.get(`[data-testid^="axis-attr-menu-${axis}"]`).should("not.be.visible")
   },
   openAxisAttributeMenu(axis: string) {
     ae.getAxisAttributeMenu(axis).click()

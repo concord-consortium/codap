@@ -2,37 +2,58 @@ import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/ado
 import { IAdornmentModel } from "../../adornment-models"
 import { isBoxPlotAdornment } from "./box-plot-adornment-model"
 import { IGraphContentModel } from "../../../models/graph-content-model"
-import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import {
+  AdornmentData, adornmentMismatchResult, booleanValuesError, cellKeyToCategories
+} from "../../utilities/adornment-handler-utils"
 import { kBoxPlotType } from "./box-plot-adornment-types"
+import { adornmentWriteHandlers } from "../../utilities/adornment-write-handlers"
 
-export const boxPlotAdornmentHandler: DIAdornmentHandler = {
-  get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
-    if (!isBoxPlotAdornment(adornment)) return adornmentMismatchResult(kBoxPlotType)
+function get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
+  if (!isBoxPlotAdornment(adornment)) return adornmentMismatchResult(kBoxPlotType)
 
-    const { showICI, showOutliers } = adornment
-    const dataConfig = graphContent.dataConfiguration
-    const cellKeys = dataConfig?.getAllCellKeys()
-    const data: AdornmentData[] = []
-    for (const cellKey of cellKeys) {
-      const { median, minWhiskerValue: lower, maxWhiskerValue: upper,
-        lowerQuartile, upperQuartile } = adornment.getBoxPlotParams(cellKey)
-      const interquartileRange = upperQuartile - lowerQuartile
-      const dataItem: AdornmentData = {
-        interquartileRange,
-        lower,
-        lowerQuartile,
-        median,
-        upper,
-        upperQuartile
-      }
-    
-      if (Object.keys(cellKey).length > 0) {
-        dataItem.categories = cellKeyToCategories(cellKey, dataConfig)
-      }
-    
-      data.push(dataItem)
+  const { showICI, showOutliers } = adornment
+  const dataConfig = graphContent.dataConfiguration
+  const cellKeys = dataConfig?.getAllCellKeys()
+  const data: AdornmentData[] = []
+  for (const cellKey of cellKeys) {
+    const { median, minWhiskerValue: lower, maxWhiskerValue: upper,
+      lowerQuartile, upperQuartile } = adornment.getBoxPlotParams(cellKey)
+    const interquartileRange = upperQuartile - lowerQuartile
+    const dataItem: AdornmentData = {
+      interquartileRange,
+      lower,
+      lowerQuartile,
+      median,
+      upper,
+      upperQuartile
     }
 
-    return { data, showICI, showOutliers }
+    if (Object.keys(cellKey).length > 0) {
+      dataItem.categories = cellKeyToCategories(cellKey, dataConfig)
+    }
+
+    data.push(dataItem)
   }
+
+  return { data, showICI, showOutliers }
+}
+
+function validate(values: Record<string, unknown>) {
+  return booleanValuesError(values, ["showOutliers", "showICI"])
+}
+
+function applyValues(adornment: IAdornmentModel, values: Record<string, unknown>, graphContent: IGraphContentModel) {
+  if (!isBoxPlotAdornment(adornment)) return
+  const { showICI, showOutliers } = values
+  if (typeof showOutliers === "boolean") {
+    adornment.setShowOutliers(showOutliers)
+    // the graph recomputes the whiskers only while the box plot is shown
+    adornment.updateCategories(graphContent.getUpdateCategoriesOptions())
+  }
+  if (typeof showICI === "boolean") adornment.setShowICI(showICI)
+}
+
+export const boxPlotAdornmentHandler: DIAdornmentHandler = {
+  get,
+  ...adornmentWriteHandlers({ adornmentType: kBoxPlotType, get, validate, applyValues })
 }

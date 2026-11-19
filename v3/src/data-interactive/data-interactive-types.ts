@@ -13,7 +13,7 @@ import { V2SpecificComponent } from "./data-interactive-component-types"
 import {
   DIAllCases, DIAttribute, DIAttributeLocationValues, DICase, DICreateAdornment, DICreateCollection,
   DIDataContext, DIDeleteAdornment, DIDeleteCollectionResult, DIGetCaseResult, DIItemValues, DILogMonitorResult,
-  DINewCase, DINotifyAttribute, DINotifyDataContext, DIResultAttributes, DIUpdateAdornment, DIUpdateCase,
+  DINewCase, DINotifyAttribute, DINotifyDataContext, DIRequestCase, DIResultAttributes, DIUpdateAdornment, DIUpdateCase,
   DIUpdateItemResult
 } from "./data-interactive-data-set-types"
 import { DIAdornmentValues } from "./data-interactive-adornment-types"
@@ -65,6 +65,10 @@ export interface DIInteractiveFrame {
   blockAPIRequestsWhileEditing?: boolean
   cannotClose?: boolean
   codapVersion?: string
+  contentDimensions?: {
+    height?: number
+    width?: number
+  }
   dimensions?: {
     height?: number
     width?: number
@@ -97,6 +101,10 @@ export interface DINotification {
 export interface DIItemSearchNotify {
   itemOrder?: "first" | "last" | number[]
 }
+export interface DICaseOrderNotify {
+  // "first", "last", or a position, which may be given as text
+  caseOrder?: "first" | "last" | number | string
+}
 
 export interface DILogMessage {
   formatStr?: string
@@ -119,6 +127,7 @@ export interface DIInteractiveApi {
 }
 
 export interface DIResources {
+  uiNotificationMonitor?: string
   adornment?: IAdornmentModel
   adornmentList?: IAdornmentModel[]
   attribute?: IAttribute
@@ -151,8 +160,8 @@ export interface DIResources {
 // types for values accepted as inputs by the API
 export type DISingleValues = DIAttribute | DINotifyAttribute | DIAttributeLocationValues | DICase | DIDataContext |
   DIDocument | DINotifyDataContext | DIGlobal | DIInteractiveFrame | DIItemValues | DICreateCollection | DINewCase |
-  DIUpdateCase | DINotification | DIItemSearchNotify | DILogMessage | DIUpdateConfigurationValue | DIUrl |
-  V2SpecificComponent | DIAdornmentValues | DISelectionExpression
+  DIRequestCase | DIUpdateCase | DINotification | DIItemSearchNotify | DICaseOrderNotify | DILogMessage |
+  DIUpdateConfigurationValue | DIUrl | V2SpecificComponent | DIAdornmentValues | DISelectionExpression
 export type DIValues = DISingleValues | DISingleValues[] | number | string[]
 
 // types returned as outputs by the API
@@ -244,6 +253,7 @@ export interface DIResourceSelector {
   logMessage?: string
   interactiveApi?: string
   tourElements?: string
+  uiNotificationMonitor?: string
   type?: string
 }
 

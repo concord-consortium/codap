@@ -42,6 +42,11 @@ describe("DataInteractive AttributeLocationHandler", () => {
     expect(collectionAttributes(c2)?.[0]?.id).toBe(a5.id)
     expect(handler.update?.({ attributeLocation: a5, dataContext }).success).toBe(true)
     expect(collectionAttributes(c2)?.[1]?.id).toBe(a5.id)
+    // A null position is treated as not specified
+    expect(handler.update?.({ attributeLocation: a5, dataContext }, { position: 0 }).success).toBe(true)
+    expect(collectionAttributes(c2)?.[0]?.id).toBe(a5.id)
+    expect(handler.update?.({ attributeLocation: a5, dataContext }, { position: null } as any).success).toBe(true)
+    expect(collectionAttributes(c2)?.[1]?.id).toBe(a5.id)
 
     // Move attribute from ungrouped collection to middle of grouped collection
     expect(collectionAttributes(c1)?.[1]?.id).toBe(a4.id)

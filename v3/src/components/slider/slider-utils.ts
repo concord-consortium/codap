@@ -1,4 +1,3 @@
-import { debugLog, DEBUG_PLUGINS } from "../../lib/debug"
 import { isFeatureEnabled } from "../../models/feature-flags/feature-flag-manager"
 import {
   DateUnit, DurationUnit, durationUnits, durationUnitSeconds, unitsStringToMilliseconds
@@ -46,15 +45,6 @@ export function isSliderTypeAvailable(sliderType: SliderType) {
     case "visibility": return isFeatureEnabled("visibilitySlider")
     case "selection": return isFeatureEnabled("selectionSlider")
     default: return true
-  }
-}
-
-export function valueChangeNotification(value: number, name?: string) {
-  const action = "notify"
-  const resource = `global[${name ?? ""}]`
-  const values = { globalValue: value }
-  return { message: { action, resource, values }, callback: (response: any) =>
-    debugLog(DEBUG_PLUGINS, `Reply to ${action} ${resource}:`, JSON.stringify(response))
   }
 }
 

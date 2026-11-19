@@ -136,20 +136,20 @@ export const EditFormulaModal = observer(function EditFormulaModal({
   // `.formula-modal-footer button:last-of-type` when shift-tabbing out of the editor.
   const footerButtons = [{
     className: "cancel-button",
-    testId: "Cancel-button",
     label: t("DG.AttrFormView.cancelBtnTitle"),
     tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
+    testId: "formula-cancel-button",
     onClick: closeModal
   }, {
     className: "clear-button",
-    testId: "Clear-button",
+    testId: "formula-clear-button",
     label: t("V3.AttrFormView.clearBtnTitle"),
     tooltip: t("V3.AttrFormView.clearBtnTooltip"),
     onClick: clearFormula
   }, {
     className: "apply-button",
-    testId: "Apply-button",
     label: t("DG.AttrFormView.applyBtnTitle"),
+    testId: "formula-apply-button",
     onClick: applyAndClose
   }]
 
@@ -208,6 +208,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
     <FormulaEditorContext.Provider value={formulaEditorState}>
       <CodapModal
         ref={modalContentRef}
+        data-testid="edit-formula-modal"
         finalFocusRef={finalFocusRef}
         initialRef={formulaEditorContainerRef}
         isOpen={isOpen}
@@ -226,7 +227,7 @@ export const EditFormulaModal = observer(function EditFormulaModal({
           computed from its whole subtree — so the close button sits outside it, or the dialog
           announces as "Edit Formula Close".
         */}
-        <div className="formula-modal-header-wrapper">
+        <div className="formula-modal-header-wrapper" data-testid="formula-modal-header-wrapper">
           <ModalHeader className="formula-modal-header" data-testid="formula-modal-header">
             <h2 className="formula-modal-title">{modalTitle}</h2>
           </ModalHeader>

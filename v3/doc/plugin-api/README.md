@@ -1,6 +1,6 @@
 # CODAP Data Interactive Plugin API
 
-> **Applies to:** CODAP v3 · **Verified:** 2026-10-22
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-27
 > · Parts of this reference are generated — see [conventions](conventions.md).
 
 This reference is for developers writing CODAP plugins. It describes the API through which a
@@ -19,6 +19,11 @@ experiment and then sends the data it produced to CODAP for immediate analysis.
 
 Plugins are loosely coupled to CODAP. A plugin need not be served from the same web server as
 the CODAP it runs in. It runs in an iframe and communicates with CODAP through `postMessage`.
+
+For a small working plugin, see the
+[random numbers plugin](https://github.com/concord-consortium/codap-data-interactives/tree/master/NewRandomNumbers);
+the [plugin gallery](https://concord-consortium.github.io/codap-data-interactives/) shows others
+in action.
 
 ## About iframe-phone
 
@@ -41,15 +46,20 @@ iframe-phone's two-second timeout for you; see
 
 ## Status of this reference
 
-**This reference is being migrated.** It is moving out of the
-[wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API)
-and into this folder, one resource at a time, so that each resource is a complete self-contained
-page rather than a section of a 4,000-line document. Until that finishes:
+**This reference replaces the
+[wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API).**
+Every resource now has a complete, self-contained page in this folder, except two that are
+covered by full guides of their own: `tourElements`, documented in the
+[Tour API guide](../plugin-tour-api.md#get-tourelements), and `uiNotificationMonitor`, documented in
+the [UI notifications guide](../plugin-ui-notifications.md). The wiki page is frozen as the **CODAP v2** reference;
+[Where the wiki page's sections went](wiki-section-map.md) maps each of its sections to the page
+that now covers it.
 
-- The [resource table](#resources) below says where each resource is documented.
-- Pages here are current for v3. The wiki remains accurate for everything not yet moved,
-  including the round of corrections already made to it.
-- When migration completes, the wiki page will be frozen as the **CODAP v2** reference.
+Two files are generated from CODAP's source rather than written by hand:
+[the quick reference](quick-reference.md), which tabulates every resource's actions, the selector
+grammar and the error messages, and
+[a JSON Schema for requests](plugin-api-request.schema.json). [`llms.txt`](llms.txt) lists the
+pages of this reference for tools and AI assistants.
 
 ---
 
@@ -62,12 +72,24 @@ The wiki page used these interchangeably. This reference does not — use the ca
 | **plugin** | data interactive, DI, interactive | The iframe'd application talking to CODAP. "Data interactive" is the older term and survives in API names like `interactiveFrame`. |
 | **data context** | data set, dataContext | The container for a set of related cases. `dataContext` is the API spelling; "data set" is the UI term for the same thing. |
 | **collection** | — | A level in a data context's hierarchy. A data context has one or more. |
-| **attribute** | column, field | A property of a case. May carry an explicit `type`; if it does not, CODAP infers one — numeric, date, color, boundary or categorical — from the attribute's current values, and the inferred type can change as those values change. |
+| **attribute** | column, field | A property of a case. May carry an explicit `type`; if it does not, CODAP infers one — numeric, date, color, boundary or categorical — from the attribute's current values, and the inferred type can change as those values change. See [Data types](guides/data-types.md). |
 | **case** | row | A grouping of items at one collection level. Each case is *in* exactly one collection. |
 | **item** | — | A flat row of values, and the source of truth — cases are constructed by grouping items. A case in the child-most collection corresponds one-to-one with an item, **but the two still have different ids**, so `caseByID` and `itemByID` are not interchangeable. See [`../hierarchical-data.md`](../hierarchical-data.md). |
 | **component** | tile | A thing in the CODAP workspace — a graph, table, map, slider, or a plugin itself. |
 | **resource** | — | The thing a request addresses, named by the `resource` field. |
 | **action** | verb | One of `get`, `create`, `update`, `delete`, `notify`, `register`, `unregister`. |
+
+**Names, titles and ids.** Most objects a plugin works with — data contexts, collections,
+attributes, components and global values — have a `name`, and many also have a `title`. The name
+is how a resource selector refers to the object, as in `dataContext[Mammals]`, so give each object
+a name that is unique within its data context or document. That includes attributes: formulas
+refer to them by bare name, so two attributes in different collections of one data context should
+not share a name. The title is what the user sees; where an object has none, CODAP shows a title
+derived from it, usually its name. CODAP also gives each object an [id](#ids), and some selectors
+accept either; each resource's "Resource selector patterns" section says which. The user can
+rename attributes and collections in the case table, and a slider's global value from the slider,
+which changes their names, so a plugin that has to follow one through the user's edits should
+hold on to its id.
 
 ---
 
@@ -93,8 +115,8 @@ Every request a plugin sends has the same envelope:
 ```
 
 A request may also be an array of envelopes. CODAP processes them in order and replies with an
-array of responses, one per envelope, except in one known case; see
-[How CODAP processes requests](guides/request-processing.md#known-limitations).
+array of responses, one per envelope; see
+[How CODAP processes requests](guides/request-processing.md#array-requests).
 
 ### Response shape
 
@@ -114,8 +136,9 @@ action returns — here, the reply to the `attributeList` request above:
 
 What `values` holds depends on the resource and the action; each resource page shows it. Some
 actions return no `values` at all, only `{ "success": true }`. Two put their results beside
-`values` rather than in it, at the top level of the response: `create` on `item` returns
-`itemIDs` and `caseIDs`, and `update` on `case` returns `caseIDs`.
+`values` rather than in it, at the top level of the response: `create` on
+[`item`](resources/item.md) returns `itemIDs` and `caseIDs`, and `update` on
+[`case`](resources/case.md) returns `caseIDs`.
 
 On failure, `success` is `false` and `values.error` usually holds a message:
 
@@ -128,7 +151,7 @@ On failure, `success` is `false` and `values.error` usually holds a message:
 
 Test `success` before reading `values`: a failed request carries no data, at most an error. And
 do not assume the error is there: a few failures reply with no `values` at all, such as `update`
-on `item` when no id matches, so read the message with a guard, for example
+on [`item`](resources/item.md) when no id matches, so read the message with a guard, for example
 `result.values?.error`. Each resource page lists the messages it can return, and when, in its
 **Errors** table. A few can come from any request:
 
@@ -163,7 +186,8 @@ Two directions, and they are not symmetrical:
 - **CODAP → plugin.** CODAP calls your `requestHandler(command, callback)` with a `notify`
   message. This is how notifications arrive — a case was selected, a document was delivered, a
   component's title changed. Inspect `command.resource` and `command.values.operation` to decide
-  what it is, and call `callback` when you are done:
+  what it is (for `dataContextChangeNotice[<context>]`, `values` is an array of changes, each
+  with its own `operation`), and call `callback` when you are done:
 
 ```js
 function requestHandler (command, callback) {
@@ -180,6 +204,8 @@ document afterwards as a notification.
 
 ---
 
+## Ids
+
 **Treat ids as opaque, and pass back exactly what CODAP gave you.**
 
 Most ids in this API are numbers — attributes, cases, collections, components, items. CODAP v3
@@ -191,93 +217,122 @@ Some resources are exceptions and return their internal string id directly:
 | Resource | Id it returns |
 |---|---|
 | `adornment`, `adornmentList` | The adornment's `ADRN...` string. The selector matches on it, so round-tripping works. |
-| `logMessageMonitor` | `clientId` is the requesting plugin's frame id, a v3 tile id string. |
+| `logMessageMonitor` | `clientId` is intended to be the plugin's own value, as in v2. v3 currently reports the plugin's tile id string instead, or `"__hostPage__"` for a monitor the host page registered, a known bug; see [`logMessageMonitor`](resources/log-message-monitor.md#known-limitations). |
 
 This is why "pass back what you were given" is the reliable rule: it holds for both cases,
 whereas "ids are numbers" does not. Do not parse an id, construct one, or assume its type.
 
 ---
 
+## Names that are not part of the API
+
+Some names appear in older revisions of the wiki page, in the legacy Game API documentation, or
+in code that AI assistants generate from them, but are **not part of the CODAP API**. CODAP
+rejects or ignores them.
+
+| Name you may have seen | What it is | Use instead |
+|---|---|---|
+| `pointsFusedIntoBars` (graph) | Never existed. It appeared on the wiki page from 2024 on, but no released CODAP has accepted it. | `pointsAreFusedIntoBars`, which v3 added; v2 has no API property for it |
+| `pointConfig` (graph) | Never existed, with the same origin. | `plotType`, which v3 added. It can be read but not set; see [`component`](resources/component.md#graph) |
+| `openCase`, `createCase`, `createCases`, and the other Game API verbs | Verbs of the legacy Game API, which v2 also supported. They are not part of this API. | `create` on [`item`](resources/item.md) |
+| `closeCase` | The same. There is no parent case to close: CODAP derives the hierarchy from item values. | `create` on [`item`](resources/item.md) |
+
+---
+
 ## The default data context
 
 Most resource selectors may omit the data context, in which case CODAP supplies `#default`, which
-resolves to **the first data context in the document**:
+resolves to **your plugin's own data context**:
 
 ```json
 { "action": "get", "resource": "collection[Cases].attributeList" }
 ```
 
-This is equivalent to naming `dataContext[#default]`. Two things to know:
+This is equivalent to naming `dataContext[#default]`. Your plugin's own data context is:
+
+1. The one it created most recently with `create dataContext` without naming a data context in
+   the selector. A `create` whose name is already taken returns the existing data context and
+   does not change your plugin's own. When a document is saved, CODAP
+   records the link, and restores it when the document is opened again.
+2. Failing that, the first data context whose name is your plugin's component name: the `name`
+   that `get component` reports. That is the Plugins menu entry, the name given when the component
+   was created or updated, or else the file name in the plugin's URL. `update interactiveFrame`
+   changes the title, not this name.
+
+A plugin with neither gets a not-found error for a request that relies on the default, even in a
+document with only one data context. So does a plugin whose own data context has been deleted,
+unless another data context has its name. CODAP never falls back to the first data context in
+the document.
+
+Two more things to know:
 
 - Defaulting does **not** apply to these, which are not scoped to a data context:
   `component`, `componentList`, `dataContextList`, `dataDisplay`, `document`, `formulaEngine`,
   `global`, `globalList`, `interactiveApi`, `interactiveFrame`, `logMessage`,
-  `logMessageMonitor`, `undoableActionPerformed`, `undoChangeNotice`. Note that
+  `logMessageMonitor`, `uiNotificationMonitor`, `undoableActionPerformed`, `undoChangeNotice`. Note that
   `undoableActionPerformed` is an *operation* of the `undoChangeNotice` resource rather than a
-  resource of its own; it appears in CODAP's exemption list all the same.
+  resource of its own; it appears in CODAP's exemption list all the same. v2's list differed
+  slightly: it also exempted `configuration` and `configurationList`, and did not have
+  `dataDisplay` or `interactiveApi`.
 - It does not apply when you are **creating** a data context (`create dataContext` or
   `create dataContextFromURL`) — there is nothing to default to yet.
 
-In a document with more than one data context, relying on the default is fragile. Name the
-context explicitly.
+Naming the data context explicitly avoids depending on which data context is your plugin's own.
 
 ---
 
 ## Resources
 
-All 38 resources CODAP v3 registers, alphabetically. Pages marked *this repo* are current for
-v3. Most of the rest are on the
-[wiki page](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-Plugin-API),
-which remains accurate for them; a few are marked *not yet documented*, meaning they appear
-neither here nor there.
+All 39 resources CODAP v3 registers, alphabetically.
 
-| Resource | Documented in |
+| Resource | What it is for |
 |---|---|
-| **[`adornment`](resources/adornment.md)** | **this repo** |
-| **[`adornmentList`](resources/adornment.md)** | **this repo** |
-| `allCases` | wiki |
-| **[`attribute`](resources/attribute.md)** | **this repo** |
-| **[`attributeList`](resources/attribute-list.md)** | **this repo** |
-| `attributeLocation` | wiki |
-| `case` | wiki |
-| `caseByID` | wiki |
-| `caseByIndex` | wiki |
-| `caseCount` | wiki |
-| `caseFormulaSearch` | wiki |
-| `caseSearch` | wiki |
-| `collection` | wiki |
-| `collectionList` | wiki |
-| **[`component`](resources/component.md)** | **this repo** |
-| **[`componentList`](resources/component-list.md)** | **this repo** |
-| `configuration` | wiki |
-| `configurationList` | wiki |
-| **[`dataContext`](resources/data-context.md)** | **this repo** |
-| `dataContextFromURL` | wiki |
-| `dataContextList` | wiki |
-| **[`dataDisplay`](resources/data-display.md)** | **this repo** |
-| **[`document`](resources/document.md)** | **this repo** |
-| `formulaEngine` | wiki |
-| `global` | wiki |
-| `globalList` | wiki |
-| **[`interactiveApi`](resources/interactive-api.md)** | **this repo** |
-| **[`interactiveFrame`](resources/interactive-frame.md)** | **this repo** |
-| `item` | wiki |
-| `itemByCaseID` | wiki |
-| `itemByID` | wiki |
-| `itemCount` | wiki |
-| `itemSearch` | wiki |
-| `logMessage` | wiki |
-| `logMessageMonitor` | wiki |
-| **[`selectionList`](resources/selection-list.md)** | **this repo** |
-| `tourElements` | not yet documented |
-| `undoChangeNotice` | wiki |
+| [`adornment`](resources/adornment.md) | A graph's measures and overlays: means, box plots, least-squares lines and the like |
+| [`adornmentList`](resources/adornment.md) | The adornments on one graph |
+| [`allCases`](resources/all-cases.md) | Every case in a collection, or delete every case in a data context |
+| [`attribute`](resources/attribute.md) | One attribute: its name, type, formula and display settings |
+| [`attributeList`](resources/attribute-list.md) | The attributes of one collection |
+| [`attributeLocation`](resources/attribute-location.md) | Move an attribute within its collection or into another one |
+| [`case`](resources/case.md) | Create cases, or update several at once |
+| [`caseByID`](resources/case-by-id.md) | One case, found by its id |
+| [`caseByIndex`](resources/case-by-index.md) | One case, found by its position in a collection |
+| [`caseCount`](resources/case-count.md) | How many cases a collection has |
+| [`caseFormulaSearch`](resources/case-formula-search.md) | The cases in a collection for which a formula is true |
+| [`caseSearch`](resources/case-search.md) | The cases in a collection that satisfy a simple comparison |
+| [`collection`](resources/collection.md) | One level of a data context's hierarchy |
+| [`collectionList`](resources/collection.md) | The collections of a data context |
+| [`component`](resources/component.md) | A tile in the workspace: graph, table, map, slider, text and the rest |
+| [`componentList`](resources/component-list.md) | Every component in the document |
+| [`configuration`](resources/configuration.md) | Settings that change how CODAP behaves for the document |
+| [`configurationList`](resources/configuration.md) | Every configuration setting |
+| [`dataContext`](resources/data-context.md) | One data set: its collections, attributes, cases and metadata |
+| [`dataContextFromURL`](resources/data-context-from-url.md) | Create a data context from a CSV file on the web |
+| [`dataContextList`](resources/data-context-list.md) | Every data context in the document |
+| [`dataDisplay`](resources/data-display.md) | A rendered image of a graph |
+| [`document`](resources/document.md) | Read or replace the whole document |
+| [`formulaEngine`](resources/formula-engine.md) | CODAP's formula functions, and evaluating formulas |
+| [`global`](resources/global.md) | A global value, such as a slider's |
+| [`globalList`](resources/global.md) | Every global value |
+| [`interactiveApi`](resources/interactive-api.md) | Whether CODAP is running inside a host learning platform |
+| [`interactiveFrame`](resources/interactive-frame.md) | The plugin's own tile: its title, size, saved state and behavior |
+| [`item`](resources/item.md) | Create, read, update and delete items |
+| [`itemByCaseID`](resources/item-by-case-id.md) | The item behind a case, found by the case's id |
+| [`itemByID`](resources/item-by-id.md) | One item, found by its id |
+| [`itemCount`](resources/item-count.md) | How many items a data context has |
+| [`itemSearch`](resources/item-search.md) | The items that satisfy a simple comparison |
+| [`logMessage`](resources/log-message.md) | Write an event to CODAP's log |
+| [`logMessageMonitor`](resources/log-message-monitor.md) | Be told about the events CODAP logs |
+| [`selectionList`](resources/selection-list.md) | The selected cases in a data context |
+| [`tourElements`](../plugin-tour-api.md#get-tourelements) | The UI elements a tour or highlight can target, by `tourKey` |
+| [`uiNotificationMonitor`](../plugin-ui-notifications.md) | Be told about clicks, drags and dialogs in CODAP's interface |
+| [`undoChangeNotice`](resources/undo-change-notice.md) | Take part in CODAP's undo history |
 
 ---
 
 ## Guides
 
 Narrative chapters covering behavior that spans resources — how CODAP processes requests, undo
-and redo, language and locale, and embedding CODAP in a page — live in
+and redo, data types, language and locale, and embedding CODAP in a page — live in
 **[`guides/`](guides/README.md)**.
 
 The notifications CODAP sends to plugins are cataloged in **[`notifications.md`](notifications.md)**.

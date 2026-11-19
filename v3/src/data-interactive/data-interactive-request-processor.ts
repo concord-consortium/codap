@@ -12,6 +12,7 @@ import {
 } from "./data-interactive-types"
 import { createItemsInSegments } from "./handlers/item-handler"
 import { errorResult } from "./handlers/di-results"
+import { withNotificationRequester } from "./notification-requester"
 import { RequestWorkUnit, takeNextWorkUnit, workUnitSize } from "./request-coalescer"
 import { parseResourceSelector, resolveResources } from "./resource-parser"
 
@@ -48,7 +49,7 @@ export async function processAction(
   const func = getDIHandler(type)?.[a]
   if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", { vars: [a, type] }))
 
-  const actionResult = await func(resources, action.values)
+  const actionResult = await withNotificationRequester(tile?.id, () => func(resources, action.values))
   return actionResult ?? errorResult(t("V3.DI.Error.undefinedResponse"))
 }
 
@@ -60,9 +61,16 @@ export async function processRequest(
   options: ProcessActionOptions = {}
 ): Promise<DIRequestResponse> {
   if (Array.isArray(request)) {
+    // As in V2 (data_interactive_phone_handler.js:454-478, 497-502), an action that throws gets an error
+    // in its place in the reply, and the actions after it still run.
     const results: DIHandlerFnResult[] = []
     for (const action of request) {
-      results.push(await processAction(action, options))
+      try {
+        results.push(await processAction(action, options))
+      } catch (error) {
+        console.warn("exception processing request", error)
+        results.push(errorResult(t("V3.DI.Error.exceptionProcessingRequest")))
+      }
     }
     return results
   } else {
@@ -74,7 +82,8 @@ export async function processRequest(
  * Check if an action may have modified table data.
  */
 function mayHaveModifiedTable(action: DIAction, result: DIHandlerFnResult): boolean {
-  if (!result) return false
+  // a malformed action (null, or without a string resource) changed nothing; its result is already an error
+  if (!result || typeof action?.resource !== "string") return false
   const resourceSelector = parseResourceSelector(action.resource)
   const type = resourceSelector.type ?? ""
   const a = action.action
@@ -128,6 +137,9 @@ export function setupRequestQueueProcessor(
     onRequestProcessed,
     ...processOptions
   } = options
+
+  // only the requests of the plugin managing the data set being edited wait for the edit to end
+  const isHeld = () => uiState.isEditingBlockingRequestsFrom(processOptions.tile?.id)
 
   let drainTimer: ReturnType<typeof setTimeout> | undefined
   let isDraining = false
@@ -212,7 +224,8 @@ export function setupRequestQueueProcessor(
     onProcessingStart?.()
     let results: DIHandlerFnResult[] | undefined
     try {
-      results = createItemsInSegments(dataContext, segments)
+      results = withNotificationRequester(processOptions.tile?.id,
+        () => createItemsInSegments(dataContext, segments))
     } catch (error) {
       console.warn(`${name} exception in coalesced create`, error)
     }
@@ -231,10 +244,14 @@ export function setupRequestQueueProcessor(
   async function drain() {
     drainTimer = undefined
     // if a drain is already in progress, its trailing check will reschedule as needed
-    if (disposed || isDraining || uiState.isEditingBlockingCell || requestQueue.length === 0) return
+    if (disposed || isDraining || isHeld() || requestQueue.length === 0) return
     isDraining = true
+    // While a cell edit holds another plugin's requests, this queue's requests don't interrupt the edit:
+    // the edited table re-selects its cell after an interruption, which would commit the half-typed value.
+    // The hold is checked again once the request is done, since it may have started while the request ran.
+    const interruptsEdit = !uiState.isEditingBlockingRequests
     try {
-      uiState.captureEditingStateBeforeInterruption()
+      if (interruptsEdit) uiState.captureEditingStateBeforeInterruption()
 
       // Take ONE work unit per drain tick, leaving the rest in the queue, so the browser can
       // render between batches (preserving the visible sense of streaming) and requests that
@@ -259,12 +276,12 @@ export function setupRequestQueueProcessor(
         ? await processCoalescedRun(unit)
         : await processSingleRequest(unit.item)
 
-      if (tableModified) uiState.incrementInterruptionCount()
+      if (tableModified && interruptsEdit && !uiState.isEditingBlockingRequests) uiState.incrementInterruptionCount()
     } finally {
       isDraining = false
       // pushes that arrived during the drain re-fire the reaction, but any drain it scheduled
       // while we were draining bailed above, so check for leftover work here
-      if (requestQueue.length > 0 && !uiState.isEditingBlockingCell) scheduleDrain()
+      if (requestQueue.length > 0 && !isHeld()) scheduleDrain()
     }
   }
 
@@ -280,7 +297,7 @@ export function setupRequestQueueProcessor(
 
   const reactionDisposer = reaction(
     () => ({
-      canProcessRequest: !uiState.isEditingBlockingCell,
+      canProcessRequest: !isHeld(),
       queueLength: requestQueue.length
     }),
     ({ canProcessRequest, queueLength }) => {

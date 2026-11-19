@@ -7,11 +7,10 @@ export { isNumber, isValueNonEmpty } from "../../../utilities/math-utils"
 
 export const UNDEF_RESULT = ""
 
-// CODAP formulas assume that 0 is a truthy value, which is different from default JS behavior. So that, for instance,
-// count(attribute) will return a count of valid data values, since 0 is a valid numeric value.
-// NaN is treated as falsy (V2 parity: V2 uses !!x where !!NaN === false) so a filter expression
-// evaluating to NaN excludes that case from aggregations.
-export const isValueTruthy = (value: any) => isValueNonEmpty(value) && value !== false && !Number.isNaN(value)
+// Decides which values `count(expression)` counts. Like V2, it counts every non-empty value except boolean false,
+// so 0 and strings such as "false" are counted. Unlike V2, it doesn't count NaN, which V3 uses to mark empty values
+// and which relational operators return when an operand is empty. Filter arguments use `passesFilter()`.
+export const isValueCountable = (value: any) => isValueNonEmpty(value) && value !== false && !Number.isNaN(value)
 
 // Converts a formula value to a boolean for `boolean()`, `if()`, and filter formulas.
 // Empty values return undefined so each caller decides how to treat them.
@@ -32,6 +31,10 @@ export const toBoolean = (value: any): boolean | undefined => {
   if (typeof value === "object") return true
   return Number(value) !== 0
 }
+
+// Decides whether a case passes a filter argument, as in `mean(height, isAdult)`, or a filter formula.
+// Empty values don't pass.
+export const passesFilter = (value: any) => toBoolean(value) ?? false
 
 export const
 equal = (a: any, b: any): boolean => {

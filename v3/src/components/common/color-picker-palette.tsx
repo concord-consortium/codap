@@ -173,10 +173,12 @@ export const ColorPickerPalette = ({ swatchBackgroundColor: rawSwatchBgColor, in
           </div>
           <div className="color-picker-footer">
             <div className="color-picker-actions">
-              <button className="color-picker-action-button cancel" onClick={handleReject}>
+              <button className="color-picker-action-button cancel" data-testid="color-picker-cancel-button"
+                  onClick={handleReject}>
                 {t("V3.CaseTable.colorPalette.cancel")}
               </button>
-              <button className="color-picker-action-button" onClick={handleAccept}>
+              <button className="color-picker-action-button" data-testid="color-picker-set-color-button"
+                  onClick={handleAccept}>
                 {t("V3.CaseTable.colorPalette.setColor")}
               </button>
             </div>

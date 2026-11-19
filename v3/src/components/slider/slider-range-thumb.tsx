@@ -9,7 +9,7 @@ import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { ISliderModel } from "./slider-model"
 import { rangeChangeOptions } from "./slider-range-change"
-import { formatSliderValue, valueChangeNotification } from "./slider-utils"
+import { formatSliderValue } from "./slider-utils"
 import { useSliderAnimation } from "./use-slider-animation"
 
 // the pointer handlers that drag the whole range (see SliderRangeThumb)
@@ -80,7 +80,8 @@ const RangeHandle = function RangeHandle({
       <RangeHandleIcon index={index} />
       {/* the handle's own name, without the group's (see sliderGroupLabel) */}
       <input {...mergeProps(inputProps, focusProps)} ref={inputRef} className="codap-visually-hidden"
-             aria-valuetext={valueText} aria-labelledby={undefined} />
+             aria-valuetext={valueText} aria-labelledby={undefined}
+             data-testid={index === 0 ? "slider-range-low-input" : "slider-range-high-input"} />
     </div>
   )
 }
@@ -146,9 +147,8 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
     }
     const low = lowForPointer(e.clientX)
     dragRef.current.moved = true
-    sliderModel.applyModelChange(() => sliderModel.moveDynamicRange(low), {
-      noDirty: true, notify: () => valueChangeNotification(sliderModel.value, sliderModel.name)
-    })
+    // the global value's observer sends `global[<name>]`
+    sliderModel.applyModelChange(() => sliderModel.moveDynamicRange(low), { noDirty: true })
   }
   const handleBodyPointerUp = () => {
     const drag = dragRef.current

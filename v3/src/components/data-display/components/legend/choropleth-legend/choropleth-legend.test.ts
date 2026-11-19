@@ -216,5 +216,34 @@ describe("choroplethLegend", () => {
     const tooltips = Array.from(g.querySelectorAll("title")).map(t => t.textContent)
     expect(tooltips).toEqual(["1", "2 - 3", "4 - 5"])
   })
+
+  describe("with a threshold scale", () => {
+    const renderThreshold = (edges: number[], binColors: string[], legendMin?: number, legendMax?: number) => {
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+      const scale = scaleThreshold<number, string>().domain(edges).range(binColors)
+      choroplethLegend(scale, g, {
+        width: 400, marginLeft: 6, marginRight: 6, marginTop: 20, ticks: 5, legendMin, legendMax,
+        clickHandler: () => undefined, casesInBinSelectedHandler: () => false
+      })
+      return {
+        rects: g.querySelectorAll(".choropleth-rect").length,
+        endpointLabels: Array.from(g.querySelectorAll(".legend-axis-label text")).map(t => t.textContent),
+        tooltips: Array.from(g.querySelectorAll("title")).map(t => t.textContent)
+      }
+    }
+
+    it("renders one bin when there are no inner edges but a min and max are given", () => {
+      const { rects, endpointLabels, tooltips } = renderThreshold([], ["#a"], 5, 9)
+      expect(rects).toBe(1)
+      expect(endpointLabels).toEqual(["5", "9"])
+      expect(tooltips).toEqual(["5 - 9"])
+    })
+
+    it("draws nothing when there are no inner edges and no min or max", () => {
+      const { rects, endpointLabels } = renderThreshold([], ["#a"])
+      expect(rects).toBe(0)
+      expect(endpointLabels).toEqual([])
+    })
+  })
 })
 /* eslint-enable testing-library/render-result-naming-convention */

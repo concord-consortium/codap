@@ -6,7 +6,7 @@ const params = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning&fea
 
 function visitMammals() {
   cy.visit(`${Cypress.config("index")}${params}`)
-  cy.get('.codap-case-table [data-testid="codap-attribute-button Sleep"]').should("be.visible")
+  cy.get('.codap-case-table [data-testid^="codap-attribute-button-"][data-label="Sleep"]').should("be.visible")
   slider.getVariableValue().should("eq", "0.5")
 }
 

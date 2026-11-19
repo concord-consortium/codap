@@ -1,0 +1,212 @@
+# caseFormulaSearch
+
+> **Applies to:** CODAP v3 · **Verified:** 2026-10-21
+> · Parts of this page are generated — see [conventions](../conventions.md).
+
+Returns the cases in one collection for which a formula is true. The formula is written exactly
+as it would be in CODAP's formula editor, so a search can combine conditions, call functions and
+compare against aggregates: `Diet="meat" and Mass>100`, or `Mass=max(Mass)`. Plugins use it to
+fetch a subset of cases without reading the whole collection.
+
+This is the preferred way to search for cases. [`caseSearch`](case-search.md) accepts only a
+single comparison.
+
+## Supported actions
+
+<!-- BEGIN GENERATED: actions -->
+| Action | Supported |
+|---|---|
+| `get` | ✓ |
+| `create` | — |
+| `update` | — |
+| `delete` | — |
+| `notify` | — |
+| `register` | — |
+| `unregister` | — |
+<!-- END GENERATED: actions -->
+
+## Resource selector patterns
+
+<!-- BEGIN GENERATED: selectors -->
+| Pattern | Actions |
+|---|---|
+| `dataContext[<context>].collection[<collection>].caseFormulaSearch[<formula>]` | get |
+<!-- END GENERATED: selectors -->
+
+The `collection` segment is required. `<collection>` accepts the collection's name or its id.
+
+<!-- BEGIN GENERATED: scope -->
+This resource is scoped to a data context. Omitting one selects `#default`, your plugin's
+own data context — see [the index](../README.md#the-default-data-context).
+<!-- END GENERATED: scope -->
+
+## Search formulas
+
+CODAP evaluates the formula once for each case in the collection, as if it were the formula of
+an attribute in that collection, and returns the cases for which the result is true as a filter
+formula reads it: `true`, the text `true` in any case, a non-zero number, or other non-empty text.
+The text `false` in any case, `0`, `NaN` (such as the result of `0/0`), text that converts to `0`
+(such as `0.0` or a space) and an empty result do not match.
+
+Because it is an ordinary formula:
+
+- **Text is quoted**: `Diet="meat"`. An unquoted word is read as the name of an attribute.
+- **Equality is a single `=`**, unlike [`caseSearch`](case-search.md)'s `==`. `!=`, `<`, `<=`,
+  `>` and `>=` work as usual.
+- **Attribute names with spaces or other special characters go in backquotes**:
+  `` `Common name`="Red fox" ``.
+- **Conditions combine** with `and` and `or`, and every function in CODAP's formula editor is
+  available, including aggregates such as `max`, `mean` and `count`.
+- **Attributes of parent collections can be used.** A search in a child collection can test a
+  value of the case's parent: searching the Mammals collection for `Diet="meat"` works when
+  `Diet` is in a parent collection.
+- **Global values can be used** by name, such as the value of a slider.
+
+The formula cannot contain `]`, since that ends the selector's bracket.
+
+For the formula language itself, see
+[CODAP's help on functions](https://codap.concord.org/help/work-functions).
+
+## Values
+
+`get` takes no `values`. The response's `values` is an array of the matching cases, in the
+collection's order. It is empty when no case matches. Cases the user has set aside, and cases
+hidden by the data set's filter formula, are never returned.
+
+Each case is an object:
+
+| Property | Notes |
+|---|---|
+| `id` | the case's id |
+| `parent` | the id of its parent case; `null` for a case in the top-level collection |
+| `collection` | `{ "name", "id" }` of the collection searched |
+| `values` | the case's values, keyed by attribute name — only the attributes of this collection, not its parents' |
+| `children` | the ids of its child cases; empty for a case in the last collection. New in v3 |
+
+## Examples
+
+**Find the heaviest mammal.** The Mammals data set has one collection, also named Mammals:
+
+```json
+{
+  "action": "get",
+  "resource": "dataContext[Mammals].collection[Mammals].caseFormulaSearch[Mass=max(Mass)]"
+}
+```
+
+```json
+{
+  "success": true,
+  "values": [
+    {
+      "id": 13,
+      "parent": null,
+      "collection": { "name": "Mammals", "id": 3 },
+      "values": {
+        "Mammal": "African Elephant",
+        "Order": "Proboscidae",
+        "LifeSpan": 70,
+        "Height": 4,
+        "Mass": 6400,
+        "Sleep": 3,
+        "Speed": 40,
+        "Habitat": "land",
+        "Diet": "plants"
+      },
+      "children": []
+    }
+  ]
+}
+```
+
+**Combine conditions.** Only the first of the matching cases is shown here:
+
+```json
+{
+  "action": "get",
+  "resource": "dataContext[Mammals].collection[Mammals].caseFormulaSearch[Diet=\"meat\" and Speed>60]"
+}
+```
+
+```json
+{
+  "success": true,
+  "values": [
+    {
+      "id": 17,
+      "parent": null,
+      "collection": { "name": "Mammals", "id": 3 },
+      "values": {
+        "Mammal": "Cheetah",
+        "Order": "Carnivora",
+        "LifeSpan": 14,
+        "Height": 1.5,
+        "Mass": 50,
+        "Sleep": 12,
+        "Speed": 110,
+        "Habitat": "land",
+        "Diet": "meat"
+      },
+      "children": []
+    }
+  ]
+}
+```
+
+In JavaScript, build the selector as a string and let the quotes inside it be ordinary
+characters:
+
+```js
+// sendRequest stands for however your plugin sends requests — see "Sending requests and
+// receiving notifications" in the index.
+const formula = 'Diet="meat" and Speed>60'
+sendRequest({
+  action: "get",
+  resource: `dataContext[Mammals].collection[Mammals].caseFormulaSearch[${formula}]`
+}, response => {
+  if (response.success) console.log(`${response.values.length} fast carnivores`)
+})
+```
+
+## Known limitations
+
+**The text `false` does not match.** The formula `Endangered` on its own matches the cases a
+plugin created with `"Endangered": true` and not those created with `false`, as in v2. It also
+skips the text `false` typed into a table, imported from a file, or left by an unchecked checkbox,
+and text that converts to `0`, as described under [Search formulas](#search-formulas). v2 used
+JavaScript truthiness, so any non-empty text matched there. This is a deliberate difference.
+
+**`not()`, `and` and `or` fail on a `true`/`false` attribute.** `not(Endangered)`, `Endangered and
+Diet="meat"` and `Diet="meat" or Endangered` reply with `success: false` and an error saying
+that `"true"` (or `"false"`) cannot be converted to a number. In v2, `and` and `or` worked on a
+boolean attribute. This is a known bug. Until it is fixed, compare explicitly: `Endangered=true`
+and `Endangered=false` work in both.
+
+## Notifications
+
+This resource sends none. Changes to a data set's cases are reported on
+`dataContextChangeNotice[<context>]`; see [the notification catalog](../notifications.md).
+
+## Errors
+
+| Error | Condition |
+|---|---|
+| `Collection not found` | The selector names no collection, names one that does not exist, or names a data context that does not exist |
+| `Unable to parse query.` | The formula is missing, empty, or has a syntax error |
+| the formula engine's message | The formula names something that does not exist, such as `Undefined symbol Mas`, or evaluating it fails for some case; see below |
+
+**A formula that fails for any case fails the whole request.** If evaluating the formula throws
+an error for even one case, CODAP returns `success: false` with the formula engine's message,
+such as `Undefined symbol Mas` for a misspelled attribute name, and no cases. Like every other
+error, it is in `values.error`.
+
+**Error messages are worded differently from v2's.** v2 sent `SyntaxError: Incomplete expression`
+or `SyntaxError: Syntax error: '<token>'` where CODAP now sends `Unable to parse query.`, and
+`❌: 'Mas' is unrecognized` where CODAP now sends `Undefined symbol Mas`. A plugin should not
+depend on the text of either message.
+
+## See also
+
+- [`caseSearch`](case-search.md), the older single-comparison search
+- [`caseCount`](case-count.md) to count a collection's cases
+- [The resource index](../README.md) for the request envelope and the `#default` rule

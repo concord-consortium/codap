@@ -13,6 +13,7 @@ export const AnalyticsCategories = [
   "calculator", // Calculator interactions (correcting typo)
   "map",        // Map interactions
   "webview",    // Webview interactions
+  "banner",     // Announcement banner impressions and link clicks
 ] as const
 
 export type AnalyticsCategory = typeof AnalyticsCategories[number]

@@ -58,6 +58,7 @@ correct execution order, and each row points back at its requirement.
 | `dns-audit.sh`             | Audit `*.codap.concord.org` records                                 | R26c     |
 | `deploy-monitoring.sh`     | CloudWatch alarms, log metric filter, synthetic canaries            | R26b     |
 | `verify-alarms.sh`         | Induce a synthetic error against each R26b check; confirm ALARM     | G5 / DO-I3 |
+| `teardown-monitoring.sh`   | Remove the R26b monitoring after the soak (dry run unless `--apply`) | R26b (reverse) |
 | `flip.sh` / `rollback.sh`  | Flip-day forward / reverse                                          | R24/R24a/R25 |
 | `route53-change.sh`        | Shared helper: UPSERT a Route 53 ALIAS A record                     | shared   |
 | `PREFLIGHT.md`             | Pre-flip pipeline (run this first)                                  | this folder |

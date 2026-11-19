@@ -155,6 +155,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   // ordered parent-most to child-most
   collections: types.array(CollectionModel),
   attributesMap: types.map(Attribute),
+  // Every item, in order, including hidden (set-aside or filtered-out) ones. Items have two kinds of index:
+  // - a full index is a position in _itemIds and in the attribute value arrays (getItemIndex,
+  //   getItemIndexForCaseOrItem, the ...AtFullItemIndex getters)
+  // - a shown index is a position in `items` and `itemIds`, which leave out hidden items (getItemAtIndex)
+  // Never look up an index of one kind in the other: whenever an earlier item is hidden, it finds the wrong item.
   _itemIds: types.array(types.string),
   // for serialization only, not for dynamic selection tracking
   snapSelection: types.array(types.string),
@@ -313,6 +318,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         _caseValidationVersion.get()  // establish MobX dependency
         return _isValidItemIds
       },
+      // the shown items' ids, in order; positions here are shown indices (see _itemIds)
       get itemIds() {
         _caseValidationVersion.get()  // stable MobX dependency (survives cache-valid no-op)
         _validateItemIds()
@@ -580,9 +586,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   hasItem(itemId: string) {
     return !!self.itemInfoMap.get(itemId)
   },
+  // the item's full index: its position in _itemIds and the attribute value arrays, counting hidden items
   getItemIndex(itemId: string) {
     return self.itemInfoMap.get(itemId)?.index
   },
+  // the full index (see getItemIndex) of the item, or of a case's first item
   getItemIndexForCaseOrItem(caseOrItemId: string) {
     const caseInfo = self.caseInfoMap.get(caseOrItemId)
     // for cases, returns index of first item
@@ -597,15 +605,6 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     if (!itemInfo) return
     const childCaseIndex = itemInfo.caseIds.length - 1
     return itemInfo.caseIds[childCaseIndex]
-  },
-  itemIDFromIndex(index: number) {
-    return self.items[index]?.__id__
-  },
-  nextItemID(id: string) {
-    const index = this.getItemIndex(id),
-          nextItem = (index != null) && (index < self.items.length - 1)
-                      ? self.items[index + 1] : undefined
-    return nextItem?.__id__
   },
   addItemInfo(itemId: string, caseId: string) {
     const itemInfo = self.itemInfoMap.get(itemId)
@@ -1175,6 +1174,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     return items
   }
 
+  // the item at a shown index: its position in `items`, which leaves out hidden items
   function getItemAtIndex(index: number, options?: IGetCaseOptions) {
     const item = self.items[index],
           id = item?.__id__
@@ -1226,11 +1226,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
       getValue(caseID: string, attributeID: string) {
         const index = self.getItemIndexForCaseOrItem(caseID)
-        return index != null ? this.getValueAtItemIndex(index, attributeID) : undefined
+        return index != null ? this.getValueAtFullItemIndex(index, attributeID) : undefined
       },
-      getValueAtItemIndex(index: number, attributeID: string) {
+      getValueAtFullItemIndex(index: number, attributeID: string) {
         if (self.isCaching()) {
-          const itemId = self.items[index]?.__id__
+          const itemId = self._itemIds[index]
           const cachedItem = self.itemCache.get(itemId)
           if (cachedItem && Object.prototype.hasOwnProperty.call(cachedItem, attributeID)) {
             return cachedItem[attributeID]
@@ -1241,11 +1241,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
       getStrValue(caseID: string, attributeID: string) {
         const index = self.getItemIndexForCaseOrItem(caseID)
-        return index != null ? this.getStrValueAtItemIndex(index, attributeID) : ""
+        return index != null ? this.getStrValueAtFullItemIndex(index, attributeID) : ""
       },
-      getStrValueAtItemIndex(itemIndex: number, attributeID: string) {
+      getStrValueAtFullItemIndex(itemIndex: number, attributeID: string) {
         if (self.isCaching()) {
-          const itemId = self.items[itemIndex]?.__id__
+          const itemId = self._itemIds[itemIndex]
           const cachedItem = self.itemCache.get(itemId)
           if (cachedItem && Object.prototype.hasOwnProperty.call(cachedItem, attributeID)) {
             return cachedItem[attributeID]?.toString()
@@ -1256,12 +1256,12 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
       getNumeric(caseID: string, attributeID: string): number | undefined {
         const index = self.getItemIndexForCaseOrItem(caseID)
-        return index != null ? this.getNumericAtItemIndex(index, attributeID) : undefined
+        return index != null ? this.getNumericAtFullItemIndex(index, attributeID) : undefined
       },
-      getNumericAtItemIndex(index: number, attributeID: string) {
+      getNumericAtFullItemIndex(index: number, attributeID: string) {
         const attr = self.getAttribute(attributeID)
         if (self.isCaching()) {
-          const itemId = self.items[index]?.__id__
+          const itemId = self._itemIds[index]
           const cachedItem = self.itemCache.get(itemId)
           if (cachedItem && Object.prototype.hasOwnProperty.call(cachedItem, attributeID)) {
             // Parse the cached value the same way the attribute does, so blanks become NaN
@@ -1602,19 +1602,21 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
 
       moveItems(itemIds: string[], options?: IMoveItemsOptions) {
-        const indices = itemIds.map(itemId => self.getItemIndex(itemId)).filter(index => index != null)
-          .sort((a: number, b: number) => b - a) // Reverse order
-        const items = indices.map(index => {
-          const item = { index, item: self.items[index], values: [] as { strValue: string, numValue: number }[] }
-          self.attributes.forEach(attr => item.values.push({
+        // getItemIndex indexes _itemIds, which includes set-aside and filtered-out items
+        const itemIndices = Array.from(new Set(itemIds))
+          .map(itemId => ({ itemId, index: self.getItemIndex(itemId) }))
+          .filter((info): info is { itemId: string, index: number } => info.index != null)
+          .sort((a, b) => b.index - a.index) // Reverse order
+        const items = itemIndices.map(({ itemId, index }) => ({
+          itemId,
+          values: self.attributes.map(attr => ({
             strValue: attr.strValues[index],
             numValue: attr.numValues[index]
           }))
-          return item
-        }).reverse() // Normal order
+        })).reverse() // Normal order
 
         // Remove from ordered arrays
-        indices.forEach(index => {
+        itemIndices.forEach(({ index }) => {
           self._itemIds.splice(index, 1)
           self.attributes.forEach(attr => attr.removeValues(index))
         })
@@ -1625,7 +1627,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         const insertIndex = afterIndex ?? beforeIndex ?? self._itemIds.length
 
         // Add back to ordered arrays
-        self._itemIds.splice(insertIndex, 0, ...items.map(({ item }) => item.__id__))
+        self._itemIds.splice(insertIndex, 0, ...items.map(({ itemId }) => itemId))
         self.attributes.forEach((attr, index) => {
           attr.strValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].strValue))
           attr.numValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].numValue))
@@ -1877,6 +1879,21 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       }
     })
     self.removeCollection(collection)
+  },
+  // Puts the items in the given order, which must list every item, set-aside ones included, exactly once
+  setItemOrder(itemIds: string[]) {
+    if (itemIds.length !== self._itemIds.length) return
+    if (itemIds.every((itemId, index) => itemId === self._itemIds[index])) return
+    // current positions come from _itemIds itself, since itemInfoMap can be stale (e.g. after a sort)
+    const currentIndex = new Map(self._itemIds.map((itemId, index) => [itemId, index]))
+    const origIndices = itemIds.map(itemId => currentIndex.get(itemId)!)
+    self.attributes.forEach(attr => attr.orderValues(origIndices))
+    self._itemIds.replace(itemIds)
+    // keep item lookups right until the cases are next validated
+    itemIds.forEach((itemId, index) => {
+      const itemInfo = self.itemInfoMap.get(itemId)
+      if (itemInfo) itemInfo.index = index
+    })
   },
   sortByAttribute(attributeId: string, direction: "ascending" | "descending" = "ascending") {
     self.validateCases()
