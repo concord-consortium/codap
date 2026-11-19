@@ -7,6 +7,7 @@ import { SharedDataSet } from "../shared/shared-data-set"
 import {
   removeCasesWithCustomUndoRedo, setAttributeFormulaWithCustomUndoRedo, setCaseValuesWithCustomUndoRedo
 } from "./data-set-undo"
+import { addSetAsideCases, restoreSetAsideCases } from "./data-set-utils"
 
 describe("DataSet undo/redo", () => {
 
@@ -422,5 +423,121 @@ describe("DataSet undo/redo", () => {
     expect(attr.hasFormula).toBe(true)
     expect(attr.formula!.display).toBe("b * 10")
     expect(attr.name).toBe("renamed")
+  })
+
+  describe("undoing set-asides after a plugin changes the set-aside list", () => {
+    function setupItems() {
+      const setup = setupDocument()
+      setup.data.addCases(["ITEM1", "ITEM2", "ITEM3", "ITEM4"].map((__id__, i) => ({ __id__, aId: i + 2, bId: i })))
+      setup.data.validateCases()
+      return setup
+    }
+    // the set-aside items, after checking that the shown items agree with them
+    const setAside = (data: ReturnType<typeof setupDocument>["data"]) => {
+      const ids = Array.from(data.setAsideItemIds)
+      expect(data.items.map(({ __id__ }) => __id__)).toEqual(data._itemIds.filter(id => !ids.includes(id)))
+      ids.forEach(id => expect(data.isItemSetAside(id)).toBe(true))
+      return ids
+    }
+
+    it("skips an item a plugin deleted, and undoes and redoes the others by id", async () => {
+      const { data, whenTreeManagerIsReady, undoManager } = setupItems()
+      addSetAsideCases(data, ["ITEM4"])
+      await whenTreeManagerIsReady()
+      addSetAsideCases(data, ["ITEM1"])
+      await whenTreeManagerIsReady()
+      expect(setAside(data)).toEqual(["ITEM4", "ITEM1"])
+
+      // a plugin deletes a case along with its set-aside item, which can't be undone
+      data.applyModelChange(() => {
+        data.showHiddenCasesAndItems(["ITEM4"])
+        data.removeCases(["ITEM0", "ITEM4"])
+      })
+      await whenTreeManagerIsReady()
+      expect(setAside(data)).toEqual(["ITEM1"])
+
+      undoManager?.undo()
+      await whenTreeManagerIsReady()
+      expect(setAside(data)).toEqual([])
+      undoManager?.undo()
+      await whenTreeManagerIsReady()
+      expect(setAside(data)).toEqual([])
+
+      // redo doesn't set the deleted item aside again
+      undoManager?.redo()
+      await whenTreeManagerIsReady()
+      expect(setAside(data)).toEqual([])
+      undoManager?.redo()
+      await whenTreeManagerIsReady()
+      expect(setAside(data)).toEqual(["ITEM1"])
+    })
+
+    it("undoes the user's set-aside after a plugin restored an earlier one", async () => {
+      const { data, whenTreeManagerIsReady, undoManager } = setupItems()
+      addSetAsideCases(data, ["ITEM2"])
+      await whenTreeManagerIsReady()
+      addSetAsideCases(data, ["ITEM3"])
+      await whenTreeManagerIsReady()
+      // a plugin's restore, which can't be undone
+      restoreSetAsideCases(data, ["ITEM2"], false)
+      await whenTreeManagerIsReady()
+      expect(setAside(data)).toEqual(["ITEM3"])
+
+      undoManager?.undo()
+      await whenTreeManagerIsReady()
+      expect(setAside(data)).toEqual([])
+    })
+
+    it("redoes a restore without setting aside an item deleted since", async () => {
+      const { data, whenTreeManagerIsReady, undoManager } = setupItems()
+      addSetAsideCases(data, ["ITEM2", "ITEM3"])
+      await whenTreeManagerIsReady()
+      restoreSetAsideCases(data)
+      await whenTreeManagerIsReady()
+      undoManager?.undo()
+      await whenTreeManagerIsReady()
+      expect(setAside(data)).toEqual(["ITEM2", "ITEM3"])
+      // a plugin deletes a case along with its set-aside item
+      data.applyModelChange(() => {
+        data.showHiddenCasesAndItems(["ITEM3"])
+        data.removeCases(["ITEM3"])
+      })
+      await whenTreeManagerIsReady()
+      undoManager?.redo()
+      await whenTreeManagerIsReady()
+      expect(setAside(data)).toEqual([])
+      undoManager?.undo()
+      await whenTreeManagerIsReady()
+      expect(setAside(data)).toEqual(["ITEM2"])
+    })
+
+    it("adds no undo entry for a set-aside that changes nothing", async () => {
+      const { data, whenTreeManagerIsReady, undoManager } = setupItems()
+      addSetAsideCases(data, ["ITEM2"])
+      await whenTreeManagerIsReady()
+      const entry = undoManager?.undoEntry
+      addSetAsideCases(data, ["ITEM2"])
+      await whenTreeManagerIsReady()
+      expect(undoManager?.undoEntry).toBe(entry)
+    })
+
+    it("undoes and redoes the user's restore by id", async () => {
+      const { data, whenTreeManagerIsReady, undoManager } = setupItems()
+      addSetAsideCases(data, ["ITEM2", "ITEM3"])
+      await whenTreeManagerIsReady()
+      restoreSetAsideCases(data)
+      await whenTreeManagerIsReady()
+      expect(setAside(data)).toEqual([])
+      // a plugin sets another item aside, which can't be undone
+      addSetAsideCases(data, ["ITEM1"], false)
+      await whenTreeManagerIsReady()
+
+      undoManager?.undo()
+      await whenTreeManagerIsReady()
+      expect(setAside(data)).toEqual(["ITEM1", "ITEM2", "ITEM3"])
+      undoManager?.redo()
+      await whenTreeManagerIsReady()
+      expect(setAside(data)).toEqual(["ITEM1"])
+    })
   })
 })

@@ -470,10 +470,25 @@ describe("API data changes send dataContextChangeNotice", () => {
     expect(operations()).toEqual([])
   })
 
-  it("delete allCases sends deleteCases", async () => {
+  it("delete allCases sends deleteCases listing every collection's cases, as v2 did", async () => {
+    const allCaseIds = dataset.collections.flatMap(collection =>
+      dataset.getCasesForCollection(collection.id).map(({ __id__ }) => toV2Id(__id__)))
+    expect(allCaseIds).toHaveLength(12)
     await request("delete", "collection[collection3].allCases")
     expect(operations()).toEqual(["deleteCases"])
-    expect(changes()[0].result.cases).toHaveLength(6)
+    expect(caseIDsOf(changes()[0])).toEqual(allCaseIds)
+    // v2's notice had no caseIDs
+    expect(changes()[0].result.caseIDs).toBeUndefined()
+  })
+
+  it("delete allCases leaves out cases whose items are all set aside, which stay", async () => {
+    const [item0, item4] = [dataset.itemIds[0], dataset.itemIds[4]]
+    const ax = dataset.getParentCaseId(childCase(0))!
+    dataset.hideCasesOrItems([item0, item4])
+    dataset.validateCases()
+    await request("delete", "collection[collection3].allCases")
+    expect(caseIDsOf(changes()[0])).not.toContain(toV2Id(ax))
+    expect(dataset.setAsideItemIds).toEqual([item0, item4])
   })
 
   it("delete attribute sends deleteAttributes, preceded by deleteCollection when the collection goes", async () => {

@@ -14,6 +14,7 @@ import {
   moveAttributeNotification, selectCasesNotification, selectCasesNotificationForDelta
 } from "./data-set-notifications"
 import { IAttributeChangeResult, ICase, IMoveAttributeOptions } from "./data-set-types"
+import { withSetAsideUndoRedo } from "./data-set-undo"
 
 export function getCollectionAttrs(collection: ICollectionModel, data?: IDataSet): IAttribute[] {
   if (collection && !isAlive(collection)) {
@@ -242,7 +243,9 @@ export function addSetAsideCases(data: IDataSet, caseOrItemIds: string[], undoab
   if (caseOrItemIds.length) {
     data.validateCases()
     data.applyModelChange(() => {
-      data.hideCasesOrItems(caseOrItemIds)
+      const setAside = () => data.hideCasesOrItems(caseOrItemIds)
+      if (undoable) withSetAsideUndoRedo(data, setAside)
+      else setAside()
       data.selectCases(caseOrItemIds, false)
     }, {
       notify:
@@ -270,7 +273,9 @@ export function restoreSetAsideCases(data?: IDataSet, caseOrItemIds?: string[], 
   const notifications: INotify = createNotification ? [createNotification] : []
   if (setAsideCaseOrItemIds.length) {
     data.applyModelChange(() => {
-      data.showHiddenCasesAndItems(setAsideCaseOrItemIds)
+      const restore = () => data.showHiddenCasesAndItems(setAsideCaseOrItemIds)
+      if (undoable) withSetAsideUndoRedo(data, restore)
+      else restore()
       data.setSelectedCases(setAsideCaseOrItemIds)
     }, {
       notify: notifications.concat(selectCasesNotification(data)),
