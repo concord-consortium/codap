@@ -1,6 +1,7 @@
 import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet, IDataSet } from "../../models/data/data-set"
+import { setSelectedCases } from "../../models/data/data-set-utils"
 import { serializeCodapV2Document, serializeCodapV3Document } from "../../models/document/serialize-document"
 import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
@@ -209,5 +210,48 @@ describe("slider persistence: a width wider than the axis", () => {
     const restored = findSlider()
     expect(restored.rangeWidth).toBe(500)
     expect(restored.width).toBe(5)
+  })
+})
+
+describe("selection slider persistence", () => {
+  // the sorted a3 values of the selected visible items
+  const selectedA3 = (dataSet: IDataSet) => {
+    const a3 = dataSet.attrFromName("a3")!.id
+    return dataSet.itemIds.filter(itemId => dataSet.selection.has(itemId))
+      .map(itemId => dataSet.getNumeric(itemId, a3)).sort()
+  }
+  async function setupSelectionSlider() {
+    const setup = await setupSliderAndData()
+    setup.slider.setSliderType("selection")
+    setup.slider.configureFromAttribute(setup.dataSet, setup.dataSet.attrFromName("a3")!.id)
+    setup.slider.setRange(2, 4)
+    setup.slider.resumeSelection()
+    return setup
+  }
+
+  it("a slider saved while owning the selection reopens owning it", async () => {
+    await setupSelectionSlider()
+    await reloadDocument("v3")
+    const restored = findSlider()
+    const restoredData = findDataSet("a3")
+    expect(selectedA3(restoredData)).toEqual([2, 3, 4])
+    expect(restored.ownsSelection).toBe(true)
+    expect(restored.isSelectionPaused).toBe(false)
+  })
+
+  it("a slider saved paused reopens paused, with the user's selection, which loading doesn't change", async () => {
+    const { dataSet } = await setupSelectionSlider()
+    const a3 = dataSet.attrFromName("a3")!.id
+    setSelectedCases([dataSet.itemIds.find(itemId => dataSet.getNumeric(itemId, a3) === 6)!], dataSet)
+    await reloadDocument("v3")
+    const restored = findSlider()
+    const restoredData = findDataSet("a3")
+    // a slider that selected on load would have replaced this with [2, 3, 4]
+    expect(selectedA3(restoredData)).toEqual([6])
+    expect(restored.ownsSelection).toBe(false)
+    expect(restored.isSelectionPaused).toBe(true)
+    // and it resumes when touched
+    restored.resumeSelection()
+    expect(selectedA3(restoredData)).toEqual([2, 3, 4])
   })
 })
