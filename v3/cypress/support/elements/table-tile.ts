@@ -138,6 +138,15 @@ export const TableTileElements = {
   },
   openAttributeMenu(name: string, collectionIndex = 1) {
     this.getAttribute(name, collectionIndex).click({force: true})
+    // Menu items can be found and clicked while the menu is still hidden, so wait for this
+    // attribute's menu to become visible. A menu that opens but never appears then fails here
+    // rather than at some later step.
+    this.getAttribute(name, collectionIndex)
+      .should("have.attr", "aria-expanded", "true")
+      .invoke("attr", "aria-controls")
+      .then(menuId => {
+        cy.get(`[id='${menuId}']`).should("have.attr", "style").and("contain", "visibility: visible")
+      })
   },
   closeAttributeMenu() {
     // On CI the menu occasionally closes on its own before the test closes it, for reasons not

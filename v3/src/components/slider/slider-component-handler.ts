@@ -5,6 +5,7 @@ import { V2Slider } from "../../data-interactive/data-interactive-component-type
 import { DIValues } from "../../data-interactive/data-interactive-types"
 import { DIComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { errorResult } from "../../data-interactive/handlers/di-results"
+import { toGlobalValue } from "../../data-interactive/handlers/global-handler"
 import { appState } from "../../models/app-state"
 import { GlobalValueManager } from "../../models/global/global-value-manager"
 import { isDateUnit } from "../../utilities/date-utils"
@@ -169,6 +170,9 @@ export const sliderComponentHandler: DIComponentHandler = {
     if (error) {
       return error
     }
+    // checked before anything changes, as update global does
+    const _value = value != null ? toGlobalValue(value) : undefined
+    if (value != null && _value == null) return errorResult(t("V3.DI.Error.globalIllegalValue"))
 
     const {
       scaleType,
@@ -198,8 +202,8 @@ export const sliderComponentHandler: DIComponentHandler = {
 
     applySnapshot(content, snapshot)
 
-    if (value != null) {
-      content.globalValue.setValue(value)
+    if (_value != null) {
+      content.globalValue.setValue(_value)
     }
 
     return { success: true }

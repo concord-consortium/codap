@@ -3,7 +3,15 @@ import { isInteger } from "lodash"
 import { goodTickValue } from "../../utilities/math-utils"
 import { IAxisDomainOptions } from "./axis-types"
 import { IBaseNumericAxisModel } from "./models/base-numeric-axis-model"
-import { isAnyNumericAxisModel, isDateAxisModel } from "./models/numeric-axis-models"
+import { IDateAxisModel, isAnyNumericAxisModel, isDateAxisModel } from "./models/numeric-axis-models"
+
+// Days are a fixed 86,400 seconds, as in V2, so a range that crosses a daylight-saving change is
+// an hour off at one end.
+const kSecondsPerDay = 24 * 60 * 60
+// With no dates to fit, a date axis shows the ten days ending now, as in V2
+const kNoDatesSpanSeconds = 10 * kSecondsPerDay
+// How far a date axis extends each way from a lone date, as in V2
+const kLoneDatePadSeconds = 5 * kSecondsPerDay
 
 /**
  * This function closely follows V2's CellLinearAxisModel:_computeBoundsAndTickGap
@@ -38,14 +46,32 @@ export function computeNiceNumericBounds(min: number, max: number): { min: numbe
   return bounds
 }
 
-export function setNiceDomain(values: number[], axisModel: IBaseNumericAxisModel, options?: IAxisDomainOptions) {
-  if (values.length === 0) return // leave things as they are
-  if (isDateAxisModel(axisModel)) {
-    const [minDateAsSecs, maxDateAsSecs] = extent(values, d => d) as [number, number],
-      addend = 0.1 * Math.abs(maxDateAsSecs - minDateAsSecs)
-    axisModel.setDomain(minDateAsSecs - addend, maxDateAsSecs + addend)
+/**
+ * `values` must hold only readable dates, in epoch seconds: a list of only undefined values takes the
+ * lone-date branch, which leaves the range as is but clears the axis's freedom to shrink.
+ */
+function setNiceDateDomain(values: number[], axisModel: IDateAxisModel, options?: IAxisDomainOptions) {
+  if (values.length === 0) {
+    // Only a refit that may shrink the axis replaces its range when there is nothing to fit.
+    if (options?.growOnly || !axisModel.allowRangeToShrink) return
+    const nowSecs = Date.now() / 1000
+    axisModel.setDomain(nowSecs - kNoDatesSpanSeconds, nowSecs)
+    // Let the first dates to arrive fit the axis, as the first numbers fit a numeric axis.
+    axisModel.setAllowRangeToShrink(true)
+    return
   }
-  else if (isAnyNumericAxisModel(axisModel)) {
+  const [minDateAsSecs, maxDateAsSecs] = extent(values, d => d) as [number, number],
+    addend = minDateAsSecs === maxDateAsSecs ? kLoneDatePadSeconds : 0.1 * (maxDateAsSecs - minDateAsSecs)
+  axisModel.setDomain(minDateAsSecs - addend, maxDateAsSecs + addend)
+}
+
+export function setNiceDomain(values: number[], axisModel: IBaseNumericAxisModel, options?: IAxisDomainOptions) {
+  if (isDateAxisModel(axisModel)) {
+    setNiceDateDomain(values, axisModel, options)
+    return
+  }
+  if (values.length === 0) return // leave things as they are
+  if (isAnyNumericAxisModel(axisModel)) {
     const [minValue, maxValue] = extent(values, d => d) as [number, number]
     let {min: niceMin, max: niceMax} = computeNiceNumericBounds(minValue, maxValue)
     if (options?.clampPosMinAtZero) {
