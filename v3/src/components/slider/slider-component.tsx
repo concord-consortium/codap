@@ -35,6 +35,8 @@ import { SliderRangeValues } from "./slider-range-values"
 import { CodapSliderThumb } from "./slider-thumb"
 import { kNoSelectionResumeProps, kNoSelectionResumeSelector, kSliderClass } from "./slider-types"
 import { rangeFromHandles, sliderGroupLabel, sliderStep } from "./slider-utils"
+import { useSliderCountAnnouncement } from "./use-slider-count-announcement"
+import { useSliderFocusRestore } from "./use-slider-focus-restore"
 
 import "./slider.scss"
 
@@ -55,7 +57,9 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
   const { setOverlayRef, ...dropHighlight } = useSliderAttributeDrop(instanceId, tile)
+  const wrapperRef = useRef<HTMLDivElement | null>(null)
   const setWrapperRef = useCallback((elt: HTMLDivElement | null) => {
+    wrapperRef.current = elt
     sliderRef(elt)
     setOverlayRef(elt)
   }, [setOverlayRef, sliderRef])
@@ -72,7 +76,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const clearFocusAttributeLabel = useCallback(() => setFocusAttributeLabel(false), [])
   const [statusMessage, setStatusMessage] = useState("")
   const statusTimeoutRef = useRef<number>()
-  // the message being announced, which a stop of playback caused by the same change adds to
+  // the message being announced, which a stop of playback caused by the same change, a resume, or a case count adds to
   const statusMessageRef = useRef("")
   const prevRunningRef = useRef(false)
   // whether playback is stopping because the selection slider paused, whose announcement the stop is added to
@@ -107,7 +111,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const [minValue, maxValue] = sliderModel?.axis?.domain ?? [0, 1]
 
   // The React Aria state, and the handle a range change is moving: recorded during onChange, since React Stately
-  // clears its dragging flag before calling onChangeEnd. Keyboard changes mark their handle as dragging, too.
+  // clears its dragging flag before calling onChangeEnd. (The range's keys don't go through React Aria; see
+  // SliderRangeThumb.)
   const stateRef = useRef<SliderState | null>(null)
   const activeHandleRef = useRef<number | undefined>(undefined)
   // whether the range changed during the current press: React Stately calls onChangeEnd on every release, even
@@ -124,7 +129,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const handleChange = useCallback((values: number[]) => {
     if (!sliderModel) return
     const ariaState = stateRef.current
-    activeHandleRef.current = [0, 1].find(index => ariaState?.isThumbDragging(index)) ?? ariaState?.focusedThumb
+    activeHandleRef.current = [0, 1].find(index => ariaState?.isThumbDragging(index))
     if (!rangeChangedRef.current) pressStartRangeRef.current = [sliderModel.rangeLow, sliderModel.rangeHigh]
     rangeChangedRef.current = true
     sliderModel.applyModelChange(
@@ -203,6 +208,18 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       stoppedByPauseRef.current = false
     }
   }, [isPrompting, running, showStatusMessage])
+
+  // The case count adds to a message still being announced, e.g. that playback stopped or an attribute was set, but
+  // replaces an earlier count.
+  const lastCountMessageRef = useRef("")
+  const announceCount = useCallback((message: string) => {
+    const prior = statusMessageRef.current === lastCountMessageRef.current ? "" : statusMessageRef.current
+    const combined = prior ? t("V3.Slider.messageThenMessage", { vars: [prior, message] }) : message
+    lastCountMessageRef.current = combined
+    showStatusMessage(combined)
+  }, [showStatusMessage])
+  useSliderCountAnnouncement({ sliderModel, running, announce: announceCount })
+  useSliderFocusRestore(sliderModel, wrapperRef)
 
   // When another component takes the selection, a selection slider pauses: it stops playback and says so. Only a
   // change of ownership is announced; a slider that merely looks paused because the data changed keeps playing.
@@ -305,8 +322,9 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const handlePointerDownCapture = (e: React.PointerEvent) => {
     if (!e.button && e.isPrimary !== false && isSelectionGesture(e)) resumeSelection()
   }
+  // Ctrl and Meta chords belong to the system, the browser and screen readers, and don't move the slider
   const handleTrackKeyDownCapture = (e: React.KeyboardEvent) => {
-    if (kResumeSelectionKeys.has(e.key) && isSelectionGesture(e)) resumeSelection()
+    if (kResumeSelectionKeys.has(e.key) && !e.ctrlKey && !e.metaKey && isSelectionGesture(e)) resumeSelection()
   }
 
   const axisClasses = () => {
@@ -399,7 +417,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                    onKeyDownCapture={handleTrackKeyDownCapture}>
                 {sliderModel.isRangeSlider
                   ? <SliderRangeThumb sliderModel={sliderModel} tile={tile} running={running} setRunning={setRunning}
-                                      state={state} trackRef={trackRef}
+                                      state={state} trackRef={trackRef} step={step}
                                       describedBy={sliderModel.isSelectionPaused ? pausedDescriptionId : undefined}
                     />
                   : <CodapSliderThumb sliderModel={sliderModel} running={running} setRunning={setRunning}

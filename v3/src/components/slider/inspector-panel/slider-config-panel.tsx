@@ -21,6 +21,8 @@ import {
 
 import "./slider-settings-panel.scss"
 
+// what the width field accepts as it's edited, e.g. "", "2", "2.", or ".5"
+const kWidthEntryPattern = /^\d*\.?\d*$/
 const kMaxWidthInputSize = 12
 
 interface IProps {
@@ -94,6 +96,13 @@ export const SliderConfigPalette =
     const acceptWidthRef = useRef(handleAcceptWidth)
     acceptWidthRef.current = handleAcceptWidth
     useEffect(() => () => acceptWidthRef.current(), [])
+
+    // Only digits and one decimal point can be entered: a keystroke or paste that would make the field anything else
+    // is ignored. A comma is taken as the decimal point, as many languages write it.
+    const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value.replace(/,/g, ".")
+      if (kWidthEntryPattern.test(value)) setEditedWidth(value)
+    }
 
     const handleWidthKeyDown = (e: React.KeyboardEvent) => {
       if (e.key === "Enter") handleAcceptWidth()
@@ -169,7 +178,8 @@ export const SliderConfigPalette =
                   id="slider-range-width-input"
                   size={Math.min(kMaxWidthInputSize, Math.max(1, widthInput.length))}
                   value={widthInput}
-                  onChange={e => setEditedWidth(e.target.value)}
+                  inputMode="decimal"
+                  onChange={handleWidthChange}
                   onFocus={e => e.target.select()}
                   ref={widthInputRef}
                   onBlur={handleWidthControlBlur}
