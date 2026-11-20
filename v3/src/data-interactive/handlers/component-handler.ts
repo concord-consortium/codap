@@ -49,6 +49,9 @@ export interface DIComponentHandler {
   create: (args: ICreateArgs) => ICreateResult | DIErrorResult,
   get: (content: ITileContentModel) => Maybe<Record<string, any>>
   update?: (content: ITileContentModel, values: DIValues) => DIHandlerFnResult
+  // Checks an update before any of it, the component's generic properties included, is applied; an error
+  // refuses the whole request
+  validateUpdate?: (content: ITileContentModel, values: DIValues) => Maybe<DIErrorResult>
 }
 
 // registry of tile component handlers -- key is v2 tile type
@@ -251,6 +254,13 @@ export const diComponentHandler: DIHandler = {
 
     if (!values) return valuesRequiredResult
 
+    const v2Type = getTileContentInfo(content.type)?.getV2Type?.(content) ?? kComponentTypeV3ToV2Map[content.type]
+    const handler = diComponentHandlers.get(v2Type)
+    if (typeof values === "object" && !Array.isArray(values)) {
+      const error = handler?.validateUpdate?.(content, values)
+      if (error) return error
+    }
+
     // We don't want to notify if the request to update is coming from the component itself. Doing so causes
     // Story Builder to mark the selected moment as changed.
     // Also exclude the requesting plugin from cross-component updates (e.g. Story Builder updating its
@@ -303,8 +313,6 @@ export const diComponentHandler: DIHandler = {
       }
 
       // Handle updating type specific features
-      const v2Type = getTileContentInfo(content.type)?.getV2Type?.(content) ?? kComponentTypeV3ToV2Map[content.type]
-      const handler = diComponentHandlers.get(v2Type)
       if (handler) {
         result = handler.update?.(content, values) ?? { success: true }
       }
