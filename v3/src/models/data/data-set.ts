@@ -219,6 +219,10 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   // clears only its own set
   // (shallow, so each set is stored as given rather than copied; invalidateCases does the signaling)
   sliderFilteredOutItemIds: observable.map<string, ReadonlySet<string>>({}, { deep: false }),
+  // Counts the changes to what visibility sliders hide that a change to a slider itself caused (its range,
+  // attribute, type or dataset, or closing it), rather than a change to the data or a document loading. A selection
+  // slider follows only these, so editing data never selects anything (see SliderModel).
+  sliderFilterChangesBySlider: 0,
   filterFormulaError: "",
 
   // Init: this object does not need to change when a snapshot is applied.
@@ -944,13 +948,19 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     return created
   },
   // hides the given items on behalf of the visibility slider in the tile with the given id
-  setSliderFilter(sliderTileId: string, hiddenItemIds: ReadonlySet<string>) {
+  // (bySlider: see sliderFilterChangesBySlider)
+  setSliderFilter(sliderTileId: string, hiddenItemIds: ReadonlySet<string>, bySlider = false) {
     self.sliderFilteredOutItemIds.set(sliderTileId, hiddenItemIds)
+    if (bySlider) ++self.sliderFilterChangesBySlider
     self.invalidateCases()
   },
   // stops hiding items on behalf of the visibility slider in the tile with the given id
-  clearSliderFilter(sliderTileId: string) {
-    if (self.sliderFilteredOutItemIds.delete(sliderTileId)) self.invalidateCases()
+  // (bySlider: see sliderFilterChangesBySlider)
+  clearSliderFilter(sliderTileId: string, bySlider = false) {
+    if (self.sliderFilteredOutItemIds.delete(sliderTileId)) {
+      if (bySlider) ++self.sliderFilterChangesBySlider
+      self.invalidateCases()
+    }
   },
   clearFilterFormula() {
     self.filterFormula = undefined

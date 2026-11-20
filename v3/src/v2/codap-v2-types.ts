@@ -61,6 +61,7 @@ export interface ICodapV2SliderStorage extends ICodapV2BaseComponentStorage {
     dataContext?: number  // v2 id of the bound dataset
     attribute?: number    // v2 id of the bound attribute
     rangeWidth?: number   // in axis units (epoch seconds for dates)
+    ownsSelection?: boolean  // selection sliders only: whether it owned the selection when saved
   }
 }
 

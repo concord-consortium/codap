@@ -33,10 +33,16 @@ import { rangeChangeOptions } from "./slider-range-change"
 import { SliderRangeThumb } from "./slider-range-thumb"
 import { SliderRangeValues } from "./slider-range-values"
 import { CodapSliderThumb } from "./slider-thumb"
-import { kSliderClass } from "./slider-types"
+import { kNoSelectionResumeProps, kNoSelectionResumeSelector, kSliderClass } from "./slider-types"
 import { rangeFromHandles, sliderGroupLabel, sliderStep } from "./slider-utils"
 
 import "./slider.scss"
+
+// the keys that move the slider's thumb, plus Enter and Space: pressed on its thumb or track, they resume a paused
+// selection slider
+const kResumeSelectionKeys = new Set([
+  "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown", "Enter", " "
+])
 
 const kAxisMargin = 30
 
@@ -45,6 +51,7 @@ registerTileCollisionDetection(kSliderIdBase, sliderCollisionDetection)
 export const SliderComponent = observer(function SliderComponent({ tile } : ITileBaseProps) {
   const sliderModel = isAliveSafe(tile?.content) && isSliderModel(tile?.content) ? tile?.content : undefined
   const instanceId = useNextInstanceId("slider")
+  const pausedDescriptionId = `${instanceId}-selection-paused`
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
   const { setOverlayRef, ...dropHighlight } = useSliderAttributeDrop(instanceId, tile)
@@ -68,6 +75,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   // the message being announced, which a stop of playback caused by the same change adds to
   const statusMessageRef = useRef("")
   const prevRunningRef = useRef(false)
+  // whether playback is stopping because the selection slider paused, whose announcement the stop is added to
+  const stoppedByPauseRef = useRef(false)
   const multiScale = layout.getAxisMultiScale("bottom")
   const trackRef = useRef<HTMLDivElement | null>(null)
 
@@ -186,13 +195,45 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   useEffect(() => {
     if (prevRunningRef.current !== running) {
       const key = running ? "DG.SliderView.animationStarted" : "DG.SliderView.animationStopped"
-      // A change that brings up the prompt stops playback after announcing itself, so the stop is added to that
-      // announcement rather than replacing it.
-      const cause = !running && isPrompting ? statusMessageRef.current : ""
+      // A change that brings up the prompt, or a selection slider pausing, stops playback after announcing itself, so
+      // the stop is added to that announcement rather than replacing it.
+      const cause = !running && (isPrompting || stoppedByPauseRef.current) ? statusMessageRef.current : ""
       showStatusMessage(cause ? t("V3.Slider.messageThenStopped", { vars: [cause, t(key)] }) : t(key))
       prevRunningRef.current = running
+      stoppedByPauseRef.current = false
     }
   }, [isPrompting, running, showStatusMessage])
+
+  // When another component takes the selection, a selection slider pauses: it stops playback and says so. Only a
+  // change of ownership is announced; a slider that merely looks paused because the data changed keeps playing.
+  // Resuming is announced only after a pause (a slider that starts selecting when it's bound hasn't resumed), and a
+  // choice from a menu, which announces itself, announces neither (see makeQuietSliderChange).
+  useEffect(() => {
+    if (!sliderModel) return
+    let wasPaused = sliderModel.isSelectionPaused
+    return reaction(
+      () => sliderModel.ownsSelection,
+      owns => {
+        if (!sliderModel.isBoundSelectionSlider) return
+        // rebinding to another dataset lets go of the selection without the user pausing the slider
+        if (!owns && sliderModel.isReleasedForRebind) {
+          wasPaused = false
+          return
+        }
+        if (!isQuietSliderChange(sliderModel) && (!owns || wasPaused)) {
+          const message = t(owns ? "V3.Slider.selectionResumed" : "V3.Slider.selectionPaused")
+          // a resume caused by a change that announced itself (e.g. dropping an attribute) adds to that announcement
+          const prior = owns ? statusMessageRef.current : ""
+          showStatusMessage(prior ? t("V3.Slider.messageThenMessage", { vars: [prior, message] }) : message)
+        }
+        wasPaused = !owns
+        if (!owns) {
+          stoppedByPauseRef.current = true
+          setRunning(false)
+        }
+      }, { name: "SliderComponent [selection ownership]" }
+    )
+  }, [sliderModel, showStatusMessage])
 
   // Announce a change to the slider's type or attribute, whether made by a drop, by undo or redo, or by a plugin, but
   // not one chosen from a menu (see makeQuietSliderChange), or the slider's state when it appears. The attribute's
@@ -245,7 +286,27 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   }
 
   const toggleRunning = () => {
+    // Pressing play resumes a paused selection slider at its current range before it steps. (A click already has, by
+    // its press; Enter or Space on the button hasn't.)
+    if (!running) sliderModel?.resumeSelection()
     setRunning(!running)
+  }
+
+  // Touching the slider resumes a paused selection slider, or re-selects for an active one. Capture runs before the
+  // thumb and track stop the events from propagating.
+  const resumeSelection = () => sliderModel?.resumeSelection()
+  // whether an event within the slider is a gesture on it, i.e. not in a marked element (see kNoSelectionResumeProps)
+  // or a menu portaled out of the slider, whose events still reach it through React
+  const isSelectionGesture = (e: React.SyntheticEvent) => {
+    const target = e.target as Element
+    return e.currentTarget.contains(target) && !target.closest?.(kNoSelectionResumeSelector)
+  }
+  // only the primary pointer's main button, which is all the thumb and track accept, e.g. not a right-click
+  const handlePointerDownCapture = (e: React.PointerEvent) => {
+    if (!e.button && e.isPrimary !== false && isSelectionGesture(e)) resumeSelection()
+  }
+  const handleTrackKeyDownCapture = (e: React.KeyboardEvent) => {
+    if (kResumeSelectionKeys.has(e.key) && isSelectionGesture(e)) resumeSelection()
   }
 
   const axisClasses = () => {
@@ -283,8 +344,9 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
         <AxisLayoutContext.Provider value={layout}>
           <div {...groupProps} className={clsx(kSliderClass, {twoLevel: sliderModel.axisRequiresTwoLevels(),
                                                               hasAttributeLabel: !!attributeLabel,
-                                                              "tile-selected": isTileSelected()})}
-               ref={setWrapperRef} data-testid="slider">
+                                                              "tile-selected": isTileSelected(),
+                                                              "selection-paused": sliderModel.isSelectionPaused})}
+               ref={setWrapperRef} data-testid="slider" onPointerDownCapture={handlePointerDownCapture}>
             <If condition={showPrompt}>
               <div className="slider-attribute-prompt" data-testid="slider-attribute-prompt">
                 {/* choosing removes the prompt, so focus moves to the attribute label's menu that replaces it */}
@@ -320,12 +382,25 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                                            onStatusMessage={showStatusMessage}/>
                       </>}
                 </div>
+                {sliderModel.isSelectionPaused &&
+                  <>
+                    <span className="slider-selection-paused-badge" data-testid="slider-selection-paused-badge"
+                          title={t("V3.Slider.selectionPaused.tooltip")} aria-hidden="true">
+                      {t("V3.Slider.selectionPaused.badge")}
+                    </span>
+                    {/* the handles' description while paused (see SliderRangeThumb) */}
+                    <span id={pausedDescriptionId} className="codap-visually-hidden">
+                      {t("V3.Slider.selectionPaused.description")}
+                    </span>
+                  </>}
               </div>
               <div {...trackProps} style={{ ...trackProps.style, position: "absolute" }}
-                   ref={trackRef} className="slider" data-testid="slider-track">
+                   ref={trackRef} className="slider" data-testid="slider-track"
+                   onKeyDownCapture={handleTrackKeyDownCapture}>
                 {sliderModel.isRangeSlider
                   ? <SliderRangeThumb sliderModel={sliderModel} tile={tile} running={running} setRunning={setRunning}
                                       state={state} trackRef={trackRef}
+                                      describedBy={sliderModel.isSelectionPaused ? pausedDescriptionId : undefined}
                     />
                   : <CodapSliderThumb sliderModel={sliderModel} running={running} setRunning={setRunning}
                                       state={state} trackRef={trackRef}
@@ -345,6 +420,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
                 <If condition={!!attributeLabel}>
                   {/* keep presses on the label's menu from reaching the track, which would move a range handle */}
                   <div className="slider-attribute-label" style={axisStyle} data-testid="slider-attribute-label"
+                       {...kNoSelectionResumeProps}
                        onPointerDown={stopTrackPress} onMouseDown={stopTrackPress} onTouchStart={stopTrackPress}>
                     <SliderAttributeMenu className="slider-attribute-label-button"
                                          autoFocus={focusAttributeLabel} onAutoFocus={clearFocusAttributeLabel}>

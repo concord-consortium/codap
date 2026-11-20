@@ -347,3 +347,23 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
     padding-right: 8px;
   }
 }
+
+// a paused selection slider (see SliderModel.isSelectionPaused): the thumb's graphics dim, but not the handles' focus
+// rings, and a badge says so
+.slider-wrapper.selection-paused .slider-range-thumb {
+  .slider-range-body, .slider-range-handle svg {
+    opacity: 0.5;
+  }
+}
+
+.slider-selection-paused-badge {
+  align-self: center;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: #e6e6e6;
+  color: #444;
+  font-size: 11px;
+  line-height: 16px;
+  white-space: nowrap;
+}

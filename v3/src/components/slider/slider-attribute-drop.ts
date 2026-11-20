@@ -41,5 +41,7 @@ export function configureSliderFromAttribute(tile: ITileModel, dataSet: IDataSet
     log: logMessageWithReplacement("sliderConfigureFromAttribute: { attribute: %@ }",
           { attribute: attrName }, "slider")
   })
+  // binding an attribute is a gesture on the slider, so a selection slider selects its range
+  slider.resumeSelection()
   return true
 }

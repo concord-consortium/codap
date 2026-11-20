@@ -1,13 +1,23 @@
+import { when } from "mobx"
+import { Instance } from "mobx-state-tree"
 import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet, IDataSet } from "../../models/data/data-set"
+import { setSelectedCases } from "../../models/data/data-set-utils"
 import { serializeCodapV2Document, serializeCodapV3Document } from "../../models/document/serialize-document"
 import { kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
+import { TreeManager } from "../../models/history/tree-manager"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
+import { getTileModel } from "../../models/tiles/tile-model"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { convertToDate } from "../../utilities/date-utils"
 import { ICodapV2DocumentJson, ICodapV2SliderStorage } from "../../v2/codap-v2-types"
-import { ISliderModel, isSliderModel } from "./slider-model"
+import { DIComponentInfo } from "../../data-interactive/data-interactive-types"
+import { diComponentHandler } from "../../data-interactive/handlers/component-handler"
+import { toV3Id } from "../../utilities/codap-utils"
+import { kSliderTileType } from "./slider-defs"
+import { ISliderModel, ISliderSnapshot, isSliderModel } from "./slider-model"
+import { kSliderIdPrefix } from "./slider-registration"
 import { addDataSetCopy, setupSliderAndData } from "./slider-test-utils"
 
 // saves the current document in the given format and loads the result in its place
@@ -33,7 +43,7 @@ function findDataSet(attrName: string): IDataSet {
 // the standard test dataset's a3 values are 1..6
 const visibleA3 = (dataSet: IDataSet) => {
   const a3 = dataSet.attrFromName("a3")!.id
-  return dataSet.itemIds.map(itemId => dataSet.getNumeric(itemId, a3)).sort()
+  return dataSet.itemIds.map(itemId => dataSet.getNumeric(itemId, a3)!).sort((x, y) => x - y)
 }
 
 describe("slider persistence: V3 save and reload", () => {
@@ -209,5 +219,189 @@ describe("slider persistence: a width wider than the axis", () => {
     const restored = findSlider()
     expect(restored.rangeWidth).toBe(500)
     expect(restored.width).toBe(5)
+  })
+})
+
+describe("selection slider persistence", () => {
+  // the sorted a3 values of the selected visible items
+  const selectedA3 = (dataSet: IDataSet) => {
+    const a3 = dataSet.attrFromName("a3")!.id
+    return dataSet.itemIds.filter(itemId => dataSet.selection.has(itemId))
+      .map(itemId => dataSet.getNumeric(itemId, a3)!).sort((x, y) => x - y)
+  }
+  const findSelectionSlider = () => Array.from(appState.document.content!.tileMap.values())
+    .map(tile => tile.content).filter(isSliderModel).find(slider => slider.sliderType === "selection")!
+  async function setupSelectionSlider() {
+    const setup = await setupSliderAndData()
+    setup.slider.setSliderType("selection")
+    setup.slider.configureFromAttribute(setup.dataSet, setup.dataSet.attrFromName("a3")!.id)
+    setup.slider.setRange(2, 4)
+    setup.slider.resumeSelection()
+    return setup
+  }
+
+  it("a slider saved while owning the selection reopens owning it", async () => {
+    await setupSelectionSlider()
+    await reloadDocument("v3")
+    const restored = findSlider()
+    const restoredData = findDataSet("a3")
+    expect(selectedA3(restoredData)).toEqual([2, 3, 4])
+    expect(restored.ownsSelection).toBe(true)
+    expect(restored.isSelectionPaused).toBe(false)
+    // loading didn't write the selection
+    expect(restoredData.selectionChanges).toBe(0)
+  })
+
+  it("a slider saved paused reopens paused, with the user's selection, which loading doesn't change", async () => {
+    const { dataSet } = await setupSelectionSlider()
+    const a3 = dataSet.attrFromName("a3")!.id
+    setSelectedCases([dataSet.itemIds.find(itemId => dataSet.getNumeric(itemId, a3) === 6)!], dataSet)
+    await reloadDocument("v3")
+    const restored = findSlider()
+    const restoredData = findDataSet("a3")
+    // a slider that selected on load would have replaced this with [2, 3, 4]
+    expect(selectedA3(restoredData)).toEqual([6])
+    expect(restored.ownsSelection).toBe(false)
+    expect(restored.isSelectionPaused).toBe(true)
+    // and it resumes when touched
+    restored.resumeSelection()
+    expect(selectedA3(restoredData)).toEqual([2, 3, 4])
+  })
+
+  it("reopens owning when a visibility slider created after it hides some of its range", async () => {
+    const { content, dataSet } = await setupSelectionSlider()
+    // a visibility slider created after the selection slider, so it's restored after it, too
+    const result = diComponentHandler.create!({}, { type: "slider" })
+    const visibility = content.tileMap.get(toV3Id(kSliderIdPrefix, (result.values as DIComponentInfo).id!))!
+      .content as ISliderModel
+    visibility.setSliderType("visibility")
+    visibility.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    findSelectionSlider().setRange(2, 6)
+    visibility.setRange(1, 3)
+    expect(selectedA3(dataSet)).toEqual([2, 3])
+    await reloadDocument("v3")
+    const restoredData = findDataSet("a3")
+    expect(selectedA3(restoredData)).toEqual([2, 3])
+    expect(findSelectionSlider().ownsSelection).toBe(true)
+  })
+
+  it("round-trips owning and paused through V2", async () => {
+    await setupSelectionSlider()
+    await reloadDocument("v2")
+    expect(findSelectionSlider().ownsSelection).toBe(true)
+    expect(selectedA3(findDataSet("a3"))).toEqual([2, 3, 4])
+
+    const restoredData = findDataSet("a3")
+    const a3 = restoredData.attrFromName("a3")!.id
+    setSelectedCases([restoredData.itemIds.find(itemId => restoredData.getNumeric(itemId, a3) === 6)!], restoredData)
+    await reloadDocument("v2")
+    expect(findSelectionSlider().ownsSelection).toBe(false)
+    expect(selectedA3(findDataSet("a3"))).toEqual([6])
+  })
+
+  // pauses a reloaded slider saved owning the selection, deletes its tile, and undoes that; returns the restored slider
+  async function pauseDeleteAndUndo(saveFirst: boolean) {
+    await setupSelectionSlider()
+    await reloadDocument("v3")
+    const dataSet = findDataSet("a3")
+    const a3 = dataSet.attrFromName("a3")!.id
+    expect(findSelectionSlider().ownsSelection).toBe(true)
+    if (saveFirst) await serializeCodapV3Document(appState.document)
+    setSelectedCases([dataSet.itemIds.find(itemId => dataSet.getNumeric(itemId, a3) === 6)!], dataSet)
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    appState.document.treeMonitor!.enableMonitoring()
+    try {
+      await settle()
+      const content = appState.document.content!
+      const tileId = getTileModel(findSelectionSlider())!.id
+      content.applyModelChange(() => content.deleteTile(tileId), {
+        undoStringKey: "DG.Undo.component.close", redoStringKey: "DG.Redo.component.close"
+      })
+      await settle()
+      appState.document.undoLastAction()
+      await settle()
+      return { dataSet, restored: findSelectionSlider() }
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
+  }
+
+  it.each([false, true])("doesn't claim the selection when paused, deleted, and restored by undo (saved first: %s)",
+  async saveFirst => {
+    const { dataSet, restored } = await pauseDeleteAndUndo(saveFirst)
+    expect(restored.ownsSelection).toBe(false)
+    restored.setRange(1, 3)
+    expect(selectedA3(dataSet)).toEqual([6])
+  })
+
+  it("exports saved ownership to V2 even before the slider has restored it", async () => {
+    await setupSelectionSlider()
+    // saved owning, then reopened unbound, so its saved ownership isn't restored
+    const doc = await serializeCodapV3Document(appState.document)
+    const tiles = Object.values(doc.content?.tileMap ?? {}) as Array<{ content: ISliderSnapshot }>
+    const sliderContent = tiles.find(aTile => aTile.content.type === kSliderTileType)!.content
+    delete sliderContent.attributeId
+    await appState.setDocument(doc)
+    expect(findSelectionSlider().isSavedOwnershipRestored).toBe(false)
+    const saved = await serializeCodapV2Document<ICodapV2DocumentJson>(appState.document)
+    const storage = saved.components.find(c => c.type === "DG.SliderView")!.componentStorage
+    expect(storage.v3?.ownsSelection).toBe(true)
+  })
+
+  it.each(["v3", "v2"] as const)("loading %s doesn't re-select when a visibility slider restored after it installs "
+    + "its filter", async format => {
+      const { content, dataSet } = await setupSelectionSlider()
+      const result = diComponentHandler.create!({}, { type: "slider" })
+      const visibility = content.tileMap.get(toV3Id(kSliderIdPrefix, (result.values as DIComponentInfo).id!))!
+        .content as ISliderModel
+      visibility.setSliderType("visibility")
+      visibility.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+      visibility.setRange(1, 5)
+      expect(selectedA3(dataSet)).toEqual([2, 3, 4])
+      // a data edit shows a3 = 6 as 3, within the selection slider's range, without selecting it
+      const a3 = dataSet.attrFromName("a3")!.id
+      const six = dataSet.itemIdsIgnoringSliderFilters.find(itemId => dataSet.getNumeric(itemId, a3) === 6)!
+      dataSet.setCaseValues([{ __id__: six, [a3]: 3 }])
+      expect(dataSet.selection.has(six)).toBe(false)
+
+      await reloadDocument(format)
+      const restoredData = findDataSet("a3")
+      expect(restoredData.selection.size).toBe(3)
+      expect(findSelectionSlider().ownsSelection).toBe(true)
+  })
+
+  it("saving records ownership without adding an undo step or marking the document as changed", async () => {
+    await setupSelectionSlider()
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    appState.document.treeMonitor!.enableMonitoring()
+    try {
+      await settle()
+      const { undoLevels } = manager.undoStore
+      const { revisionId } = manager
+      await serializeCodapV3Document(appState.document)
+      await settle()
+      expect(manager.undoStore.undoLevels).toBe(undoLevels)
+      expect(manager.revisionId).toBe(revisionId)
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
+  })
+
+  it("exports saved ownership to V2 only for a selection slider", async () => {
+    await setupSelectionSlider()
+    // saved owning, then reopened unbound, so its saved ownership isn't restored, and then made a visibility slider
+    const doc = await serializeCodapV3Document(appState.document)
+    const tiles = Object.values(doc.content?.tileMap ?? {}) as Array<{ content: ISliderSnapshot }>
+    const sliderContent = tiles.find(aTile => aTile.content.type === kSliderTileType)!.content
+    delete sliderContent.attributeId
+    await appState.setDocument(doc)
+    findSelectionSlider().setSliderType("visibility")
+    const saved = await serializeCodapV2Document<ICodapV2DocumentJson>(appState.document)
+    const storage = saved.components.find(c => c.type === "DG.SliderView")!.componentStorage
+    expect(storage.v3?.ownsSelection).toBeUndefined()
   })
 })

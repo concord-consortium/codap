@@ -117,7 +117,9 @@ registerV2TileExporter(kSliderTileType, ({ tile }) => {
         sliderType: sliderType !== "variable" ? sliderType : undefined,
         dataContext: dataSetId ? toV2Id(dataSetId) : undefined,
         attribute: attributeId ? toV2Id(attributeId) : undefined,
-        rangeWidth: rangeWidth ?? 0
+        rangeWidth: rangeWidth ?? 0,
+        // prepared for saving (see SliderModel.prepareSnapshot), including ownership not yet restored after loading
+        ownsSelection: sliderType === "selection" ? sliderModel.snapOwnsSelection : undefined
       }
     : {}
   const v3: ICodapV2SliderStorage["v3"] = { scaleType, multipleOf, dateMultipleOfUnit, ...rangeStorage }
@@ -181,7 +183,8 @@ registerV2TileImporter("DG.SliderView", ({ v2Component, v2Document, getGlobalVal
         sliderType,
         dataSetId: v3?.dataContext != null ? toV3DataSetId(v3.dataContext) : undefined,
         attributeId: v3?.attribute != null ? toV3AttrId(v3.attribute) : undefined,
-        rangeWidth
+        rangeWidth,
+        snapOwnsSelection: sliderType === "selection" && v3?.ownsSelection === true ? true : undefined
       }
     : {}
 
