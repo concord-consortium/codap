@@ -111,7 +111,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const [minValue, maxValue] = sliderModel?.axis?.domain ?? [0, 1]
 
   // The React Aria state, and the handle a range change is moving: recorded during onChange, since React Stately
-  // clears its dragging flag before calling onChangeEnd. Keyboard changes mark their handle as dragging, too.
+  // clears its dragging flag before calling onChangeEnd. (The range's keys don't go through React Aria; see
+  // SliderRangeThumb.)
   const stateRef = useRef<SliderState | null>(null)
   const activeHandleRef = useRef<number | undefined>(undefined)
   // whether the range changed during the current press: React Stately calls onChangeEnd on every release, even
@@ -128,7 +129,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const handleChange = useCallback((values: number[]) => {
     if (!sliderModel) return
     const ariaState = stateRef.current
-    activeHandleRef.current = [0, 1].find(index => ariaState?.isThumbDragging(index)) ?? ariaState?.focusedThumb
+    activeHandleRef.current = [0, 1].find(index => ariaState?.isThumbDragging(index))
     if (!rangeChangedRef.current) pressStartRangeRef.current = [sliderModel.rangeLow, sliderModel.rangeHigh]
     rangeChangedRef.current = true
     sliderModel.applyModelChange(

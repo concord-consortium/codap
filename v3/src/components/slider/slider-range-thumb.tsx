@@ -100,12 +100,12 @@ interface IProps {
   describedBy?: string
 }
 
-// releasing one of these doesn't end a held key
-const kModifierKeys = new Set(["Shift", "Alt", "Control", "Meta"])
-// where the range was when a held key was first pressed; its changes are dynamic until committed
+// the range's keys that are down, and where the range was when the first was pressed; their changes are dynamic
+// until the last is released
 interface IKeyBurst {
   startLow: number
   startHigh: number
+  heldKeys: Set<string>
 }
 
 // width of a range handle; each handle's point is at its inner edge, so the low handle sits just left of
@@ -197,7 +197,7 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
     const low = sliderModel.rangeLow
     sliderModel.applyModelChange(() => sliderModel.moveRange(low), rangeChangeOptions(sliderModel, tile))
   }
-  // Keys change the range dynamically, as a drag does, and the change is committed when a key other than a modifier
+  // Keys change the range dynamically, as a drag does, and the change is committed when the last of the range's keys
   // is released or focus leaves, so holding a key down makes one undoable change.
   const handleRangeKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const [min, max] = sliderModel.axis.domain
@@ -205,11 +205,14 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
     const change = rangeForKey({ low, high, min, max, step, pageSize: state.pageSize,
                                  getSnapValues: () => sliderModel.snapValues }, e.key, e)
     if (!change) return
-    // e.g. Page Up would scroll the page, and Alt+Left is the browser's Back on Windows and Linux
+    // e.g. Page Up would scroll the page, and Alt+Left is the browser's Back on Windows and Linux; and the track's
+    // own key handling (React Aria's, for its handles) has nothing to do with the range's keys
     e.preventDefault()
+    e.stopPropagation()
     // playback would move the range out from under the key
     if (running) setRunning(false)
-    keyBurstRef.current ??= { startLow: low, startHigh: high }
+    const burst = keyBurstRef.current ??= { startLow: low, startHigh: high, heldKeys: new Set() }
+    burst.heldKeys.add(e.key)
     sliderModel.applyModelChange(
       () => change.kind === "move"
         ? sliderModel.moveDynamicRange(change.low)
@@ -218,23 +221,28 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
       { noDirty: true })
   }
   const handleRangeKeyUp = (e: KeyboardEvent<HTMLDivElement>) => {
-    // releasing a modifier, e.g. Shift to stop paging, doesn't end a key that's still held
-    if (!kModifierKeys.has(e.key)) commitKeyBurst()
+    // releasing another key, e.g. Shift to stop paging, doesn't end a range key that's still held
+    const burst = keyBurstRef.current
+    if (burst?.heldKeys.delete(e.key) && !burst.heldKeys.size) commitKeyBurst()
   }
   const commitKeyBurst = () => {
     const burst = keyBurstRef.current
     keyBurstRef.current = null
     if (!burst) return
     const { rangeLow: low, rangeHigh: high } = sliderModel
-    // keys that ended where they began change nothing, so plugins and the log shouldn't hear of a change
-    if (rangesMatch([low, high], [burst.startLow, burst.startHigh], step)) {
+    // Keys that ended where they began change nothing, so plugins and the log shouldn't hear of a change. A point
+    // moves between exact data values, which may be closer together than rangesMatch's tolerance.
+    const isPoint = burst.startLow === burst.startHigh
+    if (isPoint ? low === burst.startLow && high === burst.startHigh
+                : rangesMatch([low, high], [burst.startLow, burst.startHigh], step)) {
       sliderModel.applyModelChange(() => sliderModel.cancelDynamicRange(), { noDirty: true })
       return
     }
     // commits the dynamic width, too
     sliderModel.applyModelChange(() => sliderModel.moveRange(low), rangeChangeOptions(sliderModel, tile))
   }
-  const [axisMin, axisMax] = sliderModel.axis.domain
+  // the range's value is its low end, which stops short of the axis's max by the width
+  const [lowMin, lowMax] = sliderModel.valueDomain
 
   // a collapsed range has no body to grab, so its halves move it (and the move snaps to the data)
   const collapsedMoveHandlers: IMoveHandlers | undefined = sliderModel.width === 0
@@ -260,7 +268,7 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
            className={clsx("slider-range-focus", { "focus-visible": isFocusVisible })}
            style={{ left: lowX - kHandleWidth, width: Math.max(0, highX - lowX) + 2 * kHandleWidth }}
            aria-label={handleLabel("V3.Slider.rangeOf")}
-           aria-valuemin={axisMin} aria-valuemax={axisMax} aria-valuenow={sliderModel.rangeLow}
+           aria-valuemin={lowMin} aria-valuemax={lowMax} aria-valuenow={sliderModel.rangeLow}
            aria-valuetext={t("V3.Slider.rangeValueText", { vars: [valueText(0), valueText(1)] })}
            aria-describedby={describedBy} data-testid="slider-range"
            {...mergeProps(focusProps, { onKeyDown: handleRangeKeyDown, onKeyUp: handleRangeKeyUp,

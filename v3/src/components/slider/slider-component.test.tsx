@@ -468,17 +468,6 @@ describe("SliderComponent: the range's keyboard stop", () => {
     expect(slider.rangeHigh).toBeGreaterThan(3)
   })
 
-  it("changes the range live while a key is held, and commits it when the key is released", async () => {
-    const { tile, slider } = await setupRange()
-    renderSlider(tile)
-    const range = screen.getByRole("slider")
-    fireEvent.keyDown(range, { key: "ArrowRight" })
-    fireEvent.keyDown(range, { key: "ArrowRight", repeat: true })
-    expect(slider.globalValue.isUpdatingDynamically).toBe(true)
-    fireEvent.keyUp(range, { key: "ArrowRight" })
-    expect(slider.globalValue.isUpdatingDynamically).toBe(false)
-  })
-
   it("commits a held key's changes as one undoable change", async () => {
     const { tile, slider } = await setupRange()
     renderSlider(tile)
@@ -551,13 +540,28 @@ describe("SliderComponent: the range's keyboard stop", () => {
     expect([slider.rangeLow, slider.rangeHigh]).toEqual([6, 6])
   })
 
-  it("reports the axis bounds and the range's low end as its value", async () => {
+  it("moves a collapsed range to a data value however close it is", async () => {
+    const { tile, dataSet, slider } = await setupRange()
+    // the value after 3 is now within a millionth of a step of it
+    const a3 = dataSet.attrFromName("a3")!.id
+    const four = dataSet.itemIdsIgnoringSliderFilters.find(id => dataSet.getNumeric(id, a3) === 4)!
+    act(() => dataSet.setCaseValues([{ __id__: four, [a3]: 3.000001 }]))
+    act(() => slider.setRange(3, 3))
+    renderSlider(tile)
+    const range = screen.getByRole("slider")
+    fireEvent.keyDown(range, { key: "ArrowRight" })
+    fireEvent.keyUp(range, { key: "ArrowRight" })
+    expect(slider.globalValue.isUpdatingDynamically).toBe(false)
+    expect([slider.rangeLow, slider.rangeHigh]).toEqual([3.000001, 3.000001])
+  })
+
+  it("reports its low end as its value, which goes from the axis min to the axis max less the width", async () => {
     const { tile, slider } = await setupRange()
     renderSlider(tile)
     const range = screen.getByRole("slider")
     const [min, max] = slider.axis.domain
     expect(range).toHaveAttribute("aria-valuemin", String(min))
-    expect(range).toHaveAttribute("aria-valuemax", String(max))
+    expect(range).toHaveAttribute("aria-valuemax", String(max - 1))
     expect(range).toHaveAttribute("aria-valuenow", "2")
   })
 
@@ -646,16 +650,28 @@ describe("SliderComponent: the range's keyboard stop", () => {
   })
 
   it("prevents the browser's default for the keys it handles, e.g. Page Up scrolling the page", async () => {
-    const { tile } = await setupRange()
+    const { tile, slider } = await setupRange()
     renderSlider(tile)
     const range = screen.getByRole("slider")
-    for (const key of ["PageUp", "PageDown", "Home", "End"]) {
-      expect(fireEvent.keyDown(range, { key })).toBe(false)
+    const keys = [
+      { key: "PageUp" }, { key: "PageDown" }, { key: "Home" }, { key: "End" },
+      { key: "ArrowLeft" }, { key: "ArrowRight" }, { key: "ArrowUp" }, { key: "ArrowDown" },
+      { key: "ArrowLeft", altKey: true }, { key: "ArrowRight", altKey: true }
+    ]
+    // The range stops its keys from reaching the track, whose own (React Aria) handler would otherwise prevent the
+    // arrows' default whatever the range did, so these test the range's own handling.
+    for (const options of keys) {
+      expect(fireEvent.keyDown(range, options)).toBe(false)
+      fireEvent.keyUp(range, { key: options.key })
     }
+    // collapsed, Alt+Left narrows nothing but is still the range's
+    act(() => slider.setRange(3, 3))
+    expect(fireEvent.keyDown(range, { key: "ArrowLeft", altKey: true })).toBe(false)
     expect(fireEvent.keyDown(range, { key: "Tab" })).toBe(true)
   })
 
-  it("takes the focus when a handle is pressed, so the keys work after a drag", async () => {
+  it("takes the focus a handle's input receives (as React Aria gives it on a press), so the keys work after a drag",
+      async () => {
     const { tile } = await setupRange()
     renderSlider(tile)
     act(() => screen.getByTestId("slider-range-high-input").focus())
@@ -804,9 +820,12 @@ describe("SliderComponent: announcing case counts", () => {
     slider.setAnimationMode("nonStop")
     renderSlider(tile)
     const playPause = screen.getByTestId("slider-play-pause")
+    const before = slider.rangeLow
     fireEvent.click(playPause)
     wait(2 * kCountAnnouncementDelay)
     expect(playPause).toHaveAccessibleName("Pause slider")
+    // playback moved the range, so there was something to announce
+    expect(slider.rangeLow).not.toBe(before)
     expect(status()).not.toHaveTextContent(/cases/)
     fireEvent.click(playPause)
     expect(playPause).toHaveAccessibleName("Play slider")

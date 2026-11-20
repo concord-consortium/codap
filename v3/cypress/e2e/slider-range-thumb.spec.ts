@@ -71,7 +71,7 @@ context("Slider range thumb", () => {
     }
   })
 
-  it("moves the whole range from the keyboard, keeping its width, and undoes in one step", () => {
+  it("moves the whole range from the keyboard, keeping its width, and undoes it", () => {
     setupRangeSlider()
     slider.getRange().focus()
     cy.realPress("ArrowRight")
