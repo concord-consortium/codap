@@ -372,6 +372,8 @@ describe("epochToDate", () => {
     expect(fn.evaluate({ x: 1.001, unit: "s" })).toEqual(new Date(1001))
     expect(fn.evaluate({ x: -1.001, unit: "s" })).toEqual(new Date(-1001))
     expect(fn.evaluate({ x: 1091312667.84, unit: "s" })).toEqual(new Date(1091312667840))
+
+    // Sub-millisecond units round to the nearest millisecond
     expect(fn.evaluate({ x: 1500, unit: "us" })).toEqual(new Date(2))
     expect(fn.evaluate({ x: 1400, unit: "us" })).toEqual(new Date(1))
   })

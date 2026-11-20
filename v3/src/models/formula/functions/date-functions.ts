@@ -160,10 +160,10 @@ export const dateFunctions = {
   epochToDate: {
     numOfRequiredArguments: 1,
     evaluate: (epochTime: FValue, unit: FValue = "s") => {
+      const [multiplier, divisor] = getEpochUnit("epochToDate", unit)
       // Unlike date(), small values aren't treated as years, so epochToDate(0) is January 1, 1970 UTC.
       // Only numbers and numeric strings are accepted. Booleans and Date objects are rejected because
       // Number(true) is 1 and Number(new Date()) is milliseconds, which would give misleading dates.
-      const [multiplier, divisor] = getEpochUnit("epochToDate", unit)
       if (typeof epochTime !== "number" && typeof epochTime !== "string") return UNDEF_RESULT
       const [isValid, value] = checkNumber(epochTime)
       if (!isValid) return UNDEF_RESULT
