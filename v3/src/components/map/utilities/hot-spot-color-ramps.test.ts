@@ -51,6 +51,16 @@ describe("hot spot color ramps", () => {
     expect(getHotSpotRampInterpolator("custom", "#ff000000", "#ff0000ff")(0.5)).toBe("rgba(255, 0, 0, 0.5)")
   })
 
+  it("keeps the color of a fully transparent end of the custom ramp", () => {
+    const fadeIn = getHotSpotRampInterpolator("custom", "#0000ff00", "#ffff00")
+    expect(fadeIn(0)).toBe("rgba(0, 0, 255, 0)")
+    expect(fadeIn(0.5)).toBe("rgba(193, 137, 172, 0.5)")
+    expect(fadeIn(1)).toBe("rgb(255, 255, 0)")
+    const fadeOut = getHotSpotRampInterpolator("custom", "#0000ff", "#ffff0000")
+    expect(fadeOut(0.5)).toBe("rgba(193, 137, 172, 0.5)")
+    expect(fadeOut(1)).toBe("rgba(255, 255, 0, 0)")
+  })
+
   it("builds a CSS gradient for a preview strip", () => {
     expect(getHotSpotRampGradient("monochrome", low, high, 3))
       .toBe("linear-gradient(to right, rgb(0, 0, 0), rgb(128, 128, 128), rgb(255, 255, 255))")

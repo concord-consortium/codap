@@ -1,4 +1,5 @@
-import { interpolateCividis, interpolateInferno, interpolateLab, interpolateRgb, interpolateViridis } from "d3"
+import { colord } from "colord"
+import { interpolateCividis, interpolateInferno, interpolateLab, interpolateRgb, interpolateViridis, rgb } from "d3"
 
 /** The hot spot color ramps, in the order the palette's menu lists them */
 export const HotSpotColorRamps = ["heat", "viridis", "cividis", "monochrome", "custom"] as const
@@ -17,6 +18,18 @@ export type ColorInterpolator = (t: number) => string
 
 const kMonochromeInterpolator = interpolateRgb("#000000", "#ffffff")
 
+/**
+ * Linear in CIELAB, so equal steps look about equally different, with linear alpha.
+ * The color and the alpha are interpolated separately because d3 discards the color of a fully
+ * transparent end, which would leave the whole ramp the other end's color.
+ */
+function interpolateCustomRamp(lowColor: string, highColor: string): ColorInterpolator {
+  const low = colord(lowColor).toRgb()
+  const high = colord(highColor).toRgb()
+  const interpolateColor = interpolateLab(rgb(low.r, low.g, low.b), rgb(high.r, high.g, high.b))
+  return t => rgb(interpolateColor(t)).copy({ opacity: low.a + t * (high.a - low.a) }).formatRgb()
+}
+
 /** Returns the ramp's colors. Only the custom ramp uses lowColor and highColor. */
 export function getHotSpotRampInterpolator(
   colorRamp: HotSpotColorRamp, lowColor: string, highColor: string
@@ -26,8 +39,7 @@ export function getHotSpotRampInterpolator(
     case "viridis": return interpolateViridis
     case "cividis": return interpolateCividis
     case "monochrome": return kMonochromeInterpolator
-    // Linear in CIELAB, so equal steps look about equally different, with linear alpha.
-    case "custom": return interpolateLab(lowColor, highColor)
+    case "custom": return interpolateCustomRamp(lowColor, highColor)
   }
 }
 
