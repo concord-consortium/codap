@@ -17,7 +17,7 @@ jobs:
           patterns: v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: v3/package-lock.json
       - name: Install Dependencies
@@ -53,7 +53,7 @@ jobs:
           patterns: v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: v3/package-lock.json
       - name: Install Dependencies
@@ -95,7 +95,7 @@ jobs:
           patterns: v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: v3/package-lock.json
       - name: Install Dependencies
@@ -145,7 +145,7 @@ jobs:
           patterns: v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: v3/package-lock.json
       - name: Install Dependencies
@@ -186,6 +186,11 @@ jobs:
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: v3/package-lock.json
       - name: Restore Webpack Cache
         id: restore-webpack-cache
         uses: actions/cache/restore@v4
