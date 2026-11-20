@@ -178,6 +178,8 @@ const kGroupUnits = [
   ["subsec", "millisecond"], ["sec", "second"], ["min", "minute"], ["hour", "hour"],
   ["day", "day"], ["month", "month"], ["year", "year"]
 ] as const
+// month/year, e.g. "5/2024", which only parseDateV3 handles
+const kMonthYearRegex = /^(\d{1,2})\/(\d{4})$/
 const kInferredUnits = ["year", "month", "day", "hour", "minute", "second", "millisecond"] as const
 type InferredDateUnit = typeof kInferredUnits[number]
 
@@ -192,21 +194,19 @@ function getDateStringUnit(value: string): InferredDateUnit | undefined {
       return kGroupUnits.find(([group]) => map[group] != null && match[map[group]] != null)?.[1]
     }
   }
-  // month/year, which no format spec matches (parseDateV3 handles it)
-  if (/^\d{1,2}\/\d{4}$/.test(value)) return "month"
+  if (kMonthYearRegex.test(value)) return "month"
 }
 
 /**
  * Returns the finest unit specified by any of the values, e.g. "day" for ["5/2024", "5/1/2024"].
- * Returns undefined if there are no non-empty values or any of them isn't a date string whose parts can be identified,
- * which includes CODAP's own ISO date strings.
+ * Values whose parts can't be identified, such as "NA" or CODAP's own ISO date strings, are skipped.
+ * Returns undefined if no value has identifiable parts.
  */
 export function inferDatePrecision(values: readonly string[]): InferredDateUnit | undefined {
   let finest = -1
   for (const value of values) {
-    if (value === "") continue
     const unit = getDateStringUnit(value)
-    if (!unit) return
+    if (!unit) continue
     finest = Math.max(finest, kInferredUnits.indexOf(unit))
   }
   return finest >= 0 ? kInferredUnits[finest] : undefined
@@ -334,8 +334,7 @@ export function parseDateV3(value: any) {
   if (isValueEmpty(value)) return null
 
   // Check for "month/year" format
-  const monthYearRegex = /^(\d{1,2})\/(\d{4})$/
-  const match = value.match(monthYearRegex)
+  const match = value.match(kMonthYearRegex)
   if (match) {
     const month = Number(match[1])
     const year = Number(match[2])

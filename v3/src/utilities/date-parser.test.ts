@@ -339,8 +339,10 @@ describe('inferDatePrecision', () => {
     expect(inferDatePrecision(['2024-05-01T10:30:15.250'])).toBe('millisecond')
   })
 
-  test('returns the finest unit across values and ignores empty values', () => {
+  test('returns the finest unit across values and skips values whose parts can\'t be identified', () => {
     expect(inferDatePrecision(['5/2024', '', '6/2024'])).toBe('month')
+    expect(inferDatePrecision(['5/2024', 'NA', ' ', '?', '6/2024'])).toBe('month')
+    expect(inferDatePrecision(['5/1/2024', '2024-05-01T10:30:15.250Z'])).toBe('day')
     expect(inferDatePrecision(['5/2024', '5/1/2024'])).toBe('day')
     expect(inferDatePrecision(['5/1/2024', '5/1/2024 10:30:15'])).toBe('second')
   })
@@ -348,7 +350,7 @@ describe('inferDatePrecision', () => {
   test('returns undefined when the precision can\'t be determined', () => {
     expect(inferDatePrecision([])).toBeUndefined()
     expect(inferDatePrecision(['', ''])).toBeUndefined()
-    expect(inferDatePrecision(['5/2024', 'abc'])).toBeUndefined()
+    expect(inferDatePrecision(['abc', 'NA'])).toBeUndefined()
     expect(inferDatePrecision(['13/2024'])).toBeUndefined()
     expect(inferDatePrecision(['2024-05-01T00:00:00.000Z'])).toBeUndefined()
   })
