@@ -1,3 +1,4 @@
+import { reaction } from "mobx"
 import {
   addCombinedDateTimeAttribute, combineDateTimeFormula, defaultCombinedAttributeName, getCombinedDatePrecision,
   getCombineDateTimePartners, getCombineDateTimePreview, getDateTimeRoles, hasTimeOfDay, isDateOrTimeAttribute,
@@ -120,6 +121,21 @@ describe("combine date/time", () => {
     expect(hasTimeOfDay(attr(data, "stamp"))).toBe(true)
     expect(hasTimeOfDay(attr(data, "day"))).toBe(false)
     expect(hasTimeOfDay(attr(data, "name"))).toBe(false)
+  })
+
+  it("updates whether an attribute has a time of day when its type changes", () => {
+    const data = createData()
+    const stamp = attr(data, "stamp")
+    stamp.setUserType("categorical")
+    expect(hasTimeOfDay(stamp)).toBe(false)
+
+    // a type change doesn't change the values, so observers must be notified through the type
+    const results: boolean[] = []
+    const dispose = reaction(() => hasTimeOfDay(stamp), result => results.push(result))
+    stamp.setUserType("date")
+    expect(hasTimeOfDay(stamp)).toBe(true)
+    expect(results).toEqual([true])
+    dispose()
   })
 
   it("excludes pairs in which neither attribute has a time of day", () => {

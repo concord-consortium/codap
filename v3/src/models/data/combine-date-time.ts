@@ -15,6 +15,7 @@ interface ITimeInfo {
 interface ITimeInfoCacheEntry extends ITimeInfo {
   changeCount: number
   strValues: string[]
+  type: IAttribute["type"]
 }
 const timeInfoCache = new WeakMap<IAttribute, ITimeInfoCacheEntry>()
 
@@ -25,13 +26,14 @@ function hasNonMidnightTime(value: string) {
 
 /**
  * Classifies the attribute's values as time-only and/or able to supply a time of day.
- * Reads `changeCount` and `strValues` so observers react to value edits, and caches the result until either
- * changes, so repeated calls don't rescan the values.
+ * Reads `changeCount`, `strValues` and `type` so observers react to value edits and type changes, and caches
+ * the result until any of them changes, so repeated calls don't rescan the values.
  */
 function getTimeInfo(attr: IAttribute): ITimeInfo {
-  const { changeCount, strValues } = attr
+  // a type change (e.g. setUserType) doesn't change changeCount or strValues, so the type is part of the key
+  const { changeCount, strValues, type } = attr
   const cached = timeInfoCache.get(attr)
-  if (cached?.changeCount === changeCount && cached.strValues === strValues) return cached
+  if (cached?.changeCount === changeCount && cached.strValues === strValues && cached.type === type) return cached
 
   let count = 0
   const isEveryValueTimeOrEmpty = strValues.every(value => {
@@ -41,8 +43,8 @@ function getTimeInfo(attr: IAttribute): ITimeInfo {
   })
   const isTimeOnly = isEveryValueTimeOrEmpty && count > 0
   const hasTime = isTimeOnly ||
-    (attr.type === "date" && strValues.some(value => !!value && hasNonMidnightTime(value)))
-  const entry = { changeCount, strValues, isTimeOnly, hasTimeOfDay: hasTime }
+    (type === "date" && strValues.some(value => !!value && hasNonMidnightTime(value)))
+  const entry = { changeCount, strValues, type, isTimeOnly, hasTimeOfDay: hasTime }
   timeInfoCache.set(attr, entry)
   return entry
 }
