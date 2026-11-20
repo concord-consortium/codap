@@ -41,8 +41,8 @@ function resizeForKey(context: IRangeKeyContext, key: string, shiftKey: boolean)
   if (key !== "ArrowRight" && key !== "ArrowLeft") return
   const { low, high, max, step, pageSize } = context
   const sign = key === "ArrowRight" ? 1 : -1
-  // a point has nothing to narrow
-  if (sign < 0 && high === low) return
+  // Narrowing stops at a point; narrowing a point further changes nothing but is still handled, so a held Alt+Left
+  // never reaches the browser's Back.
   const newHigh = Math.min(max, Math.max(low, high + sign * (shiftKey ? pageSize : step)))
   return { kind: "resize", low, high: newHigh }
 }

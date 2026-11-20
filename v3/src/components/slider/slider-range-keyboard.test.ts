@@ -120,9 +120,13 @@ describe("rangeForKey", () => {
       expect(rangeForKey(gap, "End", noMods)).toEqual({ kind: "move", low: 6.5 })
     })
 
-    it("widens from the point with Alt+Right, and ignores Alt+Left", () => {
+    it("widens from the point with Alt+Right", () => {
       expect(rangeForKey(collapsed(4), "ArrowRight", alt)).toEqual({ kind: "resize", low: 4, high: 4.5 })
-      expect(rangeForKey(collapsed(4), "ArrowLeft", alt)).toBeUndefined()
+    })
+
+    it("handles Alt+Left as a resize that changes nothing, so a held key can't reach the browser's Back", () => {
+      expect(rangeForKey(collapsed(4), "ArrowLeft", alt)).toEqual({ kind: "resize", low: 4, high: 4 })
+      expect(rangeForKey(collapsed(4), "ArrowLeft", altShift)).toEqual({ kind: "resize", low: 4, high: 4 })
     })
   })
 })
