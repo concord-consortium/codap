@@ -66,9 +66,13 @@ export const SliderModel = TileContentModel
     axisHelper: undefined as Maybe<AxisHelper>,
     _isAxisAnimating: false,
     dynamicRangeWidth: undefined as number | undefined,
-    // The items a selection slider last selected, or undefined when it doesn't own the selection. Once the slider
+    // The selection a selection slider owns: what it last selected, or the selection it took as its own (e.g. on load,
+    // or once the dataset deselected the cases it hides); undefined when it doesn't own the selection. Once the slider
     // loses the selection this is cleared, so only a touch on the slider (resumeSelection) takes it back.
     appliedItemIds: undefined as ReadonlySet<string> | undefined,
+    // whether the slider let go of the selection because it was bound to another dataset, rather than because the
+    // user selected some other way, so its component doesn't treat it as a pause (e.g. stop playback)
+    isReleasedForRebind: false,
     // whether the ownership saved with the document has been restored (see the selection binding reaction)
     isSavedOwnershipRestored: false,
     // between prepareSnapshot and completeSnapshot, while the saved ownership must be left as prepared
@@ -185,9 +189,9 @@ export const SliderModel = TileContentModel
     }
   }))
   .views(self => ({
-    // A test of whether a value lies within the inclusive range; a missing or non-finite value never does (nor does
-    // any value once the range reaches the end of the number range). The tolerance keeps a case at either end when
-    // floating point leaves the bound a hair inside it. The bounds are worked out once per pass over the cases.
+    // A test of whether a value lies within the inclusive range; a missing or non-finite value never does. The
+    // tolerance keeps a case at either end when floating point leaves the bound a hair inside it. The bounds are worked
+    // out once per pass over the cases.
     get rangeTest(): (value?: number | null) => boolean {
       const low = self.rangeLow - 8 * Number.EPSILON * Math.max(1, Math.abs(self.rangeLow))
       const high = self.rangeHigh + 8 * Number.EPSILON * Math.max(1, Math.abs(self.rangeHigh))
@@ -231,7 +235,8 @@ export const SliderModel = TileContentModel
               visibleSetsEqual(dataSet, dataSet.selection, self.appliedItemIds)
     },
     // Whether a bound selection slider shows as paused: the user has selected some other way, or the selection no
-    // longer covers the visible cases in range (e.g. after a data edit), which only touching the slider fixes.
+    // longer covers the visible cases in range (e.g. after a data edit). In the latter case the slider still owns the
+    // selection, so its next range or visibility change updates it.
     get isSelectionPaused() {
       const dataSet = self.dataSet
       if (!self.isBoundSelectionSlider || !dataSet) return false
@@ -432,10 +437,12 @@ export const SliderModel = TileContentModel
       const target = self.selectionTargetItemIds
       selectExactly(dataSet, target)
       self.appliedItemIds = target
+      self.isReleasedForRebind = false
     },
     // stops owning the selection, leaving it as it is
-    releaseSelection() {
+    releaseSelection(forRebind = false) {
       self.appliedItemIds = undefined
+      self.isReleasedForRebind = forRebind
     },
     // while owning the selection, takes it as is (e.g. once the dataset deselects the cases it hides)
     syncAppliedSelection() {
@@ -582,7 +589,8 @@ export const SliderModel = TileContentModel
       addDisposer(self, reaction(
         () => [self.isBoundSelectionSlider, self.dataSet],
         ([bound, dataSet], previous) => {
-          if (!bound || (previous && previous[1] !== dataSet)) self.releaseSelection()
+          if (!bound) self.releaseSelection()
+          else if (previous && previous[1] !== dataSet) self.releaseSelection(true)
           if (bound) self.restoreSavedOwnership()
         }, { name: "SliderModel [selection binding]", fireImmediately: true, equals: comparer.shallow }
       ))
@@ -598,10 +606,11 @@ export const SliderModel = TileContentModel
           else self.syncAppliedSelection()
         }, { name: "SliderModel [selection ownership]", equals: comparer.structural }
       ))
-      // While a selection slider owns the selection, it follows changes to its range (by dragging, playback, undo,
-      // or a plugin) and changes to the visibility sliders themselves (see DataSet.sliderFilterChangesBySlider).
+      // While a selection slider owns the selection, it follows changes to its range or attribute (by dragging,
+      // playback, undo, or a plugin) and changes to the visibility sliders themselves (see
+      // DataSet.sliderFilterChangesBySlider).
       addDisposer(self, reaction(
-        () => [self.rangeLow, self.rangeHigh, self.dataSet?.sliderFilterChangesBySlider],
+        () => [self.rangeLow, self.rangeHigh, self.attributeId, self.dataSet?.sliderFilterChangesBySlider],
         () => {
           if (self.ownsSelection) self.applySelection()
         }, { name: "SliderModel [selection triggers]", equals: comparer.shallow }

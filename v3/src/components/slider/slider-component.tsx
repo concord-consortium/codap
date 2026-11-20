@@ -38,7 +38,8 @@ import { rangeFromHandles, sliderGroupLabel, sliderStep } from "./slider-utils"
 
 import "./slider.scss"
 
-// the keys that operate the slider, which resume a paused selection slider when pressed on its thumb or track
+// the keys that move the slider's thumb, plus Enter and Space: pressed on its thumb or track, they resume a paused
+// selection slider
 const kResumeSelectionKeys = new Set([
   "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown", "Enter", " "
 ])
@@ -194,8 +195,8 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   useEffect(() => {
     if (prevRunningRef.current !== running) {
       const key = running ? "DG.SliderView.animationStarted" : "DG.SliderView.animationStopped"
-      // A change that brings up the prompt stops playback after announcing itself, so the stop is added to that
-      // announcement rather than replacing it.
+      // A change that brings up the prompt, or a selection slider pausing, stops playback after announcing itself, so
+      // the stop is added to that announcement rather than replacing it.
       const cause = !running && (isPrompting || stoppedByPauseRef.current) ? statusMessageRef.current : ""
       showStatusMessage(cause ? t("V3.Slider.messageThenStopped", { vars: [cause, t(key)] }) : t(key))
       prevRunningRef.current = running
@@ -214,6 +215,11 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
       () => sliderModel.ownsSelection,
       owns => {
         if (!sliderModel.isBoundSelectionSlider) return
+        // rebinding to another dataset lets go of the selection without the user pausing the slider
+        if (!owns && sliderModel.isReleasedForRebind) {
+          wasPaused = false
+          return
+        }
         if (!isQuietSliderChange(sliderModel) && (!owns || wasPaused)) {
           const message = t(owns ? "V3.Slider.selectionResumed" : "V3.Slider.selectionPaused")
           // a resume caused by a change that announced itself (e.g. dropping an attribute) adds to that announcement
