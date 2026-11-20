@@ -26,6 +26,12 @@ export interface IUndoManager {
 export type UndoHistoryChange = "add" | "undo" | "redo" | "clearUndo" | "clearRedo"
 export type UndoHistoryListener = (change: UndoHistoryChange) => void
 
+// Why applying an undo or redo step failed, and why reverting it failed if it did
+interface IApplyFailure {
+  error: unknown
+  revertError?: unknown
+}
+
 // Information that is returned by undo and redo calls
 export interface IUndoInformation {
   id?: string,
@@ -122,7 +128,7 @@ export const UndoStore = types
     }
     // The patches that revert each record applied so far, so a failure can revert them
     const appliedRecords: Array<{ treeId: string, revertPatches: IJsonPatch[] }> = []
-    let failure: Maybe<{ error: unknown }>
+    let failure: Maybe<IApplyFailure>
     for (const treePatchRecord of undoRecords) {
       // console.log(`send tile entry to ${opType} to the tree`, getSnapshot(treeEntry))
 
@@ -158,7 +164,15 @@ export const UndoStore = types
       for (const { treeId, revertPatches } of appliedRecords.reverse()) {
         const revertExchangeId = nanoid()
         manager.startExchange(historyEntryId, revertExchangeId, "UndoStore.applyPatchesToTrees.revert")
-        yield manager.trees[treeId].applyPatchesFromManager(historyEntryId, revertExchangeId, revertPatches)
+        try {
+          yield manager.trees[treeId].applyPatchesFromManager(historyEntryId, revertExchangeId, revertPatches)
+        } catch (revertError) {
+          // Not expected, since this reverses changes just made. The document's state is now
+          // uncertain, so stop reverting; the trees still finish and the history is cleared.
+          manager.endExchange(historyEntry, revertExchangeId)
+          failure.revertError = revertError
+          break
+        }
       }
     }
 
@@ -189,11 +203,22 @@ export const UndoStore = types
 
   // After an entry fails to apply, the entries around it may refer to what is missing too, so
   // erase the whole history, much as V2 did whenever a change was made outside an undo command.
-  function handleApplyFailure(opType: HistoryOperation, error: unknown) {
+  function handleApplyFailure(opType: HistoryOperation, { error, revertError }: IApplyFailure) {
     const message = `${opType === HistoryOperation.Undo ? "Undo" : "Redo"} failed; clearing the undo history`
-    console.warn(message, error)
-    getRollbar()?.warning(message, error)
+    const details = revertError === undefined ? [error] : [error, "Reverting the step also failed:", revertError]
+    console.warn(message, ...details)
+    getRollbar()?.warning(message, ...details)
     self.clearHistory()
+  }
+
+  // Tells the listener once the patches have been applied, as V2 did after the command's undo or redo
+  function handlePatchesApplied(opType: HistoryOperation, patchesApplied: Promise<Maybe<IApplyFailure>>) {
+    const change = opType === HistoryOperation.Undo ? "undo" : "redo"
+    patchesApplied.then(
+      failure => failure ? handleApplyFailure(opType, failure) : self.historyListener?.(change),
+      // applyPatchesToTrees reports the failures it expects, so this is anything else it throws
+      error => handleApplyFailure(opType, { error })
+    )
   }
 
   return {
@@ -241,7 +266,7 @@ export const UndoStore = types
       }
 
       const entryToUndo = self.history[self.undoIdx -1]
-      let patchesApplied: Promise<Maybe<{ error: unknown }>> | undefined
+      let patchesApplied: Promise<Maybe<IApplyFailure>> | undefined
 
       if (entryToUndo.customPatches?.length) {
         const manager: Instance<typeof TreeManager> = getParent(self)
@@ -265,10 +290,8 @@ export const UndoStore = types
       }
 
       self.undoIdx--
-      // tell the listener once the patches have been applied, as V2 did after the command's undo
       if (patchesApplied) {
-        patchesApplied.then(failure => failure ? handleApplyFailure(HistoryOperation.Undo, failure.error)
-                                               : self.historyListener?.("undo"))
+        handlePatchesApplied(HistoryOperation.Undo, patchesApplied)
       } else {
         self.historyListener?.("undo")
       }
@@ -283,7 +306,7 @@ export const UndoStore = types
       }
 
       const entryToRedo = self.history[self.undoIdx]
-      let patchesApplied: Promise<Maybe<{ error: unknown }>> | undefined
+      let patchesApplied: Promise<Maybe<IApplyFailure>> | undefined
 
       if (entryToRedo.customPatches?.length) {
         const manager: Instance<typeof TreeManager> = getParent(self)
@@ -308,10 +331,8 @@ export const UndoStore = types
       }
 
       self.undoIdx++
-      // tell the listener once the patches have been applied, as V2 did after the command's redo
       if (patchesApplied) {
-        patchesApplied.then(failure => failure ? handleApplyFailure(HistoryOperation.Redo, failure.error)
-                                               : self.historyListener?.("redo"))
+        handlePatchesApplied(HistoryOperation.Redo, patchesApplied)
       } else {
         self.historyListener?.("redo")
       }

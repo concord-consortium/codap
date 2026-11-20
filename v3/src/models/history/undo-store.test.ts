@@ -1169,13 +1169,14 @@ describe("undo and redo of an entry that can no longer be applied", () => {
     expect(t2.flag).toBe(true)
   })
 
-  it("reverts the records already applied when a later record fails", async () => {
-    const { manager, undoStore, t1, t2, removeTileWithoutUndo } = setupTwoTiles()
+  // an undoable entry with a record for each tile, then t1 removed; undo applies t2's record before t1's
+  async function setupEntryWhoseSecondRecordFails() {
+    const setup = setupTwoTiles()
+    const { manager, undoStore, t1, t2, removeTileWithoutUndo } = setup
     t1.setFlagWithoutUndo(true)
     t2.setFlagWithoutUndo(true)
     await when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
 
-    // an entry with a record for each tile; undo applies t2's record before t1's
     const entryId = nanoid()
     const entryExchangeId = nanoid()
     const entry = manager.createHistoryEntry({
@@ -1191,10 +1192,56 @@ describe("undo and redo of an entry that can no longer be applied", () => {
 
     removeTileWithoutUndo("t1")
     await when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    return setup
+  }
+
+  // replaces the document's tree with one whose given TreeAPI call fails on its given call number
+  function failTreeCall(manager: Instance<typeof TreeManager>, method: string, failingCall: number) {
+    const tree = manager.trees.test
+    let calls = 0
+    manager.trees.test = new Proxy(tree, {
+      get(target, prop, receiver) {
+        const value = Reflect.get(target, prop, receiver)
+        if (prop !== method) return value
+        return (...args: unknown[]) => ++calls === failingCall
+          ? Promise.reject(new Error(`${method} failed`))
+          : value(...args)
+      }
+    })
+  }
+
+  it("reverts the records already applied when a later record fails", async () => {
+    const { manager, undoStore, t2 } = await setupEntryWhoseSecondRecordFails()
 
     undoStore.undo()
     await historySettledAndCleared(manager, undoStore)
 
     expect(t2.flag).toBe(true)
+  })
+
+  it("finishes and clears the history when reverting an applied record fails", async () => {
+    const { docModel, manager, undoStore } = await setupEntryWhoseSecondRecordFails()
+    // the first call applies t2's record, the second fails on t1's, and the third reverts t2's
+    failTreeCall(manager, "applyPatchesFromManager", 3)
+
+    undoStore.undo()
+    await historySettledAndCleared(manager, undoStore)
+
+    expect(docModel.applyingManagerPatches).toBe(false)
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("Undo failed"), expect.anything(),
+      "Reverting the step also failed:", new Error("applyPatchesFromManager failed"))
+  })
+
+  it("clears the history when applying a step fails unexpectedly", async () => {
+    const { manager, undoStore, t1 } = setupTwoTiles()
+    t1.setFlag(true)
+    await when(() => undoStore.canUndo, { timeout: 500 })
+    failTreeCall(manager, "startApplyingPatchesFromManager", 1)
+
+    undoStore.undo()
+    await when(() => !undoStore.canUndo && !undoStore.canRedo, { timeout: 500 })
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("Undo failed"),
+      new Error("startApplyingPatchesFromManager failed"))
   })
 })
