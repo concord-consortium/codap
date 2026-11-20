@@ -283,6 +283,26 @@ describe("DataConfigurationModel", () => {
     expect(config.plottedAttributeIDs.length).toBe(new Set(config.plottedAttributeIDs).size)
   })
 
+  it("setAttributeTypeOfAttribute retypes the chosen one of several left-axis attributes", () => {
+    const config = tree.config
+    config.setDataset(tree.data, tree.metadata)
+    tree.data.addAttribute({ id: "y2Id", name: "y2" })
+    config.setAttribute("x", { attributeID: "xId" })
+    config.setAttribute("y", { attributeID: "yId" })
+    config.addYAttribute({ attributeID: "y2Id" })          // 2nd attribute on the left y axis
+
+    config.setAttributeTypeOfAttribute("y", "y2Id", "categorical")
+    expect(config.yAttributeDescriptions[1].type).toBe("categorical")
+    expect(config.yAttributeDescriptions[0].type).not.toBe("categorical")
+
+    config.setAttributeTypeOfAttribute("y", "yId", "categorical")
+    expect(config.yAttributeDescriptions[0].type).toBe("categorical")
+
+    // other roles have a single attribute
+    config.setAttributeTypeOfAttribute("x", "xId", "categorical")
+    expect(config.attributeType("x")).toBe("categorical")
+  })
+
   it("behaves as expected with scatter plot and explicit caption attribute", () => {
     const config = tree.config
     config.setDataset(tree.data, tree.metadata)

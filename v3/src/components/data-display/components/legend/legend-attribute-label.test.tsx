@@ -71,13 +71,15 @@ describe("LegendAttributeLabel", () => {
     })
   })
 
-  it("sends V2's attributeChange named by the \"Treat as\" menu item", () => {
+  it("sends V2's attributeChange named by the \"Treat as\" menu item, for the menu's attribute", () => {
     const { onTreatAttributeAs } = renderLabel()
-    act(() => onTreatAttributeAs("legend", "ATTR7", "categorical"))
+    // an id other than assignedLegendAttributeID, so the notice must take the menu's id
+    act(() => onTreatAttributeAs("legend", "ATTR8", "categorical"))
     expect(dataConfiguration.setAttributeType).toHaveBeenCalledWith("legend", "categorical")
+    expect(applyModelChange).toHaveBeenCalledTimes(1)
     const { notify } = applyModelChange.mock.calls[0][1]
     expect(notify().message.values).toEqual({
-      operation: "attributeChange", attributeId: 7, attributeName: "Treat as Categorical", axisOrientation: "none",
+      operation: "attributeChange", attributeId: 8, attributeName: "Treat as Categorical", axisOrientation: "none",
       id: 1, type: "DG.GraphView"
     })
   })

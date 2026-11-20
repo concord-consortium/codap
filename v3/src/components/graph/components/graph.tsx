@@ -325,7 +325,7 @@ export const Graph = observer(function Graph({
       isCategoricalAttributeType(treatAs) && isAxisPlace(place) &&
         setNumberOfCategoriesLimit(graphModel.dataConfiguration, place, layout)
       const role = graphPlaceToAttrRole[place]
-      graphModel.dataConfiguration.setAttributeType(role, treatAs)
+      graphModel.dataConfiguration.setAttributeTypeOfAttribute(role, _attrId, treatAs)
       // The Y2 axis (rightNumeric) is only meaningful when both x and y are numeric.
       // If retyping x or y to a non-numeric kind via "Treat as Categorical" has collapsed
       // the configuration off scatter, the existing rightNumeric attribute is orphaned,

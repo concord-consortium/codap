@@ -246,10 +246,7 @@ export function graphAttributeChangeNotification(
   return updateTileNotification("attributeChange", values ?? {}, graphTile)
 }
 
-// As in V2 (data_display_controller.js:843-866), "Treat as Categorical" and the other "Treat as" items
-// in an attribute menu send the menu change's `attributeChange`, named by the item's title. Called once
-// the type has changed, so `plotType` is the resulting one. A legend's item goes through
-// LegendAttributeLabel and legendTreatAsNotification instead.
+// An axis menu's "Treat as" item. Called once the type has changed, so `plotType` is the resulting one.
 export function treatAsAttributeNotification(
   graphTile: ITileModel | undefined, place: GraphPlace, attrId: string, treatAs: AttributeType
 ) {

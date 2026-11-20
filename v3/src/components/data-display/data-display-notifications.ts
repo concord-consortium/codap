@@ -142,8 +142,6 @@ export function legendMenuAttributeChangeNotification(
   return notification
 }
 
-// As in V2, "Treat as Categorical" and the other "Treat as" items in a legend's menu send the menu
-// change's `attributeChange`, named by the item's title.
 export function legendTreatAsNotification(tile: ITileModel | undefined, attributeId: string, treatAs: AttributeType) {
   return legendMenuAttributeChangeNotification(tile, attributeId, treatAsLabel(treatAs))
 }

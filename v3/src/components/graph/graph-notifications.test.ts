@@ -439,6 +439,17 @@ describe("treatAsAttributeNotification", () => {
       .toMatchObject({ attributeName: "Treat as Date" })
   })
 
+  it("sends attributeChange, not add 2nd axis attribute, from the Y2 axis's menu", () => {
+    const scatterTile = {
+      id: "GRAPH1", content: { type: "Graph", plotType: "scatterPlot", dataConfiguration: { primaryRole: "x" } }
+    } as any
+    expect(treatAsAttributeNotification(scatterTile, "rightNumeric", "ATTR12", "categorical")?.message.values)
+      .toEqual({
+        operation: "attributeChange", attributeId: 12, attributeName: "Treat as Categorical",
+        axisOrientation: "vertical2", plotType: "scatterPlot", primaryAxis: "x", id: v2Id, type: v2SCType, diType
+      })
+  })
+
   it("is a no-op for non-graph tiles", () => {
     expect(treatAsAttributeNotification({ content: { type: "Map" } } as any, "bottom", "ATTR12", "numeric"))
       .toBeUndefined()
