@@ -232,7 +232,11 @@ export function resolveResources(
   }
 
   const getOperandValue = (itemIndex?: number, operand?: DIParsedOperand) => {
-    if (operand?.attr && itemIndex != null) return toPluginValue(operand.attr.value(itemIndex))
+    // searches compare the number a value reads as, so "$12.50" in a numeric attribute matches 12.5
+    if (operand?.attr && itemIndex != null) {
+      const value = operand.attr.value(itemIndex)
+      return typeof value === "number" ? value : toPluginValue(value)
+    }
 
     return operand?.value
   }

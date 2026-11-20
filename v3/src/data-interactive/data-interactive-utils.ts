@@ -1,5 +1,4 @@
 import { kTitleBarHeight } from "../components/constants"
-import { IValueType } from "../models/data/attribute-types"
 import { ICollectionModel } from "../models/data/collection"
 import { IDataSet } from "../models/data/data-set"
 import { ICaseCreation } from "../models/data/data-set-types"
@@ -45,10 +44,16 @@ export function contentDimensionsFromTile({ width, height }: IDimensions): IDime
   return { ...(width != null && { width }), ...(height != null && { height: Math.max(height - kTitleBarHeight, 0) }) }
 }
 
-// A value as a plugin reads it. V2 kept the booleans plugins sent (data_utilities.js:63-71), but V3 stores
-// every value as text, so the text "true" and "false" read back as booleans, whatever stored them.
-export function toPluginValue<T extends IValueType>(value: T): T | boolean {
-  return value === "true" ? true : value === "false" ? false : value
+// A stored value as a plugin reads it. V2 returned each value as it was sent (case_model.js:186-190), but V3
+// stores every value as text. So text reads back unchanged, unless it's exactly how JavaScript writes a finite
+// number, as every number a plugin sends is stored, or it's "true" or "false", which read back as booleans,
+// as V2 kept the booleans plugins sent (data_utilities.js:63-71).
+export function toPluginValue(value?: string) {
+  if (value == null) return value
+  if (value === "true") return true
+  if (value === "false") return false
+  const num = Number(value)
+  return isFinite(num) && String(num) === value ? num : value
 }
 
 export function getCaseValues(caseId: string, dataSet: IDataSet, collectionId?: string) {
@@ -57,10 +62,12 @@ export function getCaseValues(caseId: string, dataSet: IDataSet, collectionId?: 
                       : dataSet.attributes
 
   const values: DICaseValues = {}
-  const itemIndex = dataSet.getItemIndex(caseId) ?? -1
-  attributes.map(attribute => {
+  const itemIndex = dataSet.getItemIndexForCaseOrItem(caseId)
+  attributes.forEach(attribute => {
     if (attribute?.name) {
-      values[attribute.name] = toPluginValue(dataSet.getValue(caseId, attribute.id) ?? attribute?.value(itemIndex))
+      values[attribute.name] = itemIndex != null
+                                ? toPluginValue(dataSet.getStrValueAtFullItemIndex(itemIndex, attribute.id))
+                                : undefined
     }
   })
 

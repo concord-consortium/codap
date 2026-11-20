@@ -68,7 +68,7 @@ reach a plugin by structured clone rather than JSON, so a key with no value surv
 | Property | Always present | Notes |
 |---|---|---|
 | `name` | yes | |
-| `type` | yes | |
+| `type` | yes | the type set with `create` or `update`, or `null` when CODAP infers it from the values, as in v2 |
 | `title` | yes | |
 | `cid` | yes | |
 | `description` | yes | |
@@ -196,7 +196,7 @@ Read one attribute, letting CODAP find it by name across collections:
   "success": true,
   "values": {
     "name": "Height",
-    "type": "numeric",
+    "type": null,
     "title": "Height",
     "cid": "ATTR33",
     "editable": true,

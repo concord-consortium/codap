@@ -156,7 +156,7 @@ and attributes — and has no cases:
         "attrs": [
           {
             "name": "Species",
-            "type": "categorical",
+            "type": null,
             "title": "Species",
             "cid": "ATTR43",
             "editable": true,
