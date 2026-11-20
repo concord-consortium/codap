@@ -1,8 +1,10 @@
 import { destroy, getSnapshot } from "mobx-state-tree"
 import { V2GetGraph, V2Graph } from "../../data-interactive/data-interactive-component-types"
-import { DIValues } from "../../data-interactive/data-interactive-types"
+import { DIValues, isErrorResult } from "../../data-interactive/data-interactive-types"
 import { DIComponentHandler } from "../../data-interactive/handlers/component-handler"
-import { errorResult } from "../../data-interactive/handlers/di-results"
+import {
+  DIErrorResult, errorResult, namedAttributeNotFoundResult, namedDataContextNotFoundResult
+} from "../../data-interactive/handlers/di-results"
 import { appState } from "../../models/app-state"
 import { IAttribute } from "../../models/data/attribute"
 import { isAttributeType } from "../../models/data/attribute-types"
@@ -10,14 +12,16 @@ import { IDataSet } from "../../models/data/data-set"
 import { IDataSetMetadata } from "../../models/shared/data-set-metadata"
 import { getMetadataFromDataSet, getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/tiles/tile-content"
-import { maybeToV2Id, toV2Id, toV3AttrId, toV3CaseId, toV3DataSetId } from "../../utilities/codap-utils"
+import { maybeToV2Id, toV2Id, toV3AttrId, toV3CaseId } from "../../utilities/codap-utils"
 import { t } from "../../utilities/translation/translate"
 import { AxisPlace } from "../axis/axis-types"
 import { isAnyNumericAxisModel } from "../axis/models/numeric-axis-models"
 import { attrRoleToGraphPlace, GraphAttrRole } from "../data-display/data-display-types"
 import { IAttributeDescriptionSnapshot } from "../data-display/models/data-configuration-model"
 import { kGraphTileType } from "./graph-defs"
-import { GraphContentModel, IGraphContentModelSnapshot, isGraphContentModel } from "./models/graph-content-model"
+import {
+  GraphContentModel, IGraphContentModel, IGraphContentModelSnapshot, isGraphContentModel
+} from "./models/graph-content-model"
 import { IGraphDataConfigurationModel, kGraphDataConfigurationType } from "./models/graph-data-configuration-model"
 import { GraphLayout } from "./models/graph-layout"
 import { syncModelWithAttributeConfiguration } from "./models/graph-model-utils"
@@ -59,6 +63,26 @@ function getAttributeFromInfo(dataset: IDataSet, info?: AttributeInfo) {
   }
   return attribute
 }
+// The id or name a plugin gave for an attribute; undefined when it gave neither.
+// Unlike V2, one that names nothing in the data set is refused (CODAP-1711).
+function requestedAttribute(info?: AttributeInfo) {
+  return info?.name || info?.id || undefined
+}
+// The first attribute a request names, for refusing it in a document with no data sets (CODAP-1711)
+function firstRequestedAttribute(infos: Array<Maybe<AttributeInfo>>, yAttributeIDs?: unknown[],
+                                 yAttributeNames?: unknown[]): Maybe<string | number> {
+  const requested = infos.map(requestedAttribute).find(r => r != null)
+  return requested ?? (yAttributeIDs?.[0] as Maybe<number>) ?? (yAttributeNames?.[0] as Maybe<string>)
+}
+// yAttributeIDs and yAttributeNames must be arrays; a string would be read a character at a time
+function yAttributeListError(yAttributeIDs?: unknown, yAttributeNames?: unknown) {
+  if (yAttributeIDs != null && !Array.isArray(yAttributeIDs)) {
+    return errorResult(t("V3.DI.Error.valueNotArray", { vars: ["yAttributeIDs"] }))
+  }
+  if (yAttributeNames != null && !Array.isArray(yAttributeNames)) {
+    return errorResult(t("V3.DI.Error.valueNotArray", { vars: ["yAttributeNames"] }))
+  }
+}
 const roleFromAttrKey: Record<string, GraphAttrRole> = {
   x: "x",
   y: "y",
@@ -68,6 +92,107 @@ const roleFromAttrKey: Record<string, GraphAttrRole> = {
   legend: "legend",
   topSplit: "topSplit",
   rightSplit: "rightSplit"
+}
+
+interface IGraphUpdatePlan {
+  // undefined when the document has no data sets
+  dataSet?: IDataSet
+  // by attribute key; null removes the attribute
+  updatedAttributes: Record<string, IAttribute | null>
+  // replaces every y attribute
+  yAttributes?: IAttribute[]
+  // replaces the first y attribute, or null to remove it
+  firstYAttribute?: IAttribute | null
+}
+// Finds everything an `update` names before anything changes, so that a data context or attribute that isn't
+// found, or one a role can't take, refuses the whole request (CODAP-1711). Run by validateUpdate before the
+// component's generic properties change, and again by update.
+function planGraphUpdate(content: IGraphContentModel, values: DIValues): IGraphUpdatePlan | DIErrorResult {
+  const {
+    dataContext: _dataContext, yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames
+  } = values as V2GetGraph
+  const attributeInfo = getAttributeInfo(values)
+  const yInfo = packageAttribute(yAttributeID, yAttributeName)
+  const { dataConfiguration } = content
+  const sharedDataSets = getSharedDataSets(appState.document)
+  const listError = yAttributeListError(yAttributeIDs, yAttributeNames)
+  if (listError) return listError
+
+  // Determine which dataset to work with
+  let dataSet: Maybe<IDataSet>
+  if (_dataContext) {
+    dataSet = sharedDataSets.find(sd => sd.dataSet.matchTitleOrNameOrId(_dataContext))?.dataSet
+    if (!dataSet) return namedDataContextNotFoundResult(_dataContext)
+  }
+  if (!dataSet) {
+    if (sharedDataSets.length === 0) {
+      // with no data sets, any attribute named is one that isn't found; a null id removes, as below
+      const infos = [...Object.values(attributeInfo), yInfo].filter(info => info?.id !== null)
+      const requested = firstRequestedAttribute(infos, yAttributeIDs, yAttributeNames)
+      return requested != null ? namedAttributeNotFoundResult(requested) : { updatedAttributes: {} }
+    }
+    dataSet = content.dataset ?? sharedDataSets[0].dataSet
+  }
+
+  // Ensure that all specified attributes are legal for their roles before we actually update anything
+  // NOTE: This isn't perfect. It compares each new attribute assignment to the current configuration, but
+  // other attributes changed at the same time could make an assignment illegal.
+  const updatedAttributes: Record<string, IAttribute | null> = {}
+  for (const attributeType in attributeInfo) {
+    const attributePackage = attributeInfo[attributeType]
+    if (attributePackage?.id === null || (attributePackage?.id === undefined && attributePackage?.name === null)) {
+      updatedAttributes[attributeType] = null
+    } else {
+      const attribute = getAttributeFromInfo(dataSet, attributePackage)
+      const requested = requestedAttribute(attributePackage)
+      if (!attribute && requested != null) return namedAttributeNotFoundResult(requested)
+      if (attribute) {
+        const role = roleFromAttrKey[attributeType]
+        const place = attrRoleToGraphPlace[role]
+        if (place && !dataConfiguration.placeCanAcceptAttributeIDDrop(
+          place, dataSet, attribute.id, { allowSameAttr: true }
+        )) {
+          return errorResult(
+            t("V3.DI.Error.illegalAttributeAssignment", {
+              vars: [attributePackage?.id ?? attributePackage?.name ?? "", role]
+            })
+          )
+        }
+        updatedAttributes[attributeType] = attribute
+      }
+    }
+  }
+
+  // The y attributes: all of them, or the first (by id or name, as on create), or null to remove the first.
+  // As for the other roles, a null id removes the first even when a name is also given.
+  const plan: IGraphUpdatePlan = { dataSet, updatedAttributes }
+  if (yAttributeIDs != null) {
+    plan.yAttributes = []
+    for (const id of yAttributeIDs) {
+      const attribute = dataSet.getAttribute(toV3AttrId(id))
+      if (!attribute) return namedAttributeNotFoundResult(id)
+      plan.yAttributes.push(attribute)
+    }
+  } else if (yAttributeNames != null) {
+    plan.yAttributes = []
+    for (const name of yAttributeNames) {
+      const attribute = dataSet.getAttributeByName(name)
+      if (!attribute) return namedAttributeNotFoundResult(name)
+      plan.yAttributes.push(attribute)
+    }
+  } else if (yAttributeID === null) {
+    plan.firstYAttribute = null
+  } else {
+    const requested = requestedAttribute(yInfo)
+    if (requested != null) {
+      const attribute = getAttributeFromInfo(dataSet, yInfo)
+      if (!attribute) return namedAttributeNotFoundResult(requested)
+      plan.firstYAttribute = attribute
+    } else if (yAttributeID !== undefined ? !yAttributeID : yAttributeName === null) {
+      plan.firstYAttribute = null
+    }
+  }
+  return plan
 }
 
 export const graphComponentHandler: DIComponentHandler = {
@@ -86,12 +211,23 @@ export const graphComponentHandler: DIComponentHandler = {
     let provisionalDataSet: IDataSet | undefined
     let provisionalMetadata: IDataSetMetadata | undefined
     const sharedDataSets = getSharedDataSets(appState.document)
-    // We currently only support one dataset in a graph, so we find the one specified by plugin
-    const sharedDataSet = sharedDataSets.length === 1
-                            ? sharedDataSets[0]
-                            : sharedDataSets.find(sd => {
-                              return _dataContext && sd.dataSet.matchTitleOrNameOrId(_dataContext)
-                            })
+    const listError = yAttributeListError(yAttributeIDs, yAttributeNames)
+    if (listError) return listError
+    // We currently only support one dataset in a graph, so we find the one specified by plugin.
+    // A data context that is named but not found is refused rather than ignored. With none named, a
+    // document's only data set is used, and its attributes are assigned, as in V2. With no data sets,
+    // any attribute named is one that isn't found (CODAP-1711).
+    const sharedDataSet = _dataContext
+                            ? sharedDataSets.find(sd => sd.dataSet.matchTitleOrNameOrId(_dataContext))
+                            : sharedDataSets.length === 1 ? sharedDataSets[0] : undefined
+    if (_dataContext && !sharedDataSet) return namedDataContextNotFoundResult(_dataContext)
+    if (sharedDataSets.length === 0) {
+      const yInfo = packageAttribute(yAttributeID, yAttributeName)
+      const infos = [...Object.values(attributeInfo), yInfo]
+      const requested = firstRequestedAttribute(infos, yAttributeIDs, yAttributeNames)
+      if (requested != null) return namedAttributeNotFoundResult(requested)
+    }
+    const graphDataSet = sharedDataSet?.dataSet
     if (sharedDataSet) {
       const dataset = sharedDataSet.dataSet
       const metadata = getMetadataFromDataSet(dataset)
@@ -99,48 +235,47 @@ export const graphComponentHandler: DIComponentHandler = {
         const _attributeDescriptions: Partial<Record<GraphAttrRole, IAttributeDescriptionSnapshot>> = {}
         const _yAttributeDescriptions: IAttributeDescriptionSnapshot[] = []
         let hiddenCases = _hiddenCases?.map(id => toV3CaseId(id)) ?? []
-        if (dataset.name === _dataContext) {
-          provisionalDataSet = dataset
-          provisionalMetadata = metadata
-          for (const attributeType in attributeInfo) {
-            const attribute = getAttributeFromInfo(dataset, attributeInfo[attributeType])
-            if (attribute) {
-              const attributeRole = roleFromAttrKey[attributeType]
-              if (attributeRole) {
-                const _type = attributeInfo[attributeType]?.type
-                const type = _type && isAttributeType(_type) ? _type : attribute.type
-                _attributeDescriptions[attributeRole] = { attributeID: attribute.id, type }
-              }
+        provisionalDataSet = dataset
+        provisionalMetadata = metadata
+        for (const attributeType in attributeInfo) {
+          const attribute = getAttributeFromInfo(dataset, attributeInfo[attributeType])
+          const requested = requestedAttribute(attributeInfo[attributeType])
+          if (!attribute && requested != null) return namedAttributeNotFoundResult(requested)
+          if (attribute) {
+            const attributeRole = roleFromAttrKey[attributeType]
+            if (attributeRole) {
+              const _type = attributeInfo[attributeType]?.type
+              const type = _type && isAttributeType(_type) ? _type : attribute.type
+              _attributeDescriptions[attributeRole] = { attributeID: attribute.id, type }
             }
           }
+        }
 
-          const _yAttributeType = isAttributeType(yAttributeType) ? yAttributeType : undefined
-          if (yAttributeIDs) {
-            yAttributeIDs.forEach(id => {
-              const attribute = dataset.getAttribute(toV3AttrId(id))
-              if (attribute) _yAttributeDescriptions.push({ attributeID: attribute.id, type: _yAttributeType })
-            })
-          } else if (yAttributeNames) {
-            yAttributeNames.forEach(name => {
-              const attribute = dataset.getAttributeByName(name)
-              if (attribute) _yAttributeDescriptions.push({ attributeID: attribute.id, type: _yAttributeType })
-            })
-          } else {
-            let yAttribute: Maybe<IAttribute>
-            if (yAttributeID != null) {
-              yAttribute = dataset.getAttribute(toV3AttrId(yAttributeID))
-            }
-            if (!yAttribute && yAttributeName != null) {
-              yAttribute = dataset.getAttributeByName(yAttributeName)
-            }
-            if (yAttribute) {
-              _yAttributeDescriptions.push({ attributeID: yAttribute.id, type: _yAttributeType })
-            }
+        const _yAttributeType = isAttributeType(yAttributeType) ? yAttributeType : undefined
+        if (yAttributeIDs) {
+          for (const id of yAttributeIDs) {
+            const attribute = dataset.getAttribute(toV3AttrId(id))
+            if (!attribute) return namedAttributeNotFoundResult(id)
+            _yAttributeDescriptions.push({ attributeID: attribute.id, type: _yAttributeType })
           }
+        } else if (yAttributeNames) {
+          for (const name of yAttributeNames) {
+            const attribute = dataset.getAttributeByName(name)
+            if (!attribute) return namedAttributeNotFoundResult(name)
+            _yAttributeDescriptions.push({ attributeID: attribute.id, type: _yAttributeType })
+          }
+        } else {
+          const yInfo = packageAttribute(yAttributeID, yAttributeName)
+          const yAttribute = getAttributeFromInfo(dataset, yInfo)
+          const requested = requestedAttribute(yInfo)
+          if (!yAttribute && requested != null) return namedAttributeNotFoundResult(requested)
+          if (yAttribute) {
+            _yAttributeDescriptions.push({ attributeID: yAttribute.id, type: _yAttributeType })
+          }
+        }
 
-          if (showOnlyLastCase) {
-            hiddenCases = dataset.itemIds.slice(0, dataset.itemIds.length - 1)
-          }
+        if (showOnlyLastCase) {
+          hiddenCases = dataset.itemIds.slice(0, dataset.itemIds.length - 1)
         }
 
         layers.push({
@@ -206,7 +341,7 @@ export const graphComponentHandler: DIComponentHandler = {
       const dataConfiguration = graphModel.layers[i].dataConfiguration as IGraphDataConfigurationModel
       dataConfiguration.setShowMeasuresForSelection(showMeasuresForSelection ?? false)
       const { dataset } = dataConfiguration
-      if (dataset && dataset.name === _dataContext) {
+      if (dataset && dataset === graphDataSet) {
         // Make sure all attributes can legally fulfill their specified roles
         for (const attributeType in attributeInfo) {
           const attributePackage = attributeInfo[attributeType]
@@ -217,6 +352,8 @@ export const graphComponentHandler: DIComponentHandler = {
             if (attributePlace && !dataConfiguration.placeCanAcceptAttributeIDDrop(
               attributePlace, dataset, attribute.id, { allowSameAttr: true }
             )) {
+              // destroy the temporary model to stop its reactions
+              destroy(graphModel)
               return errorResult(
                 t("V3.DI.Error.illegalAttributeAssignment", {
                   vars: [attributePackage?.id ?? attributePackage?.name ?? "", attributeRole]
@@ -342,62 +479,27 @@ export const graphComponentHandler: DIComponentHandler = {
     }
   },
 
+  validateUpdate(content: ITileContentModel, values: DIValues) {
+    if (!isGraphContentModel(content)) return
+    const plan = planGraphUpdate(content, values)
+    if (isErrorResult(plan)) return plan
+  },
+
   update(content: ITileContentModel, values: DIValues) {
     if (!isGraphContentModel(content)) return { success: false }
 
     const {
-      backgroundColor, dataContext: _dataContext, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
+      backgroundColor, displayOnlySelectedCases, enableNumberToggle: showParentToggles,
       filterFormula, hiddenCases, numberToggleLastMode: showOnlyLastCase, pointColor, pointSize, pointsAreFusedIntoBars,
       showConnectingLines, showMeasuresForSelection, strokeColor, strokeSameAsFill, transparent,
-      xAttributeType, xLowerBound, xUpperBound, yAttributeID, yAttributeIDs, yAttributeName, yAttributeNames,
-      yAttributeType, yLowerBound, yUpperBound, y2AttributeType, y2LowerBound, y2UpperBound
+      xAttributeType, xLowerBound, xUpperBound, yAttributeType, yLowerBound, yUpperBound,
+      y2AttributeType, y2LowerBound, y2UpperBound
     } = values as V2GetGraph
-    const attributeInfo = getAttributeInfo(values)
     const { dataConfiguration, pointDescription } = content
-
-    // Determine which dataset to work with
-    let dataSet: Maybe<IDataSet>
-    if (_dataContext) {
-      getSharedDataSets(appState.document).forEach(sharedDataSet => {
-        if (sharedDataSet.dataSet.name === _dataContext || sharedDataSet.dataSet.id === toV3DataSetId(_dataContext)) {
-          dataSet = sharedDataSet.dataSet
-        }
-      })
-    }
-    if (!dataSet) {
-      const sharedDataSets = getSharedDataSets(appState.document)
-      if (sharedDataSets.length === 0) {
-        return  { success: true } // nothing we can do to the graph without a dataset
-      }
-      dataSet = content.dataset ?? sharedDataSets[0].dataSet
-    }
-
-    // Ensure that all specified attributes are legal for their roles before we actually update anything
-    // NOTE: This isn't perfect. It compares each new attribute assignment to the current configuration, but
-    // other attributes changed at the same time could make an assignment illegal.
-    const updatedAttributes: Record<string, IAttribute | null> = {}
-    for (const attributeType in attributeInfo) {
-      const attributePackage = attributeInfo[attributeType]
-      if (attributePackage?.id === null || (attributePackage?.id === undefined && attributePackage?.name === null)) {
-        updatedAttributes[attributeType] = null
-      } else {
-        const attribute = getAttributeFromInfo(dataSet, attributePackage)
-        if (attribute) {
-          const role = roleFromAttrKey[attributeType]
-          const place = attrRoleToGraphPlace[role]
-          if (place && !dataConfiguration.placeCanAcceptAttributeIDDrop(
-            place, dataSet, attribute.id, { allowSameAttr: true }
-          )) {
-            return errorResult(
-              t("V3.DI.Error.illegalAttributeAssignment", {
-                vars: [attributePackage?.id ?? attributePackage?.name ?? "", role]
-              })
-            )
-          }
-          updatedAttributes[attributeType] = attribute
-        }
-      }
-    }
+    const plan = planGraphUpdate(content, values)
+    if (isErrorResult(plan)) return plan
+    const { dataSet, updatedAttributes, yAttributes, firstYAttribute } = plan
+    if (!dataSet) return { success: true } // nothing we can do to the graph's attributes without a dataset
 
     // Actually update dataSet (which will clear any old attribute assignments)
     if (dataSet && dataSet !== content.dataset) {
@@ -419,27 +521,12 @@ export const graphComponentHandler: DIComponentHandler = {
 
     // Any attribute can be put on the y axis, so we don't check to make sure the attribute is legal first
     // We don't use dataConfiguration.setAttribute() to make the change because that clears additional y attributes
-    if (yAttributeIDs != null) {
-      content.dataConfiguration.replaceYAttributes(yAttributeIDs.map(id => ({ attributeID: toV3AttrId(id) })))
-    } else if (yAttributeNames != null) {
-      const descriptions = yAttributeNames.map(name => {
-        const attribute = dataSet?.getAttributeByName(name)
-        if (attribute) return { attributeID: attribute.id }
-      }).filter(desc => !!desc)
-      content.dataConfiguration.replaceYAttributes(descriptions)
-    } else if (yAttributeID !== undefined) {
-      if (yAttributeID) {
-        dataConfiguration.replaceYAttribute({ attributeID: toV3AttrId(yAttributeID) }, 0)
-      } else {
-        dataConfiguration.removeYAttributeAtIndex(0)
-      }
-    } else if (yAttributeName !== undefined) {
-      if (yAttributeName !== null) {
-        const attribute = dataSet?.getAttributeByName(yAttributeName)
-        if (attribute) dataConfiguration.replaceYAttribute({ attributeID: attribute.id }, 0)
-      } else {
-        dataConfiguration.removeYAttributeAtIndex(0)
-      }
+    if (yAttributes) {
+      dataConfiguration.replaceYAttributes(yAttributes.map(attribute => ({ attributeID: attribute.id })))
+    } else if (firstYAttribute) {
+      dataConfiguration.replaceYAttribute({ attributeID: firstYAttribute.id }, 0)
+    } else if (firstYAttribute === null) {
+      dataConfiguration.removeYAttributeAtIndex(0)
     }
 
     // Update attribute types

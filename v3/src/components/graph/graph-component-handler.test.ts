@@ -5,6 +5,8 @@ import { diComponentHandler } from "../../data-interactive/handlers/component-ha
 import { setupTestDataset, testCases } from "../../test/dataset-test-utils"
 import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
 import { appState } from "../../models/app-state"
+import { DataSet } from "../../models/data/data-set"
+import { getSharedDataSets } from "../../models/shared/shared-data-utils"
 import { toV2Id, toV3Id } from "../../utilities/codap-utils"
 import { IBaseNumericAxisModel } from "../axis/models/base-numeric-axis-model"
 import { kGraphIdPrefix } from "./graph-defs"
@@ -489,5 +491,138 @@ describe("DataInteractive ComponentHandler Graph", () => {
 
     // Clean up
     handler.delete!({ component: tile })
+  })
+
+  it("refuses a data context or attribute that isn't found, and creates or changes nothing", () => {
+    const tileCount = documentContent.tileMap.size
+    const refuses = (values: Record<string, unknown>, message: string) => {
+      const refused = create({}, { type: "graph", ...values })
+      expect(refused.success).toBe(false)
+      expect(refused.values).toEqual({ error: message })
+      expect(documentContent.tileMap.size).toBe(tileCount)
+    }
+    // a data context that isn't found is refused rather than ignored
+    refuses({ dataContext: "NoSuchContext" }, "DataContext not found: NoSuchContext")
+    refuses({ dataContext: "data", xAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
+    refuses({ dataContext: "data", legendAttributeID: 999999 }, "Attribute not found: 999999")
+    refuses({ dataContext: "data", yAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
+    refuses({ dataContext: "data", yAttributeID: 999999, yAttributeName: "NoSuchAttr" },
+      "Attribute not found: NoSuchAttr")
+    refuses({ dataContext: "data", yAttributeNames: ["a3", "NoSuchAttr"] }, "Attribute not found: NoSuchAttr")
+    refuses({ dataContext: "data", yAttributeIDs: [toV2Id(a3.id), 999999] }, "Attribute not found: 999999")
+    // y lists must be arrays; a string isn't read a character at a time
+    refuses({ dataContext: "data", yAttributeNames: "a3" }, "yAttributeNames must be an array.")
+    refuses({ dataContext: "data", yAttributeIDs: toV2Id(a3.id) }, "yAttributeIDs must be an array.")
+    // with no data context named, the document's only data set is used, as in V2
+    refuses({ xAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
+    const noContext = create({}, { type: "graph", xAttributeName: "a3", yAttributeName: "a4" })
+    expect(noContext.success).toBe(true)
+    const noContextId = (noContext.values as DIComponentInfo).id!
+    const noContextTile = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, noContextId))!
+    const noContextConfig = (noContextTile.content as IGraphContentModel).dataConfiguration
+    expect(noContextConfig.dataset).toBe(dataset)
+    expect(noContextConfig.attributeDescriptionForRole("x")?.attributeID).toBe(a3.id)
+    expect(noContextConfig.yAttributeIDs).toEqual([a4.id])
+
+    // null still means no attribute, and a data context named by id or by title gets its attributes
+    dataset.setTitle("Data Title")
+    const byTitle = create({}, { type: "graph", dataContext: "Data Title", xAttributeName: "a3" })
+    expect(byTitle.success).toBe(true)
+    const byTitleTile = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, (byTitle.values as DIComponentInfo).id!))!
+    expect((byTitleTile.content as IGraphContentModel).dataConfiguration.attributeDescriptionForRole("x")?.attributeID)
+      .toBe(a3.id)
+    dataset.setTitle(undefined)
+    const result = create({}, {
+      type: "graph", dataContext: `${toV2Id(dataset.id)}`, xAttributeName: "a3", yAttributeName: null
+    })
+    expect(result.success).toBe(true)
+    const tile = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!))!
+    const { dataConfiguration } = tile.content as IGraphContentModel
+    expect(dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBe(a3.id)
+
+    // update checks everything before it changes anything
+    // ...the generic properties sent with it included
+    // ...and no notification is sent
+    const before = getSnapshot(tile)
+    const broadcastSpy = jest.spyOn(documentContent, "broadcastMessage")
+    const updateRefuses = (values: Record<string, unknown>, message: string) => {
+      broadcastSpy.mockClear()
+      const updateResult = update({ component: tile }, { title: "Renamed", cannotClose: true, ...values })
+      expect(updateResult.success).toBe(false)
+      expect(updateResult.values).toEqual({ error: message })
+      expect(getSnapshot(tile)).toEqual(before)
+      expect(broadcastSpy).not.toHaveBeenCalled()
+    }
+    updateRefuses({ dataContext: "NoSuchContext", xAttributeName: "a4" }, "DataContext not found: NoSuchContext")
+    updateRefuses({ xAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
+    updateRefuses({ topSplitAttributeID: 999999 }, "Attribute not found: 999999")
+    updateRefuses({ xAttributeName: "a4", yAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
+    updateRefuses({ xAttributeName: "a4", yAttributeID: 999999 }, "Attribute not found: 999999")
+    updateRefuses({ xAttributeName: "a4", yAttributeNames: ["a4", "NoSuchAttr"] }, "Attribute not found: NoSuchAttr")
+    updateRefuses({ xAttributeName: "a4", yAttributeIDs: [999999] }, "Attribute not found: 999999")
+    updateRefuses({ xAttributeID: 999999, xAttributeName: "" }, "Attribute not found: 999999")
+    updateRefuses({ yAttributeNames: "a3" }, "yAttributeNames must be an array.")
+    updateRefuses({ yAttributeIDs: toV2Id(a3.id) }, "yAttributeIDs must be an array.")
+    // attributes are looked for in the data context named
+    const _other = DataSet.create({ name: "other" })
+    _other.addAttribute({ name: "b1" })
+    documentContent.createDataSet(getSnapshot(_other))
+    updateRefuses({ dataContext: "other", xAttributeName: "a3" }, "Attribute not found: a3")
+    broadcastSpy.mockRestore()
+
+    // found attributes still update, a y id or name is enough, as on create, an empty name is ignored,
+    // and null still removes
+    expect(update({ component: tile }, { yAttributeID: 999999, yAttributeName: "a3" }).success).toBe(true)
+    expect(dataConfiguration.yAttributeIDs).toEqual([a3.id])
+    expect(update({ component: tile }, { yAttributeName: "" }).success).toBe(true)
+    expect(dataConfiguration.yAttributeIDs).toEqual([a3.id])
+    expect(update({ component: tile }, { xAttributeName: "a4", yAttributeNames: ["a3"] }).success).toBe(true)
+    expect(dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBe(a4.id)
+    expect(dataConfiguration.yAttributeIDs).toEqual([a3.id])
+    expect(update({ component: tile }, { yAttributeName: null }).success).toBe(true)
+    expect(dataConfiguration.yAttributeIDs).toEqual([])
+    // on update, a null id wins over a name for y, as for the other roles
+    expect(update({ component: tile }, { yAttributeName: "a3" }).success).toBe(true)
+    expect(dataConfiguration.yAttributeIDs).toEqual([a3.id])
+    expect(update({ component: tile }, { yAttributeID: null, yAttributeName: "a4" }).success).toBe(true)
+    expect(dataConfiguration.yAttributeIDs).toEqual([])
+    expect(update({ component: tile }, { xAttributeID: null, xAttributeName: "a3" }).success).toBe(true)
+    expect(dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBeUndefined()
+  })
+
+  // runs last: it removes the document's data sets
+  it("refuses any attribute named in a document with no data sets", () => {
+    const result = create({}, { type: "graph", dataContext: "data", xAttributeName: "a3" })
+    const tile = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!))!
+    documentContent.removeSharedModelsAndTiles(getSharedDataSets(appState.document))
+    expect(getSharedDataSets(appState.document)).toHaveLength(0)
+
+    const tileCount = documentContent.tileMap.size
+    const refuses = (values: Record<string, unknown>, message: string) => {
+      const refused = create({}, { type: "graph", ...values })
+      expect(refused.success).toBe(false)
+      expect(refused.values).toEqual({ error: message })
+      expect(documentContent.tileMap.size).toBe(tileCount)
+    }
+    refuses({ xAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
+    refuses({ legendAttributeID: 999999 }, "Attribute not found: 999999")
+    refuses({ yAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
+    refuses({ yAttributeIDs: [999999] }, "Attribute not found: 999999")
+    refuses({ yAttributeNames: ["NoSuchAttr"] }, "Attribute not found: NoSuchAttr")
+    // a graph that names no attribute is still created
+    expect(create({}, { type: "graph", yAttributeName: null }).success).toBe(true)
+
+    const before = getSnapshot(tile)
+    const updateRefuses = (values: Record<string, unknown>, message: string) => {
+      const updateResult = update({ component: tile }, { title: "Renamed", ...values })
+      expect(updateResult.success).toBe(false)
+      expect(updateResult.values).toEqual({ error: message })
+      expect(getSnapshot(tile)).toEqual(before)
+    }
+    updateRefuses({ xAttributeName: "a3" }, "Attribute not found: a3")
+    updateRefuses({ yAttributeIDs: [999999] }, "Attribute not found: 999999")
+    updateRefuses({ yAttributeNames: ["a3"] }, "Attribute not found: a3")
+    // on update, a null id removes rather than naming an attribute
+    expect(update({ component: tile }, { xAttributeID: null, xAttributeName: "a3" }).success).toBe(true)
   })
 })
