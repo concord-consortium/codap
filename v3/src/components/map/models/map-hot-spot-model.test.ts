@@ -45,6 +45,15 @@ describe("MapHotSpotModel", () => {
     expect(layer.hotSpotModel.opacity).toBe(0.5)
   })
 
+  it("restores a custom color ramp with non-default low and high colors", () => {
+    const hotSpot = MapPointLayerModel.create({ hotSpotModel: {
+      isVisible: true, colorRamp: "custom", lowColor: "#0000ff", highColor: "#ff0000"
+    }}).hotSpotModel
+    expect(hotSpot.colorRamp).toBe("custom")
+    expect(hotSpot.lowColor).toBe("#0000ff")
+    expect(hotSpot.highColor).toBe("#ff0000")
+  })
+
   it("is not default when a display property differs", () => {
     expect(isDefaultHotSpotModel(MapHotSpotModel.create({ bandwidth: 5000 }))).toBe(false)
     expect(isDefaultHotSpotModel(MapHotSpotModel.create({ highColor: "#ff0000" }))).toBe(false)

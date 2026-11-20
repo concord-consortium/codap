@@ -1,4 +1,3 @@
-import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
 import { DataSet } from "../../models/data/data-set"
@@ -47,10 +46,9 @@ export const diDataContextHandler: DIHandler = {
       sharedMetadata.setSource(metadata?.source)
       sharedMetadata.setDescription(metadata?.description ?? description)
 
-      // A bare `create dataContext` makes the new data context the plugin's default
-      const { interactiveFrame, isDefaultDataContext } = resources
-      const webView = isWebViewModel(interactiveFrame?.content) ? interactiveFrame.content : undefined
-      if (isDefaultDataContext) webView?.setDataContextId(dataSet.id)
+      // A bare `create dataContext` makes the new data context the plugin's, or the host page's, default
+      const { defaultDataContextLink, isDefaultDataContext } = resources
+      if (isDefaultDataContext) defaultDataContextLink?.setDataContextId(dataSet.id)
 
       if (collections?.length) {
         // remove the default collection

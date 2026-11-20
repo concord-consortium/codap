@@ -61,7 +61,7 @@ export const ColorSetting = observer(function ColorSetting({ closeTrigger, disab
     handleOpenChange(false)
   }, [handleOpenChange, onColorChange])
 
-  const pointSettingTestId = `point-color-setting-${testIdSuffix}`
+  const pointSettingTestId = `color-setting-${testIdSuffix}`
   const swatchButtonTestId = `color-swatch-button-${testIdSuffix}`
 
   return (

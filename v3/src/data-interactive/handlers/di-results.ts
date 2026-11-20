@@ -23,3 +23,11 @@ export const valuesRequiredResult = errorResult(t("V3.DI.Error.valuesRequired"))
 export function fieldRequiredResult(action: string, resource: string, field: string) {
   return errorResult(t("V3.DI.Error.fieldRequired", { vars: [action, resource, field] }))
 }
+
+// A data context or attribute a request named that was not found, naming it
+export function namedAttributeNotFoundResult(nameOrId: string | number) {
+  return errorResult(t("V3.DI.Error.namedAttributeNotFound", { vars: [nameOrId] }))
+}
+export function namedDataContextNotFoundResult(nameOrId: string | number) {
+  return errorResult(t("V3.DI.Error.namedDataContextNotFound", { vars: [nameOrId] }))
+}
