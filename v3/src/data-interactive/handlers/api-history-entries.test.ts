@@ -82,7 +82,9 @@ describe("plugin API requests that change the document", () => {
   // update shows the deleted adornment again and changes a setting
   it.each([
     ["Count", { percentType: "cell" }], ["Mean", {}], ["Median", {}], ["Standard Deviation", {}],
-    ["Plotted Value", {}], ["Region of Interest", { primary: { position: 1, extent: 2 } }]
+    ["Plotted Value", {}], ["Region of Interest", { primary: { position: 1, extent: 2 } }],
+    ["Mean Absolute Deviation", {}], ["Normal Curve", {}], ["Box Plot", { showOutliers: true }],
+    ["Standard Error", { _numStErrs: 2 }]
   ])("create, delete and update adornment %s add no undo entries", async (type, updateValues) => {
     expect(await undoEntriesAdded("create", `${graph}.adornment`, { type })).toBe(0)
     expect(await undoEntriesAdded("delete", `${graph}.adornment`, { type })).toBe(0)
@@ -102,6 +104,11 @@ describe("plugin API requests that change the document", () => {
 
   it("create global adds no undo entry", async () => {
     expect(await undoEntriesAdded("create", "global", { name: "historyTest", value: 3 })).toBe(0)
+  })
+
+  it("notify caseByIndex with caseOrder adds no undo entry, as in V2", async () => {
+    const resource = `dataContext[${dataset.name}].collection[collection3].caseByIndex[4]`
+    expect(await undoEntriesAdded("notify", resource, { caseOrder: "first" })).toBe(0)
   })
 
   it("create dataContextFromURL adds no undo entry", async () => {

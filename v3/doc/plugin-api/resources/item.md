@@ -273,9 +273,11 @@ the cases the change removed in `deletedCases`. (Its `createdCases` was always e
 a known bug. Until it is fixed, a plugin that needs to know the resulting cases should read them
 again, for example with `caseSearch` or `allCases`.
 
-**A boolean value is stored as text.** An item created with `"Endangered": true` holds the text
-`true`, and `get` returns `"true"`. v2 kept the boolean. This is a known bug; it also affects
-searches, as described on [`caseSearch`](case-search.md#known-limitations).
+**The text `true` and `false` reads back as a boolean.** An item created with `"Endangered": true`
+returns `true` from `get`, as in v2. CODAP stores every value as a number or text, so it cannot
+tell that boolean from the text `true` typed into a table, imported from a file, or set by a
+checkbox: `get` returns those as booleans too, where v2 returned the text. Only the lowercase words
+are converted; `TRUE` stays text. This is a deliberate difference.
 
 **An `id` that is not a number is reported wrongly.** `create` stores an item under a text `id`
 such as `"s9"` as given, but `itemIDs` reports it as the digits it contains, `9`, or as `NaN`
@@ -306,7 +308,8 @@ collection (for a case id, that case), `createCases` if the change regroups case
 `updateItems`, with the items' ids. v2 sent no `createCases` for a regroup; its `updateCases`
 result listed the cases created and deleted instead. An update that names no known attribute
 sends nothing; v2 changed nothing but still sent `updateCases` and `updateItems`. `delete` sends
-`deleteCases`, then `deleteItems`, with the deleted items' ids; v2 sent no `deleteItems`.
+`deleteCases` for every case the delete removes, in every collection, with their ids in `caseIDs`
+as in v2, then `deleteItems` with the deleted items' ids; v2 sent no `deleteItems`.
 See [the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext)
 for what each carries.
 

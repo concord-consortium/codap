@@ -415,6 +415,41 @@ context("Map UI", () => {
     mlh.selectCategoryColorForCategoricalLegend(arrayOfValues[0].values[1])
     mlh.verifyCategoricalLegendKeySelected(arrayOfValues[0].values[1], arrayOfValues[0].selected[1])
   })
+
+  it("shows the base map layer's attribution with 'Powered by Esri'", () => {
+    cfm.openLocalDoc(filename1)
+    c.getIconFromToolShelf("map").click()
+    map.getMapTile().should("exist")
+    c.selectTile("map", 0)
+    map.getDisplayConfigButton().should("exist")
+
+    cy.log("default (Topo) layer shows its attribution and 'Powered by Esri'")
+    map.getAttribution().should("contain.text", "Powered by Esri")
+    map.getAttribution().should("contain.text", "Intermap, increment P Corp.")
+    map.getAttribution().find('a[href="https://www.esri.com"]').should("exist")
+
+    cy.log("each base layer shows its own attribution")
+    map.getDisplayConfigButton().should("exist").click()
+    map.getBaseLayerButton("oceans").click()
+    map.getAttribution().should("contain.text", "NOAA NGDC, and other contributors")
+    map.getAttribution().should("not.contain.text", "Intermap")
+    map.getAttribution().should("contain.text", "Powered by Esri")
+
+    map.getBaseLayerButton("streets").click()
+    map.getAttribution().should("contain.text", "Esri (Thailand)")
+    map.getAttribution().should("contain.text", "Powered by Esri")
+
+    cy.log("hiding the base layer removes the Esri attribution")
+    map.getBaseLayerCheckbox().click()
+    map.getAttribution().should("not.contain.text", "Powered by Esri")
+    map.getAttribution().should("not.contain.text", "Esri (Thailand)")
+
+    cy.log("showing it again restores the Esri attribution")
+    map.getBaseLayerCheckbox().click()
+    map.getAttribution().should("contain.text", "Powered by Esri")
+    map.getAttribution().should("contain.text", "Esri (Thailand)")
+  })
+
   it("shows connecting lines when Connecting Lines option is checked", () => {
     cfm.openLocalDoc(filename1)
     c.getIconFromToolShelf("map").click()
@@ -646,5 +681,21 @@ context("Map Resizing", () => {
       expect(bounds.getSouth()).to.be.within(-16, 12)
       expect(bounds.getWest()).to.be.within(-5, -1)
     })
+  })
+})
+
+context("Map hot spots", () => {
+  beforeEach(() => {
+    const queryParams = "?mouseSensor&suppressUnsavedWarning&features=mapHotSpot#file=examples:Four%20Seals"
+    cy.visit(`${Cypress.config("index")}${queryParams}`)
+  })
+
+  it("adds and removes the hot spot canvas", () => {
+    c.selectTile("map", 0)
+    map.getDisplayConfigButton().click()
+    cy.get("[data-testid=map-layers-checkbox-hot-spot]").first().click()
+    map.getMapTile().find(".codap-hot-spot-canvas").should("exist")
+    cy.get("[data-testid=map-layers-checkbox-hot-spot]").first().click()
+    map.getMapTile().find(".codap-hot-spot-canvas").should("not.exist")
   })
 })

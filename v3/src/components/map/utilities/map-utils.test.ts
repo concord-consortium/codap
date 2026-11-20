@@ -1,10 +1,74 @@
-import { latLngBounds } from "leaflet"
-import { DataSet } from "../../../models/data/data-set"
-import { kPinColors } from "../map-types"
+import { latLngBounds, Map as LeafletMap } from "leaflet"
+import { DataSet, toCanonical } from "../../../models/data/data-set"
+import { ILatLong, kPinColors } from "../map-types"
 import {
-  computeBoundsFromCoordinates, getNextPinColorIndex, getNextPinColorIndexForDataSet, getRationalLongitudeBounds,
-  shiftLongitudeIntoView, wrapBoundsToCanonicalCenter
+  computeBoundsFromCoordinates, createLatLongProjector, getCaseLatLong, getNextPinColorIndex,
+  getNextPinColorIndexForDataSet, getRationalLongitudeBounds, shiftLongitudeIntoView, wrapBoundsToCanonicalCenter
 } from "./map-utils"
+
+describe("createLatLongProjector", () => {
+  function createMap(center: [number, number], zoom: number) {
+    const container = document.createElement("div")
+    Object.defineProperty(container, "clientWidth", { value: 400 })
+    Object.defineProperty(container, "clientHeight", { value: 300 })
+    document.body.appendChild(container)
+    return new LeafletMap(container, { center, zoom })
+  }
+
+  function inlineProjection(map: LeafletMap, { lat, long }: ILatLong) {
+    const bounds = map.getBounds()
+    return map.latLngToContainerPoint([lat, shiftLongitudeIntoView(long, bounds.getWest(), bounds.getEast())])
+  }
+
+  it("matches the inline projection in an ordinary view", () => {
+    const map = createMap([40, -95], 4)
+    const project = createLatLongProjector(map)
+    const latLongs: ILatLong[] = [{ lat: 40, long: -95 }, { lat: 30, long: -120 }, { lat: 48, long: -70 }]
+    for (const latLong of latLongs) {
+      expect(project(latLong)).toEqual(inlineProjection(map, latLong))
+    }
+    map.remove()
+  })
+
+  it("shifts longitudes into a view that crosses the antimeridian", () => {
+    const map = createMap([60, 180], 4)
+    const project = createLatLongProjector(map)
+    const east = { lat: 60, long: -175 }, west = { lat: 60, long: 175 }
+    // -175 lies just east of the dateline, so it must project to the right of +175
+    expect(project(east).x).toBeGreaterThan(project(west).x)
+    expect(project(east)).toEqual(inlineProjection(map, east))
+    map.remove()
+  })
+})
+
+describe("getCaseLatLong", () => {
+  const dataset = DataSet.create()
+  dataset.addAttribute({ id: "latId", name: "lat" })
+  dataset.addAttribute({ id: "longId", name: "long" })
+  dataset.addCases(toCanonical(dataset, [
+    { __id__: "valid", lat: 42.5, long: -71.2 },
+    { __id__: "zero", lat: 0, long: 0 },
+    { __id__: "missingLat", lat: "", long: -71.2 },
+    { __id__: "nonNumeric", lat: 42.5, long: "east" }
+  ]))
+
+  it("returns the case's lat/long", () => {
+    expect(getCaseLatLong(dataset, "valid", "latId", "longId")).toEqual({ lat: 42.5, long: -71.2 })
+  })
+
+  it("returns zero coordinates, which are valid", () => {
+    expect(getCaseLatLong(dataset, "zero", "latId", "longId")).toEqual({ lat: 0, long: 0 })
+  })
+
+  it("returns undefined when either value is missing or non-numeric", () => {
+    expect(getCaseLatLong(dataset, "missingLat", "latId", "longId")).toBeUndefined()
+    expect(getCaseLatLong(dataset, "nonNumeric", "latId", "longId")).toBeUndefined()
+  })
+
+  it("returns undefined for an unknown case", () => {
+    expect(getCaseLatLong(dataset, "nope", "latId", "longId")).toBeUndefined()
+  })
+})
 
 describe("getRationalLongitudeBounds", () => {
   it("returns canonical min/max when all values fit within 180° of canonical range", () => {

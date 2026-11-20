@@ -2,7 +2,8 @@ import { act, render } from "@testing-library/react"
 import { Map as LeafletMap } from "leaflet"
 import { MapContainer } from "react-leaflet"
 import { featureFlagManager } from "../../../models/feature-flags/feature-flag-manager"
-import { MapPointLayerModel } from "../models/map-point-layer-model"
+import { IMapPointLayerModel, MapPointLayerModel } from "../models/map-point-layer-model"
+import { HotSpotCanvasLayer } from "../utilities/hot-spot-canvas-layer"
 import { kHotSpotPaneName, MapHotSpotLayer } from "./map-hot-spot-layer"
 
 describe("MapHotSpotLayer", () => {
@@ -10,26 +11,30 @@ describe("MapHotSpotLayer", () => {
     act(() => featureFlagManager.setServerConfig({}))
   })
 
-  function mountHotSpotLayer() {
+  function mountHotSpotLayer(setup?: (pointLayer: IMapPointLayerModel) => void) {
     const pointLayer = MapPointLayerModel.create()
     pointLayer.hotSpotModel.setIsVisible(true)
+    setup?.(pointLayer)
     let leafletMap: LeafletMap | null = null
     render(
       <MapContainer ref={map => { leafletMap = map }} center={[0, 0]} zoom={1}>
         <MapHotSpotLayer mapPointLayerModel={pointLayer}/>
       </MapContainer>
     )
-    return leafletMap as unknown as LeafletMap
+    return { leafletMap: leafletMap as unknown as LeafletMap, pointLayer }
   }
 
+  // eslint-disable-next-line testing-library/no-node-access -- the canvas is created by Leaflet, not React
+  const hotSpotCanvas = (leafletMap: LeafletMap) => leafletMap.getPane(kHotSpotPaneName)?.querySelector("canvas")
+
   it("does not create the hot spot pane when the mapHotSpot flag is off", () => {
-    const leafletMap = mountHotSpotLayer()
+    const { leafletMap } = mountHotSpotLayer()
     expect(leafletMap.getPane(kHotSpotPaneName)).toBeUndefined()
   })
 
   it("places the hot spot pane immediately above the boundaries and below the other overlay panes", () => {
     featureFlagManager.setServerConfig({ mapHotSpot: "on" })
-    const leafletMap = mountHotSpotLayer()
+    const { leafletMap } = mountHotSpotLayer()
     const hotSpotPane = leafletMap.getPane(kHotSpotPaneName)
     expect(hotSpotPane).toBeDefined()
 
@@ -46,5 +51,50 @@ describe("MapHotSpotLayer", () => {
     for (const pane of [shadowPane, markerPane, tooltipPane, popupPane]) {
       expect(hotSpotIndex).toBeLessThan(indexOf(pane))
     }
+  })
+  it("adds a hot spot canvas when shown and removes it when hidden", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const { leafletMap, pointLayer } = mountHotSpotLayer()
+    expect(hotSpotCanvas(leafletMap)).toBeTruthy()
+    act(() => pointLayer.hotSpotModel.setIsVisible(false))
+    expect(hotSpotCanvas(leafletMap)).toBeFalsy()
+  })
+
+  it("shows hot spots even when the points are hidden", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const { leafletMap } = mountHotSpotLayer(pointLayer => pointLayer.setPointsAreVisible(false))
+    expect(hotSpotCanvas(leafletMap)).toBeTruthy()
+  })
+
+  it("redraws at most once per frame when the surface changes", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const { pointLayer } = mountHotSpotLayer(layer => {
+      layer.hotSpotModel.setLatLongSource({ plottedLatLongs: [{ lat: 0, long: 0 }, { lat: 1, long: 1 }] })
+    })
+    const frameCallbacks: FrameRequestCallback[] = []
+    const rafSpy = jest.spyOn(window, "requestAnimationFrame").mockImplementation(callback => {
+      frameCallbacks.push(callback)
+      return frameCallbacks.length
+    })
+    const redrawSpy = jest.spyOn(HotSpotCanvasLayer.prototype, "redraw")
+
+    act(() => {
+      pointLayer.hotSpotModel.setDynamicBandwidth(5000)
+      pointLayer.hotSpotModel.setDynamicBandwidth(6000)
+      pointLayer.hotSpotModel.setDynamicBandwidth(7000)
+    })
+    expect(redrawSpy).not.toHaveBeenCalled()
+
+    act(() => frameCallbacks.splice(0).forEach(callback => callback(0)))
+    expect(redrawSpy).toHaveBeenCalledTimes(1)
+
+    rafSpy.mockRestore()
+    redrawSpy.mockRestore()
+  })
+
+  it("applies the hot spot opacity to the canvas", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const { leafletMap } = mountHotSpotLayer()
+    expect(hotSpotCanvas(leafletMap)?.style.opacity).toBe("0.75")
   })
 })

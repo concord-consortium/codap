@@ -28,8 +28,8 @@ that was never shown returns an error. The resource's own page carries those con
 | `attributeList` | ✓ | — | — | — | — | — | — |
 | `attributeLocation` | — | — | ✓ | — | — | — | — |
 | `case` | — | ✓ | ✓ | — | — | — | — |
-| `caseByID` | ✓ | — | ✓ | ✓ | — | — | — |
-| `caseByIndex` | ✓ | — | ✓ | ✓ | — | — | — |
+| `caseByID` | ✓ | — | ✓ | ✓ | ✓ | — | — |
+| `caseByIndex` | ✓ | — | ✓ | ✓ | ✓ | — | — |
 | `caseCount` | ✓ | — | — | — | — | — | — |
 | `caseFormulaSearch` | ✓ | — | — | — | — | — | — |
 | `caseSearch` | ✓ | — | — | — | — | — | — |
@@ -129,6 +129,9 @@ the string is what reaches your plugin.
 <!-- BEGIN GENERATED: error-catalog -->
 | Error | Prebuilt result |
 |---|---|
+| `<value> must be a number.` | — |
+| `<value> must be a string.` | — |
+| `<value> must be true or false.` | — |
 | `<value1> <value2>: <value3> required` | — |
 | `<value1> contains an invalid attribute name or ID.` | — |
 | `<value1> selectionList requires a list of case IDs.` | — |
@@ -165,6 +168,7 @@ the string is what reaches your plugin.
 | `Not a(n) <value1> adornment.` | — |
 | `Not found` | — |
 | `The <value1> adornment does not currently support <value2> requests.` | — |
+| `The case can't move there without changing the order of other cases (set-aside or filtered-out cases are in the way)` | — |
 | `The current plot type does not support Percent.` | — |
 | `Unable to parse query.` | `couldNotParseQueryResult` |
 | `Unsupported action: <value>/<value>` | — |
@@ -175,7 +179,6 @@ the string is what reaches your plugin.
 | `Unsupported component type <value>` | — |
 | `Unsupported dateUnit <value>` | — |
 | `Unsupported scaleType <value>` | — |
-| `clientId and filter values are required` | `diLogMessageMonitorHandler` |
 | `error creating global value` | — |
 | `eventTypes entries must be strings` | — |
 | `eventTypes must be an array` | — |

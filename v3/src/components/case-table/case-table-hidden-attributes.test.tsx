@@ -47,35 +47,61 @@ describe("Case Table with all attributes hidden in a collection", () => {
     )
 
   // the grid's accessible name is "{collection name} data table" (V3.CaseTable.gridAriaLabel)
-  const groupsGridName = t("V3.CaseTable.gridAriaLabel", { vars: ["groups"] })
+  const gridName = (collectionName: string) => t("V3.CaseTable.gridAriaLabel", { vars: [collectionName] })
+  const renderedGridNames = () =>
+    screen.queryAllByTestId("collection-table-grid").map(grid => grid.getAttribute("aria-label"))
 
-  it("renders the parent collection's grid with only the index column when all its attributes are hidden", () => {
+  // Builds a hierarchical data set with one attribute per named collection and adds it to the broker.
+  // Attributes added without a collection land in the childmost collection, so each attribute is
+  // assigned to its collection explicitly.
+  const createHierarchicalData = (collectionNames: string[]) => {
     // no custom env: the DataSet inherits the document's environment when the broker adds it.
-    // The collections array includes the childmost collection, so attributes added without a
-    // collection (here "value") land there, leaving "groups" as the parent collection.
-    const data = DataSet.create({ name: "data", collections: [{ name: "groups" }, { name: "cases" }] })
-    const groups = data.collections[0]
-    const groupAttr = data.addAttribute({ name: "group" }, { collection: groups.id })
-    data.addAttribute({ name: "value" }) // lands in the childmost collection
+    const data = DataSet.create({ name: "data", collections: collectionNames.map(name => ({ name })) })
+    const attrIds = data.collections.map((collection, i) =>
+      data.addAttribute({ name: `attr${i}` }, { collection: collection.id }).id)
     data.addCases(toCanonical(data, [
-      { group: "a", value: 1 }, { group: "a", value: 2 }, { group: "b", value: 3 }
+      { attr0: "a", attr1: "x", attr2: 1 }, { attr0: "a", attr1: "y", attr2: 2 }, { attr0: "b", attr1: "x", attr2: 3 }
     ]))
     data.validateCases()
     const { sharedMetadata } = broker.addDataSet(data)
+    return { data, attrIds, sharedMetadata }
+  }
 
-    // with both collections fully visible, the parent grid has the index column + "group" column
+  it("omits a parentmost collection whose attributes are all hidden", () => {
+    const { data, attrIds, sharedMetadata } = createHierarchicalData(["groups", "cases"])
+
+    // with both collections fully visible, the parent grid has the index column + its attribute column
     const { unmount } = renderTable(data)
-    expect(screen.getAllByTestId("collection-table-grid")).toHaveLength(2)
-    expect(screen.getByRole("grid", { name: groupsGridName })).toHaveAttribute("aria-colcount", "2")
+    expect(renderedGridNames()).toEqual([gridName("groups"), gridName("cases")])
+    expect(screen.getByRole("grid", { name: gridName("groups") })).toHaveAttribute("aria-colcount", "2")
     unmount()
 
-    // hide the only attribute in the parent collection
-    sharedMetadata.setIsHidden(groupAttr.id, true)
-
+    sharedMetadata.setIsHidden(attrIds[0], true)
     renderTable(data)
-    // both collections still render a grid (V2-style: the parent keeps its index column)
-    expect(screen.getAllByTestId("collection-table-grid")).toHaveLength(2)
-    // the parent grid is now index-only (the "group" attribute column is gone)
-    expect(screen.getByRole("grid", { name: groupsGridName })).toHaveAttribute("aria-colcount", "1")
+    expect(renderedGridNames()).toEqual([gridName("cases")])
+  })
+
+  it("omits a childmost collection whose attributes are all hidden", () => {
+    const { data, attrIds, sharedMetadata } = createHierarchicalData(["groups", "cases"])
+    sharedMetadata.setIsHidden(attrIds[1], true)
+    renderTable(data)
+    expect(renderedGridNames()).toEqual([gridName("groups")])
+    // the attributes stay hidden rather than being shown again
+    expect(sharedMetadata.isHidden(attrIds[1])).toBe(true)
+  })
+
+  it("omits a middle collection whose attributes are all hidden", () => {
+    const { data, attrIds, sharedMetadata } = createHierarchicalData(["groups", "subgroups", "cases"])
+    sharedMetadata.setIsHidden(attrIds[1], true)
+    renderTable(data)
+    expect(renderedGridNames()).toEqual([gridName("groups"), gridName("cases")])
+  })
+
+  it("renders only the childmost collection, index-only, when every attribute is hidden", () => {
+    const { data, attrIds, sharedMetadata } = createHierarchicalData(["groups", "cases"])
+    attrIds.forEach(attrId => sharedMetadata.setIsHidden(attrId, true))
+    renderTable(data)
+    expect(renderedGridNames()).toEqual([gridName("cases")])
+    expect(screen.getByRole("grid", { name: gridName("cases") })).toHaveAttribute("aria-colcount", "1")
   })
 })

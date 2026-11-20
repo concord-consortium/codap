@@ -13,7 +13,7 @@ import {
   createCasesNotification, deleteCasesNotification, deleteCollectionNotification, dependentCasesNotification,
   moveAttributeNotification, selectCasesNotification, selectCasesNotificationForDelta
 } from "./data-set-notifications"
-import { IAttributeChangeResult, IMoveAttributeOptions } from "./data-set-types"
+import { IAttributeChangeResult, ICase, IMoveAttributeOptions } from "./data-set-types"
 
 export function getCollectionAttrs(collection: ICollectionModel, data?: IDataSet): IAttribute[] {
   if (collection && !isAlive(collection)) {
@@ -56,6 +56,17 @@ export function isAnyChildSelected(data: IDataSet, caseId: string): boolean {
   return childCaseIds?.length
           ? childCaseIds.some(childCaseId => isAnyChildSelected(data, childCaseId))
           : childItemIds?.some(childItemId => data.isCaseSelected(childItemId))
+}
+
+// returns the ids of the given ancestor case's descendants in the specified collection
+export function getDescendantCaseIds(data: IDataSet, ancestorCaseId: string, collectionId: string) {
+  let caseIds = [ancestorCaseId]
+  let currCollectionId = data.caseInfoMap.get(ancestorCaseId)?.collectionId
+  while (currCollectionId && currCollectionId !== collectionId) {
+    caseIds = caseIds.flatMap(caseId => data.caseInfoMap.get(caseId)?.childCaseIds ?? [])
+    currCollectionId = data.getChildCollection(currCollectionId)?.id
+  }
+  return currCollectionId ? caseIds : []
 }
 
 /**
@@ -207,6 +218,24 @@ export function getGroupedCases(data: IDataSet, caseOrItemIds: string[]) {
   data.validateCases()
   return caseOrItemIds.map(caseId => data.caseInfoMap.get(caseId) ?? data.itemIdChildCaseMap.get(caseId))
     .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
+}
+
+// The shown cases, in every collection, whose shown items are all among the given items, so that removing
+// the items removes the cases too. As in V2, whose deleteCases listed every case that regenerating the
+// cases removed, a case that keeps only set-aside or filtered-out items counts, since those items have no cases.
+export function getVanishingCases(data: IDataSet, itemIds: Iterable<string>) {
+  data.validateCases()
+  const removing = new Set(itemIds)
+  const cases: ICase[] = []
+  data.collections.forEach(collection => {
+    collection.caseIds.forEach(caseId => {
+      const caseInfo = data.caseInfoMap.get(caseId)
+      if (caseInfo?.childItemIds.length && caseInfo.childItemIds.every(itemId => removing.has(itemId))) {
+        cases.push(caseInfo.groupedCase)
+      }
+    })
+  })
+  return cases
 }
 
 export function addSetAsideCases(data: IDataSet, caseOrItemIds: string[], undoable = true) {

@@ -12,10 +12,9 @@ import { axisPlaceToAttrRole, getAxisPlaceTraits, kOther } from "../../data-disp
 import { swapCategoriesNotification } from "../../data-display/data-display-notifications"
 import { useDataDisplayAnimation } from "../../data-display/hooks/use-data-display-animation"
 import { useDataDisplayModelContextMaybe } from "../../data-display/hooks/use-data-display-model"
-import { kDefaultFontHeight } from "../axis-constants"
 import { computeNiceNumericBounds, setNiceDomain } from "../axis-domain-utils"
 import { AxisPlace } from "../axis-types"
-import { DragInfo } from "../axis-utils"
+import { DragInfo, setNumberOfCategoriesLimit } from "../axis-utils"
 import { AxisHelper, EmptyAxisHelper, IAxisHelperArgs } from "../helper-models/axis-helper"
 import { CatObject, CategoricalAxisHelper } from "../helper-models/categorical-axis-helper"
 import { DateAxisHelper } from "../helper-models/date-axis-helper"
@@ -50,7 +49,6 @@ export const useSubAxis = ({
     _axisModel = axisProvider.getAxis(axisPlace),
     isCategorical = isAnyCategoricalAxisModel(_axisModel),
     isColorAxis = isColorAxisModel(_axisModel) || (_axisModel?.type === "categorical" && axisAttributeType === "color"),
-    multiScaleChangeCount = layout.getAxisMultiScale(_axisModel?.place ?? 'bottom')?.changeCount ?? 0,
     dragInfo = useRef<DragInfo>({
       initialIndexOfCategory: -1,
       indexOfCategory: -1,
@@ -94,7 +92,12 @@ export const useSubAxis = ({
       const multiScale = layout.getAxisMultiScale(axisPlace)
       if (!multiScale) return // no scale, no axis (But this shouldn't happen)
 
-      axisProvider.getAxisHelper(axisModel.place, subAxisIndex)?.render()
+      // When the axis model is replaced without going through an action that discards its helper
+      // (e.g. by undo), the provider still holds the previous axis's helper until the
+      // [axisModelChange] reaction below replaces it. That helper's axis model is defunct and must
+      // not be rendered: a date helper reads a defunct model's placeholder domain as calendar years.
+      const helper = axisProvider.getAxisHelper(axisModel.place, subAxisIndex)
+      if (helper?.axisModel === axisModel) helper.render()
     }, [axisPlace, axisProvider, layout, subAxisIndex]),
 
     onDragStart = useCallback((event: any) => {
@@ -179,10 +182,8 @@ export const useSubAxis = ({
      * Make sure there is a group element for each category and that the text elements have drag behavior
      */
     setupCategories = useCallback(() => {
-      const subAxisElt = subAxisEltRef.current,
-        axisLength = layout.getAxisLength(axisPlace),
-        numCategoriesLimit = Math.floor(axisLength / kDefaultFontHeight)
-      dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace], numCategoriesLimit)
+      const subAxisElt = subAxisEltRef.current
+      dataConfig && setNumberOfCategoriesLimit(dataConfig, axisPlace, layout)
       const catArray = getCategoryArray()
       const categories = catArray,
         categoryData: CatObject[] = categories.map((cat, index) =>
@@ -328,19 +329,6 @@ export const useSubAxis = ({
     return () => disposer()
   }, [axisPlace, axisProvider, layout, renderSubAxis])
 
-  // Install reaction to bring about rerender when layout's computedBounds changes
-  useEffect(() => {
-    const disposer = reaction(
-      () => layout.getComputedBounds(axisPlace),
-      () => {
-        isCategorical && setupCategories()
-        renderSubAxis()
-      },
-      {name: "useSubAxis [layout.getComputedBounds()"}
-    )
-    return () => disposer()
-  }, [axisPlace, layout, isCategorical, renderSubAxis, setupCategories])
-
   // update d3 scale and axis when axis domain changes
   useEffect(function installDomainSync() {
     return mstAutorun(() => {
@@ -458,43 +446,24 @@ export const useSubAxis = ({
     }
   }, [axisPlace, axisProvider, dataConfig, updateDomainAndRenderSubAxis])
 
-  useEffect(function respondToAttributeTypeChange() {
+  // Set up and render the sub-axis on mount, when the callbacks change (including when the axis
+  // becomes categorical), and when the axis bounds, sub-axis length, number of sub-axes,
+  // categorical domain or attribute type changes.
+  useEffect(function syncSubAxis() {
     return mstReaction(
-      () => dataConfig?.dataset?.getAttribute(attrId)?.type, // Observe the attribute type
       () => {
-        setupCategories()
-        renderSubAxis()
-      },
-      { name: "useSubAxis [attributeTypeChange]" }, [dataConfig]
-    )
-  }, [attrId, dataConfig, setupCategories, renderSubAxis])
-
-  // Render when axis length or number of sub-axes changes
-  useEffect(() => {
-    const disposer = reaction(
-      () => {
-        return [layout.getAxisLength(axisPlace),
-          layout.getAxisMultiScale(axisPlace)?.repetitions]
+        const multiScale = layout.getAxisMultiScale(axisPlace)
+        return [layout.getComputedBounds(axisPlace), multiScale?.cellLength, multiScale?.repetitions,
+                multiScale?.changeCount, dataConfig?.dataset?.getAttribute(attrId)?.type]
       },
       () => {
+        // This can run before React re-renders with a new axis type, so check the current axis
+        // model rather than the isCategorical captured when the effect was created.
+        isAnyCategoricalAxisModel(axisProvider.getAxis(axisPlace)) && setupCategories()
         renderSubAxis()
-      }, {name: "useSubAxis [axisLength]", equals: comparer.structural}
+      },
+      { name: "useSubAxis.syncSubAxis", equals: comparer.structural, fireImmediately: true }, dataConfig
     )
-    return () => disposer()
-  }, [axisPlace, layout, renderSubAxis])
-
-  // update on multiScaleChangeCount change
-  useEffect(() => {
-    isCategorical && setupCategories()
-    renderSubAxis()
-  }, [renderSubAxis, multiScaleChangeCount, isCategorical, setupCategories])
-
-  // We only need to do this for categorical axes
-  useEffect(function setup() {
-    if (isCategorical) {
-      setupCategories()
-      renderSubAxis()
-    }
-  }, [isCategorical, setupCategories, renderSubAxis])
+  }, [attrId, axisPlace, axisProvider, dataConfig, isCategorical, layout, renderSubAxis, setupCategories])
 
 }

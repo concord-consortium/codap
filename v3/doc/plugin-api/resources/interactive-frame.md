@@ -50,6 +50,7 @@ apply. Naming a `dataContext` in the selector has no effect.
 | `blockAPIRequestsWhileEditing` | `boolean` | optional |
 | `cannotClose` | `boolean` | optional |
 | `codapVersion` | `string` | optional |
+| `contentDimensions` | `{ height?: number; width?: number }` | optional |
 | `dimensions` | `{ height?: number; width?: number }` | optional |
 | `externalUndoAvailable` | `boolean` | optional |
 | `id` | `string \| number` | optional |
@@ -71,8 +72,8 @@ apply. Naming a `dataContext` in the selector has no effect.
 
 ### Which properties each action uses
 
-Not every property above travels in both directions. `get` returns nineteen of them; `update`
-honors fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAvailable`, `lang`,
+Not every property above travels in both directions. `get` returns twenty of them; `update`
+honors fifteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAvailable`, `lang`,
 `locale` and `savedState` are reported by CODAP and cannot be set.
 
 | Property | `get` returns | `update` honors |
@@ -86,6 +87,7 @@ honors fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAva
 | `respectEditableItemAttribute` | yes | yes |
 | `subscribeToDocuments` | yes | yes |
 | `dimensions` | yes | yes |
+| `contentDimensions` | yes | yes |
 | `name` | yes | yes, unless the user renamed the tile |
 | `title` | yes | yes, unless the user renamed the tile |
 | `version` | yes | yes |
@@ -99,8 +101,27 @@ honors fourteen; `codapVersion`, `externalUndoAvailable`, `standaloneUndoModeAva
 | `cannotClose` | no | yes |
 | `handlesLocaleChange` | no | yes |
 
-A number given as `name` or `title` is used as text, as in v2. `cannotClose` may be any value;
-CODAP stores whether it is truthy.
+`name` and `title` both set the tile's title. When both are sent, a non-empty `title` wins, as in
+v2. Empty text clears the title, as `update component` does, so the tile shows its name. v2
+cleared it only for an empty `name`, and ignored an empty `title` sent alone. A number other than
+`0` is used as text, as in v2. As in v2, `0` or `false` as `name` clears the title, while `0`,
+`false` or `null` as `title` with no `name` is ignored.
+
+`cannotClose` may be any value; CODAP stores whether it is truthy.
+
+### Sizing the plugin
+
+`dimensions` is the size of the whole tile, its title bar included, as in v2. `contentDimensions`
+is the size of the plugin's own area: CODAP adds its title bar, so a plugin asking for
+`{ "width": 680, "height": 300 }` gets that much room, whatever the size of CODAP's title bar. Send
+either one; if both give a width or a height, `contentDimensions` wins for that side. A width or
+height left out, or one that is not a positive number, keeps its current value; text that reads as
+a number, such as `"450"`, is used. `get` returns both. When the plugin runs standalone
+(`?standalone=true`) it fills the window, and neither size has a visible effect.
+
+v2's frame also had a border, so for the same `dimensions` a plugin gets 16 pixels more width and 3
+pixels more height in v3 than it did in v2. This is a deliberate difference; a plugin that needs an
+exact size should send `contentDimensions`.
 
 ### Holding requests while the user edits
 
@@ -146,6 +167,7 @@ Read the frame at startup:
     "allowEmptyAttributeDeletion": true,
     "blockAPIRequestsWhileEditing": false,
     "codapVersion": "3.x.y",
+    "contentDimensions": { "width": 600, "height": 366 },
     "dimensions": { "width": 600, "height": 400 },
     "externalUndoAvailable": true,
     "id": 7,
@@ -215,10 +237,6 @@ state reaches the document is by answering CODAP's `get interactiveState` reques
 
 **`update` with an array does nothing and reports success.**
 
-**`update` with no `values` at all returns a generic error.** Every property is optional, but the
-object is not; omitting it produces `An error occurred while processing the request.` rather than
-a message naming the problem.
-
 **Three v2 notify requests are not implemented.** `dirty`, `image` and `openGuideConfiguration`
 were handled in v2 and are not yet in v3. Like any unrecognized request they return success
 without acting.
@@ -245,7 +263,7 @@ For notifications CODAP sends *to* a plugin, see
 | Error | Condition |
 |---|---|
 | `Interactive Frame not found` | the request did not come from a plugin frame |
-| `A values object is required for this request.` | `notify` sent with no `values` |
+| `A values object is required for this request.` | `update` or `notify` sent with no `values`. Every `update` property is optional, but the object is not. v2's `update` failed with the text of a JavaScript exception |
 
 ## See also
 

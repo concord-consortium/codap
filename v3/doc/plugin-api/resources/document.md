@@ -70,6 +70,12 @@ like a silent no-op. To use this resource you must first opt in:
 
 Then issue `get document` and handle `newDocumentState` in your notification handler.
 
+The document holds values as CODAP stores them, so a `true` or `false` value is the text `"true"`
+or `"false"`, where the other resources return booleans; see
+[Booleans](../guides/data-types.md#booleans). This matches the file CODAP saves. v2's document kept a
+`true` a plugin sent as a boolean, but CODAP stores it the same way as a typed `true`, so it can't
+tell them apart. This is a deliberate difference.
+
 ## update — replacing the document
 
 `update document` takes a complete v2 document JSON in `values` and replaces the current document
@@ -97,6 +103,17 @@ being replaced, whoever replaced it.
 
 `updateDocumentEnded` is sent whether the replacement succeeded or failed, and its `success` says
 which. v2 sent no `success`, and sent no `updateDocumentEnded` at all when the replacement failed.
+
+After a successful replacement, CODAP erases the undo and redo history just before
+`updateDocumentEnded`, as v2 did, so the user cannot undo back into the replaced document. Every
+plugin, and the host page, receives `clearUndo` and then `clearRedo` on
+[`undoChangeNotice`](undo-change-notice.md#notifications). As in v2, the replacement itself is not
+an action the user can undo. Restoring a component can record an action of its own, such as a
+graph's measure, so a `clearRedo` can come before the other two.
+
+From the request until the history is erased, nothing can be undone or redone: `canUndo` and
+`canRedo` are `false`, and the toolbar's Undo and Redo are disabled. v2 left them enabled, though
+the actions they would undo belonged to the replaced document.
 
 **Your own state is not restored from the document you send.** Before applying the incoming
 snapshot, CODAP replaces the incoming state of every plugin with `subscribeToDocuments: true`
@@ -175,6 +192,17 @@ sendRequest({ action: 'get', resource: 'document' })
 sendRequest({ action: 'update', resource: 'document', values: savedState })
 ```
 
+**Replace the document (paste a whole v2 document into `values`).** Use one saved from an earlier
+`newDocumentState` notification, for example:
+
+```json
+{
+  "action": "update",
+  "resource": "document",
+  "values": { "...": "a complete v2 document, as delivered in values.state" }
+}
+```
+
 ## Notifications
 
 | Resource | Operation | When |
@@ -182,6 +210,7 @@ sendRequest({ action: 'update', resource: 'document', values: savedState })
 | `document` | `newDocumentState` | After `get document`, to every plugin with `subscribeToDocuments: true`. Carries the document in `values.state`. |
 | `documentChangeNotice` | `updateDocumentBegun` | Before an `update document` begins. Sent to every plugin and to the host page. |
 | `documentChangeNotice` | `updateDocumentEnded` | After it completes or fails. Carries `success`. Sent to every plugin and to the host page. |
+| [`undoChangeNotice`](undo-change-notice.md) | `clearUndo`, then `clearRedo` | After a successful `update document`, just before `updateDocumentEnded`, when the undo and redo history is erased. Sent to every plugin and to the host page. |
 
 When the user, or a plugin, undoes or redoes anything, CODAP sends every plugin a notification on
 this resource with operation `undo` or `redo`, as v2 did, carrying `canUndo` and `canRedo` (which

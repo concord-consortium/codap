@@ -144,19 +144,23 @@ one, such as a parent case left with no items, v2 listed its id in `deletedCases
 replies with an empty `deletedCases`. This is a known bug. Until it is fixed, a plugin that
 tracks case ids should read them again after changing a parent collection's attribute.
 
-**A boolean value is stored as text.** An item updated with `true` reads back as the text
-`"true"`. v2 kept the boolean. This is a known bug.
+**The text `true` and `false` reads back as a boolean.** An item updated with `true` reads back
+as `true`, as in v2. CODAP stores every value as a number or text, so it cannot tell that boolean
+from the text `true` typed into a table, imported from a file, or set by a checkbox: those read
+back as booleans too, where v2 returned the text. Only the lowercase words are converted; `TRUE`
+stays text. This is a deliberate difference.
 
 ## Notifications
 
 This resource takes no `notify` requests of its own.
 
 `update` and `delete` notify other plugins on `dataContextChangeNotice[<context>]` with
-`updateCases` or `deleteCases` for the item's case in the last collection, as the same change made
-in a case table does, followed by `updateItems` or `deleteItems` with the item's id. v2 sent
-`updateItems` but no `deleteItems`. An `update` that moves the item to a different parent case
-also sends `createCases` for the cases it creates, before `updateItems`; v2 did not, and its
-`updateCases` result listed the cases created and deleted instead.
+`updateCases` for the item's case in the last collection, or `deleteCases` for every case the delete
+removes, followed by `updateItems` or `deleteItems` with the item's id. The `deleteCases` notice
+includes a parent case whose last shown item goes, and lists the cases' ids in `caseIDs` too, as in
+v2. v2 sent `updateItems` but no `deleteItems`. An `update` that moves the item to a different
+parent case also sends `createCases` for the cases it creates, before `updateItems`; v2 did not, and
+its `updateCases` result listed the cases created and deleted instead.
 
 ## Errors
 

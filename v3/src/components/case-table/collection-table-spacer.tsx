@@ -6,11 +6,10 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { useDataSetMetadata } from "../../hooks/use-data-set-metadata"
 import { getDragAttributeInfo, useTileDroppable } from "../../hooks/use-drag-drop"
 import { measureText } from "../../hooks/use-measure-text"
-import { useVisibleAttributes } from "../../hooks/use-visible-attributes"
 import { useTileModelContext } from "../../hooks/use-tile-model-context"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { IDataSet } from "../../models/data/data-set"
-import { isAnyChildSelected } from "../../models/data/data-set-utils"
+import { getDescendantCaseIds, isAnyChildSelected } from "../../models/data/data-set-utils"
 import { getStringCssVariable } from "../../utilities/css-utils"
 import { preventAttributeMove, preventCollectionReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
@@ -19,7 +18,6 @@ import { kInputRowKey } from "./case-table-types"
 import { CurvedSplineFill } from "./curved-spline-fill"
 import { CurvedSplineStroke } from "./curved-spline-stroke"
 import { useCaseTableAnnounce } from "./use-case-table-announce"
-import { useCaseTableModel } from "./use-case-table-model"
 import { useCollectionTableModel } from "./use-collection-table-model"
 
 const kRelationDefaultFillColor = "#ffffff" // white
@@ -60,16 +58,6 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
   const childCollectionId = useCollectionContext()
   const childTableModel = useCollectionTableModel()
   const parentMost = !parentCollection
-  // The relationship lines connect parent grid cells to child grid cells, so only draw them when
-  // both adjacent collections actually render a grid. A collection renders a grid when it has at
-  // least one column — the index column (shown unless hidden for the whole table) or a visible
-  // attribute. (A collection with the index hidden and all attributes hidden renders no grid.)
-  const caseTableModel = useCaseTableModel()
-  const isIndexHidden = caseTableModel?.isIndexHidden ?? false
-  const visibleParentAttributes = useVisibleAttributes(parentCollectionId)
-  const visibleChildAttributes = useVisibleAttributes(childCollectionId)
-  const parentHasGrid = !isIndexHidden || visibleParentAttributes.length > 0
-  const childHasGrid = !isIndexHidden || visibleChildAttributes.length > 0
   const preventCollectionDrop = preventCollectionReorg(data, childCollectionId)
   const { active, isOver, setNodeRef } = useTileDroppable(`new-collection-${childCollectionId}`, _active => {
     if (!preventCollectionDrop) {
@@ -148,7 +136,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 
   if (!data || !parentCases) return null
 
-  const everyCaseIsCollapsed = parentCases.every((value) => metadata?.isCaseOrAncestorCollapsed(value.__id__))
+  const everyCaseIsCollapsed = parentCases.every(value => parentTableModel?.isCaseOrAncestorCollapsed(value.__id__))
 
   // Keep for now in case of accessibility application (wider area of input)
   // function handleAreaClick(e: React.MouseEvent) {
@@ -181,7 +169,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
   }
 
   function handleExpandCollapseClick(parentCaseId: string) {
-    const wasCollapsed = !!metadata?.isCaseOrAncestorCollapsed(parentCaseId)
+    const wasCollapsed = !!parentTableModel?.isCaseOrAncestorCollapsed(parentCaseId)
     // collapse the parent case
     metadata?.applyModelChange(() => {
       metadata?.setIsCollapsed(parentCaseId, !wasCollapsed)
@@ -191,10 +179,12 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
       log: logMessageWithReplacement("%@ case %@",
               { state: metadata?.isCollapsed(parentCaseId) ? "Expand" : "Collapse", parentCaseId}, "table")
     })
-    // scroll to the first expanded/collapsed child case (if necessary)
-    const parentCase = data?.caseInfoMap.get(parentCaseId)
-    const childCount = parentCase?.childCaseIds?.length || parentCase?.childItemIds?.length || 0
-    const firstChildId = parentCase?.childCaseIds?.[0] || parentCase?.childItemIds?.[0]
+    // scroll to the first expanded/collapsed child case (if necessary); the child cases are the
+    // parent's descendants in this collection, which may be further down the hierarchy than its
+    // immediate children when the collections between them aren't rendered
+    const childCaseIds = data ? getDescendantCaseIds(data, parentCaseId, childCollectionId) : []
+    const childCount = childCaseIds.length
+    const firstChildId = childCaseIds[0]
     const rowIndex = (firstChildId ? childTableModel?.getRowIndexOfCase(firstChildId) : -1) ?? -1
     ;(rowIndex >= 0) && childTableModel?.scrollRowIntoView(rowIndex)
     announce(t(wasCollapsed
@@ -211,7 +201,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
 
   return (
     <div className={classes} ref={handleRef} onClick={handleBackgroundClick}>
-      {parentCollectionId && parentTableModel && childTableModel && parentHasGrid && childHasGrid &&
+      {parentCollectionId && parentTableModel && childTableModel &&
         <>
           <div className="spacer-top">
             {<ExpandCollapseButton isCollapsed={everyCaseIsCollapsed || false} onClick={handleExpandCollapseAllClick}
@@ -275,7 +265,7 @@ export const CollectionTableSpacer = observer(function CollectionTableSpacer({
                 if (id !== kInputRowKey) {
                   const buttonHeight = Math.min(24, parentTableModel.rowHeight)
                   const topOffset = (parentTableModel.rowHeight - buttonHeight) / 2
-                  return <ExpandCollapseButton key={id} isCollapsed={!!metadata?.isCaseOrAncestorCollapsed(id)}
+                  return <ExpandCollapseButton key={id} isCollapsed={!!parentTableModel.isCaseOrAncestorCollapsed(id)}
                     onClick={() => handleExpandCollapseClick(id)}
                     styles={{
                       left: '-4px',
