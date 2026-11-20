@@ -376,3 +376,8 @@ $slider-attribute-label-space: $slider-attribute-label-height + 4px;
   line-height: 16px;
   white-space: nowrap;
 }
+
+// groups the slider's palettes for their event handlers without affecting their layout
+.slider-palette-container {
+  display: contents;
+}
