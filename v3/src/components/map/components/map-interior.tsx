@@ -3,6 +3,7 @@ import {useEffect} from "react"
 import { useMemo } from "use-memo-one"
 import { mstAutorun } from "../../../utilities/mst-autorun"
 import { DataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
+import { useEsriAttributionPrefix } from "../hooks/use-esri-attribution-prefix"
 import { LeafletMapLayersContext } from "../hooks/use-leaflet-map-layers"
 import {useMapModel} from "../hooks/use-map-model"
 import {useMapModelContext} from "../hooks/use-map-model-context"
@@ -20,6 +21,7 @@ export const MapInterior = observer(function MapInterior() {
   const leafletMapLayers = useMemo(() => new LeafletMapLayers(mapModel), [mapModel])
 
   useMapModel()
+  useEsriAttributionPrefix(mapModel.baseMapLayerIsVisible)
 
   useEffect(() => {
     return () => {

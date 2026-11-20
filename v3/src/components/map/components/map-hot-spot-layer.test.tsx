@@ -3,6 +3,7 @@ import { Map as LeafletMap } from "leaflet"
 import { MapContainer } from "react-leaflet"
 import { featureFlagManager } from "../../../models/feature-flags/feature-flag-manager"
 import { IMapPointLayerModel, MapPointLayerModel } from "../models/map-point-layer-model"
+import { HotSpotCanvasLayer } from "../utilities/hot-spot-canvas-layer"
 import { kHotSpotPaneName, MapHotSpotLayer } from "./map-hot-spot-layer"
 
 describe("MapHotSpotLayer", () => {
@@ -63,6 +64,32 @@ describe("MapHotSpotLayer", () => {
     featureFlagManager.setServerConfig({ mapHotSpot: "on" })
     const { leafletMap } = mountHotSpotLayer(pointLayer => pointLayer.setPointsAreVisible(false))
     expect(hotSpotCanvas(leafletMap)).toBeTruthy()
+  })
+
+  it("redraws at most once per frame when the surface changes", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const { pointLayer } = mountHotSpotLayer(layer => {
+      layer.hotSpotModel.setLatLongSource({ plottedLatLongs: [{ lat: 0, long: 0 }, { lat: 1, long: 1 }] })
+    })
+    const frameCallbacks: FrameRequestCallback[] = []
+    const rafSpy = jest.spyOn(window, "requestAnimationFrame").mockImplementation(callback => {
+      frameCallbacks.push(callback)
+      return frameCallbacks.length
+    })
+    const redrawSpy = jest.spyOn(HotSpotCanvasLayer.prototype, "redraw")
+
+    act(() => {
+      pointLayer.hotSpotModel.setDynamicBandwidth(5000)
+      pointLayer.hotSpotModel.setDynamicBandwidth(6000)
+      pointLayer.hotSpotModel.setDynamicBandwidth(7000)
+    })
+    expect(redrawSpy).not.toHaveBeenCalled()
+
+    act(() => frameCallbacks.splice(0).forEach(callback => callback(0)))
+    expect(redrawSpy).toHaveBeenCalledTimes(1)
+
+    rafSpy.mockRestore()
+    redrawSpy.mockRestore()
   })
 
   it("applies the hot spot opacity to the canvas", () => {

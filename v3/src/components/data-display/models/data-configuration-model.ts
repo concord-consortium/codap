@@ -285,10 +285,12 @@ export const DataConfigurationModel = types
       return Object.entries(descriptions).every(([role, {attributeID}]) => {
         // can still plot the case without a caption or a legend
         if (["caption", "legend"].includes(role)) return true
-        switch (self.attributeType(role as AttrRole)) {
-          // TODO: handle "date" type
+        const roleType = self.attributeType(role as AttrRole)
+        switch (roleType) {
+          // A split role never arrives here as a date: setupAxes retypes a split role categorical.
+          case "date":
           case "numeric":
-            return isFiniteNumber(dataDisplayGetNumericValue(data, caseID, attributeID, true))
+            return isFiniteNumber(dataDisplayGetNumericValue(data, caseID, attributeID, roleType === "numeric"))
           case "categorical":
             // Treat 0 as a string and return true for all non-empty strings
             return !!data.getStrValue(caseID, attributeID)
@@ -490,9 +492,9 @@ export const DataConfigurationModel = types
     /**
      * Normalizes a categories limit so that limits which cannot affect the result all compare
      * equal (as undefined). A limit only matters when more categories are rendered than it allows.
-     * Axis code derives the limit from the axis length, so it changes roughly every 12 pixels of
-     * a component resize; comparing normalized values keeps those no-op changes from rebuilding
-     * the cell grid.
+     * Axis code derives the limit from the length of one sub-axis, so it changes roughly every
+     * 12 pixels of sub-axis length during a component resize; comparing normalized values keeps
+     * those no-op changes from rebuilding the cell grid.
      *
      * This is used only for comparison. The raw limit is what gets stored, so the clamp stays
      * correct when a higher-cardinality attribute is later assigned to the role.

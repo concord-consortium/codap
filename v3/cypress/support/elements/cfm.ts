@@ -4,7 +4,17 @@ interface IDocumentOptions {
 export const CfmElements = {
   openLocalDoc(filename: string) {
     cy.get('#codap-app-id').selectFile(filename, { action: 'drag-drop' })
-    cy.wait(1000) // Wait for the document to load
+    if (/\.csv$/i.test(filename)) {
+      // CSV files are imported by the Importer plugin, which loads remotely and finishes on its own
+      // schedule. It creates and selects a case table, then removes its own (hidden) tile, which
+      // leaves the case table selected. Either step would take the selection from a tile the test
+      // has created in the meantime, so wait for both, allowing for a slow plugin load.
+      cy.get(".codap-component[data-testid$=table]", { timeout: 20000 }).should("exist")
+      cy.get(".codap-component[data-testid$=web-view]:contains('Importer')", { timeout: 20000 })
+        .should("not.exist")
+    } else {
+      cy.wait(1000) // Wait for the document to load
+    }
   },
   openLocalDocWithUserEntry(filename: string) {
     cy.get('#user-entry-drop-overlay').selectFile(filename, { action: 'drag-drop', force: true })

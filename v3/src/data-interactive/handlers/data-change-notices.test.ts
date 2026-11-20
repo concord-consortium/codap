@@ -1,6 +1,10 @@
 import { getSnapshot } from "mobx-state-tree"
 import { appState } from "../../models/app-state"
 import { IDataSet } from "../../models/data/data-set"
+import {
+  getDataSetNotificationAdapter, setDataSetNotificationAdapter
+} from "../../models/data/data-set-notification-adapter"
+import { V2DataSetNotificationAdapter } from "../../models/data/data-set-notification-adapter-v2"
 import { ISharedDataSet } from "../../models/shared/shared-data-set"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { toV2Id } from "../../utilities/codap-utils"
@@ -224,6 +228,43 @@ describe("API data changes send dataContextChangeNotice", () => {
     expect([dataset.getValue(dataset.itemIds[0], a3), dataset.getValue(dataset.itemIds[0], a4)]).toEqual(before)
   })
 
+  it("notify caseByIndex and caseByID with caseOrder send moveCases with the moved case, as in V2", async () => {
+    const childCases = () => dataset.getCasesForCollection(dataset.collections[2].id).map(({ __id__ }) => __id__)
+    const movedId = childCases()[4]
+    const parentId = dataset.getParentCaseId(movedId)!
+    const [c2, c3] = [dataset.collections[1], dataset.collections[2]]
+    const itemId = dataset.caseInfoMap.get(movedId)!.childItemIds[0]
+    // CODAP sends plugins v2 cases (app.tsx)
+    const adapter = getDataSetNotificationAdapter()
+    setDataSetNotificationAdapter(V2DataSetNotificationAdapter)
+    try {
+      await request("notify", "collection[collection3].caseByIndex[4]", { caseOrder: 3 })
+    } finally {
+      setDataSetNotificationAdapter(adapter)
+    }
+    expect(childCases()[3]).toBe(movedId)
+    // as in V2, the case is listed in full too
+    expect(changes()).toEqual([{ operation: "moveCases", result: {
+      success: true,
+      caseIDs: [toV2Id(movedId)],
+      cases: [{
+        id: toV2Id(movedId),
+        parent: toV2Id(parentId),
+        context: { id: toV2Id(dataset.id), name: dataset.name },
+        collection: { id: toV2Id(c3.id), name: "collection3", parent: { id: toV2Id(c2.id), name: "collection2" } },
+        values: {
+          a3: dataset.getNumeric(itemId, dataset.attrIDFromName("a3")!),
+          a4: dataset.getNumeric(itemId, dataset.attrIDFromName("a4")!)
+        }
+      }]
+    } }])
+
+    // as in V2, it is sent even when the case is already there
+    broadcastSpy.mockClear()
+    await request("notify", `collection[collection3].caseByID[${toV2Id(movedId)}]`, { caseOrder: 3 })
+    expect(operations()).toEqual(["moveCases"])
+  })
+
   it("create item sends createCases for each collection, then createItems", async () => {
     await request("create", "item", [{ a1: "new", a2: "w", a3: 50, a4: -50 }])
     // a new parent, a new middle case and a new child case
@@ -313,10 +354,105 @@ describe("API data changes send dataContextChangeNotice", () => {
 
   it("delete itemSearch sends deleteCases, then deleteItems, for every matching item", async () => {
     const matchingItemIds = dataset.itemIds.filter(id => dataset.getStrValue(id, dataset.attrIDFromName("a1")!) === "a")
+    // every case that disappears, in every collection, in table order: a, its a/x and a/z cases, and their
+    // three child cases
+    const vanishedCaseIds = [
+      dataset.getParentCaseId(dataset.getParentCaseId(childCase(0))!)!,
+      dataset.getParentCaseId(childCase(0))!, dataset.getParentCaseId(childCase(2))!,
+      childCase(0), childCase(4), childCase(2)
+    ].map(id => toV2Id(id))
     await request("delete", "itemSearch[a1==a]")
     expect(operations()).toEqual(["deleteCases", "deleteItems"])
-    expect(changes()[0].result.cases).toHaveLength(3)
+    expect(caseIDsOf(changes()[0])).toEqual(vanishedCaseIds)
+    // and, as in V2, their ids as caseIDs
+    expect(changes()[0].result.caseIDs).toEqual(vanishedCaseIds)
     expect(changes()[1].result.itemIDs).toEqual(matchingItemIds.map(id => toV2Id(id)))
+  })
+
+  it("an item delete lists a parent case only when all its shown items go, as in V2", async () => {
+    const [item0, item4] = [dataset.itemIds[0], dataset.itemIds[4]]
+    const [leaf0, leaf4, ax] = [childCase(0), childCase(4), dataset.getParentCaseId(childCase(0))!]
+    // a/x keeps item 4
+    await request("delete", `itemByID[${toV2Id(item0)}]`)
+    expect(changes()[0].result.caseIDs).toEqual([toV2Id(leaf0)])
+
+    // a/x goes with its last item, but a stays for a/z
+    broadcastSpy.mockClear()
+    await request("delete", `itemByID[${toV2Id(item4)}]`)
+    expect(changes()[0].result.caseIDs).toEqual([toV2Id(ax), toV2Id(leaf4)])
+  })
+
+  it("an item delete lists a case left with only set-aside items, which plugins no longer see", async () => {
+    const [item0, item4] = [dataset.itemIds[0], dataset.itemIds[4]]
+    const [leaf0, ax] = [childCase(0), dataset.getParentCaseId(childCase(0))!]
+    dataset.hideCasesOrItems([item4])
+    dataset.validateCases()
+    await request("delete", `itemByID[${toV2Id(item0)}]`)
+    expect(changes()[0].result.caseIDs).toEqual([toV2Id(ax), toV2Id(leaf0)])
+    // the set-aside item stays set aside
+    expect(dataset.setAsideItemIds).toEqual([item4])
+  })
+
+  it("delete caseByID removes the case's set-aside items too, so restoring can't bring it back", async () => {
+    const [item0, item4] = [dataset.itemIds[0], dataset.itemIds[4]]
+    const ax = dataset.getParentCaseId(childCase(0))!
+    dataset.hideCasesOrItems([item4])
+    dataset.validateCases()
+    await request("delete", `collection[collection2].caseByID[${toV2Id(ax)}]`)
+    // as in V2, the notice lists only the deleted case
+    expect(operations()).toEqual(["deleteCases"])
+    expect(caseIDsOf(changes()[0])).toEqual([toV2Id(ax)])
+    expect(dataset.getItemIndex(item0)).toBeUndefined()
+    expect(dataset.getItemIndex(item4)).toBeUndefined()
+    expect(dataset.setAsideItemIds).toEqual([])
+
+    dataset.showHiddenCasesAndItems()
+    dataset.validateCases()
+    expect(dataset.itemIds).toHaveLength(4)
+    expect(dataset.getCasesForCollection(dataset.collections[1].id).map(({ __id__ }) => __id__)).not.toContain(ax)
+  })
+
+  it("delete caseByID leaves the case's items hidden by a filter formula", async () => {
+    const [item0, item4] = [dataset.itemIds[0], dataset.itemIds[4]]
+    const ax = dataset.getParentCaseId(childCase(0))!
+    dataset.updateFilterFormulaResults([{ itemId: item4, result: false }], { replaceAll: true })
+    dataset.validateCases()
+    await request("delete", `collection[collection2].caseByID[${toV2Id(ax)}]`)
+    expect(dataset.getItemIndex(item0)).toBeUndefined()
+    expect(dataset.getItemIndex(item4)).toBeDefined()
+    expect(dataset.setAsideItemIds).toEqual([])
+  })
+
+  it("delete caseByID removes a set-aside item that is also hidden by a filter formula", async () => {
+    const item4 = dataset.itemIds[4]
+    const ax = dataset.getParentCaseId(childCase(0))!
+    dataset.hideCasesOrItems([item4])
+    dataset.updateFilterFormulaResults([{ itemId: item4, result: false }], { replaceAll: true })
+    dataset.validateCases()
+    await request("delete", `collection[collection2].caseByID[${toV2Id(ax)}]`)
+    expect(dataset.getItemIndex(item4)).toBeUndefined()
+    expect(dataset.setAsideItemIds).toEqual([])
+  })
+
+  it("delete caseByID removes set-aside items two levels below the case", async () => {
+    const item4 = dataset.itemIds[4]
+    const a = dataset.getParentCaseId(dataset.getParentCaseId(childCase(0))!)!
+    dataset.hideCasesOrItems([item4])
+    dataset.validateCases()
+    await request("delete", `collection[collection1].caseByID[${toV2Id(a)}]`)
+    expect(operations()).toEqual(["deleteCases"])
+    expect(caseIDsOf(changes()[0])).toEqual([toV2Id(a)])
+    expect(dataset.getItemIndex(item4)).toBeUndefined()
+    expect(dataset.setAsideItemIds).toEqual([])
+  })
+
+  it("deleting a child case leaves the parent's set-aside items, even when the parent disappears", async () => {
+    const [item0, item4] = [dataset.itemIds[0], dataset.itemIds[4]]
+    dataset.hideCasesOrItems([item4])
+    dataset.validateCases()
+    await request("delete", `collection[collection3].caseByID[${toV2Id(childCase(0))}]`)
+    expect(dataset.getItemIndex(item0)).toBeUndefined()
+    expect(dataset.setAsideItemIds).toEqual([item4])
   })
 
   it("deleting cases, rather than items, sends no deleteItems", async () => {
