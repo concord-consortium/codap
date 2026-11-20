@@ -19,7 +19,8 @@ const kControlSelectors: Record<SliderControlKind, string> = {
 
 // When a change to the slider's type or attribute (e.g. by undo or redo) removes the control that has focus, moves
 // focus to the control that replaced it, so a keyboard or screen-reader user doesn't lose their place.
-export function useSliderFocusRestore(sliderModel: ISliderModel | undefined, wrapperRef: RefObject<HTMLElement | null>) {
+export function useSliderFocusRestore(sliderModel: ISliderModel | undefined,
+                                      wrapperRef: RefObject<HTMLElement | null>) {
   const kind = sliderModel ? sliderControlKind(sliderModel) : undefined
   // whether focus was within the slider when its control last changed, recorded before React removes the old one
   const hadFocusRef = useRef(false)

@@ -478,8 +478,7 @@ describe("SliderComponent: the range's keyboard stop", () => {
     expect(slider.globalValue.isUpdatingDynamically).toBe(false)
   })
 
-  it("commits a held key's changes as one undoable change, and keys that end where they began as none",
-      async () => {
+  it("commits a held key's changes as one undoable change", async () => {
     const { tile, slider } = await setupRange()
     renderSlider(tile)
     const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
@@ -494,17 +493,6 @@ describe("SliderComponent: the range's keyboard stop", () => {
       fireEvent.keyUp(range, { key: "ArrowRight" })
       await settle()
       expect(undoLevels()).toBe(before + 1)
-      const movedLow = slider.rangeLow
-
-      // the three steps reached the end of the axis, so Home and then End return there
-      expect(slider.rangeHigh).toBe(slider.axis.domain[1])
-      fireEvent.keyDown(range, { key: "Home" })
-      fireEvent.keyDown(range, { key: "End" })
-      fireEvent.keyUp(range, { key: "End" })
-      await settle()
-      expect(undoLevels()).toBe(before + 1)
-      expect(slider.rangeLow).toBe(movedLow)
-      expect(slider.globalValue.isUpdatingDynamically).toBe(false)
 
       act(() => appState.document.undoLastAction())
       await waitFor(() => expect(slider.rangeLow).toBe(2))
@@ -534,6 +522,117 @@ describe("SliderComponent: the range's keyboard stop", () => {
     }
   })
 
+  it("moves by a page with Shift+Arrow", async () => {
+    const { tile, slider } = await setupRange()
+    renderSlider(tile)
+    const range = screen.getByRole("slider")
+    fireEvent.keyDown(range, { key: "ArrowRight" })
+    fireEvent.keyUp(range, { key: "ArrowRight" })
+    const stepped = slider.rangeLow - 2
+    act(() => slider.setRange(2, 3))
+    fireEvent.keyDown(range, { key: "ArrowRight", shiftKey: true })
+    fireEvent.keyUp(range, { key: "ArrowRight" })
+    // a page is at least a step
+    expect(slider.rangeLow - 2).toBeGreaterThanOrEqual(stepped)
+    expect(slider.rangeHigh - slider.rangeLow).toBeCloseTo(1)
+  })
+
+  it("steps a collapsed range through the data's values", async () => {
+    const { tile, slider } = await setupRange()
+    act(() => slider.setRange(3, 3))
+    renderSlider(tile)
+    const range = screen.getByRole("slider")
+    fireEvent.keyDown(range, { key: "ArrowRight" })
+    fireEvent.keyUp(range, { key: "ArrowRight" })
+    expect([slider.rangeLow, slider.rangeHigh]).toEqual([4, 4])
+    fireEvent.keyDown(range, { key: "End" })
+    fireEvent.keyUp(range, { key: "End" })
+    expect([slider.rangeLow, slider.rangeHigh]).toEqual([6, 6])
+  })
+
+  it("reports the axis bounds and the range's low end as its value", async () => {
+    const { tile, slider } = await setupRange()
+    renderSlider(tile)
+    const range = screen.getByRole("slider")
+    const [min, max] = slider.axis.domain
+    expect(range).toHaveAttribute("aria-valuemin", String(min))
+    expect(range).toHaveAttribute("aria-valuemax", String(max))
+    expect(range).toHaveAttribute("aria-valuenow", "2")
+  })
+
+  it("stops playback when a key moves the range", async () => {
+    const { tile, slider } = await setupRange()
+    slider.setAnimationMode("nonStop")
+    renderSlider(tile)
+    const playPause = screen.getByTestId("slider-play-pause")
+    fireEvent.click(playPause)
+    expect(playPause).toHaveAccessibleName("Pause slider")
+    fireEvent.keyDown(screen.getByRole("slider"), { key: "ArrowRight" })
+    expect(playPause).toHaveAccessibleName("Play slider")
+  })
+
+  it("leaves Ctrl and Meta chords alone", async () => {
+    const { tile, slider } = await setupRange()
+    renderSlider(tile)
+    const range = screen.getByRole("slider")
+    expect(fireEvent.keyDown(range, { key: "End", ctrlKey: true })).toBe(true)
+    expect(fireEvent.keyDown(range, { key: "End", metaKey: true })).toBe(true)
+    expect(slider.rangeLow).toBe(2)
+  })
+
+  it("keeps a held key one change when a modifier is released partway", async () => {
+    const { tile, slider } = await setupRange()
+    renderSlider(tile)
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    appState.document.treeMonitor!.enableMonitoring()
+    try {
+      await settle()
+      const before = manager.undoStore.undoLevels
+      const range = screen.getByRole("slider")
+      fireEvent.keyDown(range, { key: "ArrowRight", shiftKey: true })
+      fireEvent.keyUp(range, { key: "Shift" })
+      expect(slider.globalValue.isUpdatingDynamically).toBe(true)
+      fireEvent.keyDown(range, { key: "ArrowRight", repeat: true })
+      fireEvent.keyUp(range, { key: "ArrowRight" })
+      await settle()
+      expect(manager.undoStore.undoLevels).toBe(before + 1)
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
+  })
+
+  it("abandons a held key's change when the range is changed underneath it, e.g. by undo or a plugin", async () => {
+    const { tile, slider } = await setupRange()
+    renderSlider(tile)
+    const range = screen.getByRole("slider")
+    fireEvent.keyDown(range, { key: "ArrowRight" })
+    act(() => slider.setRange(1, 1.5))
+    expect(slider.globalValue.isUpdatingDynamically).toBe(false)
+    expect([slider.rangeLow, slider.rangeHigh]).toEqual([1, 1.5])
+    const spy = jest.spyOn(rangeChangeModule, "rangeChangeOptions")
+    try {
+      fireEvent.keyUp(range, { key: "ArrowRight" })
+      // nothing to commit, so plugins and the log hear nothing more
+      expect(spy).not.toHaveBeenCalled()
+      expect([slider.rangeLow, slider.rangeHigh]).toEqual([1, 1.5])
+    }
+    finally {
+      spy.mockRestore()
+    }
+  })
+
+  it("drops a held key's change when the range goes away, e.g. its attribute is deleted", async () => {
+    const { tile, dataSet, slider } = await setupRange()
+    renderSlider(tile)
+    fireEvent.keyDown(screen.getByRole("slider"), { key: "ArrowRight" })
+    expect(slider.globalValue.isUpdatingDynamically).toBe(true)
+    act(() => dataSet.removeAttribute(dataSet.attrFromName("a3")!.id))
+    expect(screen.queryByTestId("slider-range")).toBeNull()
+    expect(slider.globalValue.isUpdatingDynamically).toBe(false)
+  })
+
   it("commits when focus leaves with a key still down", async () => {
     const { tile, slider } = await setupRange()
     renderSlider(tile)
@@ -549,7 +648,9 @@ describe("SliderComponent: the range's keyboard stop", () => {
     const { tile } = await setupRange()
     renderSlider(tile)
     const range = screen.getByRole("slider")
-    expect(fireEvent.keyDown(range, { key: "PageUp" })).toBe(false)
+    for (const key of ["PageUp", "PageDown", "Home", "End"]) {
+      expect(fireEvent.keyDown(range, { key })).toBe(false)
+    }
     expect(fireEvent.keyDown(range, { key: "Tab" })).toBe(true)
   })
 
@@ -585,6 +686,11 @@ describe("SliderComponent: announcing case counts", () => {
     return result
   }
   const wait = (ms: number) => act(() => { jest.advanceTimersByTime(ms) })
+  // the ids of the items whose a3 passes the test, whatever the slider shows
+  const a3ItemIds = (dataSet: IDataSet, test: (a3: number) => boolean) => {
+    const a3 = dataSet.attrFromName("a3")!.id
+    return dataSet.itemIdsIgnoringSliderFilters.filter(id => test(dataSet.getNumeric(id, a3)!))
+  }
 
   it("announces how many cases a visibility slider shows once its range stops changing", async () => {
     const { tile, slider } = await setupRange()
@@ -619,6 +725,36 @@ describe("SliderComponent: announcing case counts", () => {
     expect(status()).toHaveTextContent(/^1 case selected$/)
   })
 
+  it("announces no count for a selection slider whose attribute has a formula, which it doesn't select by",
+      async () => {
+    const { tile, dataSet, slider } = await setupRange("selection")
+    renderSlider(tile)
+    act(() => dataSet.attrFromName("a3")!.setDisplayExpression("a4 * -1"))
+    wait(kCountAnnouncementDelay)
+    act(() => slider.setRange(2, 4))
+    wait(kCountAnnouncementDelay)
+    expect(status()).not.toHaveTextContent(/cases? selected/)
+  })
+
+  it("counts only the cases that aren't set aside or filtered out by the filter formula", async () => {
+    const { tile, dataSet, slider } = await setupRange()
+    renderSlider(tile)
+    // a3 = 1, set aside; the range [2, 4] then shows 2, 3 and 4 of the other five
+    act(() => dataSet.hideCasesOrItems(a3ItemIds(dataSet, a3 => a3 === 1)))
+    act(() => slider.setRange(2, 4))
+    wait(kCountAnnouncementDelay)
+    expect(status()).toHaveTextContent(/^3 of 5 cases visible$/)
+  })
+
+  it("says 'case' of a single visible case", async () => {
+    const { tile, dataSet, slider } = await setupRange()
+    renderSlider(tile)
+    act(() => dataSet.hideCasesOrItems(a3ItemIds(dataSet, a3 => a3 !== 1)))
+    act(() => slider.setRange(1, 1))
+    wait(kCountAnnouncementDelay)
+    expect(status()).toHaveTextContent(/^1 of 1 case visible$/)
+  })
+
   it("announces no count for a paused selection slider, which isn't selecting", async () => {
     const { tile, dataSet, slider } = await setupRange("selection")
     renderSlider(tile)
@@ -628,6 +764,30 @@ describe("SliderComponent: announcing case counts", () => {
     act(() => slider.setRange(2, 4))
     wait(kCountAnnouncementDelay)
     expect(status()).not.toHaveTextContent(/cases? selected/)
+  })
+
+  it("replaces an earlier count, even one added to another message", async () => {
+    const { tile, slider } = await setupRange()
+    slider.setAnimationMode("nonStop")
+    renderSlider(tile)
+    const playPause = screen.getByTestId("slider-play-pause")
+    fireEvent.click(playPause)
+    fireEvent.click(playPause)
+    wait(kCountAnnouncementDelay)
+    expect(status()).toHaveTextContent(/^Slider animation stopped\. \d of 6 cases visible$/)
+    act(() => slider.setRange(2, 4))
+    wait(kCountAnnouncementDelay)
+    expect(status()).toHaveTextContent(/^3 of 6 cases visible$/)
+  })
+
+  it("drops a pending count when playback starts", async () => {
+    const { tile, slider } = await setupRange()
+    slider.setAnimationMode("nonStop")
+    renderSlider(tile)
+    act(() => slider.setRange(2, 4))
+    fireEvent.click(screen.getByTestId("slider-play-pause"))
+    wait(kCountAnnouncementDelay)
+    expect(status()).not.toHaveTextContent(/cases/)
   })
 
   it("announces nothing when the slider appears", async () => {
@@ -696,6 +856,31 @@ describe("SliderComponent: keeping focus when the slider's controls change", () 
       act(() => appState.document.undoLastAction())
       // the undo is applied asynchronously
       await waitFor(() => expect(screen.getByTestId("slider-range")).toHaveFocus())
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
+  })
+
+  it("moves focus to the variable thumb when redo turns the focused range back into a variable slider", async () => {
+    const { tile, slider } = await setupBoundRange()
+    renderSlider(tile)
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    appState.document.treeMonitor!.enableMonitoring()
+    try {
+      await settle()
+      act(() => slider.applyModelChange(() => slider.setSliderType("variable"), {
+        undoStringKey: "V3.Undo.slider.changeType", redoStringKey: "V3.Redo.slider.changeType"
+      }))
+      await settle()
+      act(() => appState.document.undoLastAction())
+      await screen.findByTestId("slider-range")
+      await settle()
+      act(() => screen.getByTestId("slider-range").focus())
+      act(() => appState.document.redoLastAction())
+      // the redo is applied asynchronously
+      await waitFor(() => expect(screen.getByTestId("slider-thumb-input")).toHaveFocus())
     }
     finally {
       appState.document.treeMonitor!.disableMonitoring()

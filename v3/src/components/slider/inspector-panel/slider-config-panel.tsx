@@ -97,10 +97,11 @@ export const SliderConfigPalette =
     acceptWidthRef.current = handleAcceptWidth
     useEffect(() => () => acceptWidthRef.current(), [])
 
-    // Only digits and one decimal point can be entered, so the width can't be invalid: a keystroke or paste that
-    // would make it anything else is ignored.
+    // Only digits and one decimal point can be entered: a keystroke or paste that would make the field anything else
+    // is ignored. A comma is taken as the decimal point, as many languages write it.
     const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (kWidthEntryPattern.test(e.target.value)) setEditedWidth(e.target.value)
+      const value = e.target.value.replace(/,/g, ".")
+      if (kWidthEntryPattern.test(value)) setEditedWidth(value)
     }
 
     const handleWidthKeyDown = (e: React.KeyboardEvent) => {

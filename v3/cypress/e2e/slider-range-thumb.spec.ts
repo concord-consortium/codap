@@ -83,6 +83,7 @@ context("Slider range thumb", () => {
     })
     toolbar.getUndoTool().click()
     slider.getRangeLowInput().should("have.value", "2")
+    slider.getRangeHighInput().should($high => expect(valueOf($high)).to.be.closeTo(3.8, 0.1))
   })
 
   it("resizes from the upper edge with Alt+Arrow, without the browser going back", () => {

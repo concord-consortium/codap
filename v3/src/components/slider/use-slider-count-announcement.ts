@@ -12,10 +12,12 @@ export function sliderCountMessage(slider: ISliderModel) {
   const { dataSet } = slider
   if (!slider.isRangeSlider || !slider.attribute || !dataSet) return
   if (slider.sliderType === "visibility") {
-    return t("V3.Slider.casesVisible", { vars: [dataSet.itemIds.length, dataSet.itemIdsIgnoringSliderFilters.length] })
+    const total = dataSet.itemIdsIgnoringSliderFilters.length
+    return t(total === 1 ? "V3.Slider.caseVisible" : "V3.Slider.casesVisible",
+             { vars: [dataSet.itemIds.length, total] })
   }
-  // a paused selection slider isn't selecting
-  if (slider.isSelectionPaused) return
+  // a selection slider bound to an attribute with a formula, or paused, isn't selecting
+  if (!slider.isBoundSelectionSlider || slider.isSelectionPaused) return
   const count = slider.selectionTargetItemIds.size
   return t(count === 1 ? "V3.Slider.caseSelected" : "V3.Slider.casesSelected", { vars: [count] })
 }

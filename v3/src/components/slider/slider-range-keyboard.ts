@@ -10,13 +10,16 @@ export interface IRangeKeyContext {
   max: number
   step: number
   pageSize: number
-  // the bound attribute's sorted distinct values, which a collapsed range moves through
-  snapValues: readonly number[]
+  // the bound attribute's sorted distinct values, which a collapsed range moves through; a function, since only a
+  // collapsed range needs them and they take a pass over every case
+  getSnapValues: () => readonly number[]
 }
 
 export interface IRangeKeyModifiers {
   shiftKey: boolean
   altKey: boolean
+  ctrlKey: boolean
+  metaKey: boolean
 }
 
 export type RangeKeyChange =
@@ -34,7 +37,7 @@ function keyDirection(key: string, shiftKey: boolean): { sign: 1 | -1, isPage: b
 }
 
 function resizeForKey(context: IRangeKeyContext, key: string, shiftKey: boolean): RangeKeyChange | undefined {
-  // Alt+Up/Down are left alone: Chromebooks send them as Page Up/Down
+  // Chromebooks send Alt+Up/Down as Page Up/Down, so a resize on them would be unreachable there
   if (key !== "ArrowRight" && key !== "ArrowLeft") return
   const { low, high, max, step, pageSize } = context
   const sign = key === "ArrowRight" ? 1 : -1
@@ -44,10 +47,10 @@ function resizeForKey(context: IRangeKeyContext, key: string, shiftKey: boolean)
   return { kind: "resize", low, high: newHigh }
 }
 
-function collapsedMoveForKey(context: IRangeKeyContext, key: string, shiftKey: boolean): RangeKeyChange | undefined {
-  const { low, min, max, pageSize } = context
-  const values = context.snapValues.filter(value => value >= min && value <= max)
-  if (!values.length) return
+// values: the data's values on the axis, in order
+function collapsedMoveForKey(context: IRangeKeyContext, values: readonly number[], key: string, shiftKey: boolean)
+    : RangeKeyChange | undefined {
+  const { low, pageSize } = context
   if (key === "Home") return { kind: "move", low: values[0] }
   if (key === "End") return { kind: "move", low: values[values.length - 1] }
   const direction = keyDirection(key, shiftKey)
@@ -64,14 +67,29 @@ function collapsedMoveForKey(context: IRangeKeyContext, key: string, shiftKey: b
 
 // The change a key makes to the range, or undefined if the key isn't one the range handles. Moves aren't clamped
 // to the axis here; the slider model does that, keeping the width.
-export function rangeForKey(context: IRangeKeyContext, key: string, { shiftKey, altKey }: IRangeKeyModifiers)
+export function rangeForKey(context: IRangeKeyContext, key: string, modifiers: IRangeKeyModifiers)
     : RangeKeyChange | undefined {
+  const { shiftKey, altKey, ctrlKey, metaKey } = modifiers
+  // Ctrl and Meta chords belong to the system, the browser and screen readers
+  if (ctrlKey || metaKey) return
   if (altKey) return resizeForKey(context, key, shiftKey)
   const { low, high, min, max, step, pageSize } = context
-  if (high === low) return collapsedMoveForKey(context, key, shiftKey)
+  if (high === low) {
+    // where the axis shows none of the data's values, a point moves by steps, as dragging it moves it freely
+    const values = context.getSnapValues().filter(value => value >= min && value <= max)
+    if (values.length) return collapsedMoveForKey(context, values, key, shiftKey)
+  }
   if (key === "Home") return { kind: "move", low: min }
   if (key === "End") return { kind: "move", low: max - (high - low) }
   const direction = keyDirection(key, shiftKey)
   if (!direction) return
   return { kind: "move", low: low + direction.sign * (direction.isPage ? pageSize : step) }
+}
+
+// Whether two ranges are the same but for floating-point error, e.g. after steps right and back left. Steps are
+// the axis's resolution, so a difference far below one is no difference the user made.
+export function rangesMatch([lowA, highA]: readonly [number, number], [lowB, highB]: readonly [number, number],
+                            step: number) {
+  const tolerance = Math.abs(step) * 1e-6
+  return Math.abs(lowA - lowB) <= tolerance && Math.abs(highA - highB) <= tolerance
 }

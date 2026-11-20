@@ -1,12 +1,14 @@
-import { IRangeKeyContext, rangeForKey } from "./slider-range-keyboard"
+import { IRangeKeyContext, IRangeKeyModifiers, rangeForKey, rangesMatch } from "./slider-range-keyboard"
 
 const context = (overrides: Partial<IRangeKeyContext> = {}): IRangeKeyContext => ({
-  low: 4, high: 6, min: 0, max: 10, step: 0.5, pageSize: 1, snapValues: [1, 3, 4, 7, 9], ...overrides
+  low: 4, high: 6, min: 0, max: 10, step: 0.5, pageSize: 1, getSnapValues: () => [1, 3, 4, 7, 9], ...overrides
 })
-const noMods = { shiftKey: false, altKey: false }
-const shift = { shiftKey: true, altKey: false }
-const alt = { shiftKey: false, altKey: true }
-const altShift = { shiftKey: true, altKey: true }
+const mods = (overrides: Partial<IRangeKeyModifiers> = {}): IRangeKeyModifiers =>
+  ({ shiftKey: false, altKey: false, ctrlKey: false, metaKey: false, ...overrides })
+const noMods = mods()
+const shift = mods({ shiftKey: true })
+const alt = mods({ altKey: true })
+const altShift = mods({ shiftKey: true, altKey: true })
 
 describe("rangeForKey", () => {
   describe("a range with width", () => {
@@ -49,6 +51,19 @@ describe("rangeForKey", () => {
       expect(rangeForKey(context(), "ArrowDown", alt)).toBeUndefined()
     })
 
+    it("leaves Ctrl and Meta chords to the system, browser and screen reader", () => {
+      expect(rangeForKey(context(), "ArrowRight", mods({ ctrlKey: true }))).toBeUndefined()
+      expect(rangeForKey(context(), "ArrowLeft", mods({ metaKey: true }))).toBeUndefined()
+      expect(rangeForKey(context(), "Home", mods({ ctrlKey: true, altKey: true }))).toBeUndefined()
+    })
+
+    it("doesn't compute the data's values, which only a collapsed range needs", () => {
+      const getSnapValues = jest.fn(() => [1, 3, 4, 7, 9])
+      rangeForKey(context({ getSnapValues }), "ArrowRight", noMods)
+      rangeForKey(context({ getSnapValues }), "End", noMods)
+      expect(getSnapValues).not.toHaveBeenCalled()
+    })
+
     it("leaves other keys alone", () => {
       expect(rangeForKey(context(), "Tab", noMods)).toBeUndefined()
       expect(rangeForKey(context(), "a", noMods)).toBeUndefined()
@@ -85,9 +100,41 @@ describe("rangeForKey", () => {
       expect(rangeForKey(zoomed, "End", noMods)).toEqual({ kind: "move", low: 7 })
     })
 
+    it("pages by Shift+Arrow as by Page Up/Down", () => {
+      const ctx = context({ low: 1, high: 1, pageSize: 2.5 })
+      expect(rangeForKey(ctx, "ArrowRight", shift)).toEqual({ kind: "move", low: 4 })
+      expect(rangeForKey({ ...ctx, low: 9, high: 9 }, "ArrowLeft", shift)).toEqual({ kind: "move", low: 4 })
+    })
+
+    it("pages to a value exactly a page away", () => {
+      const ctx = context({ low: 1, high: 1, pageSize: 2 })
+      expect(rangeForKey(ctx, "PageUp", noMods)).toEqual({ kind: "move", low: 3 })
+    })
+
+    it("moves by steps, as a range with width does, where the axis shows none of the data's values", () => {
+      const gap = context({ low: 5, high: 5, min: 5, max: 6.5 })
+      expect(rangeForKey(gap, "ArrowRight", noMods)).toEqual({ kind: "move", low: 5.5 })
+      expect(rangeForKey(gap, "ArrowLeft", noMods)).toEqual({ kind: "move", low: 4.5 })
+      expect(rangeForKey(gap, "PageUp", noMods)).toEqual({ kind: "move", low: 6 })
+      expect(rangeForKey(gap, "Home", noMods)).toEqual({ kind: "move", low: 5 })
+      expect(rangeForKey(gap, "End", noMods)).toEqual({ kind: "move", low: 6.5 })
+    })
+
     it("widens from the point with Alt+Right, and ignores Alt+Left", () => {
       expect(rangeForKey(collapsed(4), "ArrowRight", alt)).toEqual({ kind: "resize", low: 4, high: 4.5 })
       expect(rangeForKey(collapsed(4), "ArrowLeft", alt)).toBeUndefined()
     })
+  })
+})
+
+describe("rangesMatch", () => {
+  it("treats ranges that differ only by floating-point error as the same", () => {
+    // 0.3 + 0.1 - 0.1 is 0.30000000000000004
+    expect(rangesMatch([0.3 + 0.1 - 0.1, 1], [0.3, 1], 0.1)).toBe(true)
+  })
+
+  it("tells apart ranges that differ by a fraction of a step", () => {
+    expect(rangesMatch([0.31, 1], [0.3, 1], 0.1)).toBe(false)
+    expect(rangesMatch([0.3, 1.01], [0.3, 1], 0.1)).toBe(false)
   })
 })

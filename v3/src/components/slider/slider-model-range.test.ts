@@ -65,6 +65,16 @@ describe("SliderModel range", () => {
     expect(slider.dynamicRangeWidth).toBeUndefined()
   })
 
+  it("drops an uncommitted dynamic change, restoring the saved range", async () => {
+    const { slider } = await setupRangeSlider()
+    const saved = [slider.rangeLow, slider.rangeHigh]
+    slider.setDynamicRange(2, 4)
+    slider.cancelDynamicRange()
+    expect(slider.isUpdatingDynamically).toBe(false)
+    expect(slider.dynamicRangeWidth).toBeUndefined()
+    expect([slider.rangeLow, slider.rangeHigh]).toEqual(saved)
+  })
+
   it("keeps the range within the axis when the axis bounds change", async () => {
     const { slider } = await setupRangeSlider()
     slider.setRange(4, 5)

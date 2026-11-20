@@ -75,7 +75,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const clearFocusAttributeLabel = useCallback(() => setFocusAttributeLabel(false), [])
   const [statusMessage, setStatusMessage] = useState("")
   const statusTimeoutRef = useRef<number>()
-  // the message being announced, which a stop of playback caused by the same change adds to
+  // the message being announced, which a stop of playback caused by the same change, a resume, or a case count adds to
   const statusMessageRef = useRef("")
   const prevRunningRef = useRef(false)
   // whether playback is stopping because the selection slider paused, whose announcement the stop is added to
