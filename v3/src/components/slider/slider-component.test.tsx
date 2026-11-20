@@ -17,7 +17,8 @@ import { configureSliderFromAttribute } from "./slider-attribute-drop"
 import * as rangeChangeModule from "./slider-range-change"
 import { SliderComponent } from "./slider-component"
 import { kCountAnnouncementDelay } from "./use-slider-count-announcement"
-import { addDates, setupSliderAndData } from "./slider-test-utils"
+import { setupTestDataset } from "../../test/dataset-test-utils"
+import { addDataSetCopy, addDates, setupSliderAndData } from "./slider-test-utils"
 
 const tileSelection: ITileSelection = {
   isTileSelected: () => false,
@@ -931,7 +932,7 @@ describe("SliderComponent: resuming a selection slider", () => {
     act(() => featureFlagManager.setServerConfig({}))
   })
 
-  // a selection slider bound to a3 at [2, 4] that's paused because a3 = 6 was selected elsewhere
+  // a selection slider bound to a3 at [2, 4] that has never owned the selection, so it's paused (a3 = 6 is selected)
   async function setupPausedSelectionSlider() {
     const setup = await setupSliderAndData()
     const { dataSet, slider } = setup
@@ -946,7 +947,7 @@ describe("SliderComponent: resuming a selection slider", () => {
   const selectedA3 = (dataSet: IDataSet) => {
     const a3 = dataSet.attrFromName("a3")!.id
     return dataSet.itemIds.filter(itemId => dataSet.selection.has(itemId))
-      .map(itemId => dataSet.getNumeric(itemId, a3)).sort()
+      .map(itemId => dataSet.getNumeric(itemId, a3)!).sort((x, y) => x - y)
   }
 
   it("pressing the paused thumb resumes selection", async () => {
@@ -957,7 +958,7 @@ describe("SliderComponent: resuming a selection slider", () => {
     expect(selectedA3(dataSet)).toEqual([2, 3, 4])
   })
 
-  it("pressing play on a paused slider resumes it at its current range", async () => {
+  it("clicking play on a paused slider resumes it at its current range", async () => {
     const { tile, dataSet, slider } = await setupPausedSelectionSlider()
     renderSlider(tile)
     await userEvent.click(screen.getByTestId("slider-play-pause"))
@@ -983,7 +984,7 @@ describe("SliderComponent: resuming a selection slider", () => {
     expect(slider.ownsSelection).toBe(true)
   })
 
-  it("binding an attribute by drop or menu selects the range", async () => {
+  it("binding an attribute (as a drop or a menu choice does) selects the range", async () => {
     const { tile, dataSet, slider } = await setupSliderAndData()
     slider.setSliderType("selection")
     configureSliderFromAttribute(tile, dataSet, dataSet.attrFromName("a3")!.id)
@@ -1140,17 +1141,34 @@ describe("SliderComponent: resuming a selection slider", () => {
       try {
         fireEvent.pointerDown(screen.getByTestId("slider-range-body"), { button: 0, isPrimary: false })
         expect(slider.ownsSelection).toBe(false)
+        // while a primary press does (on the axis, which starts no drag that would need pointer capture)
+        fireEvent.pointerDown(screen.getByTestId("slider-axis"), { button: 0, isPrimary: true })
+        expect(slider.ownsSelection).toBe(true)
       }
       finally {
         window.PointerEvent = OriginalPointerEvent
       }
     })
 
-    it("dropping an attribute on a paused slider announces the attribute and the resume", async () => {
+    it("binding an attribute on a paused slider, as a drop does, announces the attribute and the resume", async () => {
       const { tile, dataSet } = await setupPausedSelectionSlider()
       renderSlider(tile)
       act(() => { configureSliderFromAttribute(tile, dataSet, dataSet.attrFromName("a4")!.id) })
       expect(status()).toHaveTextContent("Attribute set to a4. Selection resumed")
+    })
+
+    it("keeps playing when an attribute from another dataset is dropped on it", async () => {
+      const { content, tile, slider } = await setupPausedSelectionSlider()
+      renderSlider(tile)
+      await userEvent.click(screen.getByTestId("slider-play-pause"))
+      expect(slider.ownsSelection).toBe(true)
+      const other = addDataSetCopy(content, setupTestDataset().dataset)
+      act(() => { configureSliderFromAttribute(tile, other, other.attrFromName("a4")!.id) })
+      expect(slider.ownsSelection).toBe(true)
+      expect(other.selection.size).toBeGreaterThan(0)
+      expect(screen.getByTestId("slider-play-pause")).toHaveAccessibleName("Pause slider")
+      expect(status()).not.toHaveTextContent(/stopped|paused/i)
+      await userEvent.click(screen.getByTestId("slider-play-pause"))
     })
 
     it("stopping playback from the keyboard on a stale slider announces only the stop", async () => {

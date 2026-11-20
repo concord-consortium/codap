@@ -11,6 +11,7 @@ import { getTileModel } from "../../models/tiles/tile-model"
 import { TreeManager } from "../../models/history/tree-manager"
 import { toV3Id } from "../../utilities/codap-utils"
 import { ISliderModel } from "./slider-model"
+import { configureSliderFromAttribute } from "./slider-attribute-drop"
 import { rangeChangeOptions } from "./slider-range-change"
 import { kSliderIdPrefix } from "./slider-registration"
 import { selectExactly, visibleSetsEqual } from "./slider-selection"
@@ -40,7 +41,7 @@ const a3Id = (dataSet: IDataSet) => dataSet.attrFromName("a3")!.id
 const selectedA3 = (dataSet: IDataSet) => {
   const a3 = a3Id(dataSet)
   return dataSet.itemIds.filter(itemId => dataSet.selection.has(itemId))
-    .map(itemId => dataSet.getNumeric(itemId, a3)).sort()
+    .map(itemId => dataSet.getNumeric(itemId, a3)!).sort((x, y) => x - y)
 }
 // the id of the item whose a3 value is the given value
 const idOf = (dataSet: IDataSet, value: number) => {
@@ -326,7 +327,7 @@ describe("selection slider triggers", () => {
     slider.setSliderType("visibility")
     expect(slider.appliedItemIds).toBeUndefined()
     slider.setSliderType("variable")
-    expect(dataSet.selection.size).toBeGreaterThan(0)
+    expect(selectedA3(dataSet)).toEqual([2, 3, 4])
   })
 
   it("releases when a formula is added to the bound attribute, leaving the selection", async () => {
@@ -619,5 +620,62 @@ describe("selection slider rebound to another dataset", () => {
     slider.setRange(2, 4)
     expect(other.selection.size).toBe(0)
     expect(dataSet.selection.size).toBe(3)
+  })
+})
+
+describe("selection slider and undo of an attribute change", () => {
+  it("re-selects when undo or redo changes the attribute but not the range", async () => {
+    const { dataSet, slider, tile } = await setupSliderAndData()
+    slider.setSliderType("selection")
+    // b runs opposite to a3 over the same extent, so configuring from it leaves the range as it is
+    const b = dataSet.addAttribute({ name: "b" })
+    const a3 = a3Id(dataSet)
+    dataSet.setCaseValues(dataSet.itemIds.map(itemId =>
+      ({ __id__: itemId, [b.id]: 7 - dataSet.getNumeric(itemId, a3)! })))
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    appState.document.treeMonitor!.enableMonitoring()
+    try {
+      await settle()
+      // each binding is a drop, which records an undoable change and selects the range
+      configureSliderFromAttribute(tile, dataSet, a3)
+      await settle()
+      expect(selectedA3(dataSet)).toEqual([1])
+      configureSliderFromAttribute(tile, dataSet, b.id)
+      await settle()
+      // b = 1 is the case with a3 = 6
+      expect(selectedA3(dataSet)).toEqual([6])
+      appState.document.undoLastAction()
+      await settle()
+      expect(slider.attributeId).toBe(a3)
+      expect(selectedA3(dataSet)).toEqual([1])
+      expect(slider.isSelectionPaused).toBe(false)
+      appState.document.redoLastAction()
+      await settle()
+      expect(selectedA3(dataSet)).toEqual([6])
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
+  })
+})
+
+describe("selection slider with two visibility sliders", () => {
+  it("selects the cases both show, and follows either one", async () => {
+    const { content, dataSet, slider } = await setupSelectionSlider()
+    const byA3 = addSlider(content, dataSet, "visibility")
+    byA3.setRange(1, 4)
+    const byA4 = addSlider(content, dataSet, "visibility")
+    byA4.configureFromAttribute(dataSet, dataSet.attrFromName("a4")!.id)
+    // a4 is -a3, so [-5, -2] shows a3 2..5
+    byA4.setRange(-5, -2)
+    slider.setRange(1, 6)
+    slider.resumeSelection()
+    expect(selectedA3(dataSet)).toEqual([2, 3, 4])
+    byA3.setRange(1, 6)
+    expect(selectedA3(dataSet)).toEqual([2, 3, 4, 5])
+    byA4.setRange(-6, -1)
+    expect(selectedA3(dataSet)).toEqual([1, 2, 3, 4, 5, 6])
+    expect(slider.ownsSelection).toBe(true)
   })
 })
