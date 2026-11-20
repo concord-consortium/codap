@@ -5,8 +5,7 @@ export interface IDefaultDataContextLink {
   setDataContextId: (dataContextId?: string) => void
 }
 
-// The host page's link. It isn't part of the document, so undoing a create leaves the id of a data set that no
-// longer exists, which resolves to nothing, and redo restores the same id.
+// The host page's link, not part of the document: deleting its data context leaves an id that resolves to nothing.
 export function createDataContextLink(): IDefaultDataContextLink {
   const link: IDefaultDataContextLink = {
     dataContextId: undefined,

@@ -478,7 +478,7 @@ describe("the host page's default data context", () => {
     expect(((await processAction({ action: "get", resource: "dataContext" }, host) as DISuccessResult)
       .values as any).name).toBe("Host2")
 
-    // without the link (as before), the host page had no default
+    // without the link there is no default
     expect((await processAction({ action: "get", resource: "dataContext" })).success).toBe(false)
   })
 

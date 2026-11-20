@@ -1,14 +1,18 @@
 import { createCodapDocument } from "../../models/codap/create-codap-document"
+import { createDataSet } from "../../models/data/data-set-conversion"
 import { FreeTileRow, IFreeTileRow } from "../../models/document/free-tile-row"
 import { getTileComponentInfo } from "../../models/tiles/tile-component-info"
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileModelSnapshotIn } from "../../models/tiles/tile-model"
-import { toV2Id } from "../../utilities/codap-utils"
+import { serializeCodapV2Document } from "../../models/document/serialize-document"
+import { SharedDataSet } from "../../models/shared/shared-data-set"
 import { hasOwnProperty, safeJsonParse } from "../../utilities/js-utils"
+import { isCodapV2GameContext } from "../../v2/codap-v2-data-context-types"
 import { CodapV2Document } from "../../v2/codap-v2-document"
 import { exportV2Component, GameContextMetadataMap } from "../../v2/codap-v2-tile-exporters"
 import { importV2Component } from "../../v2/codap-v2-tile-importers"
+import { importV2Document } from "../../v2/import-v2-document"
 import {
   ICodapV2DocumentJson, ICodapV2GameViewStorage, ICodapV2GuideViewStorage, ICodapV2ImageComponentStorage,
   ICodapV2WebViewStorage
@@ -175,13 +179,81 @@ describe("WebView registration", () =>  {
     // The component's link follows the plugin's default.
     const gameContextId = content!.dataContextId!
     expect(content!.v2GameContextId).toBe(gameContextId)
-    content!.setDataContextId("DATANEW")
+    content!.setDataContextId("DATA9999")
     const gameContextMetadataMap: GameContextMetadataMap = {}
     const movedExport = exportV2Component({ tile, row, sharedModelManager, gameContextMetadataMap })
     expect(Object.keys(gameContextMetadataMap)).toEqual([gameContextId])
     expect(gameContextMetadataMap[gameContextId].gameName).toBe("Markov")
     const movedStorage = movedExport?.componentStorage as ICodapV2GameViewStorage
-    expect(movedStorage._links_?.context?.id).toBe(toV2Id("DATANEW"))
+    expect(movedStorage._links_?.context?.id).toBe(9999)
+    // the link no longer names the game context, so v3 saves its id
+    expect(movedStorage.v3).toEqual({ gameContextId: 3 })
+  })
+
+  it("keeps a moved Markov game's game context through repeated v2 saves", async () => {
+    const file = path.join(__dirname, "../../test/v2", "markov-example.codap")
+    const doc = safeJsonParse<ICodapV2DocumentJson>(fs.readFileSync(file, "utf8"))!
+    const gameContextOf = (v2Json: ICodapV2DocumentJson) =>
+      v2Json.contexts.filter(isCodapV2GameContext).find(c => c.guid === 3)
+    const gameViewOf = (document: ReturnType<typeof importV2Document>) => {
+      const tiles = Array.from(document.content!.tileMap.values())
+      return tiles.map(tile => tile.content).find(c => isWebViewModel(c) && c.isPlugin) as IWebViewModel
+    }
+
+    // a bare `create dataContext` moves the plugin's default to a new data context
+    const firstDocument = importV2Document(new CodapV2Document(doc))
+    const newData = createDataSet({ name: "New", attributes: [{ name: "a" }] })
+    const sharedDataSet = SharedDataSet.create()
+    sharedDataSet.setDataSet(newData)
+    getSharedModelManager(firstDocument)!.addSharedModel(sharedDataSet)
+    gameViewOf(firstDocument).setDataContextId(newData.id)
+
+    // as a saved file: the export can share MST nodes (e.g. collection defaults) with the document
+    const save = async (document: ReturnType<typeof importV2Document>) =>
+      JSON.parse(JSON.stringify(await serializeCodapV2Document(document))) as ICodapV2DocumentJson
+    const firstJson = await save(firstDocument)
+    expect(gameContextOf(firstJson)?.contextStorage?.gameName).toBe("Markov")
+
+    // re-opening the saved file restores the game context, so the next save keeps the game's metadata
+    const secondDocument = importV2Document(new CodapV2Document(firstJson))
+    const secondGameView = gameViewOf(secondDocument)
+    expect(secondGameView.dataContextId).toBe(newData.id)
+    expect(secondGameView.v2GameContextId).toBe("DATA3")
+
+    const secondJson = await save(secondDocument)
+    const gameStorage = gameContextOf(secondJson)?.contextStorage
+    expect(gameStorage?.gameName).toBe("Markov")
+    expect(gameStorage?.gameUrl).toBe(`${kCodapResourcesUrl}/plugins/data-games/Markov/index.html`)
+    expect(gameStorage?.gameState).toEqual(gameContextOf(firstJson)?.contextStorage?.gameState)
+    expect(gameStorage?.gameState).toBeDefined()
+  })
+
+  it("doesn't treat a GameView's plain DG.DataContext as its game context", () => {
+    // components[0] is a GameView linked to DG.DataContext 401
+    const file = path.join(__dirname, "../../test/v2", "seal-and-shark-demo.codap")
+    const doc = safeJsonParse<ICodapV2DocumentJson>(fs.readFileSync(file, "utf8"))!
+    const v2Document = new CodapV2Document(doc)
+
+    const codapDoc = createCodapDocument()
+    const docContent = codapDoc.content!
+    docContent.setRowCreator(() => FreeTileRow.create())
+    const sharedModelManager = getSharedModelManager(docContent)
+    const tile = importV2Component({
+      v2Component: v2Document.components[0],
+      v2Document,
+      insertTile: (tileSnap: ITileModelSnapshotIn) => docContent.insertTileSnapshotInDefaultRow(tileSnap),
+      ...mockImportArgs
+    })!
+    const content = isWebViewModel(tile?.content) ? tile?.content : undefined
+    expect(content?.isPlugin).toBe(true)
+    expect(content?.dataContextId).toBe("DATA401")
+    expect(content?.v2GameContextId).toBeUndefined()
+
+    const row = docContent.getRowByIndex(0) as IFreeTileRow
+    const gameContextMetadataMap: GameContextMetadataMap = {}
+    const componentExport = exportV2Component({ tile, row, sharedModelManager, gameContextMetadataMap })
+    expect(gameContextMetadataMap).toEqual({})
+    expect((componentExport?.componentStorage as ICodapV2GameViewStorage).v3).toBeUndefined()
   })
 
   it("imports/exports v2 guide view components with external url", () => {
