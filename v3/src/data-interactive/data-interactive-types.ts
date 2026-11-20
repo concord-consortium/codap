@@ -17,6 +17,7 @@ import {
   DIUpdateItemResult
 } from "./data-interactive-data-set-types"
 import { DIAdornmentValues } from "./data-interactive-adornment-types"
+import { IDefaultDataContextLink } from "./default-data-context-link"
 
 export type DIDocument = ICodapV2DocumentJson
 
@@ -149,6 +150,8 @@ export interface DIResources {
   global?: IGlobalValue
   interactiveFrame?: ITileModel
   isDefaultDataContext?: boolean
+  // where the requester's default data context is kept: its web view, or the host page's link
+  defaultDataContextLink?: IDefaultDataContextLink
   item?: ICase
   itemByCaseID?: ICase
   itemByID?: ICase
