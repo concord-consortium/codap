@@ -138,9 +138,9 @@ the others).
 In `hot-spot-utils.ts`, add this immediately above `export const kColorLUTSize = 256`:
 
 ```ts
-/** The number of color classes the density is drawn in, or "continuous" for a smooth gradient */
-export type HotSpotColorBins = number | "continuous"
 export const kContinuousColorBins = "continuous"
+/** The number of color classes the density is drawn in, or kContinuousColorBins for a smooth gradient */
+export type HotSpotColorBins = number | typeof kContinuousColorBins
 export const kMinColorBins = 2
 export const kMaxColorBins = 10
 /** The binning slider's position for continuous, one step past the most classes */
@@ -169,7 +169,7 @@ export function colorBinsToSliderValue(colorBins: HotSpotColorBins) {
 
 /** Converts the binning slider's position to color bins */
 export function sliderValueToColorBins(value: number): HotSpotColorBins {
-  return value > kMaxColorBins ? kContinuousColorBins : value
+  return getEffectiveColorBins(value === kContinuousSliderValue ? kContinuousColorBins : value)
 }
 ```
 

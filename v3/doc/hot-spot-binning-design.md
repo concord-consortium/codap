@@ -81,8 +81,8 @@ where `colorBins` is the new number or `"continuous"`.
 colorBins: types.optional(types.union(types.literal("continuous"), types.number), "continuous")
 ```
 
-- **Type.** `HotSpotColorBins = number | "continuous"`, exported from `hot-spot-utils.ts` with the constant
-  `kContinuousColorBins = "continuous"`.
+- **Type.** `hot-spot-utils.ts` exports the constant `kContinuousColorBins = "continuous"` and the type
+  `HotSpotColorBins = number | typeof kContinuousColorBins`, so the string is written in one place.
 - **Why a string literal for continuous.** The saved document says what it means, and the same type serves the
   in-progress slider value, where `undefined` already means "no change in progress". The alternative, an
   absent `colorBins` meaning continuous, would need a second sentinel for the in-progress value, and would
@@ -204,7 +204,7 @@ without rendering:
 | Function | Behavior |
 | --- | --- |
 | `colorBinsToSliderValue(colorBins)` | Applies `getEffectiveColorBins`, then `"continuous"` → `kMaxColorBins + 1`; a number → itself |
-| `sliderValueToColorBins(value)` | A value above `kMaxColorBins` → `"continuous"`; otherwise the value |
+| `sliderValueToColorBins(value)` | `kContinuousSliderValue` → `"continuous"`; any other value → itself, with `getEffectiveColorBins` applied |
 
 The slider's `minValue` is `kMinColorBins` and its `maxValue` is `kMaxColorBins + 1`. It reads
 `displayColorBins` for its position and readout, and compares against `effectiveColorBins` to decide whether
