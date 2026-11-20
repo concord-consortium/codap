@@ -283,6 +283,25 @@ describe("Slider ComponentHandler", () => {
     expect(sliderModel.axis.min).toBe(0)
     expect(sliderModel.axis.max).toBe(50)
 
+    // as in V2, the value is rounded to the slider's "multiple of" setting, but not kept within the axis
+    expect(handler.update!({ component: tile }, { multipleOf: 0.5, value: 1.3 }).success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(1.5)
+    expect(handler.update!({ component: tile }, { value: 99.8 }).success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(100)
+    // with no "multiple of" setting, the value is used as sent
+    sliderModel.setMultipleOf(0)
+    expect(handler.update!({ component: tile }, { value: 25.3 }).success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(25.3)
+    // sending only multipleOf rounds the current value, as in V2
+    expect(handler.update!({ component: tile }, { multipleOf: 0.5 }).success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(25.5)
+    // a negative multipleOf is taken as positive, as in the inspector
+    expect(handler.update!({ component: tile }, { multipleOf: -0.5, value: 1.25 }).success).toBe(true)
+    expect(sliderModel.multipleOf).toBe(0.5)
+    expect(sliderModel.globalValue.value).toBe(1.5)
+    sliderModel.setMultipleOf(0)
+    handler.update!({ component: tile }, { value: 25 })
+
     // Verify get returns the updated value
     const getResult = handler.get!({ component: tile })
     expect(getResult.success).toBe(true)

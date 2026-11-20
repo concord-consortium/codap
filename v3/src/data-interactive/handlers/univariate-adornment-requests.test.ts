@@ -100,11 +100,62 @@ describe("create and update on the univariate adornments", () => {
     expect(updated._numStErrs).toBe(1.5)
     expect(updated.isVisible).toBe(true)
     expect(updated.data[0].max - updated.data[0].min).toBeCloseTo(3 * standardError)
-    // a negative value, or one that isn't a finite number, is ignored
-    for (const _numStErrs of ["three", "2", null, -2, NaN, Infinity]) {
-      await request("update", `${graph}.adornment`, { type: "Standard Error", _numStErrs })
+    // one that isn't a finite number is refused, and changes nothing
+    const other = await createGraph(testData, { xAttributeName: "a3" })
+    expect(await request("create", `${other}.adornment`, { type: "Standard Error", _numStErrs: "x" }))
+      .toEqual({ success: false, values: { error: "_numStErrs must be a number." } })
+    expect((await request("get", `${other}.adornmentList`)).values).toEqual([])
+    for (const _numStErrs of ["three", "2", NaN, Infinity]) {
+      expect(await request("update", `${graph}.adornment`, { type: "Standard Error", _numStErrs, isVisible: false }))
+        .toEqual({ success: false, values: { error: "_numStErrs must be a number." } })
+    }
+    expect(await getAdornment(graph, "Standard Error")).toMatchObject({ _numStErrs: 1.5, isVisible: true })
+    // as in v2, a negative value is ignored; null is treated as absent
+    for (const _numStErrs of [null, -2]) {
+      expect((await request("update", `${graph}.adornment`, { type: "Standard Error", _numStErrs })).success).toBe(true)
     }
     expect((await getAdornment(graph, "Standard Error"))._numStErrs).toBe(1.5)
+  })
+
+  it("Count, LSRL and Region of Interest: create and update refuse values of the wrong type", async () => {
+    const refusal = (error: string) => ({ success: false, values: { error } })
+    const dot = await createGraph(testData, { xAttributeName: "a3" })
+    // checked for Count and Percent alike, before anything changes
+    expect(await request("create", `${dot}.adornment`, { type: "Count", percentType: "rows" }))
+      .toEqual(refusal("percentType must be one of cell, column, row."))
+    expect((await request("get", `${dot}.adornmentList`)).values).toEqual([])
+    expect((await request("create", `${dot}.adornment`, { type: "Count", percentType: "cell" })).success).toBe(true)
+    expect(await request("update", `${dot}.adornment`, { type: "Count", percentType: "Row", isVisible: false }))
+      .toEqual(refusal("percentType must be one of cell, column, row."))
+    expect(await getAdornment(dot, "Count")).toMatchObject({ isVisible: true })
+
+    expect(await request("create", `${dot}.adornment`, { type: "Region of Interest", primary: 5 }))
+      .toEqual(refusal("primary must be an object."))
+    expect(await request("create", `${dot}.adornment`, { type: "Region of Interest", primary: { position: true } }))
+      .toEqual(refusal("primary.position must be a number or a string."))
+    expect(await request("create", `${dot}.adornment`, { type: "Region of Interest", secondary: { extent: [1] } }))
+      .toEqual(refusal("secondary.extent must be a number or a string."))
+    expect(await request("create", `${dot}.adornment`, { type: "Region of Interest", secondary: [] }))
+      .toEqual(refusal("secondary must be an object."))
+    expect(await request("create", `${dot}.adornment`,
+      { type: "Region of Interest", secondary: { axis: "x" } })).toEqual(refusal("secondary.axis must be one of y."))
+    expect((await request("get", `${dot}.adornmentList`)).values.map(({ type }: any) => type))
+      .not.toContain("Region of Interest")
+    expect((await request("create", `${dot}.adornment`,
+      { type: "Region of Interest", primary: { position: 2, extent: "50%" } })).success).toBe(true)
+
+    // a null range is treated as absent
+    expect((await request("create", `${dot}.adornment`,
+      { type: "Region of Interest", primary: null })).success).toBe(true)
+
+    const scatter = await createGraph(testData, { xAttributeName: "a3", yAttributeName: "a4" })
+    expect(await request("create", `${scatter}.adornment`, { type: "LSRL", showRSquared: 1 }))
+      .toEqual(refusal("showRSquared must be true or false."))
+    expect((await request("get", `${scatter}.adornmentList`)).values).toEqual([])
+    expect((await request("create", `${scatter}.adornment`, { type: "LSRL" })).success).toBe(true)
+    expect(await request("update", `${scatter}.adornment`, { type: "LSRL", showR: "yes", isVisible: false }))
+      .toEqual(refusal("showR must be true or false."))
+    expect(await getAdornment(scatter, "LSRL")).toMatchObject({ isVisible: true })
   })
 
   const isVisibleError = { success: false, values: { error: "isVisible must be true or false." } }

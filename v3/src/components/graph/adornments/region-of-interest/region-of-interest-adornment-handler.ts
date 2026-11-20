@@ -6,7 +6,9 @@ import { IGraphContentModel } from "../../models/graph-content-model"
 import { getAdornmentContentInfo } from "../adornment-content-info"
 import { IAdornmentModel } from "../adornment-models"
 import { IAdornmentsBaseStore } from "../store/adornments-base-store"
-import { adornmentMismatchResult } from "../utilities/adornment-handler-utils"
+import {
+  adornmentMismatchResult, numberOrStringValuesError, objectValuesError, optionValuesError
+} from "../utilities/adornment-handler-utils"
 import { IRegionOfInterestAdornmentModel, isRegionOfInterestAdornment } from "./region-of-interest-adornment-model"
 import { kRegionOfInterestType } from "./region-of-interest-adornment-types"
 
@@ -29,6 +31,20 @@ const setAdornmentProperties = (adornment: IRegionOfInterestAdornmentModel, valu
 }
 
 export const regionOfInterestAdornmentHandler: DIAdornmentHandler = {
+  validate(values) {
+    const error = objectValuesError(values, ["primary", "secondary"])
+    if (error) return error
+    // name the range in the error, as in "secondary.position must be a number or a string."
+    const rangeError = (key: "primary" | "secondary") => {
+      const range = values[key] as Record<string, unknown> | undefined
+      if (!range) return
+      const prefixed = Object.fromEntries(Object.entries(range).map(([k, v]) => [`${key}.${k}`, v]))
+      return numberOrStringValuesError(prefixed, [`${key}.position`, `${key}.extent`]) ||
+        (key === "secondary" ? optionValuesError(prefixed, ["secondary.axis"], ["y"]) : undefined)
+    }
+    return rangeError("primary") || rangeError("secondary")
+  },
+
   create(args) {
     const { graphContent, values } = args
 

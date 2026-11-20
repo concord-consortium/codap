@@ -187,7 +187,8 @@ export const sliderComponentHandler: DIComponentHandler = {
       snapshot._animationRate = animationRate
     }
     if (multipleOf != null) {
-      snapshot.multipleOf = multipleOf
+      // as setMultipleOf does for the inspector
+      snapshot.multipleOf = Math.abs(multipleOf)
     }
     if (scaleType != null) {
       // The scaleType has already been validated, so we can safely use it
@@ -202,8 +203,13 @@ export const sliderComponentHandler: DIComponentHandler = {
 
     applySnapshot(content, snapshot)
 
-    if (_value != null) {
-      content.globalValue.setValue(_value)
+    // As in V2, which rounded the slider's value whenever it or the slider's "multiple of" changed
+    // (slider_model.js:133-144), a value sent here, or the current value when only multipleOf is sent, is
+    // rounded to the slider's "multiple of" setting. Unlike a drag, it isn't kept within the axis, as in V2.
+    if (_value != null || multipleOf != null) {
+      const { increment } = content
+      const newValue = _value ?? content.globalValue.value
+      content.globalValue.setValue(increment ? Math.round(newValue / increment) * increment : newValue)
     }
 
     return { success: true }

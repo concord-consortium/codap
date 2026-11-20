@@ -229,7 +229,10 @@ properties, or set them with a following `update`.
 
 `animationDirection` and `animationMode` are numeric indexes, not names. `value` is honored on
 `update` only, and must be a number or text that reads as one, as for `update global`; anything
-else is refused with `global values must be numbers`, and nothing changes.
+else is refused with `global values must be numbers`, and nothing changes. As in v2, the value is
+rounded to the slider's `multipleOf`, if it has one, but it isn't kept within the slider's axis.
+Sending only `multipleOf` rounds the current value, as in v2. (v2 also rounded a value set with
+`update global` on a slider's global value; that isn't rounded here.)
 
 <!-- BEGIN GENERATED: values-slider source=V2Slider -->
 | Property | Type | | Declared in |
@@ -278,7 +281,9 @@ else is refused with `global values must be numbers`, and nothing changes.
 | `geoRaster` | `V2MapGeoRaster` | optional | `V2Map` |
 <!-- END GENERATED: values-map -->
 
-**A map's `get` returns only `dataContext`.** `center`, `zoom`, `legendAttributeName` and
+**A map's `get` returns only `dataContext`.** A map with several data sets, one per layer, reports
+the first layer's. (v2 meant to report the data context too, but looked for it where a map didn't
+keep it, so it never did.) `center`, `zoom`, `legendAttributeName` and
 `geoRaster` can be set but not read back; a plugin that reads a map's position in order to
 restore it later gets nothing. `geoRaster` is also ignored on `create` — set it with a following
 `update`. That `get` returns all four is the intended behavior and a known bug today.

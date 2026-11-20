@@ -5,6 +5,7 @@ import { diComponentHandler } from "../../data-interactive/handlers/component-ha
 import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { appState } from "../../models/app-state"
+import { DataSet } from "../../models/data/data-set"
 import { toV3Id } from "../../utilities/codap-utils"
 import { kMapIdPrefix } from "./map-defs"
 import "./map-registration"
@@ -56,7 +57,7 @@ describe("DataInteractive ComponentHandler Map", () => {
 
     testGetComponent(tile, handler, (mapTile, values) => {
       const { dataContext } = values as V2Map
-      expect(dataContext).toBe((mapTile.content as IMapContentModel).dataConfiguration?.dataset?.name)
+      expect(dataContext).toBe((mapTile.content as IMapContentModel).datasetsArray[0]?.name)
     })
 
     const updateResult = handler.update!({ component: tile }, {
@@ -75,5 +76,18 @@ describe("DataInteractive ComponentHandler Map", () => {
     expect(tileContent.center.lat).toBe(30)
     expect(tileContent.center.lng).toBe(34)
     expect(tileContent.zoom).toBe(5)
+  })
+
+  it("get reports the data context of the map's first layer", () => {
+    const _places = DataSet.create({ name: "places" })
+    ;["lat", "long"].forEach(name => _places.addAttribute({ name }))
+    const places = documentContent.createDataSet(getSnapshot(_places)).sharedDataSet.dataSet
+    places.addCases([{ lat: 42, long: -71 }], { canonicalize: true })
+    const result = handler.create!({}, { type: "map", dataContext: "places" })
+    expect(result.success).toBe(true)
+    const tile = documentContent.tileMap.get(toV3Id(kMapIdPrefix, (result.values as DIComponentInfo).id!))!
+    expect((tile.content as IMapContentModel).datasetsArray).toEqual([places])
+    const got = handler.get!({ component: tile })
+    expect((got.values as V2Map).dataContext).toBe("places")
   })
 })
