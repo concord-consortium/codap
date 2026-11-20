@@ -131,6 +131,7 @@ the string is what reaches your plugin.
 |---|---|
 | `<value> must be a number.` | — |
 | `<value> must be a string.` | — |
+| `<value> must be an array.` | — |
 | `<value> must be true or false.` | — |
 | `<value1> <value2>: <value3> required` | — |
 | `<value1> contains an invalid attribute name or ID.` | — |
@@ -152,8 +153,8 @@ the string is what reaches your plugin.
 | `Component not found` | `componentNotFoundResult` |
 | `Could not create component` | — |
 | `Current plot type does not support fusing points into bars` | — |
-| `Data context not found: <value>` | — |
 | `DataContext not found` | `dataContextNotFoundResult` |
+| `DataContext not found: <value>` | — |
 | `DataDisplay not found` | `dataDisplayNotFoundResult` |
 | `DataSetMetadata not found for <value>` | — |
 | `Document content not found` | — |

@@ -15,6 +15,7 @@ import {
 import { kMapTileType } from "./map-defs"
 import { kMapPinLayerType, kMapPointLayerType, kMapPolygonLayerType, MapLayerType } from "./map-types"
 import { IMapBaseLayerModelSnapshot } from "./models/map-base-layer-model"
+import { isMapLayerModel } from "./models/map-layer-model"
 import {
   GeoRasterModel, IMapContentModel, IMapModelContentSnapshot, isMapContentModel
 } from "./models/map-content-model"
@@ -29,16 +30,18 @@ type IMapLayerModelSnapshot =
   IMapPointLayerModelSnapshot |
   IMapPinLayerModelSnapshot
 
-// The data sets a map's layers show. A map keeps its data configurations in its layers.
-function mapLayerDataSets(content: IMapContentModel) {
-  return Array.from(new Set(content.layers.map(layer => layer.data).filter(dataSet => !!dataSet)))
+// The data sets a map's visible layers show. A map keeps its data configurations in its layers, and only a
+// visible layer takes a legend attribute (setLegendAttribute).
+function mapVisibleLayerDataSets(content: IMapContentModel) {
+  const visibleLayers = content.layers.filter(layer => isMapLayerModel(layer) && layer.isVisible)
+  return Array.from(new Set(visibleLayers.map(layer => layer.data).filter(dataSet => !!dataSet)))
 }
 
-// A legend attribute that none of the data sets a map shows has is refused (CODAP-1711). A map with no data
-// ignores it.
+// A legend attribute that none of the data sets a map's visible layers show has is refused (CODAP-1711),
+// including on a map whose layers are all hidden. A map with no data ignores it.
 function isLegendAttributeNotFound(content: IMapContentModel, legendAttributeName: string) {
-  const dataSets = mapLayerDataSets(content)
-  return dataSets.length > 0 && !dataSets.some(dataSet => dataSet.getAttributeByName(legendAttributeName))
+  if (!content.layers.some(layer => layer.data)) return false
+  return !mapVisibleLayerDataSets(content).some(dataSet => dataSet.getAttributeByName(legendAttributeName))
 }
 
 export const mapComponentHandler: DIComponentHandler = {
@@ -143,8 +146,9 @@ export const mapComponentHandler: DIComponentHandler = {
       if (isLegendAttributeNotFound(content, legendAttributeName)) {
         return namedAttributeNotFoundResult(legendAttributeName)
       }
-      // As from the legend's menu, each data set the map shows that has the attribute gives it to one of its layers
-      mapLayerDataSets(content).forEach(dataSet => {
+      // As from the legend's menu, each data set the map shows that has the attribute gives it to one of its
+      // visible layers
+      mapVisibleLayerDataSets(content).forEach(dataSet => {
         const legendAttribute = dataSet.getAttributeByName(legendAttributeName)
         if (legendAttribute) content.setLegendAttribute(dataSet.id, legendAttribute.id, legendAttribute.type)
       })

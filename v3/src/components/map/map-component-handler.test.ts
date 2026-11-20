@@ -10,6 +10,7 @@ import { toV3Id } from "../../utilities/codap-utils"
 import { kMapIdPrefix } from "./map-defs"
 import "./map-registration"
 import { IMapContentModel, isMapContentModel } from "./models/map-content-model"
+import { IMapLayerModel } from "./models/map-layer-model"
 
 
 describe("DataInteractive ComponentHandler Map", () => {
@@ -90,7 +91,7 @@ describe("DataInteractive ComponentHandler Map", () => {
       expect(refused.values).toEqual({ error: message })
       expect(documentContent.tileMap.size).toBe(tileCount)
     }
-    refuses({ dataContext: "NoSuchContext" }, "Data context not found: NoSuchContext")
+    refuses({ dataContext: "NoSuchContext" }, "DataContext not found: NoSuchContext")
     refuses({ dataContext: "places", legendAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
     // a data context can be named by title
     places.setTitle("Places Title")
@@ -103,23 +104,54 @@ describe("DataInteractive ComponentHandler Map", () => {
     const result = handler.create!({}, { type: "map", dataContext: "places", legendAttributeName: "color" })
     expect(result.success).toBe(true)
     const tile = documentContent.tileMap.get(toV3Id(kMapIdPrefix, (result.values as DIComponentInfo).id!))!
-    const [layer] = (tile.content as IMapContentModel).layers
+    const [layer] = (tile.content as IMapContentModel).layers as IMapLayerModel[]
     expect(layer.dataConfiguration.dataset).toBe(places)
     const color = places.getAttributeByName("color")!
     expect(layer.dataConfiguration.attributeID("legend")).toBe(color.id)
 
-    // a refused update changes nothing, the generic properties sent with it included
-    const before = getSnapshot(tile)
-    const updateResult = handler.update!({ component: tile }, {
-      legendAttributeName: "NoSuchAttr", zoom: 7, title: "Renamed"
-    })
-    expect(updateResult.success).toBe(false)
-    expect(updateResult.values).toEqual({ error: "Attribute not found: NoSuchAttr" })
-    expect(getSnapshot(tile)).toEqual(before)
+    // a refused update changes nothing, the generic properties sent with it included, and sends no notification
+    const broadcastSpy = jest.spyOn(documentContent, "broadcastMessage")
+    const updateRefuses = (values: Record<string, unknown>, message: string) => {
+      broadcastSpy.mockClear()
+      const before = getSnapshot(tile)
+      const updateResult = handler.update!({ component: tile }, { zoom: 7, title: "Renamed", ...values })
+      expect(updateResult.success).toBe(false)
+      expect(updateResult.values).toEqual({ error: message })
+      expect(getSnapshot(tile)).toEqual(before)
+      expect(broadcastSpy).not.toHaveBeenCalled()
+    }
+    updateRefuses({ legendAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
     expect(layer.dataConfiguration.attributeID("legend")).toBe(color.id)
 
     // the legend attribute updates through the map's layers
     expect(handler.update!({ component: tile }, { legendAttributeName: "lat" }).success).toBe(true)
     expect(layer.dataConfiguration.attributeID("legend")).toBe(places.getAttributeByName("lat")!.id)
+
+    // only a visible layer takes a legend attribute, so a map whose layers are all hidden refuses one
+    layer.setVisibility(false)
+    updateRefuses({ legendAttributeName: "color" }, "Attribute not found: color")
+    layer.setVisibility(true)
+    broadcastSpy.mockRestore()
+  })
+
+  it("refuses a legend attribute found only in a hidden layer's data set", () => {
+    const _spots = DataSet.create({ name: "spots" })
+    ;["lat", "long", "size"].forEach(name => _spots.addAttribute({ name }))
+    const spots = documentContent.createDataSet(getSnapshot(_spots)).sharedDataSet.dataSet
+    spots.addCases([{ lat: 40, long: -74, size: 3 }], { canonicalize: true })
+    const result = handler.create!({}, { type: "map" })
+    const tile = documentContent.tileMap.get(toV3Id(kMapIdPrefix, (result.values as DIComponentInfo).id!))!
+    const layers = (tile.content as IMapContentModel).layers as IMapLayerModel[]
+    const spotsLayer = layers.find(layer => layer.data === spots)!
+    expect(spotsLayer).toBeDefined()
+
+    spotsLayer.setVisibility(false)
+    const refused = handler.update!({ component: tile }, { legendAttributeName: "size", zoom: 6 })
+    expect(refused.values).toEqual({ error: "Attribute not found: size" })
+    expect((tile.content as IMapContentModel).zoom).not.toBe(6)
+
+    spotsLayer.setVisibility(true)
+    expect(handler.update!({ component: tile }, { legendAttributeName: "size" }).success).toBe(true)
+    expect(spotsLayer.dataConfiguration.attributeID("legend")).toBe(spots.getAttributeByName("size")!.id)
   })
 })

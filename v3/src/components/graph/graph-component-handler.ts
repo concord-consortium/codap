@@ -63,10 +63,25 @@ function getAttributeFromInfo(dataset: IDataSet, info?: AttributeInfo) {
   }
   return attribute
 }
-// The id or name a plugin gave for an attribute; undefined when it gave neither, or null for none.
+// The id or name a plugin gave for an attribute; undefined when it gave neither.
 // Unlike V2, one that names nothing in the data set is refused (CODAP-1711).
 function requestedAttribute(info?: AttributeInfo) {
   return info?.name || info?.id || undefined
+}
+// The first attribute a request names, for refusing it in a document with no data sets (CODAP-1711)
+function firstRequestedAttribute(infos: Array<Maybe<AttributeInfo>>, yAttributeIDs?: unknown[],
+                                 yAttributeNames?: unknown[]): Maybe<string | number> {
+  const requested = infos.map(requestedAttribute).find(r => r != null)
+  return requested ?? (yAttributeIDs?.[0] as Maybe<number>) ?? (yAttributeNames?.[0] as Maybe<string>)
+}
+// yAttributeIDs and yAttributeNames must be arrays; a string would be read a character at a time
+function yAttributeListError(yAttributeIDs?: unknown, yAttributeNames?: unknown) {
+  if (yAttributeIDs != null && !Array.isArray(yAttributeIDs)) {
+    return errorResult(t("V3.DI.Error.valueNotArray", { vars: ["yAttributeIDs"] }))
+  }
+  if (yAttributeNames != null && !Array.isArray(yAttributeNames)) {
+    return errorResult(t("V3.DI.Error.valueNotArray", { vars: ["yAttributeNames"] }))
+  }
 }
 const roleFromAttrKey: Record<string, GraphAttrRole> = {
   x: "x",
@@ -100,6 +115,8 @@ function planGraphUpdate(content: IGraphContentModel, values: DIValues): IGraphU
   const yInfo = packageAttribute(yAttributeID, yAttributeName)
   const { dataConfiguration } = content
   const sharedDataSets = getSharedDataSets(appState.document)
+  const listError = yAttributeListError(yAttributeIDs, yAttributeNames)
+  if (listError) return listError
 
   // Determine which dataset to work with
   let dataSet: Maybe<IDataSet>
@@ -109,9 +126,9 @@ function planGraphUpdate(content: IGraphContentModel, values: DIValues): IGraphU
   }
   if (!dataSet) {
     if (sharedDataSets.length === 0) {
-      // with no data sets, any attribute named is one that isn't found
-      const requested = [...Object.values(attributeInfo), yInfo].map(requestedAttribute).find(r => r != null) ??
-                        yAttributeIDs?.[0] ?? yAttributeNames?.[0]
+      // with no data sets, any attribute named is one that isn't found; a null id removes, as below
+      const infos = [...Object.values(attributeInfo), yInfo].filter(info => info?.id !== null)
+      const requested = firstRequestedAttribute(infos, yAttributeIDs, yAttributeNames)
       return requested != null ? namedAttributeNotFoundResult(requested) : { updatedAttributes: {} }
     }
     dataSet = content.dataset ?? sharedDataSets[0].dataSet
@@ -146,7 +163,8 @@ function planGraphUpdate(content: IGraphContentModel, values: DIValues): IGraphU
     }
   }
 
-  // The y attributes: all of them, or the first (by id or name, as on create), or null to remove the first
+  // The y attributes: all of them, or the first (by id or name, as on create), or null to remove the first.
+  // As for the other roles, a null id removes the first even when a name is also given.
   const plan: IGraphUpdatePlan = { dataSet, updatedAttributes }
   if (yAttributeIDs != null) {
     plan.yAttributes = []
@@ -162,6 +180,8 @@ function planGraphUpdate(content: IGraphContentModel, values: DIValues): IGraphU
       if (!attribute) return namedAttributeNotFoundResult(name)
       plan.yAttributes.push(attribute)
     }
+  } else if (yAttributeID === null) {
+    plan.firstYAttribute = null
   } else {
     const requested = requestedAttribute(yInfo)
     if (requested != null) {
@@ -191,13 +211,22 @@ export const graphComponentHandler: DIComponentHandler = {
     let provisionalDataSet: IDataSet | undefined
     let provisionalMetadata: IDataSetMetadata | undefined
     const sharedDataSets = getSharedDataSets(appState.document)
+    const listError = yAttributeListError(yAttributeIDs, yAttributeNames)
+    if (listError) return listError
     // We currently only support one dataset in a graph, so we find the one specified by plugin.
     // A data context that is named but not found is refused rather than ignored. With none named, a
-    // document's only data set is used, and its attributes are assigned, as in V2.
+    // document's only data set is used, and its attributes are assigned, as in V2. With no data sets,
+    // any attribute named is one that isn't found (CODAP-1711).
     const sharedDataSet = _dataContext
                             ? sharedDataSets.find(sd => sd.dataSet.matchTitleOrNameOrId(_dataContext))
                             : sharedDataSets.length === 1 ? sharedDataSets[0] : undefined
     if (_dataContext && !sharedDataSet) return namedDataContextNotFoundResult(_dataContext)
+    if (sharedDataSets.length === 0) {
+      const yInfo = packageAttribute(yAttributeID, yAttributeName)
+      const infos = [...Object.values(attributeInfo), yInfo]
+      const requested = firstRequestedAttribute(infos, yAttributeIDs, yAttributeNames)
+      if (requested != null) return namedAttributeNotFoundResult(requested)
+    }
     const graphDataSet = sharedDataSet?.dataSet
     if (sharedDataSet) {
       const dataset = sharedDataSet.dataSet
@@ -323,6 +352,8 @@ export const graphComponentHandler: DIComponentHandler = {
             if (attributePlace && !dataConfiguration.placeCanAcceptAttributeIDDrop(
               attributePlace, dataset, attribute.id, { allowSameAttr: true }
             )) {
+              // destroy the temporary model to stop its reactions
+              destroy(graphModel)
               return errorResult(
                 t("V3.DI.Error.illegalAttributeAssignment", {
                   vars: [attributePackage?.id ?? attributePackage?.name ?? "", attributeRole]
