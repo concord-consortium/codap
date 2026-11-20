@@ -850,6 +850,7 @@ Check every item and report each one's status. The release is not finished until
 true:
 
 - [ ] `/` and `/beta` serve `version/{version}/` (re-run the curl checks)
+- [ ] Rollbar's Deploys page lists `{version}`'s commit for `staging`, `production` and `beta`
 - [ ] The GitHub release `{version}` is published, not a draft or pre-release, and marked Latest
 - [ ] The Jira version `{version}` is marked Released
 - [ ] Unresolved issues on the version were reviewed with the user (step 8)
@@ -869,6 +870,8 @@ gh release create {version} --title "Version {version}" --notes "{release_notes_
 The workflows can also be run from the GitHub UI:
 [production](https://github.com/concord-consortium/codap/actions/workflows/release-v3-production.yml),
 [beta](https://github.com/concord-consortium/codap/actions/workflows/release-v3-beta.yml).
+Each workflow also records its deploy in Rollbar, so check Rollbar's Deploys page afterwards
+([Dispatch, Watch, Verify](#dispatch-watch-verify)).
 Then mark the Jira version released (CODAPv3 → Releases → `{version}` → Release).
 
 ### Resume Later
@@ -1215,6 +1218,21 @@ done
 Each workflow updates only its own pages (staging: `/index-staging.html` and `/staging`;
 production: `/`; beta: `/beta`), so only those are expected to change. The pages are served with
 `cache-control: no-cache`, so the new version shows as soon as the run finishes.
+
+**Verify the Rollbar deploy.** After copying the build, each release workflow runs a `rollbar` job
+(`rollbar-deploy-v3.yml`) that records the deploy in Rollbar, so that Rollbar can tell which release
+introduced an error. `gh run watch` covers it, since the run fails if that job fails. Get the commit
+the tag points to:
+
+```bash
+gh api repos/concord-consortium/codap/commits/{version} --jq .sha
+```
+
+Then ask the user to confirm that Rollbar's Deploys page for the CODAP project lists a new deploy
+for the workflow's environment (`staging`, `production` or `beta`) with that SHA as its revision.
+A run whose `rollbar` job failed has still released the build, so don't redeploy; show the user
+`gh run view <id> --log-failed`. The usual cause is a missing or expired `ROLLBAR_ACCESS_TOKEN`
+repo secret.
 
 ## Slack Posts
 

@@ -9,10 +9,9 @@ catalogs them.
 
 The tables are generated from CODAP's source: which operations exist, which section each
 belongs in, and the keys each one's `values` carries. Only the "Fires when" column is written by
-hand. Where the keys cannot be read from the code, the table says so
-rather than guessing. Two operation names are assembled when they are sent, so the generated
-tables cannot list them: `toggle show as <plot type>` and `change bar chart from <old> to <new>`,
-both described under [Graph](#graph).
+hand, and the name of an operation assembled when it is sent, which its row gives with a
+`<placeholder>` for the part that varies; see [Graph](#graph). Where the keys cannot be read from
+the code, the table says so rather than guessing.
 
 It is the opposite direction from the `notify` **action**, which a plugin sends *to* CODAP to ask
 for something. Those are documented on each resource's own page.
@@ -57,9 +56,9 @@ notifications about changes it requested itself, so it never has to recognize an
 work. Changes the user makes are sent to every plugin.
 
 v2 followed this rule only for data changes that recorded which plugin asked for them. `update`
-on `attribute`, the `createCases` sent when items are created, `moveCases`, `moveAttribute`, and
-`dependentCases` all went to the requester too, and v2 sent component notifications to every
-plugin, the requester included.
+on `attribute`, the `createCases` sent when items are created, the `moveCases` sent when items are
+moved through `itemSearch`, `moveAttribute`, and `dependentCases` all went to the requester too,
+and v2 sent component notifications to every plugin, the requester included.
 
 ## The envelope
 
@@ -134,7 +133,7 @@ plugin watching one data set can filter on it.
 | `unhideAttributes`, `showAttributes` | hidden attributes are shown again with "Show all hidden attributes". Both are sent, one after the other |
 | `createCases` | cases are added |
 | `updateCases` | case values change |
-| `deleteCases` | cases are removed |
+| `deleteCases` | cases are removed. `cases` lists the deleted cases. When items are deleted through an item resource, it lists every case that disappears, in every collection, including a parent case whose last shown item goes, and `caseIDs` lists the same cases' ids, as in v2. Deleting a case lists only that case, as in v2 |
 | `moveCases` | cases are reordered |
 | `dependentCases` | case values change as a consequence of another change: random values are rerandomized, or a join adds values |
 | `selectCases` | the selection changes |
