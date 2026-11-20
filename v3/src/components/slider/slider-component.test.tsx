@@ -540,6 +540,18 @@ describe("SliderComponent: the range's keyboard stop", () => {
     expect([slider.rangeLow, slider.rangeHigh]).toEqual([6, 6])
   })
 
+  it("collapses a range however narrow it is", async () => {
+    const { tile, slider } = await setupRange()
+    // narrower than a millionth of a step
+    act(() => slider.setRange(2, 2.0000001))
+    renderSlider(tile)
+    const range = screen.getByRole("slider")
+    fireEvent.keyDown(range, { key: "ArrowLeft", altKey: true })
+    fireEvent.keyUp(range, { key: "ArrowLeft" })
+    expect(slider.globalValue.isUpdatingDynamically).toBe(false)
+    expect(slider.rangeWidth).toBe(0)
+  })
+
   it("moves a collapsed range to a data value however close it is", async () => {
     const { tile, dataSet, slider } = await setupRange()
     // the value after 3 is now within a millionth of a step of it
@@ -993,6 +1005,18 @@ describe("SliderComponent: resuming a selection slider", () => {
     fireEvent.keyDown(range, { key: "Tab" })
     expect(slider.ownsSelection).toBe(false)
     fireEvent.keyDown(range, { key: "ArrowRight" })
+    expect(slider.ownsSelection).toBe(true)
+  })
+
+  it("leaves the user's selection alone for Ctrl and Meta chords, which belong to the system and screen readers",
+      async () => {
+    const { tile, slider } = await setupPausedSelectionSlider()
+    renderSlider(tile)
+    const range = screen.getByTestId("slider-range")
+    fireEvent.keyDown(range, { key: "Home", ctrlKey: true })
+    fireEvent.keyDown(range, { key: "ArrowRight", metaKey: true })
+    expect(slider.ownsSelection).toBe(false)
+    fireEvent.keyDown(range, { key: "Home" })
     expect(slider.ownsSelection).toBe(true)
   })
 

@@ -322,8 +322,9 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const handlePointerDownCapture = (e: React.PointerEvent) => {
     if (!e.button && e.isPrimary !== false && isSelectionGesture(e)) resumeSelection()
   }
+  // Ctrl and Meta chords belong to the system, the browser and screen readers, and don't move the slider
   const handleTrackKeyDownCapture = (e: React.KeyboardEvent) => {
-    if (kResumeSelectionKeys.has(e.key) && isSelectionGesture(e)) resumeSelection()
+    if (kResumeSelectionKeys.has(e.key) && !e.ctrlKey && !e.metaKey && isSelectionGesture(e)) resumeSelection()
   }
 
   const axisClasses = () => {

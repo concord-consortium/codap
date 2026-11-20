@@ -230,10 +230,11 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
     keyBurstRef.current = null
     if (!burst) return
     const { rangeLow: low, rangeHigh: high } = sliderModel
-    // Keys that ended where they began change nothing, so plugins and the log shouldn't hear of a change. A point
-    // moves between exact data values, which may be closer together than rangesMatch's tolerance.
-    const isPoint = burst.startLow === burst.startHigh
-    if (isPoint ? low === burst.startLow && high === burst.startHigh
+    // Keys that ended where they began change nothing, so plugins and the log shouldn't hear of a change. A change to
+    // or from a point is compared exactly: a point moves between exact data values, and a collapse can be narrower
+    // than rangesMatch's tolerance.
+    const involvesPoint = burst.startLow === burst.startHigh || low === high
+    if (involvesPoint ? low === burst.startLow && high === burst.startHigh
                 : rangesMatch([low, high], [burst.startLow, burst.startHigh], step)) {
       sliderModel.applyModelChange(() => sliderModel.cancelDynamicRange(), { noDirty: true })
       return
