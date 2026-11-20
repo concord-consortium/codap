@@ -1,5 +1,5 @@
 import {
-  applyPatch, flow, getSnapshot, IJsonPatch, isAlive, resolvePath, resolveIdentifier, types
+  applyPatch, flow, getSnapshot, IJsonPatch, isAlive, onPatch, resolvePath, resolveIdentifier, types
 } from "mobx-state-tree"
 import { DEBUG_HISTORY } from "../../lib/debug"
 import { IDocumentContentModel } from "../document/document-content"
@@ -139,13 +139,23 @@ export const Tree = types.model("Tree", {
     },
 
     // Actually apply the patches.
-    // It might be called multiple times after startApplyingPatchesFromManager
+    // It might be called multiple times after startApplyingPatchesFromManager.
+    // If a patch fails, the TreeMonitor reverts the changes made by the earlier
+    // patches, since this is a single action.
     applyPatchesFromManager(historyEntryId: string, exchangeId: string, patchesToApply: readonly IJsonPatch[]) {
-      applyPatch(self, patchesToApply)
+      // MST reports the patch that reverts each change; the caller uses them to
+      // revert this call if a later call fails
+      const reversePatches: IJsonPatch[] = []
+      const disposer = onPatch(self, (patch, reversePatch) => reversePatches.push(reversePatch))
+      try {
+        applyPatch(self, patchesToApply)
+      } finally {
+        disposer()
+      }
       // We return a promise because the API is async
       // The action itself doesn't do anything asynchronous though
       // so it isn't necessary to use a flow
-      return Promise.resolve()
+      return Promise.resolve(reversePatches.reverse())
     },
 
     // The manager calls this after all patches have been applied

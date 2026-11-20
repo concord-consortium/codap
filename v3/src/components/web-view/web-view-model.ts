@@ -1,6 +1,7 @@
 import iframePhone from "iframe-phone"
 import { reaction } from "mobx"
 import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
+import { kImporterPluginPath } from "../../constants"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { withoutUndo } from "../../models/history/without-undo"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
@@ -97,6 +98,10 @@ export const WebViewModel = TileContentModel
     },
     get isImage() {
       return self.subType === "image"
+    },
+    // the Importer plugin, which CODAP opens to import data; its URL's host and query can vary
+    get isImporter() {
+      return self.subType === "plugin" && !!self.url?.split(/[?#]/)[0].endsWith(kImporterPluginPath)
     }
   }))
   .views(self => ({

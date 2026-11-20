@@ -1,10 +1,11 @@
-import { types, Instance, flow, getParent, getType } from "mobx-state-tree"
+import { types, Instance, flow, getParent, getType, IJsonPatch } from "mobx-state-tree"
 import { nanoid } from "nanoid"
 import { HistoryEntry, HistoryEntryType, HistoryOperation } from "./history"
 // eslint-disable-next-line import-x/no-cycle
 import { TreeManager } from "./tree-manager"
 import { applyCustomRedo, applyCustomUndo, hasCustomUndoRedo } from "./custom-undo-redo-registry"
 import { DEBUG_UNDO } from "../../lib/debug"
+import { getRollbar } from "../../lib/rollbar/rollbar"
 
 export interface IUndoManager {
   undoLevels : number
@@ -62,6 +63,20 @@ export const UndoStore = types
     return self.history.find(entry => entry.id === historyEntryId)
   }
 }))
+.actions((self) => ({
+  setHistoryListener(listener?: UndoHistoryListener) {
+    self.historyListener = listener
+  },
+
+  // erase the whole history, the undo side first, as V2's clearUndoRedoHistory did (undo_history.js:248-251)
+  clearHistory() {
+    self.history.splice(0, self.undoIdx)
+    self.undoIdx = 0
+    self.historyListener?.("clearUndo")
+    self.history.clear()
+    self.historyListener?.("clearRedo")
+  }
+}))
 .actions((self) => {
   // We use a flow here so we don't have to create separate actions for each of
   // the parts of this action
@@ -105,6 +120,9 @@ export const UndoStore = types
     if (opType === HistoryOperation.Undo) {
       undoRecords.reverse()
     }
+    // The patches that revert each record applied so far, so a failure can revert them
+    const appliedRecords: Array<{ treeId: string, revertPatches: IJsonPatch[] }> = []
+    let failure: Maybe<{ error: unknown }>
     for (const treePatchRecord of undoRecords) {
       // console.log(`send tile entry to ${opType} to the tree`, getSnapshot(treeEntry))
 
@@ -122,8 +140,26 @@ export const UndoStore = types
       manager.startExchange(historyEntryId, applyExchangeId, "UndoStore.applyPatchesToTrees.apply")
 
       const tree = manager.trees[treePatchRecord.tree]
-      yield tree.applyPatchesFromManager(historyEntryId,  applyExchangeId,
-          treePatchRecord.getPatches(opType))
+      try {
+        const revertPatches: IJsonPatch[] = yield tree.applyPatchesFromManager(historyEntryId,  applyExchangeId,
+            treePatchRecord.getPatches(opType))
+        appliedRecords.push({ treeId: treePatchRecord.tree, revertPatches })
+      } catch (error) {
+        // The tree reverted its changes but didn't record them, so it didn't close this exchange
+        manager.endExchange(historyEntry, applyExchangeId)
+        failure = { error }
+        break
+      }
+    }
+
+    if (failure) {
+      // Typically the entry refers to a tile or data set that a change which can't be undone has
+      // since removed. Revert the records already applied so the document is unchanged.
+      for (const { treeId, revertPatches } of appliedRecords.reverse()) {
+        const revertExchangeId = nanoid()
+        manager.startExchange(historyEntryId, revertExchangeId, "UndoStore.applyPatchesToTrees.revert")
+        yield manager.trees[treeId].applyPatchesFromManager(historyEntryId, revertExchangeId, revertPatches)
+      }
     }
 
     // finish the patch application
@@ -147,22 +183,20 @@ export const UndoStore = types
     // entry which will keep it "recording" until that new exchange is
     // also finished.
     manager.endExchange(historyEntry, exchangeId)
+
+    return failure
   })
 
+  // After an entry fails to apply, the entries around it may refer to what is missing too, so
+  // erase the whole history, much as V2 did whenever a change was made outside an undo command.
+  function handleApplyFailure(opType: HistoryOperation, error: unknown) {
+    const message = `${opType === HistoryOperation.Undo ? "Undo" : "Redo"} failed; clearing the undo history`
+    console.warn(message, error)
+    getRollbar()?.warning(message, error)
+    self.clearHistory()
+  }
+
   return {
-    setHistoryListener(listener?: UndoHistoryListener) {
-      self.historyListener = listener
-    },
-
-    // erase the whole history, the undo side first, as V2's clearUndoRedoHistory did (undo_history.js:248-251)
-    clearHistory() {
-      self.history.splice(0, self.undoIdx)
-      self.undoIdx = 0
-      self.historyListener?.("clearUndo")
-      self.history.clear()
-      self.historyListener?.("clearRedo")
-    },
-
     addHistoryEntry(entry: Instance<typeof HistoryEntry>) {
       // Find if there is already an HistoryEntry with this
       // historyEntryId. This action is called each time a new
@@ -207,7 +241,7 @@ export const UndoStore = types
       }
 
       const entryToUndo = self.history[self.undoIdx -1]
-      let patchesApplied: Promise<unknown> | undefined
+      let patchesApplied: Promise<Maybe<{ error: unknown }>> | undefined
 
       if (entryToUndo.customPatches?.length) {
         const manager: Instance<typeof TreeManager> = getParent(self)
@@ -232,8 +266,12 @@ export const UndoStore = types
 
       self.undoIdx--
       // tell the listener once the patches have been applied, as V2 did after the command's undo
-      if (patchesApplied) patchesApplied.then(() => self.historyListener?.("undo"))
-      else self.historyListener?.("undo")
+      if (patchesApplied) {
+        patchesApplied.then(failure => failure ? handleApplyFailure(HistoryOperation.Undo, failure.error)
+                                               : self.historyListener?.("undo"))
+      } else {
+        self.historyListener?.("undo")
+      }
       return {
         id: entryToUndo.id,
         action: entryToUndo.action
@@ -245,7 +283,7 @@ export const UndoStore = types
       }
 
       const entryToRedo = self.history[self.undoIdx]
-      let patchesApplied: Promise<unknown> | undefined
+      let patchesApplied: Promise<Maybe<{ error: unknown }>> | undefined
 
       if (entryToRedo.customPatches?.length) {
         const manager: Instance<typeof TreeManager> = getParent(self)
@@ -271,8 +309,12 @@ export const UndoStore = types
 
       self.undoIdx++
       // tell the listener once the patches have been applied, as V2 did after the command's redo
-      if (patchesApplied) patchesApplied.then(() => self.historyListener?.("redo"))
-      else self.historyListener?.("redo")
+      if (patchesApplied) {
+        patchesApplied.then(failure => failure ? handleApplyFailure(HistoryOperation.Redo, failure.error)
+                                               : self.historyListener?.("redo"))
+      } else {
+        self.historyListener?.("redo")
+      }
       return {
         id: entryToRedo.id,
         action: entryToRedo.action

@@ -1,6 +1,6 @@
 import iframePhone from "iframe-phone"
 import { getSnapshot } from "mobx-state-tree"
-import { kCodapResourcesUrl } from "../../constants"
+import { getImporterPluginUrl, kCodapResourcesUrl } from "../../constants"
 import { setUrlParams } from "../../utilities/url-params"
 import { WebViewModel } from "./web-view-model"
 
@@ -128,5 +128,23 @@ describe("WebViewContentModel", () => {
     await webView.prepareSnapshot()
     const snapshot = getSnapshot(webView)
     expect(snapshot.state).toBe(state)
+  })
+})
+
+describe("WebViewModel.isImporter", () => {
+  it("recognizes the Importer plugin whatever its host and query", () => {
+    const importer = (url: string) => WebViewModel.create({ subType: "plugin", url }).isImporter
+    expect(importer(getImporterPluginUrl())).toBe(true)
+    expect(importer("https://example.com/plugins/Importer/index.html?lang=fr")).toBe(true)
+    expect(importer("https://example.com/plugins/Importer/index.html#state")).toBe(true)
+  })
+
+  it("doesn't recognize other plugins and web pages", () => {
+    expect(WebViewModel.create({ subType: "plugin", url: "https://example.com/Sampler/index.html" }).isImporter)
+      .toBe(false)
+    expect(WebViewModel.create({ subType: "plugin", url: "https://example.com/Importer/index.html.bak" }).isImporter)
+      .toBe(false)
+    expect(WebViewModel.create({ url: getImporterPluginUrl() }).isImporter).toBe(false)
+    expect(WebViewModel.create({ subType: "plugin" }).isImporter).toBe(false)
   })
 })

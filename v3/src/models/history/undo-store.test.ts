@@ -1058,3 +1058,143 @@ async function expectUpdateToBeCalledTimes(testTile: TestTileType, times: number
   const updateCalledTimes = when(() => testTile.updateCount === times, {timeout: 100})
   return expect(updateCalledTimes).resolves.toBeUndefined()
 }
+
+describe("undo and redo of an entry that can no longer be applied", () => {
+  // two tiles without shared models, so removing one doesn't trigger a shared model sync
+  const twoTileContent = {
+    tileMap: {
+      "t1": { id: "t1", content: { type: "TestTile" } },
+      "t2": { id: "t2", content: { type: "TestTile" } }
+    }
+  }
+
+  function setupTwoTiles() {
+    const setup = setupDocument(twoTileContent)
+    const { docContent } = setup
+    const t1 = docContent.tileMap.get("t1")!.content as TestTileType
+    const t2 = docContent.tileMap.get("t2")!.content as TestTileType
+    // a change without undo strings is not undoable, like a plugin deleting a data context
+    const removeTileWithoutUndo = (tileId: string) => docContent.applyModelChange(() => docContent.deleteTile(tileId))
+    return { ...setup, t1, t2, removeTileWithoutUndo }
+  }
+
+  function flagPatchRecord(tileId: string) {
+    const path = `/content/tileMap/${tileId}/content/flag`
+    return {
+      tree: "test",
+      action: "/test",
+      patches: [{ op: "replace" as const, path, value: true }],
+      inversePatches: [{ op: "replace" as const, path, value: undefined }]
+    }
+  }
+
+  // waits until no history entry is still recording, and the history has been cleared
+  function historySettledAndCleared(manager: Instance<typeof TreeManager>,
+      undoStore: Instance<typeof TreeManager>["undoStore"]) {
+    return when(() => manager.activeHistoryEntries.length === 0 && !undoStore.canUndo && !undoStore.canRedo,
+      { timeout: 500 })
+  }
+
+  let consoleWarnSpy: jest.SpyInstance
+  beforeEach(() => {
+    consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => null)
+  })
+  afterEach(() => {
+    consoleWarnSpy.mockRestore()
+  })
+
+  it("leaves the document unchanged and clears the history when undo fails", async () => {
+    const { docModel, docContent, manager, undoStore, t1, t2, removeTileWithoutUndo } = setupTwoTiles()
+    t2.setFlag(true)
+    t1.setFlag(true)
+    await when(() => undoStore.undoLevels === 2, { timeout: 500 })
+    removeTileWithoutUndo("t1")
+    await when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+
+    const contentBefore = getSnapshot(docContent)
+    const listener = jest.fn()
+    undoStore.setHistoryListener(listener)
+
+    undoStore.undo()
+    await historySettledAndCleared(manager, undoStore)
+
+    expect(getSnapshot(docContent)).toEqual(contentBefore)
+    expect(docModel.applyingManagerPatches).toBe(false)
+    expect(listener.mock.calls).toEqual([["clearUndo"], ["clearRedo"]])
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("Undo failed"), expect.anything())
+
+    // later changes can be undone and redone as usual
+    t2.setFlag(false)
+    await when(() => undoStore.canUndo, { timeout: 500 })
+    undoStore.undo()
+    await when(() => t2.flag === true && manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    undoStore.redo()
+    await when(() => t2.flag === false && manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    expect(listener.mock.calls.slice(2)).toEqual([["add"], ["undo"], ["redo"]])
+  })
+
+  it("clears the history when redo fails", async () => {
+    const { docContent, manager, undoStore, t1, removeTileWithoutUndo } = setupTwoTiles()
+    t1.setFlag(true)
+    await when(() => undoStore.canUndo, { timeout: 500 })
+    undoStore.undo()
+    await when(() => t1.flag === undefined && manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    removeTileWithoutUndo("t1")
+    await when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    expect(undoStore.canRedo).toBe(true)
+
+    const contentBefore = getSnapshot(docContent)
+    undoStore.redo()
+    await historySettledAndCleared(manager, undoStore)
+
+    expect(getSnapshot(docContent)).toEqual(contentBefore)
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("Redo failed"), expect.anything())
+  })
+
+  it("reverts the earlier patches of a record whose later patch fails", async () => {
+    const { docContent, manager, undoStore, t1, t2, removeTileWithoutUndo } = setupTwoTiles()
+    // one action, so one record; undo applies t2's inverse patch before t1's
+    docContent.applyModelChange(() => {
+      t1.setFlag(true)
+      t2.setFlag(true)
+    }, { undoStringKey: "undo", redoStringKey: "redo" })
+    await when(() => undoStore.canUndo, { timeout: 500 })
+    expect(undoStore.undoEntry?.records.length).toBe(1)
+    removeTileWithoutUndo("t1")
+    await when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+
+    undoStore.undo()
+    await historySettledAndCleared(manager, undoStore)
+
+    expect(t2.flag).toBe(true)
+  })
+
+  it("reverts the records already applied when a later record fails", async () => {
+    const { manager, undoStore, t1, t2, removeTileWithoutUndo } = setupTwoTiles()
+    t1.setFlagWithoutUndo(true)
+    t2.setFlagWithoutUndo(true)
+    await when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+
+    // an entry with a record for each tile; undo applies t2's record before t1's
+    const entryId = nanoid()
+    const entryExchangeId = nanoid()
+    const entry = manager.createHistoryEntry({
+      id: entryId, exchangeId: entryExchangeId, tree: "test", model: "TestTile", action: "setFlags", undoable: true
+    })
+    for (const tileId of ["t1", "t2"]) {
+      const exchangeId = nanoid()
+      manager.startExchange(entryId, exchangeId, "test")
+      manager.addTreePatchRecord(entryId, exchangeId, flagPatchRecord(tileId))
+    }
+    manager.endExchange(entry, entryExchangeId)
+    expect(undoStore.undoEntry?.records.length).toBe(2)
+
+    removeTileWithoutUndo("t1")
+    await when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+
+    undoStore.undo()
+    await historySettledAndCleared(manager, undoStore)
+
+    expect(t2.flag).toBe(true)
+  })
+})

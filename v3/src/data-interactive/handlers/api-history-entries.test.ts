@@ -8,6 +8,7 @@ import "../../components/map/map-registration"
 import "../../components/slider/slider-registration"
 import "../../components/text/text-registration"
 import "../../components/web-view/web-view-registration"
+import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { Logger } from "../../lib/logger"
 import { appState } from "../../models/app-state"
 import { gDataBroker } from "../../models/data/data-broker"
@@ -17,6 +18,7 @@ import { TreeManager } from "../../models/history/tree-manager"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { CsvParseResult, downloadCsvFile } from "../../utilities/csv-import"
+import { initiateGenericImport } from "../../utilities/generic-import"
 import { processAction } from "../data-interactive-request-processor"
 
 jest.mock("../../utilities/csv-import", () => {
@@ -227,5 +229,39 @@ describe("plugin API requests that change the document", () => {
     await redo()
     expect(document.content!.getTile(id)).toBeUndefined()
     await undo()
+  })
+
+  it("opening the Importer and the Importer closing itself add no undo entries", async () => {
+    await historySettled()
+    const before = undoManager().undoLevels
+    initiateGenericImport({ url: "https://example.com/data.csv" })
+    await historySettled()
+    const importer = Array.from(document.content!.tileMap.values())
+      .find(tile => isWebViewModel(tile.content) && tile.content.isImporter)
+    expect(importer).toBeDefined()
+    expect(undoManager().undoLevels).toBe(before)
+
+    const result = await processAction({ action: "delete", resource: `component[${importer!.id}]` },
+      { tile: importer })
+    expect(result.success).toBe(true)
+    await historySettled()
+    expect(document.content!.getTile(importer!.id)).toBeUndefined()
+    expect(undoManager().undoLevels).toBe(before)
+  })
+
+  it("another plugin closing itself adds an undo entry, as in V2", async () => {
+    const created = await processAction({ action: "create", resource: "component",
+      values: { type: "webView", URL: "https://example.com/plugin.html" } } as any)
+    const plugin = document.content!.getTile((created.values as any).id)!
+    expect(isWebViewModel(plugin.content)).toBe(true)
+    await historySettled()
+    const before = undoManager().undoLevels
+
+    const result = await processAction({ action: "delete", resource: `component[${plugin.id}]` },
+      { tile: plugin })
+    expect(result.success).toBe(true)
+    await historySettled()
+    expect(undoManager().undoLevels).toBe(before + 1)
+    expect(getUndoStringKey(undoManager())).toBe("DG.Undo.component.close")
   })
 })
