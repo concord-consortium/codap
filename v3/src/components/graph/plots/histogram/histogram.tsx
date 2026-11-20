@@ -1,4 +1,4 @@
-import { ScaleBand, drag, select } from "d3"
+import { ScaleBand, select } from "d3"
 import { observer } from "mobx-react-lite"
 import { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
@@ -12,7 +12,9 @@ import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
 import { useDotPlot } from "../../hooks/use-dot-plot"
 import { usePlotResponders } from "../../hooks/use-plot"
 import { isBinnedPlotModel } from "./histogram-model"
-import { getNearBinBoundaryIndex as getNearBinBoundaryIndexForEvent } from "./histogram-utils"
+import {
+  createBinBoundaryDrag, getNearBinBoundaryIndex as getNearBinBoundaryIndexForEvent
+} from "./histogram-utils"
 import { SubPlotCells } from "../../models/sub-plot-cells"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 import { renderBarCovers } from "../bar-utils"
@@ -68,17 +70,16 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
       })
 
     // Add D3 drag behavior, filtered to only start when near a bin edge
-    barCoverRects.call(
-      drag<SVGRectElement, IBarCover>()
-        .filter((event: MouseEvent | TouchEvent) => {
-          const binIdx = getNearBinBoundaryIndex(event)
-          nearBinIndexRef.current = binIdx
-          return binIdx >= 0
-        })
-        .on("start", (e: MouseEvent) => handleDragBinBoundaryStart(e, nearBinIndexRef.current))
-        .on("drag", (e: MouseEvent) => handleDragBinBoundary(e))
-        .on("end", () => handleDragBinBoundaryEndFn.current())
-    )
+    barCoverRects.call(createBinBoundaryDrag({
+      filter: (event) => {
+        const binIdx = getNearBinBoundaryIndex(event)
+        nearBinIndexRef.current = binIdx
+        return binIdx >= 0
+      },
+      start: (event) => handleDragBinBoundaryStart(event, nearBinIndexRef.current),
+      drag: (event) => handleDragBinBoundary(event),
+      end: () => handleDragBinBoundaryEndFn.current()
+    }))
   }, [binnedPlot, getNearBinBoundaryIndex, handleDragBinBoundary, handleDragBinBoundaryStart,
       handleDragBinBoundaryEndFn, primaryIsBottom])
 

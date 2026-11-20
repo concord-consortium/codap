@@ -1,4 +1,5 @@
-import { pointer } from "d3"
+import { drag, pointer } from "d3"
+import { IBarCover } from "../../graphing-types"
 import { BinDetails } from "../binned-dot-plot/bin-details"
 
 export const kEdgeThreshold = 6 // pixels from bar edge to trigger resize cursor/drag
@@ -38,4 +39,25 @@ export function getNearBinBoundaryIndex(
     }
   }
   return -1
+}
+
+export interface IBinBoundaryDragHandlers {
+  filter: (event: MouseEvent | TouchEvent) => boolean
+  start: (event: MouseEvent) => void
+  drag: (event: MouseEvent) => void
+  end: () => void
+}
+
+/**
+ * Creates the d3 drag behavior for dragging bin boundaries from a histogram's bar covers.
+ */
+export function createBinBoundaryDrag({ filter, start, drag: onDrag, end }: IBinBoundaryDragHandlers) {
+  return drag<SVGRectElement, IBarCover>()
+    // d3's default subject is the bar's datum, whose x/y are the bar's origin, which would make the drag's
+    // x/y the bar's origin plus the pointer's movement rather than the pointer's position.
+    .subject((event: { x: number, y: number }) => ({ x: event.x, y: event.y }))
+    .filter((event: MouseEvent | TouchEvent) => filter(event))
+    .on("start", (event: MouseEvent) => start(event))
+    .on("drag", (event: MouseEvent) => onDrag(event))
+    .on("end", () => end())
 }

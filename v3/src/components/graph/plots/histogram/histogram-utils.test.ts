@@ -1,4 +1,6 @@
-import { getNearBinBoundaryIndex, INearBinBoundaryOptions } from "./histogram-utils"
+import { select } from "d3"
+import { IBarCover } from "../../graphing-types"
+import { createBinBoundaryDrag, getNearBinBoundaryIndex, INearBinBoundaryOptions } from "./histogram-utils"
 
 // Bins of width 10 starting at 0, drawn at 10px per unit, so boundaries fall at x = 100, 200 and 300.
 const options: INearBinBoundaryOptions = {
@@ -80,5 +82,35 @@ describe("getNearBinBoundaryIndex", () => {
   it("returns -1 for a touch event with no changed touches", () => {
     const event = { type: "touchstart", touches: [], changedTouches: [] } as unknown as TouchEvent
     expect(getNearBinBoundaryIndex(event, container, options)).toBe(-1)
+  })
+})
+
+describe("createBinBoundaryDrag", () => {
+  afterEach(() => {
+    document.body.innerHTML = ""
+  })
+
+  it("reports the pointer position rather than the bar's origin plus the pointer's movement", () => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    svg.appendChild(g)
+    document.body.appendChild(svg)
+    // The bar starts at x = 100, so a drag subject taken from its datum would offset the drag's x by -97
+    const barCover = { x: "100", y: "0", width: "100", height: "50" } as IBarCover
+    const rect = select(g).append("rect").datum(barCover).node()!
+
+    const dragXs: number[] = []
+    select<SVGRectElement, IBarCover>(rect).call(createBinBoundaryDrag({
+      filter: () => true,
+      start: () => undefined,
+      drag: (event) => dragXs.push(event.x),
+      end: () => undefined
+    }))
+
+    rect.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, clientX: 197, clientY: 25, view: window }))
+    window.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 199, clientY: 25, view: window }))
+    window.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, clientX: 199, clientY: 25, view: window }))
+
+    expect(dragXs).toEqual([199])
   })
 })
