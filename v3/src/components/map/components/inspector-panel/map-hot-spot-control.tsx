@@ -8,7 +8,7 @@ import { ColorSetting } from "../../../common/color-setting"
 import { PaletteCheckbox } from "../../../palette-checkbox"
 import { IMapPointLayerModel } from "../../models/map-point-layer-model"
 import { HotSpotColorRamp } from "../../utilities/hot-spot-color-ramps"
-import { ColorRampSelect } from "./color-ramp-select"
+import { MapHotSpotColorRampSelect } from "./map-hot-spot-color-ramp-select"
 import { MapHotSpotResolutionSlider } from "./map-hot-spot-resolution-slider"
 
 // Announce the opacity to screen readers as a percentage (e.g. "75%") rather than a raw fraction
@@ -133,7 +133,7 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ mapPointL
           </SliderTrack>
         </div>
       </Slider>
-      <ColorRampSelect
+      <MapHotSpotColorRampSelect
         colorRamp={colorRamp}
         lowColor={lowColor}
         highColor={highColor}

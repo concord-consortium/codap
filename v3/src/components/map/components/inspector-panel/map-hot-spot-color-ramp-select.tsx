@@ -14,7 +14,7 @@ interface IProps {
   onColorRampChange: (colorRamp: HotSpotColorRamp) => void
 }
 
-export function ColorRampSelect({ colorRamp, lowColor, highColor, isDisabled, onColorRampChange }: IProps) {
+export function MapHotSpotColorRampSelect({ colorRamp, lowColor, highColor, isDisabled, onColorRampChange }: IProps) {
   const handleSelectionChange = (key: Key | null) => {
     if (isHotSpotColorRamp(key) && key !== colorRamp) onColorRampChange(key)
   }
