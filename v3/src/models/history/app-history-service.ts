@@ -4,6 +4,7 @@ import { IApplyModelChangeOptions, IHistoryService, IWithoutUndoOptions } from "
 import { ILogFunctionEnv } from "../../lib/log-message"
 import { DEBUG_UNDO } from "../../lib/debug"
 import { ICoreNotifyFunctionEnv } from "../../data-interactive/notification-core-types"
+import { sendNotice } from "../../data-interactive/notification-batch"
 import { getNotificationRequesterTileId } from "../../data-interactive/notification-requester"
 import { isDataContextChangeNotice } from "../../data-interactive/notification-utils"
 import { isChildOfUndoRedo, runningCalls } from "./tree-types"
@@ -56,7 +57,7 @@ export class AppHistoryService implements IHistoryService {
             // handled (see notification-requester.ts)
             const _excludeTileId = excludeTileId ??
               (isDataContextChangeNotice(message.resource) ? getNotificationRequesterTileId() : undefined)
-            this.tileEnv.notify(message, callback ?? (() => null), notifyTileId, _excludeTileId)
+            sendNotice(this.tileEnv.notify, message, callback ?? (() => null), notifyTileId, _excludeTileId)
           }
         }
       }
