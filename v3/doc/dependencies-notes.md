@@ -4,12 +4,21 @@ Notes on dependencies, particularly reasons for not updating to their latest ver
 
 ## Development Dependencies
 
-|Dependency                            |Current Version|Latest Version|Notes                                                              |
-|--------------------------------------|---------------|--------------|-------------------------------------------------------------------|
-|@types/react                          |18.3.12        |19.2.29       |React 19                                                           |
-|@types/react-dom                      |18.3.1         |19.2.3        |React 19                                                           |
-|@welldone-software/why-did-you-render |8.0.3          |10.0.1        |React 19                                                           |
-|eslint-plugin-react-hooks             |6.1.1          |7.0.1         |Many warnings/errors                                               |
+|Dependency                           |Current Version|Latest Version|Notes                                                                                          |
+|-------------------------------------|---------------|--------------|-----------------------------------------------------------------------------------------------|
+|@eslint/js                           |9.39.5         |10.0.1        |ESLint 10                                                                                      |
+|@types/react                         |18.3.31        |19.3.0        |React 19                                                                                       |
+|@types/react-dom                     |18.3.7         |19.3.0        |React 19                                                                                       |
+|@typescript-eslint/eslint-plugin     |8.60.0         |8.73.0        |Pinned. 8.60.1+ `no-shadow` reports `const Foo = observer(function Foo() {...})` (145 errors)  |
+|@typescript-eslint/parser            |8.60.0         |8.73.0        |Pinned with `@typescript-eslint/eslint-plugin`                                                 |
+|@welldone-software/why-did-you-render|8.0.3          |10.0.1        |React 19                                                                                       |
+|cypress                              |15.21.2        |16.3.0        |Removes `Cypress.env()` (used in specs); changes network interception, visibility, typing delay|
+|eslint                               |9.39.5         |10.15.0       |ESLint 10                                                                                      |
+|eslint-plugin-cypress                |6.4.4          |7.1.0         |Requires ESLint 10                                                                             |
+|eslint-plugin-mocha                  |11.3.0         |12.0.2        |Requires ESLint 10.2+                                                                          |
+|eslint-plugin-react-hooks            |6.1.1          |7.1.1         |`recommended` preset enables React Compiler rules (115 errors in 40 files)                     |
+|typescript                           |5.9.3          |7.0.2         |TypeScript 7 (native compiler rewrite)                                                         |
+|typescript-eslint                    |8.60.0         |8.73.0        |Pinned with `@typescript-eslint/eslint-plugin`                                                 |
 
 ## Runtime Dependencies
 
