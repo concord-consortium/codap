@@ -590,6 +590,69 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBeUndefined()
   })
 
+  it("checks barChartScale and pointsAreFusedIntoBars before anything changes", () => {
+    const result = create({}, { type: "graph", dataContext: "data", xAttributeName: "a3", yAttributeName: "a4" })
+    const tile = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!))!
+    const content = tile.content as IGraphContentModel
+    // a scatter plot can't fuse its points into bars
+    expect(content.pointsCanBeFusedIntoBars).toBe(false)
+    const before = getSnapshot(tile)
+    const updateRefuses = (values: Record<string, unknown>, message: string) => {
+      const updateResult = update({ component: tile }, { title: "Renamed", pointColor: "#00ff00", ...values })
+      expect(updateResult).toEqual({ success: false, values: { error: message } })
+      expect(getSnapshot(tile)).toEqual(before)
+    }
+    updateRefuses({ pointsAreFusedIntoBars: true }, "Current plot type does not support fusing points into bars")
+    // removing an attribute the graph doesn't have doesn't count as changing its attributes
+    updateRefuses({ legendAttributeID: null, pointsAreFusedIntoBars: true },
+      "Current plot type does not support fusing points into bars")
+    updateRefuses({ barChartScale: "bogus" }, "Invalid bar chart scale: bogus")
+
+    // when the request also changes the attributes, fusing is checked once they've changed, before the rest
+    const dotPlot = create({}, { type: "graph", dataContext: "data", xAttributeName: "a3" })
+    const dotTile = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, (dotPlot.values as DIComponentInfo).id!))!
+    const dotContent = dotTile.content as IGraphContentModel
+    expect(dotContent.pointsCanBeFusedIntoBars).toBe(true)
+    const pointColor = dotContent.pointDescription.pointColor
+    const fuseWithNewY = { yAttributeName: "a4", pointsAreFusedIntoBars: true, pointColor: "#0000ff", title: "Late" }
+    expect(update({ component: dotTile }, fuseWithNewY))
+      .toEqual({ success: false, values: { error: "Current plot type does not support fusing points into bars" } })
+    // the attributes and the generic properties have changed; the other settings haven't
+    expect(dotContent.dataConfiguration.yAttributeIDs).toEqual([a4.id])
+    expect(dotTile.title).toBe("Late")
+    expect(dotContent.pointDescription.pointColor).toBe(pointColor)
+
+    // the plot is brought up to date before the check: once the scatter plot's y attribute is removed, it's a dot
+    // plot, which can fuse
+    expect(content.plotType).toBe("scatterPlot")
+    expect(update({ component: tile }, { yAttributeID: null, pointsAreFusedIntoBars: true }).success).toBe(true)
+    expect(content.plotType).toBe("dotPlot")
+  })
+
+  it("applies a request's other settings, and links no data set, when it names no data context or attribute", () => {
+    const _other = DataSet.create({ name: "linkless" })
+    _other.addAttribute({ name: "b1" })
+    const other = documentContent.createDataSet(getSnapshot(_other)).sharedDataSet
+    try {
+      // with several data sets, a graph created without one links none
+      const result = create({}, { type: "graph" })
+      const tile = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!))!
+      const content = tile.content as IGraphContentModel
+      expect(content.dataset).toBeUndefined()
+      expect(update({ component: tile }, { pointColor: "#ff0000", backgroundColor: "#ffeeee" }).success).toBe(true)
+      expect(content.pointDescription.pointColor).toBe("#ff0000")
+      expect(content.plotBackgroundColor).toBe("#ffeeee")
+      expect(content.dataset).toBeUndefined()
+      // settings that concern cases do nothing harmful without a data set
+      expect(update({ component: tile }, { hiddenCases: [], displayOnlySelectedCases: false }).success).toBe(true)
+      // naming an attribute still links the document's first data set, where it's looked for
+      expect(update({ component: tile }, { xAttributeName: "a3" }).success).toBe(true)
+      expect(content.dataset).toBe(dataset)
+    } finally {
+      documentContent.removeSharedModelsAndTiles([other])
+    }
+  })
+
   // runs last: it removes the document's data sets
   it("refuses any attribute named in a document with no data sets", () => {
     const result = create({}, { type: "graph", dataContext: "data", xAttributeName: "a3" })
@@ -624,5 +687,11 @@ describe("DataInteractive ComponentHandler Graph", () => {
     updateRefuses({ yAttributeNames: ["a3"] }, "Attribute not found: a3")
     // on update, a null id removes rather than naming an attribute
     expect(update({ component: tile }, { xAttributeID: null, xAttributeName: "a3" }).success).toBe(true)
+
+    // the graph's other settings still apply with no data sets (CODAP-1732)
+    const content = tile.content as IGraphContentModel
+    expect(update({ component: tile }, { backgroundColor: "#ffeeee", transparent: true }).success).toBe(true)
+    expect(content.plotBackgroundColor).toBe("#ffeeee")
+    expect(content.isTransparent).toBe(true)
   })
 })

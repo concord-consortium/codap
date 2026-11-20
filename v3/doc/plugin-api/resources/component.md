@@ -198,7 +198,7 @@ graph, so whether `get` returns them depends on the plot:
 | Property | When `get` returns it |
 |---|---|
 | `pointsAreFusedIntoBars` | always |
-| `barChartScale` | only when the graph is a bar chart |
+| `barChartScale` | only when the graph is a bar chart; on another graph, a valid scale is ignored |
 | `barChartFormula` | only when the graph is a bar chart *and* a formula is set |
 
 `update` accepts all three.
@@ -213,10 +213,15 @@ a plugin cannot. Every other property `get` returns can be sent back to `update`
 **A `dataContext` or an attribute that isn't found is refused.** `create` and `update` reply
 `success: false` with an error naming it (see [Errors](#errors)). Nothing is created or changed,
 including the title, position and other properties sent in the same request, and no notification
-is sent. The same holds for an attribute a role can't take, and for a `yAttributeIDs` or
-`yAttributeNames` that isn't an array. `dataContext` can be the data set's name, title or id.
+is sent. The same holds for an attribute a role can't take, for a `yAttributeIDs` or
+`yAttributeNames` that isn't an array, and on `update` for a `barChartScale` that isn't one of the
+scales and a `pointsAreFusedIntoBars` the graph can't do (but see [Known
+limitations](#known-limitations)). `dataContext` can be the data set's name, title or id.
 Attributes, by id or by name, are looked for in that data set; on `update` without one, in the
-graph's data set, or the document's first if the graph has none. In a document with no data sets,
+graph's data set, or the document's first if the graph has none, which the graph is then linked
+to. An `update` that names no data context and no attribute links no data set, and its other
+settings, such as `pointColor` or `backgroundColor`, still apply, in a document with no data sets
+too. In a document with no data sets,
 any attribute named is one that isn't found. `null` means no attribute: on `update`, an id of
 `null` removes the attribute even when a name is sent with it; on `create`, a name sent with a
 `null` id is used. An empty name is ignored. This is a deliberate change from v2, which created
@@ -594,15 +599,13 @@ hide on close — the case table, case card, calculator and guide views — are 
 than deleted. They stay in the document, keep their ids, and continue to appear in
 `componentList` with `hidden: true`. Every other type is genuinely deleted.
 
-**A graph `update` in a document with no data sets drops the graph's settings.** It replies
-`success: true` and applies the generic properties, such as `title` and `position`, but ignores
-`pointColor`, the axis bounds, `transparent` and every other graph setting. This is a known bug.
-
-**`pointsAreFusedIntoBars` and plot settings are checked after the rest of an `update` applies.**
-A request refused with `Current plot type does not support fusing points into bars`, or with an
-error from a plot setting such as `Invalid bar chart scale: <value>`, has already changed the
-attributes, colors, bounds and generic properties it sent. This is a known bug: like a missing
-attribute, these should refuse the whole request.
+**`pointsAreFusedIntoBars` sent with new attributes is checked after they change.** Whether a
+graph can fuse its points into bars depends on its attributes, so when the same `update` also
+changes them or their types, `Current plot type does not support fusing points into bars` comes
+after the new attributes are in place, though before the graph's other settings. By then the
+attributes, and the generic properties sent with them, such as `title`, have changed, and other
+plugins are sent the `update` notification. Send the attributes in one request and
+`pointsAreFusedIntoBars` in the next to have nothing change when it's refused.
 
 **The `image` component type is not accepted.** v2 took `"type": "image"` for an image component;
 v3 registers only `imageComponentView` and returns `Unsupported component type <value>` for

@@ -19,6 +19,7 @@ import { isAnyNumericAxisModel } from "../axis/models/numeric-axis-models"
 import { attrRoleToGraphPlace, GraphAttrRole } from "../data-display/data-display-types"
 import { IAttributeDescriptionSnapshot } from "../data-display/models/data-configuration-model"
 import { kGraphTileType } from "./graph-defs"
+import { isBreakdownType } from "./graphing-types"
 import {
   GraphContentModel, IGraphContentModel, IGraphContentModelSnapshot, isGraphContentModel
 } from "./models/graph-content-model"
@@ -95,7 +96,7 @@ const roleFromAttrKey: Record<string, GraphAttrRole> = {
 }
 
 interface IGraphUpdatePlan {
-  // undefined when the document has no data sets
+  // undefined when the document has no data sets, or the request names no data set or attribute and the graph has none
   dataSet?: IDataSet
   // by attribute key; null removes the attribute
   updatedAttributes: Record<string, IAttribute | null>
@@ -103,6 +104,20 @@ interface IGraphUpdatePlan {
   yAttributes?: IAttribute[]
   // replaces the first y attribute, or null to remove it
   firstYAttribute?: IAttribute | null
+}
+// Whether an update links another data set, or changes the graph's attributes or their types
+function updateChangesAttributes(content: IGraphContentModel, plan: IGraphUpdatePlan, values: DIValues) {
+  const { dataConfiguration } = content
+  const { xAttributeType, yAttributeType, y2AttributeType } = values as V2GetGraph
+  const changesAttribute = Object.entries(plan.updatedAttributes).some(([attributeType, attribute]) => {
+    const role = roleFromAttrKey[attributeType]
+    // removing an attribute the role doesn't have changes nothing
+    return attribute != null || (!!role && !!dataConfiguration.attributeID(role))
+  })
+  const changesType = ([["x", xAttributeType], ["y", yAttributeType], ["rightNumeric", y2AttributeType]] as const)
+    .some(([role, type]) => isAttributeType(type) && type !== dataConfiguration.attributeType(role))
+  return (!!plan.dataSet && plan.dataSet !== content.dataset) || changesAttribute || changesType ||
+    plan.yAttributes != null || plan.firstYAttribute !== undefined
 }
 // Finds everything an `update` names before anything changes, so that a data context or attribute that isn't
 // found, or one a role can't take, refuses the whole request (CODAP-1711). Run by validateUpdate before the
@@ -125,13 +140,17 @@ function planGraphUpdate(content: IGraphContentModel, values: DIValues): IGraphU
     if (!dataSet) return namedDataContextNotFoundResult(_dataContext)
   }
   if (!dataSet) {
+    // the first attribute the request names; a null id removes rather than names, as below
+    const infos = [...Object.values(attributeInfo), yInfo].filter(info => info?.id !== null)
+    const requested = firstRequestedAttribute(infos, yAttributeIDs, yAttributeNames)
+    // with no data sets, any attribute named is one that isn't found
     if (sharedDataSets.length === 0) {
-      // with no data sets, any attribute named is one that isn't found; a null id removes, as below
-      const infos = [...Object.values(attributeInfo), yInfo].filter(info => info?.id !== null)
-      const requested = firstRequestedAttribute(infos, yAttributeIDs, yAttributeNames)
       return requested != null ? namedAttributeNotFoundResult(requested) : { updatedAttributes: {} }
     }
-    dataSet = content.dataset ?? sharedDataSets[0].dataSet
+    // a data set is linked only when the request names a data context or an attribute (CODAP-1732)
+    dataSet = content.dataset ?? (requested != null ? sharedDataSets[0].dataSet : undefined)
+    // with no data set, there are no attributes to change, but the request's other settings still apply
+    if (!dataSet) return { updatedAttributes: {} }
   }
 
   // Ensure that all specified attributes are legal for their roles before we actually update anything
@@ -483,6 +502,17 @@ export const graphComponentHandler: DIComponentHandler = {
     if (!isGraphContentModel(content)) return
     const plan = planGraphUpdate(content, values)
     if (isErrorResult(plan)) return plan
+
+    // These are checked before anything changes, too (CODAP-1732). Whether points can be fused depends on the
+    // graph's attributes, so a request that also changes them is checked once they've changed (in update).
+    const { barChartScale, pointsAreFusedIntoBars } = values as Record<string, unknown>
+    if (barChartScale != null && !isBreakdownType(barChartScale)) {
+      return errorResult(t("V3.DI.Error.invalidBarChartScale", { vars: [String(barChartScale)] }))
+    }
+    if (pointsAreFusedIntoBars && !updateChangesAttributes(content, plan, values) &&
+        !content.pointsCanBeFusedIntoBars) {
+      return errorResult(t("V3.DI.Error.cannotFusePointsIntoBars"))
+    }
   },
 
   update(content: ITileContentModel, values: DIValues) {
@@ -499,7 +529,7 @@ export const graphComponentHandler: DIComponentHandler = {
     const plan = planGraphUpdate(content, values)
     if (isErrorResult(plan)) return plan
     const { dataSet, updatedAttributes, yAttributes, firstYAttribute } = plan
-    if (!dataSet) return { success: true } // nothing we can do to the graph's attributes without a dataset
+    const changesAttributes = updateChangesAttributes(content, plan, values)
 
     // Actually update dataSet (which will clear any old attribute assignments)
     if (dataSet && dataSet !== content.dataset) {
@@ -534,6 +564,20 @@ export const graphComponentHandler: DIComponentHandler = {
     if (isAttributeType(yAttributeType)) dataConfiguration.setAttributeType("y", yAttributeType)
     if (isAttributeType(y2AttributeType)) dataConfiguration.setAttributeType("rightNumeric", y2AttributeType)
 
+    // Checked here, before the other settings, when the request also changed the attributes; otherwise
+    // validateUpdate has already checked it before anything changed. The plot normally follows a change of
+    // attributes only after the request, so it's brought up to date first.
+    if (pointsAreFusedIntoBars != null) {
+      if (changesAttributes) {
+        content.syncPrimaryRoleWithAttributeConfiguration()
+        content.syncPlotWithAttributeConfiguration()
+      }
+      if (pointsAreFusedIntoBars && !content.pointsCanBeFusedIntoBars) {
+        return errorResult(t("V3.DI.Error.cannotFusePointsIntoBars"))
+      }
+      content.fusePointsIntoBars(pointsAreFusedIntoBars)
+    }
+
     // Update lower and upper bounds
     const updateBounds = (place: AxisPlace, lower?: number, upper?: number) => {
       if (lower != null || upper != null) {
@@ -566,13 +610,6 @@ export const graphComponentHandler: DIComponentHandler = {
     if (strokeColor != null) pointDescription.setPointStrokeColor(strokeColor)
     if (strokeSameAsFill != null) pointDescription.setPointStrokeSameAsFill(strokeSameAsFill)
     if (transparent != null) content.setIsTransparent(transparent)
-    if (pointsAreFusedIntoBars != null) {
-      const pointsCanBeFused = content.pointsCanBeFusedIntoBars
-      if (pointsAreFusedIntoBars && !pointsCanBeFused) {
-        return errorResult(t("V3.DI.Error.cannotFusePointsIntoBars"))
-      }
-      content.fusePointsIntoBars(pointsAreFusedIntoBars)
-    }
 
     // delegate to plot to update plot-specific properties
     if (typeof values === "object" && !Array.isArray(values)) {
