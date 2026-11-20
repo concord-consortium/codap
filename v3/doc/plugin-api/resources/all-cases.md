@@ -157,8 +157,9 @@ converted; `TRUE` stays text. This is a deliberate difference.
 
 This resource takes no `notify` requests.
 
-`delete` notifies other plugins on `dataContextChangeNotice[<context>]` with `deleteCases`, as
-deleting cases in a case table does.
+`delete` notifies other plugins on `dataContextChangeNotice[<context>]` with `deleteCases`, whose
+`cases` list every case removed from view, in every collection, parents first, as in v2. A parent
+that still has set-aside items is listed too, since set-aside items have no cases.
 
 ## Errors
 

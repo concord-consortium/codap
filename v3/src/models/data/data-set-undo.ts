@@ -419,3 +419,62 @@ export function sortItemsWithCustomUndoRedo(data: IDataSet, attrId: string, dire
     redoStringKey: "DG.Redo.caseTable.sortCases"
   })
 }
+
+/*
+ * set aside / restore custom undo/redo
+ *
+ * The set-aside list is an array, so its standard patches are by position. A plugin's set-aside changes
+ * (a case delete that takes its set-aside items, a restore) aren't on the history, so they shift those
+ * positions and the user's earlier entries would undo or redo the wrong items. These entries record the item
+ * ids each change set aside and restored instead, and skip items deleted since.
+ */
+interface ISetAsideCustomPatch extends ICustomPatch {
+  type: "DataSet.setAside",
+  data: {
+    dataId: string  // DataSet id
+    setAsideIds: string[]   // the items the change set aside
+    restoredIds: string[]   // the items the change restored
+  }
+}
+function isSetAsideCustomPatch(patch: ICustomPatch): patch is ISetAsideCustomPatch {
+  return patch.type === "DataSet.setAside"
+}
+
+function setAsideItems(data: IDataSet, setAsideIds: string[], restoredIds: string[]) {
+  // hideCasesOrItems and showHiddenCasesAndItems skip items that no longer exist
+  data.showHiddenCasesAndItems(restoredIds)
+  data.hideCasesOrItems(setAsideIds)
+}
+
+const setAsideCustomUndoRedo: ICustomUndoRedoPatcher = {
+  undo: (node: IAnyStateTreeNode, patch: ICustomPatch) => {
+    if (isSetAsideCustomPatch(patch)) {
+      const { dataId, setAsideIds, restoredIds } = patch.data
+      const data = resolveIdentifier<typeof DataSet>(DataSet, node, dataId)
+      if (data) setAsideItems(data, restoredIds, setAsideIds)
+    }
+  },
+  redo: (node: IAnyStateTreeNode, patch: ICustomPatch) => {
+    if (isSetAsideCustomPatch(patch)) {
+      const { dataId, setAsideIds, restoredIds } = patch.data
+      const data = resolveIdentifier<typeof DataSet>(DataSet, node, dataId)
+      if (data) setAsideItems(data, setAsideIds, restoredIds)
+    }
+  }
+}
+
+// Called within an undoable change that sets items aside or restores them; makes it undo and redo by item id
+export function withSetAsideUndoRedo(data: IDataSet, change: () => void) {
+  const before = new Set(data.setAsideItemIds)
+  change()
+  const after = new Set(data.setAsideItemIds)
+  const setAsideIds = Array.from(after).filter(itemId => !before.has(itemId))
+  const restoredIds = Array.from(before).filter(itemId => !after.has(itemId))
+  // a change that set nothing aside and restored nothing leaves no undo entry
+  if (setAsideIds.length || restoredIds.length) {
+    withCustomUndoRedo<ISetAsideCustomPatch>({
+      type: "DataSet.setAside",
+      data: { dataId: data.id, setAsideIds, restoredIds }
+    }, setAsideCustomUndoRedo)
+  }
+}
