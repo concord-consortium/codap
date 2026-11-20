@@ -36,6 +36,7 @@ import { CodapSliderThumb } from "./slider-thumb"
 import { kNoSelectionResumeProps, kNoSelectionResumeSelector, kSliderClass } from "./slider-types"
 import { rangeFromHandles, sliderGroupLabel, sliderStep } from "./slider-utils"
 import { useSliderCountAnnouncement } from "./use-slider-count-announcement"
+import { useSliderFocusRestore } from "./use-slider-focus-restore"
 
 import "./slider.scss"
 
@@ -55,7 +56,9 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
   const { setOverlayRef, ...dropHighlight } = useSliderAttributeDrop(instanceId, tile)
+  const wrapperRef = useRef<HTMLDivElement | null>(null)
   const setWrapperRef = useCallback((elt: HTMLDivElement | null) => {
+    wrapperRef.current = elt
     sliderRef(elt)
     setOverlayRef(elt)
   }, [setOverlayRef, sliderRef])
@@ -214,6 +217,7 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     showStatusMessage(combined)
   }, [showStatusMessage])
   useSliderCountAnnouncement({ sliderModel, running, announce: announceCount })
+  useSliderFocusRestore(sliderModel, wrapperRef)
 
   // When another component takes the selection, a selection slider pauses: it stops playback and says so. Only a
   // change of ownership is announced; a slider that merely looks paused because the data changed keeps playing.

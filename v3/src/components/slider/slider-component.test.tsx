@@ -655,6 +655,88 @@ describe("SliderComponent: announcing case counts", () => {
   })
 })
 
+describe("SliderComponent: keeping focus when the slider's controls change", () => {
+  beforeEach(() => {
+    featureFlagManager.setServerConfig({ visibilitySlider: "on", selectionSlider: "on" })
+  })
+
+  afterEach(() => {
+    act(() => featureFlagManager.setServerConfig({}))
+  })
+
+  async function setupBoundRange() {
+    const result = await setupSliderAndData()
+    const { dataSet, slider } = result
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    return result
+  }
+
+  it("moves focus to the variable thumb when the focused range becomes a variable slider (e.g. by undo)",
+      async () => {
+    const { tile, slider } = await setupBoundRange()
+    renderSlider(tile)
+    act(() => screen.getByTestId("slider-range").focus())
+    act(() => slider.setSliderType("variable"))
+    expect(screen.getByTestId("slider-thumb-input")).toHaveFocus()
+  })
+
+  it("moves focus to the range when undo turns the focused variable thumb back into a range", async () => {
+    const { tile, slider } = await setupBoundRange()
+    renderSlider(tile)
+    const manager = appState.document.treeManagerAPI as Instance<typeof TreeManager>
+    const settle = () => when(() => manager.activeHistoryEntries.length === 0, { timeout: 500 })
+    appState.document.treeMonitor!.enableMonitoring()
+    try {
+      await settle()
+      act(() => slider.applyModelChange(() => slider.setSliderType("variable"), {
+        undoStringKey: "V3.Undo.slider.changeType", redoStringKey: "V3.Redo.slider.changeType"
+      }))
+      await settle()
+      act(() => screen.getByTestId("slider-thumb-input").focus())
+      act(() => appState.document.undoLastAction())
+      // the undo is applied asynchronously
+      await waitFor(() => expect(screen.getByTestId("slider-range")).toHaveFocus())
+    }
+    finally {
+      appState.document.treeMonitor!.disableMonitoring()
+    }
+  })
+
+  it("moves focus to the prompt when the focused range's attribute goes away", async () => {
+    const { tile, dataSet } = await setupBoundRange()
+    renderSlider(tile)
+    act(() => screen.getByTestId("slider-range").focus())
+    act(() => dataSet.removeAttribute(dataSet.attrFromName("a3")!.id))
+    expect(within(screen.getByTestId("slider-attribute-prompt")).getByTestId("slider-attribute-menu-button"))
+      .toHaveFocus()
+  })
+
+  it("leaves focus alone when it was outside the slider", async () => {
+    const { tile, slider } = await setupBoundRange()
+    renderSlider(tile)
+    const outside = document.createElement("button")
+    document.body.appendChild(outside)
+    try {
+      act(() => outside.focus())
+      act(() => slider.setSliderType("variable"))
+      expect(outside).toHaveFocus()
+    }
+    finally {
+      outside.remove()
+    }
+  })
+
+  it("leaves focus alone when the focused control survives the change", async () => {
+    const { tile, slider } = await setupBoundRange()
+    renderSlider(tile)
+    act(() => screen.getByTestId("slider-play-pause").focus())
+    act(() => slider.setSliderType("selection"))
+    expect(screen.getByTestId("slider-play-pause")).toHaveFocus()
+    act(() => slider.setSliderType("variable"))
+    expect(screen.getByTestId("slider-play-pause")).toHaveFocus()
+  })
+})
+
 describe("SliderComponent: resuming a selection slider", () => {
   beforeEach(() => {
     featureFlagManager.setServerConfig({ visibilitySlider: "on", selectionSlider: "on" })
