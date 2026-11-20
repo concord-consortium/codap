@@ -3,11 +3,13 @@ import { getSnapshot, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { applyModelChange } from "../../../models/history/apply-model-change"
 import { ILatLongSource } from "../map-types"
 import {
-  HotSpotColorRamp, HotSpotColorRamps, kDefaultHotSpotColorRamp, kDefaultHotSpotHighColor, kDefaultHotSpotLowColor
+  HotSpotColorRamp, HotSpotColorRamps, isHotSpotColorRamp, kDefaultHotSpotColorRamp, kDefaultHotSpotHighColor,
+  kDefaultHotSpotLowColor
 } from "../utilities/hot-spot-color-ramps"
 import { computeDefaultBandwidth, computeHotSpotSurface, IHotSpotSurface } from "../utilities/hot-spot-utils"
 
-export const MapHotSpotModel = types.model("MapHotSpotModel", {
+// Separate from the real MapHotSpotModel so it can filter out an illegal colorRamp.
+const BaseMapHotSpotModel = types.model("MapHotSpotModel", {
   isVisible: false,
   // Kernel bandwidth in meters on the ground; undefined means compute a default from the data's spread
   bandwidth: types.maybe(types.number),
@@ -16,6 +18,18 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
   lowColor: kDefaultHotSpotLowColor,
   highColor: kDefaultHotSpotHighColor
 })
+
+// A saved color ramp is an unvalidated string: it may come from a build with ramps this one doesn't have
+export interface IMapHotSpotModelSnapshot extends Omit<SnapshotIn<typeof BaseMapHotSpotModel>, "colorRamp"> {
+  colorRamp?: string
+}
+
+export const MapHotSpotModel = BaseMapHotSpotModel
+  // Drop a color ramp this build doesn't know, so the hot spot loads with the default ramp
+  .preProcessSnapshot((snap: Maybe<IMapHotSpotModelSnapshot>) => {
+    const { colorRamp, ...others } = snap ?? {}
+    return isHotSpotColorRamp(colorRamp) ? { ...others, colorRamp } : others
+  })
   .volatile(() => ({
     latLongSource: undefined as Maybe<ILatLongSource>,
     dynamicOpacity: undefined as Maybe<number>,
@@ -90,7 +104,6 @@ export const MapHotSpotModel = types.model("MapHotSpotModel", {
   .actions(applyModelChange)
 
 export interface IMapHotSpotModel extends Instance<typeof MapHotSpotModel> {}
-export interface IMapHotSpotModelSnapshot extends SnapshotIn<typeof MapHotSpotModel> {}
 
 export const kDefaultHotSpotSnapshot = getSnapshot(MapHotSpotModel.create())
 

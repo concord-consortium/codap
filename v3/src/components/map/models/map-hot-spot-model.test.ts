@@ -31,6 +31,20 @@ describe("MapHotSpotModel", () => {
     expect(isDefaultHotSpotModel(hotSpot)).toBe(true)
   })
 
+  it("falls back to the default color ramp when a snapshot's ramp is unknown", () => {
+    const hotSpot = MapHotSpotModel.create({ isVisible: true, colorRamp: "rainbow", lowColor: "#0000ff" })
+    expect(hotSpot.colorRamp).toBe("heat")
+    // the rest of the snapshot is kept
+    expect(hotSpot.isVisible).toBe(true)
+    expect(hotSpot.lowColor).toBe("#0000ff")
+    expect(MapHotSpotModel.create({ colorRamp: "viridis" }).colorRamp).toBe("viridis")
+
+    // a native v3 document reaches the hot spot through its point layer's snapshot
+    const layer = MapPointLayerModel.create({ hotSpotModel: { colorRamp: "rainbow", opacity: 0.5 } })
+    expect(layer.hotSpotModel.colorRamp).toBe("heat")
+    expect(layer.hotSpotModel.opacity).toBe(0.5)
+  })
+
   it("is not default when a display property differs", () => {
     expect(isDefaultHotSpotModel(MapHotSpotModel.create({ bandwidth: 5000 }))).toBe(false)
     expect(isDefaultHotSpotModel(MapHotSpotModel.create({ highColor: "#ff0000" }))).toBe(false)
