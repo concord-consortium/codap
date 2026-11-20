@@ -5,6 +5,12 @@
   padding-top: 10px;
 }
 
+@mixin color-ramp-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .map-values-controls {
   display: flex;
   flex-direction: column;
@@ -15,6 +21,20 @@
     align-items: center;
     font-weight: 500;
   }
+}
+
+// The preview strip of a hot spot color ramp, in the menu's button and in its options.
+// Top-level because the menu's popover renders in a portal outside the palette.
+.hot-spot-ramp-strip {
+  flex: none;
+  width: 40px;
+  height: 12px;
+  border: 1px solid vars.$charcoal-light-1;
+  border-radius: 2px;
+}
+
+.hot-spot-color-ramp-popover .react-aria-ListBoxItem {
+  @include color-ramp-option;
 }
 
 .inspector-panel.map.data-display {
@@ -98,6 +118,20 @@
 
         .slider-row {
           margin-top: 8px;
+        }
+
+        .color-ramp-row {
+          justify-content: space-between;
+          height: auto;
+          margin-top: 8px;
+
+          .react-aria-Button {
+            min-width: 140px;
+          }
+
+          .react-aria-SelectValue {
+            @include color-ramp-option;
+          }
         }
       }
     }

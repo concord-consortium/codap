@@ -41,6 +41,8 @@ describe("MapHotSpotControl", () => {
     expect(checkbox).toBeChecked()
   })
 
+  // Opacity slider
+
   it("renders an accessible opacity slider that is disabled while the hot spot is hidden", () => {
     featureFlagManager.setServerConfig({ mapHotSpot: "on" })
     const pointLayer = MapPointLayerModel.create(undefined, { historyService: new AppHistoryService() })
@@ -134,5 +136,77 @@ describe("MapHotSpotControl", () => {
     const [first, second] = screen.getAllByRole("slider")
     expect(first).toHaveAccessibleName("V3.Inspector.map.hotSpotResolution")
     expect(second).toHaveAccessibleName("V3.Inspector.map.hotSpotOpacity")
+  })
+
+  // Color Ramp Select
+
+  function mountShownHotSpot() {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const pointLayer = MapPointLayerModel.create(undefined, { historyService: new AppHistoryService() })
+    pointLayer.hotSpotModel.setIsVisible(true)
+    render(<MapHotSpotControl mapPointLayerModel={pointLayer}/>)
+    return pointLayer.hotSpotModel
+  }
+  const rampButton = () => screen.getByTestId("map-hot-spot-color-ramp-button")
+  const lowSwatch = () => screen.getByTestId("color-swatch-button-hot-spot-low")
+  const highSwatch = () => screen.getByTestId("color-swatch-button-hot-spot-high")
+  // eslint-disable-next-line testing-library/no-node-access -- the strip is decorative, so it has no role or text
+  const rampStrip = (element: HTMLElement) => element.querySelector<HTMLElement>(".hot-spot-ramp-strip")
+
+  it("shows the selected color ramp with its preview strip", () => {
+    mountShownHotSpot()
+    expect(rampButton()).toHaveTextContent("V3.Inspector.map.hotSpotColorRamp.heat")
+    const strip = rampStrip(rampButton())
+    expect(strip).toHaveAttribute("aria-hidden", "true")
+    expect(strip?.style.background).toMatch(/^linear-gradient\(to right, #000004, /)
+  })
+
+  it("lists the color ramps in order, each with a preview strip", async () => {
+    const user = userEvent.setup()
+    mountShownHotSpot()
+    await user.click(rampButton())
+    const options = screen.getAllByRole("option")
+    expect(options.map(option => option.textContent)).toEqual(
+      ["heat", "viridis", "cividis", "monochrome", "custom"].map(ramp => `V3.Inspector.map.hotSpotColorRamp.${ramp}`))
+    options.forEach(option => expect(rampStrip(option)).toBeInTheDocument())
+  })
+
+  it("changes the color ramp", async () => {
+    const user = userEvent.setup()
+    const hotSpotModel = mountShownHotSpot()
+    await user.click(rampButton())
+    await user.click(screen.getByRole("option", { name: "V3.Inspector.map.hotSpotColorRamp.viridis" }))
+    expect(hotSpotModel.colorRamp).toBe("viridis")
+    expect(rampButton()).toHaveTextContent("V3.Inspector.map.hotSpotColorRamp.viridis")
+  })
+
+  it("disables the color ramp menu while the hot spot is hidden", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const pointLayer = MapPointLayerModel.create(undefined, { historyService: new AppHistoryService() })
+    render(<MapHotSpotControl mapPointLayerModel={pointLayer}/>)
+    expect(rampButton()).toBeDisabled()
+    expect(lowSwatch()).toBeDisabled()
+    expect(highSwatch()).toBeDisabled()
+  })
+
+  it("enables the low and high colors only for the custom ramp", () => {
+    const hotSpotModel = mountShownHotSpot()
+    expect(lowSwatch()).toBeDisabled()
+    expect(highSwatch()).toBeDisabled()
+    act(() => hotSpotModel.setColorRamp("custom"))
+    expect(lowSwatch()).toBeEnabled()
+    expect(highSwatch()).toBeEnabled()
+    expect(lowSwatch()).toHaveAccessibleName("V3.Inspector.map.hotSpotLowColor: #fff3a3")
+    expect(highSwatch()).toHaveAccessibleName("V3.Inspector.map.hotSpotHighColor: #5b1a8c")
+  })
+
+  it("shows the custom colors in the custom ramp's preview strip", () => {
+    const hotSpotModel = mountShownHotSpot()
+    act(() => {
+      hotSpotModel.setColorRamp("custom")
+      hotSpotModel.setLowColor("#000000")
+    })
+    expect(rampStrip(rampButton())?.style.background)
+      .toMatch(/^linear-gradient\(to right, rgb\(0, 0, 0\), /)
   })
 })

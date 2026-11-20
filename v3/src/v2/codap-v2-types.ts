@@ -553,6 +553,7 @@ export interface ICodapV2MapHotSpotStorage {
   isVisible?: boolean
   bandwidth?: number
   opacity?: number
+  colorRamp?: string
   lowColor?: string
   highColor?: string
 }

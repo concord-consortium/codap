@@ -1,14 +1,22 @@
-import { act, render } from "@testing-library/react"
-import { Map as LeafletMap } from "leaflet"
+import { act, render, waitFor } from "@testing-library/react"
+import { Map as LeafletMap, Point } from "leaflet"
 import { MapContainer } from "react-leaflet"
 import { featureFlagManager } from "../../../models/feature-flags/feature-flag-manager"
 import { IMapPointLayerModel, MapPointLayerModel } from "../models/map-point-layer-model"
 import { HotSpotCanvasLayer } from "../utilities/hot-spot-canvas-layer"
+import { getHotSpotRampInterpolator } from "../utilities/hot-spot-color-ramps"
 import { kHotSpotPaneName, MapHotSpotLayer } from "./map-hot-spot-layer"
+
+// Wraps the real function so tests can see which ramp the layer draws with
+jest.mock("../utilities/hot-spot-color-ramps", () => {
+  const actual = jest.requireActual("../utilities/hot-spot-color-ramps")
+  return { ...actual, getHotSpotRampInterpolator: jest.fn(actual.getHotSpotRampInterpolator) }
+})
 
 describe("MapHotSpotLayer", () => {
   afterEach(() => {
     act(() => featureFlagManager.setServerConfig({}))
+    jest.restoreAllMocks()
   })
 
   function mountHotSpotLayer(setup?: (pointLayer: IMapPointLayerModel) => void) {
@@ -96,5 +104,28 @@ describe("MapHotSpotLayer", () => {
     featureFlagManager.setServerConfig({ mapHotSpot: "on" })
     const { leafletMap } = mountHotSpotLayer()
     expect(hotSpotCanvas(leafletMap)?.style.opacity).toBe("0.75")
+  })
+
+  it("redraws with the model's color ramp when it changes", async () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    // jsdom gives the map no size and the canvas no context, and the layer draws only when it has both
+    jest.spyOn(LeafletMap.prototype, "getSize").mockReturnValue(new Point(100, 100))
+    const context = {
+      createImageData: (width: number, height: number) => ({ data: new Uint8ClampedArray(width * height * 4) }),
+      putImageData: jest.fn()
+    }
+    jest.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(context as any)
+    const getInterpolator = jest.mocked(getHotSpotRampInterpolator)
+
+    const { pointLayer } = mountHotSpotLayer(layer => {
+      layer.hotSpotModel.setLatLongSource({ plottedLatLongs: [{ lat: 0, long: 0 }] })
+    })
+    expect(getInterpolator).toHaveBeenLastCalledWith("heat", "#fff3a3", "#5b1a8c")
+    expect(context.putImageData).toHaveBeenCalledTimes(1)
+
+    act(() => pointLayer.hotSpotModel.setColorRamp("viridis"))
+    // the redraw is debounced
+    await waitFor(() => expect(getInterpolator).toHaveBeenLastCalledWith("viridis", "#fff3a3", "#5b1a8c"))
+    expect(context.putImageData).toHaveBeenCalledTimes(2)
   })
 })

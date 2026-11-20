@@ -25,24 +25,51 @@ describe("MapHotSpotModel", () => {
     const hotSpot = MapHotSpotModel.create()
     expect(hotSpot.bandwidth).toBeUndefined()
     expect(hotSpot.opacity).toBe(0.75)
-    expect(hotSpot.lowColor).toBe("#000000")
-    expect(hotSpot.highColor).toBe("#ffffff")
+    expect(hotSpot.colorRamp).toBe("heat")
+    expect(hotSpot.lowColor).toBe("#fff3a3")
+    expect(hotSpot.highColor).toBe("#5b1a8c")
     expect(isDefaultHotSpotModel(hotSpot)).toBe(true)
+  })
+
+  it("falls back to the default color ramp when a snapshot's ramp is unknown", () => {
+    const hotSpot = MapHotSpotModel.create({ isVisible: true, colorRamp: "rainbow", lowColor: "#0000ff" })
+    expect(hotSpot.colorRamp).toBe("heat")
+    // the rest of the snapshot is kept
+    expect(hotSpot.isVisible).toBe(true)
+    expect(hotSpot.lowColor).toBe("#0000ff")
+    expect(MapHotSpotModel.create({ colorRamp: "viridis" }).colorRamp).toBe("viridis")
+
+    // a native v3 document reaches the hot spot through its point layer's snapshot
+    const layer = MapPointLayerModel.create({ hotSpotModel: { colorRamp: "rainbow", opacity: 0.5 } })
+    expect(layer.hotSpotModel.colorRamp).toBe("heat")
+    expect(layer.hotSpotModel.opacity).toBe(0.5)
+  })
+
+  it("restores a custom color ramp with non-default low and high colors", () => {
+    const hotSpot = MapPointLayerModel.create({ hotSpotModel: {
+      isVisible: true, colorRamp: "custom", lowColor: "#0000ff", highColor: "#ff0000"
+    }}).hotSpotModel
+    expect(hotSpot.colorRamp).toBe("custom")
+    expect(hotSpot.lowColor).toBe("#0000ff")
+    expect(hotSpot.highColor).toBe("#ff0000")
   })
 
   it("is not default when a display property differs", () => {
     expect(isDefaultHotSpotModel(MapHotSpotModel.create({ bandwidth: 5000 }))).toBe(false)
     expect(isDefaultHotSpotModel(MapHotSpotModel.create({ highColor: "#ff0000" }))).toBe(false)
+    expect(isDefaultHotSpotModel(MapHotSpotModel.create({ colorRamp: "viridis" }))).toBe(false)
   })
 
   it("can set the display properties", () => {
     const hotSpot = MapHotSpotModel.create()
     hotSpot.setBandwidth(5000)
     hotSpot.setOpacity(0.5)
+    hotSpot.setColorRamp("custom")
     hotSpot.setLowColor("#0000ff")
     hotSpot.setHighColor("#ff0000")
-    expect(getSnapshot(hotSpot)).toEqual(
-      { isVisible: false, bandwidth: 5000, opacity: 0.5, lowColor: "#0000ff", highColor: "#ff0000" })
+    expect(getSnapshot(hotSpot)).toEqual({
+      isVisible: false, bandwidth: 5000, opacity: 0.5, colorRamp: "custom", lowColor: "#0000ff", highColor: "#ff0000"
+    })
     hotSpot.setBandwidth(undefined)
     expect(hotSpot.bandwidth).toBeUndefined()
   })
