@@ -35,6 +35,9 @@ A slider labeled **Color binning** with ten positions:
 | 2 through 10 | That many classes | "2 classes" … "10 classes" |
 | 11 (far right, default) | Continuous | "continuous" |
 
+The limits come from the constants `kMinColorBins` (2) and `kMaxColorBins` (10), which the rendering code shares
+(see [Bin count limits](#bin-count-limits)). The continuous position is `kMaxColorBins + 1`.
+
 - **Readout.** A line of text below the slider, justified to the right, shows the readout for the slider's
   current position. It updates as the slider moves.
 - **Screen readers.** The thumb's `aria-valuetext` is the same readout text, so a screen reader announces
@@ -42,12 +45,13 @@ A slider labeled **Color binning** with ten positions:
   is not announced twice.
 - **Live update, deferred commit.** Like the Resolution and Opacity sliders, the map redraws as the slider
   moves, but the change is committed to the document (one undo step, one log event) only when the change ends
-  or the thumb loses focus. If the value at that point equals the committed value, nothing is committed.
+  or the thumb loses focus. If the value at that point equals the committed value's effective bin count,
+  nothing is committed.
 - **Disabled** when the Hot spot checkbox is off, like the other controls in the section.
-- **Out-of-range values.** A document can hold a bin count the slider can't show (for example 15, from a
-  hand-edited document or a plugin). The thumb then sits at the nearest numeric end of the slider (position 2
-  or 10, never the continuous position), the readout shows the real value ("15 classes"), and the model keeps
-  the value until the user moves the slider.
+- **Out-of-range values.** A document can hold a bin count outside 2 through 10 (for example 15, from a
+  hand-edited document or a plugin). It is treated everywhere as the nearest allowed count: the thumb sits at
+  position 10, the readout says "10 classes", and the map draws 10 classes. The slider and the map therefore
+  always agree. The model keeps the saved value until the user commits a change with the slider.
 - **Test id:** `map-hot-spot-color-binning-slider`, extending the existing `map-hot-spot-` prefix.
 
 The ramp preview strips in the Color menu do not change. They stay continuous whatever the binning.
@@ -62,8 +66,7 @@ The ramp preview strips in the Color menu do not change. They stay continuous wh
 | `V3.Undo.map.changeHotSpotColorBinning` | Undo changing hot spot color binning |
 | `V3.Redo.map.changeHotSpotColorBinning` | Redo changing hot spot color binning |
 
-The slider never shows "1 classes", but an out-of-range saved value of 1 would. That case is not worth a
-separate singular string.
+The count in the readout is never less than 2, so no singular string is needed.
 
 ### Logging
 
@@ -85,13 +88,38 @@ colorBins: types.optional(types.union(types.literal("continuous"), types.number)
   absent `colorBins` meaning continuous, would need a second sentinel for the in-progress value, and would
   put "absent is smooth" next to "0 is fully transparent".
 - **In-progress value.** A volatile `dynamicColorBins: Maybe<HotSpotColorBins>` holds the slider's value while
-  it is being adjusted. The view `displayColorBins` returns `dynamicColorBins ?? colorBins`, and is what the
-  layer renders. This matches `dynamicOpacity` / `displayOpacity`.
+  it is being adjusted, as `dynamicOpacity` does for opacity.
+- **Views.** `effectiveColorBins` is `getEffectiveColorBins(colorBins)`: the committed value with the limits
+  applied. `displayColorBins` is `getEffectiveColorBins(dynamicColorBins ?? colorBins)`: the value to render
+  and to show on the slider. These match `effectiveBandwidth` and `displayBandwidth`.
 - **Actions.** `setColorBins(colorBins)` sets the property and clears `dynamicColorBins`.
   `setDynamicColorBins(colorBins)` sets the volatile value.
 - **Invalid saved values.** `preProcessSnapshot` drops a `colorBins` that is neither `"continuous"` nor a
   finite number, so the hot spot loads with the default rather than failing to load. This is the treatment
-  `colorRamp` gets now. Finite numbers outside 2 through 10 are valid and are kept.
+  `colorRamp` gets now. Finite numbers outside 2 through 10 are kept as saved; the limits are applied when the
+  value is used, not when it is stored.
+
+### Bin count limits
+
+`hot-spot-utils.ts` exports the limits and the one function that applies them:
+
+```ts
+export const kMinColorBins = 2
+export const kMaxColorBins = 10
+
+export function getEffectiveColorBins(colorBins: HotSpotColorBins): HotSpotColorBins
+```
+
+| Input | Result |
+| --- | --- |
+| `"continuous"` | `"continuous"` |
+| A number from 2 through 10 | The number, rounded to the nearest integer |
+| A number less than 2, including 0 and negatives | 2 |
+| A number greater than 10 | 10 |
+| `NaN` | `"continuous"` (the default; it can't be saved, so this is only a guard) |
+
+The slider's range, the readout and the lookup table all go through this function and these constants, so
+there is one definition of the allowed counts.
 
 ### Import and export
 
@@ -118,16 +146,18 @@ grid, the normalization by maximum density and `colorizeDensityGrid` are untouch
 buildColorLUT(interpolator: ColorInterpolator, colorBins: HotSpotColorBins = kContinuousColorBins)
 ```
 
-The table has 256 entries. Entry `i` stands for the normalized density `d = i / 255`.
+The table has 256 entries. Entry `i` stands for the normalized density `d = i / 255`. `buildColorLUT` first
+passes `colorBins` through `getEffectiveColorBins`, so it is correct for any input, not only for a value the
+model has already limited.
 
 - **Continuous.** As today: entry `i` is the ramp color at `d`, with its alpha multiplied by `hotSpotFade(d)`.
-- **n ≥ 2 bins.** The density range [0, 1] is split into n bins of equal width. Entry `i` falls in bin
+- **n bins.** The density range [0, 1] is split into n bins of equal width. Entry `i` falls in bin
   `k = min(n − 1, floor(d · n))`, and every entry in bin `k` gets the same color: the ramp color at
   `t = k / (n − 1)`, with its alpha multiplied by `hotSpotFade(t)`. So the lowest bin is the low color, the
   highest bin is the high color, and the bins between are evenly spaced along the ramp.
-- **n ≤ 1.** Every entry is the ramp's low color with alpha 0.
-- **Non-integers** are rounded to the nearest integer before any of the above. A value that is not finite is
-  treated as n ≤ 1. The UI produces neither.
+
+There is no separate rule for small counts: a count less than 2 draws as 2 bins, and a count greater than 10
+draws as 10. Because n is always at least 2, `n − 1` is never zero.
 
 | Bins | Ramp positions used |
 | --- | --- |
@@ -153,7 +183,7 @@ a hard edge of the low color.
 
 ### Redraw
 
-`MapHotSpotLayer`'s redraw reaction adds `hotSpotModel.displayColorBins` to the values it watches, and the
+`displayColorBins` already has the limits applied. `MapHotSpotLayer`'s redraw reaction adds `hotSpotModel.displayColorBins` to the values it watches, and the
 draw function passes it to `buildColorLUT`. Changing the binning rebuilds only the lookup table. The density
 surface does not depend on it and is not recomputed, so the live update during a drag is cheap and needs no
 equivalent of `shouldOptimize`.
@@ -173,8 +203,12 @@ without rendering:
 
 | Function | Behavior |
 | --- | --- |
-| `colorBinsToSliderValue(colorBins)` | `"continuous"` → 11; a number → rounded and clamped to 2 through 10 |
-| `sliderValueToColorBins(value)` | 11 → `"continuous"`; otherwise the value |
+| `colorBinsToSliderValue(colorBins)` | Applies `getEffectiveColorBins`, then `"continuous"` → `kMaxColorBins + 1`; a number → itself |
+| `sliderValueToColorBins(value)` | A value above `kMaxColorBins` → `"continuous"`; otherwise the value |
+
+The slider's `minValue` is `kMinColorBins` and its `maxValue` is `kMaxColorBins + 1`. It reads
+`displayColorBins` for its position and readout, and compares against `effectiveColorBins` to decide whether
+there is anything to commit.
 
 ## Testing
 
@@ -184,20 +218,23 @@ Jest unit tests, alongside the code they cover:
   - `buildColorLUT` with continuous binning matches the current output.
   - With 2, 3 and 4 bins: the entries in each bin are identical, the bin boundaries fall at the expected
     entries, the colors are the ramp colors at the expected positions, and the lowest bin's alpha is 0.
-  - With 1, 0, a negative number and `NaN`: every entry has alpha 0.
+  - With 1, 0 and a negative number: the same table as 2 bins. With 11 and 100: the same table as 10 bins.
   - A non-integer count gives the same table as its rounded value.
+  - `getEffectiveColorBins` for each row of its table above.
   - The slider conversion functions, including out-of-range and non-integer values.
 - **`map-hot-spot-model.test.ts`**
   - The default is `"continuous"`.
   - `setDynamicColorBins` changes `displayColorBins` but not `colorBins`; `setColorBins` changes both and
     clears the dynamic value.
-  - A snapshot with an invalid `colorBins` loads with the default; one with an out-of-range number keeps it.
+  - A snapshot with an invalid `colorBins` loads with the default.
+  - A snapshot with an out-of-range number keeps it in `colorBins`, while `effectiveColorBins` and
+    `displayColorBins` return the limit.
 - **`map-hot-spot-binning-slider.test.tsx`** (new)
   - The readout and `aria-valuetext` for a numeric value and for continuous.
   - Moving the slider sets the dynamic value without committing; ending the change commits it with one undo
     entry; blur commits an in-progress change; ending on the committed value commits nothing.
   - Disabled when the hot spot is hidden.
-  - An out-of-range value shows the real count in the readout.
+  - A saved count of 15 shows "10 classes" with the thumb at 10, and ending a change at 10 commits nothing.
 - **`map-hot-spot-control.test.tsx`**: the slider is rendered, after the High color row.
 - **`map-hot-spot-layer.test.tsx`**: changing `colorBins` or `dynamicColorBins` redraws the layer, and the
   draw function builds the table with `displayColorBins`.
