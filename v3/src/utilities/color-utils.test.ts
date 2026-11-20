@@ -16,7 +16,7 @@ describe("Color utilities", () => {
     expect(parseColor("#ff0000")).toBe("#ff0000")
     expect(parseColor("#00ff0080")).toBe("#00ff0080")
     expect(parseColor("#00f")).toBe("#0000ff")
-    expect(parseColor("#00f8")).toBe("#0000ff87")
+    expect(parseColor("#00f8")).toBe("#0000ff88")
 
     // supports rgb()
     expect(parseColor("rgb(0, 255, 0)")).toBe("#00ff00")
@@ -45,7 +45,7 @@ describe("Color utilities", () => {
     expect(parseColor("#ff0000", { colorNames: true })).toBe("#ff0000")
     expect(parseColor("#00ff0080", { colorNames: true })).toBe("#00ff0080")
     expect(parseColor("#00f", { colorNames: true })).toBe("#0000ff")
-    expect(parseColor("#00f8", { colorNames: true })).toBe("#0000ff87")
+    expect(parseColor("#00f8", { colorNames: true })).toBe("#0000ff88")
 
     // supports rgb()
     expect(parseColor("rgb(0, 255, 0)", { colorNames: true })).toBe("#00ff00")
@@ -75,7 +75,7 @@ describe("Color utilities", () => {
     expect(parseColorToHex("#ff0000")).toBe("#ff0000")
     expect(parseColorToHex("#00ff0080")).toBe("#00ff0080")
     expect(parseColorToHex("#00f")).toBe("#0000ff")
-    expect(parseColorToHex("#00f8")).toBe("#0000ff87")
+    expect(parseColorToHex("#00f8")).toBe("#0000ff88")
 
     // supports rgb()
     expect(parseColorToHex("rgb(0, 255, 0)")).toBe("#00ff00")
@@ -104,7 +104,7 @@ describe("Color utilities", () => {
     expect(parseColorToHex("#ff0000", { colorNames: true })).toBe("#ff0000")
     expect(parseColorToHex("#00ff0080", { colorNames: true })).toBe("#00ff0080")
     expect(parseColorToHex("#00f", { colorNames: true })).toBe("#0000ff")
-    expect(parseColorToHex("#00f8", { colorNames: true })).toBe("#0000ff87")
+    expect(parseColorToHex("#00f8", { colorNames: true })).toBe("#0000ff88")
 
     // supports rgb()
     expect(parseColorToHex("rgb(0, 255, 0)", { colorNames: true })).toBe("#00ff00")
