@@ -308,4 +308,59 @@ describe("V2 map hot spot round-trip", () => {
     const exportedLayers = (out!.componentStorage as any).mapModelStorage.layerModels
     expect(exportedLayers.find((l: any) => l.v3?.hotSpot)?.v3?.hotSpot).toEqual(hotSpot)
   })
+
+  it("round-trips continuous color bins with other non-default properties", () => {
+    const { v2Document } = loadCodapDocument("roller-coasters-map-layer-formats.codap")
+    const v2MapTile = v2Document.components.find(c => c.type === "DG.MapView")!
+    const layerModels = (v2MapTile.componentStorage as any).mapModelStorage.layerModels
+    const v2PointLayer = layerModels.find((l: any) => l.pointColor != null)
+    const hotSpot = { ...kDefaultHotSpotSnapshot, isVisible: true }
+    expect(hotSpot.colorBins).toBe("continuous")
+    v2PointLayer.v3 = { ...v2PointLayer.v3, hotSpot }
+
+    const tile = v2MapImporter({ v2Component: v2MapTile, v2Document, ...mockImporterArgs })
+    const content = isMapContentModel(tile?.content) ? tile.content : undefined
+    const layer = content!.layers.find((l: any) => l.type === "mapPointLayer")! as any
+    expect(layer.hotSpotModel.colorBins).toBe("continuous")
+
+    const out = v2MapExporter({ tile: tile! })
+    const exportedLayers = (out!.componentStorage as any).mapModelStorage.layerModels
+    expect(exportedLayers.find((l: any) => l.v3?.hotSpot)?.v3?.hotSpot).toEqual(hotSpot)
+  })
+
+  it("exports the hot spot when only the color bins differ from the default", () => {
+    const { v2Document } = loadCodapDocument("roller-coasters-map-layer-formats.codap")
+    const v2MapTile = v2Document.components.find(c => c.type === "DG.MapView")!
+    const tile = v2MapImporter({ v2Component: v2MapTile, v2Document, ...mockImporterArgs })
+    const content = isMapContentModel(tile?.content) ? tile.content : undefined
+    const layer = content!.layers.find((l: any) => l.type === "mapPointLayer")! as any
+    layer.hotSpotModel.setColorBins(4)
+
+    const out = v2MapExporter({ tile: tile! })
+    const layerModels = (out!.componentStorage as any).mapModelStorage.layerModels
+    expect(layerModels.find((l: any) => l.v3?.hotSpot)?.v3?.hotSpot)
+      .toEqual({ ...kDefaultHotSpotSnapshot, colorBins: 4 })
+  })
+
+  it("keeps out-of-range color bins and falls back to continuous when they are invalid", () => {
+    const importWithColorBins = (colorBins: unknown) => {
+      const { v2Document } = loadCodapDocument("roller-coasters-map-layer-formats.codap")
+      const v2MapTile = v2Document.components.find(c => c.type === "DG.MapView")!
+      const layerModels = (v2MapTile.componentStorage as any).mapModelStorage.layerModels
+      const v2PointLayer = layerModels.find((l: any) => l.pointColor != null)
+      v2PointLayer.v3 = { ...v2PointLayer.v3, hotSpot: { isVisible: true, colorBins } }
+      const tile = v2MapImporter({ v2Component: v2MapTile, v2Document, ...mockImporterArgs })
+      const content = isMapContentModel(tile?.content) ? tile.content : undefined
+      return (content!.layers.find((l: any) => l.type === "mapPointLayer")! as any).hotSpotModel
+    }
+
+    const tooMany = importWithColorBins(15)
+    expect(tooMany.colorBins).toBe(15)
+    expect(tooMany.effectiveColorBins).toBe(10)
+
+    const invalid = importWithColorBins("many")
+    expect(invalid.colorBins).toBe("continuous")
+    // the rest of the saved hot spot is kept
+    expect(invalid.isVisible).toBe(true)
+  })
 })
