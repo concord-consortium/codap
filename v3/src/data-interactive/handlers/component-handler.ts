@@ -6,6 +6,7 @@ import { resizeAllColumns } from "../../components/case-table/case-table-utils"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { isMapContentModel } from "../../components/map/models/map-content-model"
 import { getCreateTileHistoryOptions } from "../../components/tool-shelf/tool-shelf-utilities"
+import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { INewTileOptions } from "../../models/codap/create-tile"
@@ -147,6 +148,10 @@ export const diComponentHandler: DIHandler = {
     const { component } = resources
     if (!component) return componentNotFoundResult
 
+    // The Importer closes itself once it has imported the data. Opening it isn't an undoable step,
+    // so closing it isn't either; otherwise Undo would reopen it.
+    const isImporterClosingItself = resources.interactiveFrame?.id === component.id &&
+      isWebViewModel(component.content) && component.content.isImporter
     const { document } = appState
     document.applyModelChange(() => {
       document.content?.deleteOrHideTile(component.id)
@@ -154,8 +159,10 @@ export const diComponentHandler: DIHandler = {
       notify: closeCaseTableNotification(component) ?? deleteTileNotification(component),
       // as in V2, closing a component is undoable and logged, as it is from its close box
       log: logMessageWithReplacement("Close component: %@", {tileType: component.content.type}, "component"),
-      undoStringKey: "DG.Undo.component.close",
-      redoStringKey: "DG.Redo.component.close",
+      ...(isImporterClosingItself ? {} : {
+        undoStringKey: "DG.Undo.component.close",
+        redoStringKey: "DG.Redo.component.close"
+      }),
       excludeTileId: resources.interactiveFrame?.id
     })
 
