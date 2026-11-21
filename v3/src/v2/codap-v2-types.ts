@@ -556,6 +556,7 @@ export interface ICodapV2MapHotSpotStorage {
   colorRamp?: string
   lowColor?: string
   highColor?: string
+  colorBins?: number | string
 }
 
 export interface ICodapV2MapPointLayerStorageV3Extensions extends ICodapV2MapLayerBaseStorageV3Extensions {

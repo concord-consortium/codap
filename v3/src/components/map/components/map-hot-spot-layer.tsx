@@ -54,7 +54,10 @@ export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayer
     // (MobX doesn't use the scheduler for the first run, which only starts observing,
     // so the surface is still cached before the first draw.)
     const disposeReaction = mstReaction(
-      () => [hotSpotModel.hotSpotSurface, hotSpotModel.colorRamp, hotSpotModel.lowColor, hotSpotModel.highColor],
+      () => [
+        hotSpotModel.hotSpotSurface, hotSpotModel.colorRamp, hotSpotModel.lowColor, hotSpotModel.highColor,
+        hotSpotModel.displayColorBins
+      ],
       () => layer.redraw(),
       // Coalesce bursts of changes so that the surface is recomputed and redrawn at most once per frame
       { name: "MapHotSpotLayer.redraw", scheduler: run => requestAnimationFrame(run) },
@@ -62,12 +65,12 @@ export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayer
     )
 
     layer.setDrawFunction((context, region) => {
-      const { colorRamp, highColor, lowColor, hotSpotSurface } = hotSpotModel
+      const { colorRamp, displayColorBins, highColor, lowColor, hotSpotSurface } = hotSpotModel
       if (!hotSpotSurface) return
 
       const imageData = context.createImageData(region.cols, region.rows)
       const zoomScale = leafletMap.getZoomScale(leafletMap.getZoom(), 0)
-      const lut = buildColorLUT(getHotSpotRampInterpolator(colorRamp, lowColor, highColor))
+      const lut = buildColorLUT(getHotSpotRampInterpolator(colorRamp, lowColor, highColor), displayColorBins)
       renderHotSpotSurface(hotSpotSurface, createLatLongProjector(leafletMap), zoomScale, region, lut, imageData.data)
       context.putImageData(imageData, 0, 0)
     })

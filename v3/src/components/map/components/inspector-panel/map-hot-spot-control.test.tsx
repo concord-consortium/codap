@@ -196,8 +196,8 @@ describe("MapHotSpotControl", () => {
     act(() => hotSpotModel.setColorRamp("custom"))
     expect(lowSwatch()).toBeEnabled()
     expect(highSwatch()).toBeEnabled()
-    expect(lowSwatch()).toHaveAccessibleName("V3.Inspector.map.hotSpotLowColor: #fff3a3")
-    expect(highSwatch()).toHaveAccessibleName("V3.Inspector.map.hotSpotHighColor: #5b1a8c")
+    expect(lowSwatch()).toHaveAccessibleName("V3.Inspector.map.hotSpotLowColor: #5b1a8c")
+    expect(highSwatch()).toHaveAccessibleName("V3.Inspector.map.hotSpotHighColor: #fff3a3")
   })
 
   it("shows the custom colors in the custom ramp's preview strip", () => {
@@ -208,5 +208,26 @@ describe("MapHotSpotControl", () => {
     })
     expect(rampStrip(rampButton())?.style.background)
       .toMatch(/^linear-gradient\(to right, rgb\(0, 0, 0\), /)
+  })
+
+  // Color binning slider
+
+  it("renders the color binning slider last, below the high color", () => {
+    mountShownHotSpot()
+    const sliders = screen.getAllByRole("slider")
+    expect(sliders).toHaveLength(3)
+    const binningSlider = sliders[2]
+    expect(binningSlider).toHaveAccessibleName("V3.Inspector.map.hotSpotColorBinning")
+    expect(highSwatch().compareDocumentPosition(binningSlider)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+
+  it("commits the color bins from the color binning slider", async () => {
+    const user = userEvent.setup()
+    const hotSpotModel = mountShownHotSpot()
+    expect(hotSpotModel.colorBins).toBe("continuous")
+    const slider = screen.getByRole("slider", { name: "V3.Inspector.map.hotSpotColorBinning" })
+    act(() => slider.focus())
+    await user.keyboard("{Home}")
+    expect(hotSpotModel.colorBins).toBe(2)
   })
 })

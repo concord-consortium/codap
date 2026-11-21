@@ -8,6 +8,7 @@ import { ColorSetting } from "../../../common/color-setting"
 import { PaletteCheckbox } from "../../../palette-checkbox"
 import { IMapPointLayerModel } from "../../models/map-point-layer-model"
 import { HotSpotColorRamp } from "../../utilities/hot-spot-color-ramps"
+import { MapHotSpotBinningSlider } from "./map-hot-spot-binning-slider"
 import { MapHotSpotColorRampSelect } from "./map-hot-spot-color-ramp-select"
 import { MapHotSpotResolutionSlider } from "./map-hot-spot-resolution-slider"
 
@@ -142,6 +143,7 @@ export const MapHotSpotControl = observer(function MapHotSpotControl({ mapPointL
       />
       {renderCustomColorRow("Low", lowColor)}
       {renderCustomColorRow("High", highColor)}
+      <MapHotSpotBinningSlider mapPointLayerModel={mapPointLayerModel}/>
     </div>
   )
 })

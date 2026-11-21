@@ -6,8 +6,8 @@ export const HotSpotColorRamps = ["heat", "viridis", "cividis", "monochrome", "c
 export type HotSpotColorRamp = typeof HotSpotColorRamps[number]
 
 export const kDefaultHotSpotColorRamp: HotSpotColorRamp = "heat"
-export const kDefaultHotSpotLowColor = "#fff3a3"
-export const kDefaultHotSpotHighColor = "#5b1a8c"
+export const kDefaultHotSpotLowColor = "#5b1a8c"
+export const kDefaultHotSpotHighColor = "#fff3a3"
 
 export function isHotSpotColorRamp(value: unknown): value is HotSpotColorRamp {
   return HotSpotColorRamps.includes(value as HotSpotColorRamp)
