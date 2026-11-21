@@ -196,8 +196,8 @@ describe("MapHotSpotControl", () => {
     act(() => hotSpotModel.setColorRamp("custom"))
     expect(lowSwatch()).toBeEnabled()
     expect(highSwatch()).toBeEnabled()
-    expect(lowSwatch()).toHaveAccessibleName("V3.Inspector.map.hotSpotLowColor: #fff3a3")
-    expect(highSwatch()).toHaveAccessibleName("V3.Inspector.map.hotSpotHighColor: #5b1a8c")
+    expect(lowSwatch()).toHaveAccessibleName("V3.Inspector.map.hotSpotLowColor: #5b1a8c")
+    expect(highSwatch()).toHaveAccessibleName("V3.Inspector.map.hotSpotHighColor: #fff3a3")
   })
 
   it("shows the custom colors in the custom ramp's preview strip", () => {

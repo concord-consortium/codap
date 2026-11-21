@@ -127,12 +127,12 @@ describe("MapHotSpotLayer", () => {
     const { pointLayer } = mountHotSpotLayer(layer => {
       layer.hotSpotModel.setLatLongSource({ plottedLatLongs: [{ lat: 0, long: 0 }] })
     })
-    expect(getInterpolator).toHaveBeenLastCalledWith("heat", "#fff3a3", "#5b1a8c")
+    expect(getInterpolator).toHaveBeenLastCalledWith("heat", "#5b1a8c", "#fff3a3")
     expect(context.putImageData).toHaveBeenCalledTimes(1)
 
     act(() => pointLayer.hotSpotModel.setColorRamp("viridis"))
     // the redraw is debounced
-    await waitFor(() => expect(getInterpolator).toHaveBeenLastCalledWith("viridis", "#fff3a3", "#5b1a8c"))
+    await waitFor(() => expect(getInterpolator).toHaveBeenLastCalledWith("viridis", "#5b1a8c", "#fff3a3"))
     expect(context.putImageData).toHaveBeenCalledTimes(2)
   })
 
