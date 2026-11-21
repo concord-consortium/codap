@@ -11,6 +11,8 @@ interface ITimeInfo {
   isTimeOnly: boolean
   // the values can supply a time of day: time-only values, or dates with a time other than midnight
   hasTimeOfDay: boolean
+  // at least one value has a non-zero number of seconds, so the combined attribute needs `second` precision
+  hasSeconds: boolean
 }
 interface ITimeInfoCacheEntry extends ITimeInfo {
   changeCount: number
@@ -24,8 +26,14 @@ function hasNonMidnightTime(value: string) {
   return !!date && (date.getHours() !== 0 || date.getMinutes() !== 0 || date.getSeconds() !== 0)
 }
 
+function hasNonZeroSeconds(value: string) {
+  const seconds = convertToDate(value)?.getSeconds() ?? parseTimeOfDay(value)?.seconds
+  return !!seconds
+}
+
 /**
- * Classifies the attribute's values as time-only and/or able to supply a time of day.
+ * Classifies the attribute's values as time-only and/or able to supply a time of day, and notes whether any
+ * value has seconds.
  * Reads `changeCount`, `strValues` and `type` so observers react to value edits and type changes, and caches
  * the result until any of them changes, so repeated calls don't rescan the values.
  */
@@ -41,10 +49,13 @@ function getTimeInfo(attr: IAttribute): ITimeInfo {
     ++count
     return isTimeOfDayString(value)
   })
-  const isTimeOnly = isEveryValueTimeOrEmpty && count > 0
+  // a Numeric attribute's formula values are numbers extracted from the strings ("13:45" becomes 1345),
+  // so its values can't supply a time even when the strings look like times
+  const isTimeOnly = type !== "numeric" && isEveryValueTimeOrEmpty && count > 0
   const hasTime = isTimeOnly ||
     (type === "date" && strValues.some(value => !!value && hasNonMidnightTime(value)))
-  const entry = { changeCount, strValues, type, isTimeOnly, hasTimeOfDay: hasTime }
+  const hasSeconds = strValues.some(value => !!value && hasNonZeroSeconds(value))
+  const entry = { changeCount, strValues, type, isTimeOnly, hasTimeOfDay: hasTime, hasSeconds }
   timeInfoCache.set(attr, entry)
   return entry
 }
@@ -134,12 +145,7 @@ export function combineDateTimeFormula(dateName: string, timeName: string) {
  * uses it too, so the two match.
  */
 export function getCombinedDatePrecision(timeAttr: IAttribute): DatePrecision {
-  const hasSeconds = timeAttr.strValues.some(value => {
-    if (!value) return false
-    const seconds = convertToDate(value)?.getSeconds() ?? parseTimeOfDay(value)?.seconds
-    return !!seconds
-  })
-  return hasSeconds ? "second" : "minute"
+  return getTimeInfo(timeAttr).hasSeconds ? "second" : "minute"
 }
 
 export interface ICombineDateTimePreview {

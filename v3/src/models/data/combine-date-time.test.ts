@@ -138,6 +138,19 @@ describe("combine date/time", () => {
     dispose()
   })
 
+  it("doesn't treat a Numeric attribute as time-only", () => {
+    const data = createData()
+    const time = attr(data, "time")
+    // formulas read the number extracted from a Numeric value ("13:45" becomes 1345), not the time
+    time.setUserType("numeric")
+    expect(isTimeOnlyAttribute(time)).toBe(false)
+    expect(hasTimeOfDay(time)).toBe(false)
+    expect(getCombineDateTimePartners(data, "day").map(a => a.id)).toEqual(["stamp", "clock"])
+
+    time.setUserType(undefined)
+    expect(isTimeOnlyAttribute(time)).toBe(true)
+  })
+
   it("excludes pairs in which neither attribute has a time of day", () => {
     const data = createData()
     data.addAttribute({ id: "end", name: "End" })
@@ -202,6 +215,9 @@ describe("combine date/time", () => {
     expect(getCombinedDatePrecision(attr(data, "time"))).toBe("minute")
     data.setCaseValues([{ __id__: data.items[1].__id__, time: "08:05:30" }])
     expect(getCombinedDatePrecision(attr(data, "time"))).toBe("second")
+    expect(getCombinedDatePrecision(attr(data, "stamp"))).toBe("minute")
+    data.setCaseValues([{ __id__: data.items[0].__id__, stamp: "2026-10-27 08:00:15" }])
+    expect(getCombinedDatePrecision(attr(data, "stamp"))).toBe("second")
     const roles = getDateTimeRoles(attr(data, "day"), attr(data, "time"))
     expect(addCombinedDateTimeAttribute(data, roles, "when")?.datePrecision).toBe("second")
   })
