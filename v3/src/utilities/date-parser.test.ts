@@ -1,5 +1,6 @@
 import {
-  fixYear, inferDatePrecision, isDateString, isValidDateSpec, parseDate, parseTimeZoneOffset
+  fixYear, inferDatePrecision, isDateString, isTimeOfDayString, isValidDateSpec, parseDate, parseTimeOfDay,
+  parseTimeZoneOffset
 } from './date-parser'
 
 describe('Date Parser tests - V2 compatibility', () => {
@@ -320,6 +321,50 @@ describe('fixYear', () => {
   test('returns 19xx year when year is 2 digits and greater than or equal to 50', () => {
     expect(fixYear(50)).toEqual(1950)
     expect(fixYear(99)).toEqual(1999)
+  })
+})
+
+describe('parseTimeOfDay', () => {
+  test('parses 24-hour times', () => {
+    expect(parseTimeOfDay('13:45')).toEqual({ hours: 13, minutes: 45, seconds: 0 })
+    expect(parseTimeOfDay('0:05')).toEqual({ hours: 0, minutes: 5, seconds: 0 })
+    expect(parseTimeOfDay('09:05:30')).toEqual({ hours: 9, minutes: 5, seconds: 30 })
+    expect(parseTimeOfDay('23:59:59.999')).toEqual({ hours: 23, minutes: 59, seconds: 59 })
+    expect(parseTimeOfDay(' 13:45 ')).toEqual({ hours: 13, minutes: 45, seconds: 0 })
+  })
+  test('parses 12-hour times with am/pm', () => {
+    expect(parseTimeOfDay('1:45 PM')).toEqual({ hours: 13, minutes: 45, seconds: 0 })
+    expect(parseTimeOfDay('1:45pm')).toEqual({ hours: 13, minutes: 45, seconds: 0 })
+    expect(parseTimeOfDay('12:30 am')).toEqual({ hours: 0, minutes: 30, seconds: 0 })
+    expect(parseTimeOfDay('12:30 PM')).toEqual({ hours: 12, minutes: 30, seconds: 0 })
+    expect(parseTimeOfDay('11:59:59 PM')).toEqual({ hours: 23, minutes: 59, seconds: 59 })
+    expect(parseTimeOfDay('1:45\u00A0PM')).toEqual({ hours: 13, minutes: 45, seconds: 0 })
+    expect(parseTimeOfDay('1:45\u202FPM')).toEqual({ hours: 13, minutes: 45, seconds: 0 })
+  })
+  test('rejects out-of-range values', () => {
+    expect(parseTimeOfDay('24:00')).toBeUndefined()
+    expect(parseTimeOfDay('12:60')).toBeUndefined()
+    expect(parseTimeOfDay('12:30:60')).toBeUndefined()
+    expect(parseTimeOfDay('0:30 am')).toBeUndefined()
+    expect(parseTimeOfDay('13:30 pm')).toBeUndefined()
+  })
+  test('rejects non-time values', () => {
+    expect(parseTimeOfDay(undefined)).toBeUndefined()
+    expect(parseTimeOfDay(1345)).toBeUndefined()
+    expect(parseTimeOfDay('')).toBeUndefined()
+    expect(parseTimeOfDay('13')).toBeUndefined()
+    expect(parseTimeOfDay('1:5')).toBeUndefined()
+    expect(parseTimeOfDay('2019-05-25 10:04')).toBeUndefined()
+    expect(parseTimeOfDay('5/25/2019 10:04')).toBeUndefined()
+  })
+  test('isTimeOfDayString', () => {
+    expect(isTimeOfDayString('13:45')).toBe(true)
+    expect(isTimeOfDayString('1:45 PM')).toBe(true)
+    expect(isTimeOfDayString('2019-05-25')).toBe(false)
+  })
+  test('time-only strings are not treated as dates', () => {
+    expect(isDateString('13:45')).toBe(false)
+    expect(isDateString('13:45', true)).toBe(false)
   })
 })
 

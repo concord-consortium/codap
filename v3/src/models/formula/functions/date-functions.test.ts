@@ -173,6 +173,15 @@ describe("hours", () => {
     const fn = math.compile("hours(null)")
     expect(fn.evaluate()).toEqual(UNDEF_RESULT)
   })
+
+  it("returns the hours of a time-only string", () => {
+    expect(math.compile("hours('13:45:30')").evaluate()).toEqual(13)
+    expect(math.compile("hours('1:45 AM')").evaluate()).toEqual(1)
+  })
+
+  it("returns undefined for an invalid time-only string", () => {
+    expect(math.compile("hours('25:00')").evaluate()).toEqual(UNDEF_RESULT)
+  })
 })
 
 describe("minutes", () => {
@@ -189,6 +198,15 @@ describe("minutes", () => {
   it("returns undefined if the date is incorrect", () => {
     const fn = math.compile("minutes(null)")
     expect(fn.evaluate()).toEqual(UNDEF_RESULT)
+  })
+
+  it("returns the minutes of a time-only string", () => {
+    expect(math.compile("minutes('13:45:30')").evaluate()).toEqual(45)
+    expect(math.compile("minutes('1:45 AM')").evaluate()).toEqual(45)
+  })
+
+  it("returns undefined for an invalid time-only string", () => {
+    expect(math.compile("minutes('25:00')").evaluate()).toEqual(UNDEF_RESULT)
   })
 })
 
@@ -207,6 +225,15 @@ describe("seconds", () => {
     const fn = math.compile("seconds(null)")
     expect(fn.evaluate()).toEqual(UNDEF_RESULT)
   })
+
+  it("returns the seconds of a time-only string", () => {
+    expect(math.compile("seconds('13:45:30')").evaluate()).toEqual(30)
+    expect(math.compile("seconds('1:45 AM')").evaluate()).toEqual(0)
+  })
+
+  it("returns undefined for an invalid time-only string", () => {
+    expect(math.compile("seconds('25:00')").evaluate()).toEqual(UNDEF_RESULT)
+  })
 })
 
 describe("now", () => {
@@ -221,6 +248,16 @@ describe("today", () => {
     const fn = math.compile("today()")
     const now = new Date()
     expect(fn.evaluate()).toEqual(new Date(now.getFullYear(), now.getMonth(), now.getDate()))
+  })
+})
+
+describe("combining a date with a time-only string", () => {
+  it("builds a date/time from separate date and time values", () => {
+    const fn = math.compile(
+      "date(year(d), month(d), dayOfMonth(d), hours(t), minutes(t), seconds(t))"
+    )
+    const result = fn.evaluate({ d: "2026-10-27", t: "1:45:30 PM" })
+    expect(result).toEqual(new Date(2026, 9, 27, 13, 45, 30))
   })
 })
 

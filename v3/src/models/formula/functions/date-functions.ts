@@ -1,6 +1,7 @@
 import { FValue } from "../formula-types"
 import { UNDEF_RESULT } from "./function-utils"
 import { convertToDate, createDate } from "../../../utilities/date-utils"
+import { parseTimeOfDay } from "../../../utilities/date-parser"
 import { checkNumber } from "../../../utilities/math-utils"
 import { t } from "../../../utilities/translation/translate"
 
@@ -106,19 +107,17 @@ export const dateFunctions = {
 
   hours: {
     numOfRequiredArguments: 1,
-    evaluate: (date: FValue) => convertToDate(date)?.getHours() ?? UNDEF_RESULT
+    evaluate: (date: FValue) => convertToDate(date)?.getHours() ?? parseTimeOfDay(date)?.hours ?? UNDEF_RESULT
   },
 
   minutes: {
     numOfRequiredArguments: 1,
-    evaluate: (date: FValue) => convertToDate(date)?.getMinutes() ?? UNDEF_RESULT
+    evaluate: (date: FValue) => convertToDate(date)?.getMinutes() ?? parseTimeOfDay(date)?.minutes ?? UNDEF_RESULT
   },
 
   seconds: {
     numOfRequiredArguments: 1,
-    evaluate: (date: FValue) => {
-      return convertToDate(date)?.getSeconds() ?? UNDEF_RESULT
-    }
+    evaluate: (date: FValue) => convertToDate(date)?.getSeconds() ?? parseTimeOfDay(date)?.seconds ?? UNDEF_RESULT
   },
 
   today: {
