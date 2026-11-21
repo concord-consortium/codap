@@ -137,6 +137,21 @@ export const TableTileElements = {
       .filter(isAttributeNamed(name))
   },
   openAttributeMenu(name: string, collectionIndex = 1) {
+    // Chakra hides a menu when its close animation ends, even if the menu has been reopened in the
+    // meantime, so a menu reopened while still closing stays open but invisible. Choosing a menu
+    // item or clicking elsewhere closes the menu, so if this attribute's menu is closing, wait for
+    // it to finish first. Some closed menus keep `visibility: visible` at `opacity: 0`, which also
+    // counts as closed.
+    this.getAttribute(name, collectionIndex).then($button => {
+      if ($button.attr("aria-expanded") !== "true") {
+        const menuSelector = `[id='${$button.attr("aria-controls")}']`
+        cy.get("body").should($body => {
+          const style = $body.find(menuSelector).attr("style") ?? ""
+          const isClosed = !style.includes("visibility: visible") || /opacity: 0(;|$)/.test(style)
+          expect(isClosed, `attribute menu finished closing (style: ${style})`).to.equal(true)
+        })
+      }
+    })
     this.getAttribute(name, collectionIndex).click({force: true})
     // Menu items can be found and clicked while the menu is still hidden, so wait for this
     // attribute's menu to become visible. A menu that opens but never appears then fails here
@@ -149,8 +164,8 @@ export const TableTileElements = {
       })
   },
   closeAttributeMenu() {
-    // On CI the menu occasionally closes on its own before the test closes it, for reasons not
-    // yet understood, so close it only if it's still open, then make sure it's closed.
+    // Choosing a menu item or clicking elsewhere (e.g. Undo) has often closed the menu already,
+    // so close it only if it's still open, then make sure it's closed.
     const kVisibleMenuList = "[data-testid^='attribute-header-menu-'][style*='visibility: visible']"
     cy.get("body").then($body => {
       // aria-expanded updates immediately, whereas the menu list stays visible while it animates closed
