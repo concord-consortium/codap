@@ -1,11 +1,19 @@
 import { act, render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
+import { when } from "mobx"
 import { createCodapDocument } from "../../models/codap/create-codap-document"
 import { IDocumentModel } from "../../models/document/document"
+import { TreeManagerType } from "../../models/history/tree-manager"
 import { persistentState } from "../../models/persistent-state"
 import { TileModel } from "../../models/tiles/tile-model"
 import { TestTileContent } from "../../test/test-tile-content"
+import { toV2Id } from "../../utilities/codap-utils"
+import { kCalculatorTileType } from "../calculator/calculator-defs"
+import "../calculator/calculator-registration"
+import { kTextTileType } from "../text/text-defs"
+import "../text/text-registration"
 import { ToolShelf } from "./tool-shelf"
+import { toolShelfButtonTestId } from "./tool-shelf-button"
 
 // way to get a writable reference to libDebug
 const libDebug = require("../../lib/debug")
@@ -82,6 +90,70 @@ describe("Tool shelf", () => {
     await user.click(screen.getByTestId("tool-shelf-button-redo"))
     expect(document.content?.tileMap.size).toBe(1)
     document.treeMonitor?.disableMonitoring()
+  })
+
+  // Undoing a create from the toolbar sends `delete`, and redoing it sends `create`, after the
+  // document's undo or redo notice
+  it("sends component notices when a create from the toolbar is undone and redone", async () => {
+    const user = userEvent.setup()
+    const document = createCodapDocument()
+    renderToolShelf(document)
+    document.treeMonitor?.enableMonitoring()
+    try {
+      const settled = () => when(
+        () => (document.treeManagerAPI as TreeManagerType).activeHistoryEntries.length === 0, { timeout: 2000 })
+      await user.click(screen.getByTestId(toolShelfButtonTestId(kTextTileType)))
+      await settled()
+      const [tile] = document.content!.getTilesOfType(kTextTileType)
+      expect(tile).toBeDefined()
+      const broadcastSpy = jest.spyOn(document.content!, "broadcastMessage")
+      const notices = () => broadcastSpy.mock.calls.map(([msg]) => msg)
+        .filter(msg => msg.resource === "component" || msg.resource === "document")
+        .map(msg => [msg.resource, msg.values.operation, msg.values.id])
+
+      await user.click(screen.getByTestId("tool-shelf-button-undo"))
+      await settled()
+      expect(notices()).toEqual([["document", "undo", undefined], ["component", "delete", toV2Id(tile.id)]])
+      broadcastSpy.mockClear()
+      await user.click(screen.getByTestId("tool-shelf-button-redo"))
+      await settled()
+      expect(notices()).toEqual([["document", "redo", undefined], ["component", "create", toV2Id(tile.id)]])
+    } finally {
+      document.treeMonitor?.disableMonitoring()
+    }
+  })
+
+  it("sends the calculator's hide and show when hiding it from the toolbar is undone and redone", async () => {
+    const user = userEvent.setup()
+    const document = createCodapDocument()
+    renderToolShelf(document)
+    document.treeMonitor?.enableMonitoring()
+    try {
+      const settled = () => when(
+        () => (document.treeManagerAPI as TreeManagerType).activeHistoryEntries.length === 0, { timeout: 2000 })
+      const calculatorButton = screen.getByTestId(toolShelfButtonTestId(kCalculatorTileType))
+      // the first click shows the calculator, the second hides it
+      await user.click(calculatorButton)
+      await settled()
+      await user.click(calculatorButton)
+      await settled()
+      const [tile] = document.content!.getTilesOfType(kCalculatorTileType)
+      expect(document.content!.isTileHidden(tile.id)).toBe(true)
+      const broadcastSpy = jest.spyOn(document.content!, "broadcastMessage")
+      const notices = () => broadcastSpy.mock.calls.map(([msg]) => msg)
+        .filter(msg => msg.resource === "component" || msg.resource === "document")
+        .map(msg => [msg.resource, msg.values.operation])
+
+      await user.click(screen.getByTestId("tool-shelf-button-undo"))
+      await settled()
+      expect(notices()).toEqual([["document", "undo"], ["component", "show"]])
+      broadcastSpy.mockClear()
+      await user.click(screen.getByTestId("tool-shelf-button-redo"))
+      await settled()
+      expect(notices()).toEqual([["document", "redo"], ["component", "hide"]])
+    } finally {
+      document.treeMonitor?.disableMonitoring()
+    }
   })
 
   describe("keyboard navigation", () => {

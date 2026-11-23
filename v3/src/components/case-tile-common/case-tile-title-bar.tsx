@@ -11,7 +11,7 @@ import { preventDataContextReorg } from "../../utilities/plugin-utils"
 import { t } from "../../utilities/translation/translate"
 import { kCaseCardTileType } from "../case-card/case-card-defs"
 import { kCaseTableTileType } from "../case-table/case-table-defs"
-import { closeCaseTableNotification } from "../case-table/case-table-notifications"
+import { closeCaseTableNotification, reopenCaseTableNotification } from "../case-table/case-table-notifications"
 import { ComponentTitleBar } from "../component-title-bar"
 import { ITileTitleBarProps } from "../tiles/tile-base-props"
 import { toggleCardTableNotification } from "./case-tile-notifications"
@@ -142,6 +142,10 @@ export const CaseTileTitleBar =
       }, {
         // in the mosaic layout, the table can't be hidden, so it stays on screen and sends nothing
         notify: () => documentContent?.isTileHidden(tile?.id) ? closeCaseTableNotification(tile) : undefined,
+        // V2 re-ran the toggle on undo and redo, so undo sent `create` and redo `delete` again
+        // (case_table_controller.js:671-702)
+        undoNotify: () => documentContent?.isTileHidden(tile?.id) ? reopenCaseTableNotification(tile) : undefined,
+        redoNotify: () => documentContent?.isTileHidden(tile?.id) ? closeCaseTableNotification(tile) : undefined,
         undoStringKey: `V3.Undo.case${suffix}.hide`,
         redoStringKey: `V3.Redo.case${suffix}.hide`,
         log: logMessageWithReplacement("Close component: %@", {tileType: tile?.content.type}, "component")

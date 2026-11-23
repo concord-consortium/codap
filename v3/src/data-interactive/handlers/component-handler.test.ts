@@ -230,7 +230,8 @@ describe("DataInteractive ComponentHandler", () => {
       const rescaleSpy = jest.spyOn(mapTile.content as any, "rescale")
 
       expect(handler.notify?.({ component: mapTile }, { request: "autoScale" }).success).toBe(true)
-      expect(rescaleSpy).toHaveBeenCalled()
+      // as the inspector's rescale button, an undoable fit labeled as V2's map.fitBounds
+      expect(rescaleSpy).toHaveBeenCalledWith("DG.Undo.map.fitBounds", "DG.Redo.map.fitBounds")
 
       rescaleSpy.mockRestore()
     })

@@ -15,6 +15,8 @@ export const diAllCasesHandler: DIHandler = {
     dataContext.applyModelChange(() => {
       dataContext.removeCases(itemIds)
     }, {
+      // as in V2, deleting cases keeps the undo history (data_context.js:520, :575)
+      keepRedo: true,
       notify: deleteCasesNotification(dataContext, getGroupedCases(dataContext, itemIds)),
       log: {message: "Delete all cases", args: {}, category: "data"}
     })

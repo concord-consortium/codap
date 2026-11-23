@@ -176,13 +176,26 @@ for it.
 | Operation | Fires when | `values` also carries |
 |---|---|---|
 | `create` | a component is created. The calculator usually sends `show` instead; see below | — |
-| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed, and a case table is when it is closed from its title bar or deleted with `delete` on `component` (in the mosaic layout, `delete` removes it). For the case table, `type` is `DG.TableView` and `title` is its data context's title, as in v2. v2 also sent `create` when that close was undone; v3 does not, see [Known limitations](#known-limitations). Closing a case card sends nothing | `name`, `title` |
+| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed, and a case table is when it is closed from its title bar or deleted with `delete` on `component` (in the mosaic layout, `delete` removes it). For the case table, `type` is `DG.TableView` and `title` is its data context's title, as in v2. Closing a case card sends nothing | `name`, `title` |
 | `titleChange` | a component is renamed. Sent on `component[<id>]` rather than `component` | `from`, `to` |
 | `hide`, `show` | the calculator is closed, or toggled from the tool shelf | — |
 | `move`, `resize` | a component is moved or resized | — |
 | `update` | a component's properties are changed through the API. Echoes the values from the request | _not readable from the code_ |
 | `toggle minimize component` | a component is minimized or restored | — |
 <!-- END GENERATED: notifications-component-lifecycle -->
+
+**Undoing or redoing a component change sends its notice.** Undoing a component's creation sends
+`delete`, undoing its close or its `delete` sends `create`, and undoing the calculator being shown
+or hidden sends the opposite; redoing sends the original notice again. Undoing a case table's close
+sends `create` with the same `type` (`DG.TableView`) and `title` as the close; undoing a case card's
+close from its title bar sends nothing, as the close does. These follow the
+`undo` or `redo` notice on [`document`](#document-state--document), which CODAP always sends. v2
+sent the component notice in place of the document's when undoing a component's creation or the
+calculator being shown or hidden. When undoing a close, it sent only the document's, except for a
+case table closed from its close box, which v2 hid rather than closed, so it sent `create` and then
+the document's. On redo it always sent the document's, after sending `delete` again when redoing a
+close, except for a case card closed from its close box. Creating a component from the Plugins
+menu, or a web page from its URL, sends no `create`, so undoing it sends nothing either.
 
 ### Graph
 
@@ -266,7 +279,7 @@ numeric axis, whose menu had none in v2.
 |---|---|---|
 | `change base map` | the base map changes | `to` |
 | `change grid size` | the user releases the grid-size slider. It does not fire during the drag | `from`, `to` |
-| `change map coordinates` | the map settles after the user pans or zooms it, or rescales it from the inspector | `center`, `zoom` |
+| `change map coordinates` | the map settles after the user pans or zooms it, rescales it from the inspector, or a plugin sends `autoScale` | `center`, `zoom` |
 | `hide selected cases`, `hide unselected cases`, `show all cases` | case visibility changes on a map | `hide selected cases`: `numberHidden`; `hide unselected cases`: `numberHidden`; `show all cases`: — |
 <!-- END GENERATED: notifications-component-map -->
 
@@ -347,14 +360,23 @@ Sent while a user drags an attribute, so a plugin can offer a drop target or rea
 |---|---|---|
 | `undoAction` | the user undoes an action your plugin reported as undoable | — |
 | `redoAction` | the user redoes an action your plugin reported as undoable | — |
-| `clearRedo` | an action is added to the history, even when there was nothing to redo. Sent to every plugin and the host page. Undoing or redoing sends `undo` or `redo` on `document` instead | `canRedo`, `canUndo` |
+| `clearRedo` | an action is added to the history, even when there was nothing to redo; or a change that can't be undone, such as most plugin requests, erases what could be redone (see below for those that don't). A burst of such changes sends one. Sent to every plugin and the host page. Undoing or redoing sends `undo` or `redo` on `document` instead | `canRedo`, `canUndo` |
 | `clearUndo` | the undo history is erased, after an `update document` just before `updateDocumentEnded`. Sent to every plugin and the host page, followed by `clearRedo` | `canRedo`, `canUndo` |
 <!-- END GENERATED: notifications-undo -->
 
-v2 sent `clearUndo`, with `clearRedo`, when the undo history was erased, which happened whenever
-a change could not be undone and after an `update document`. CODAP erases it after an
-`update document`, just before `updateDocumentEnded`, as v2 did. It keeps the history after a
-change that cannot be undone, so it does not send `clearUndo` for that. v2 sent both to plugins
+v2 sent `clearUndo`, with `clearRedo`, when the undo history was erased, which happened after most
+changes that could not be undone and after an `update document`. CODAP erases it after an `update
+document`, just before `updateDocumentEnded`, as v2 did. It keeps the undo history after a change
+that cannot be undone, so it does not send `clearUndo` for that. Such a change does erase what could
+be redone, and CODAP sends `clearRedo` when there was something to erase; v2 sent it for every such
+change. As in v2, a plugin's requests to update, move or delete items, to create or delete cases, to
+set cases aside or restore them, or to update its `interactiveFrame` don't erase it; creating items
+does. Nor do `update` on a `global` to its current value, an update to cases that sets no attribute
+that exists, or a plugin's requests while it answers `undoAction` or `redoAction` for an action it
+reported, so the user can still redo that action. Unlike v2, `create` and `update` on `global` and
+`update` on `component` erase it: v2 left its history alone for them, except for a map's `center`
+or `zoom`, which could record an undoable map change. See the
+[undo guide](guides/undo-and-redo.md#what-the-history-holds). v2 sent both notices to plugins
 only; CODAP also sends them to the host page when it is embedded in one.
 
 **`undoAction` and `redoAction` answer your own reports.** CODAP cannot undo a change inside your
@@ -374,7 +396,7 @@ CODAP adds an entry to its undo history. When the user undoes or redoes that ent
 | Operation | Fires when | `values` carries |
 |---|---|---|
 | `newDocumentState` | CODAP has assembled the document, in reply to a `get document` | `state` |
-| `undo`, `redo` | the user, or a plugin's `undoButtonPress` or `redoButtonPress`, undoes or redoes anything. Sent to every plugin, not only subscribers. v2 sent them only for changes that had no notification of their own; CODAP has no such changes yet, so it always sends them. `canUndo` and `canRedo` are new in v3 | `canRedo`, `canUndo` |
+| `undo`, `redo` | the user, or a plugin's `undoButtonPress` or `redoButtonPress`, undoes or redoes anything. Sent to every plugin, not only subscribers. When the change has a notification of its own, such as a component's `create` or `delete`, that follows; when undoing a component's creation or the calculator's show or hide, v2 sent only the change's own (see [Lifecycle](#lifecycle)). `canUndo` and `canRedo` are new in v3 | `canRedo`, `canUndo` |
 <!-- END GENERATED: notifications-document -->
 
 `newDocumentState` is opt-in: only plugins whose `subscribeToDocuments` is `true` receive it, and
@@ -438,14 +460,8 @@ undone. v3 sends no notification when that move is undone. This is a known bug; 
 behavior is v2's.
 
 **Some map moves send no `change map coordinates`.** v3 does not notify plugins when a plugin sets
-a map's center or zoom with `update component`, when a plugin rescales it with `notify component`
-and `request: "autoScale"`, or when the map rescales itself because its layers changed. v2 sent it
-when a plugin set the center or zoom. This is a known bug.
-
-**Undo and redo send no component notifications.** v2 sent one for many component changes: undoing
-the creation of a component sent `delete`, undoing the calculator being shown or hidden sent the
-opposite, and undoing or redoing a case table close sent `create` or `delete`. v3 sends no
-component notification on undo or redo. This is a known bug.
+a map's center or zoom with `update component`, or when the map rescales itself because its
+layers changed. v2 sent it when a plugin set the center or zoom. This is a known bug.
 
 **`delete` on `component` hides a case table rather than deleting it.** v2 deleted the table, as it
 did any component a plugin deleted (`close-component.js`), and undoing that brought it back. v3

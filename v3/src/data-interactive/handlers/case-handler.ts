@@ -108,6 +108,8 @@ export const diCaseHandler: DIHandler = {
         if (caseId) reusedCaseIds.push(caseId)
       })
     }, {
+      // as in V2, creating cases keeps the undo history (data_context.js:510-513, :575)
+      keepRedo: true,
       notify: () => {
         const notifyCaseIds = [...newCaseIds, ...reusedCaseIds]
         if (notifyCaseIds.length > 0) return createCasesNotification(notifyCaseIds, dataContext)

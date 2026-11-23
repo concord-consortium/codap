@@ -8,6 +8,7 @@ import { ICustomPatch } from "../../models/history/tree-types"
 import { withCustomUndoRedo } from "../../models/history/with-custom-undo-redo"
 import { getDocumentContentFromNode } from "../../utilities/mst-document-utils"
 import { registerDIHandler } from "../data-interactive-handler"
+import { replyToUndoRedoAnswer, startUndoRedoAnswer } from "../undo-redo-answer"
 import { t } from "../../utilities/translation/translate"
 import { DIAsyncHandler, DIHandlerFnResult, DIResources, DIValues } from "../data-interactive-types"
 import { errorResult } from "./di-results"
@@ -28,11 +29,14 @@ function isPluginUndoRedoPatch(patch: ICustomPatch): patch is IPluginUndoRedoPat
 function sendUndoRedoMessage(tileId: string, operation: "undoAction" | "redoAction") {
   const documentContent = appState.document.content
   if (!documentContent) return
+  // the requests it sends to reverse or reapply its action keep what can be redone
+  const answerGeneration = startUndoRedoAnswer(tileId)
   documentContent.broadcastMessage({
     action: "notify",
     resource: "undoChangeNotice",
     values: { operation }
   }, (response: any) => {
+    replyToUndoRedoAnswer(tileId, answerGeneration)
     // as in V2, only an explicit `success: false` is a failure
     if (response?.success === false) {
       const requester = tileId === kHostPageId ? "The host page" : `Plugin ${tileId}`

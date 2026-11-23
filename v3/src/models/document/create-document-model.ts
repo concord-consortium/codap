@@ -8,6 +8,7 @@ import { ITileEnvironment } from "../tiles/tile-environment"
 import { DocumentModel, IDocumentModelSnapshot } from "./document"
 import { IDocumentEnvironment } from "./document-environment"
 import { SharedModelDocumentManager } from "./shared-model-document-manager"
+import { endUndoRedoAnswer, handleUndoHistoryChangeForAnswer } from "../../data-interactive/undo-redo-answer"
 import { AppHistoryService } from "../history/app-history-service"
 import { IHistoryServiceEnv } from "../history/history-service"
 
@@ -76,9 +77,17 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
 
   historyService.setDependencies(fullEnvironment)
 
-  // clearRedo on each new entry, clearUndo and clearRedo when the history is erased, and undo or redo
-  // on document, as in V2 (undo_history.js)
-  document.treeManagerAPI?.undoManager.setHistoryListener(change => {
+  // clearRedo on each new entry and when a change that can't be undone clears the redo list, clearUndo and
+  // clearRedo when the history is erased, and undo or redo on document, as in V2 (undo_history.js)
+  // a plugin answering undoAction or redoAction in the previous document has nothing to answer in this one
+  endUndoRedoAnswer()
+  document.treeManagerAPI?.undoManager.setHistoryListener((change, entryId) => {
+    handleUndoHistoryChangeForAnswer(change)
+    if (change === "add" || change === "clearRedo" || change === "clearUndo") {
+      // keep the notices of entries in the history and of those still being recorded
+      const undoManager = document.treeManagerAPI?.undoManager
+      historyService.pruneUndoRedoNotices(new Set(undoManager?.liveHistoryEntryIds ?? []))
+    }
     const { canUndo, canRedo } = document
     if (change === "add" || change === "clearRedo") {
       document.content?.broadcastMessage({
@@ -98,12 +107,16 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
         resource: "document",
         values: { operation: "undo", canUndo, canRedo }
       }, () => {})
+      // then the change's own notice, e.g. deleting the component an undone create made. V2 sent only the
+      // change's notice when it had one (undo_history.js:160-169); the document notice still goes out here.
+      historyService.sendUndoRedoNotices(entryId, "undo")
     } else {
       document.content?.broadcastMessage({
         action: "notify",
         resource: "document",
         values: { operation: "redo", canUndo, canRedo }
       }, () => {})
+      historyService.sendUndoRedoNotices(entryId, "redo")
     }
   })
 

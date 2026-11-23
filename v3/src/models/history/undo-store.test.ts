@@ -1073,8 +1073,9 @@ describe("undo and redo of an entry that can no longer be applied", () => {
     const { docContent } = setup
     const t1 = docContent.tileMap.get("t1")!.content as TestTileType
     const t2 = docContent.tileMap.get("t2")!.content as TestTileType
-    // a change without undo strings is not undoable, like a plugin deleting a data context
-    const removeTileWithoutUndo = (tileId: string) => docContent.applyModelChange(() => docContent.deleteTile(tileId))
+    // a change without undo strings that leaves redo, like a plugin deleting cases
+    const removeTileWithoutUndo = (tileId: string) =>
+      docContent.applyModelChange(() => docContent.deleteTile(tileId), { keepRedo: true })
     return { ...setup, t1, t2, removeTileWithoutUndo }
   }
 
@@ -1130,7 +1131,7 @@ describe("undo and redo of an entry that can no longer be applied", () => {
     await when(() => t2.flag === true && manager.activeHistoryEntries.length === 0, { timeout: 500 })
     undoStore.redo()
     await when(() => t2.flag === false && manager.activeHistoryEntries.length === 0, { timeout: 500 })
-    expect(listener.mock.calls.slice(2)).toEqual([["add"], ["undo"], ["redo"]])
+    expect(listener.mock.calls.slice(2)).toEqual([["add"], ["undo", expect.any(String)], ["redo", expect.any(String)]])
   })
 
   it("clears the history when redo fails", async () => {

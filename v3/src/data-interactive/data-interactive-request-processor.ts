@@ -22,6 +22,8 @@ import "./register-handlers"
 export interface ProcessActionOptions {
   tile?: ITileModel
   cfm?: CloudFileManager
+  // who made the request when it comes from no tile, e.g. the host page (kHostPageId)
+  requesterId?: string
   // the host page's default data context, for requests from no tile
   hostPageDataContextLink?: IDefaultDataContextLink
 }
@@ -34,7 +36,7 @@ export async function processAction(
   action: DIAction,
   options: ProcessActionOptions = {}
 ): Promise<DIHandlerFnResult> {
-  const { tile, cfm, hostPageDataContextLink } = options
+  const { tile, cfm, requesterId, hostPageDataContextLink } = options
 
   if (!action) return errorResult(t("V3.DI.Error.noAction"))
 
@@ -52,7 +54,7 @@ export async function processAction(
   const func = getDIHandler(type)?.[a]
   if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", { vars: [a, type] }))
 
-  const actionResult = await withNotificationRequester(tile?.id, () => func(resources, action.values))
+  const actionResult = await withNotificationRequester(tile?.id ?? requesterId, () => func(resources, action.values))
   return actionResult ?? errorResult(t("V3.DI.Error.undefinedResponse"))
 }
 
@@ -228,7 +230,7 @@ export function setupRequestQueueProcessor(
     onProcessingStart?.()
     let results: DIHandlerFnResult[] | undefined
     try {
-      results = withNotificationRequester(processOptions.tile?.id,
+      results = withNotificationRequester(processOptions.tile?.id ?? processOptions.requesterId,
         () => createItemsInSegments(dataContext, segments))
     } catch (error) {
       console.warn(`${name} exception in coalesced create`, error)

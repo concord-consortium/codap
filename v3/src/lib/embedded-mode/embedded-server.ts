@@ -5,7 +5,7 @@ import { setupRequestQueueProcessor } from "../../data-interactive/data-interact
 import { DIRequest, DIRequestCallback } from "../../data-interactive/data-interactive-types"
 import { createDataContextLink } from "../../data-interactive/default-data-context-link"
 import { DEBUG_PLUGINS, debugLog } from "../debug"
-import { registerEmbeddedModeHandler } from "./embedded-mode-registry"
+import { kHostPageId, registerEmbeddedModeHandler } from "./embedded-mode-registry"
 
 export interface EmbeddedModeHandler {
   rpcEndpoint: iframePhone.IframePhoneRpcEndpoint
@@ -72,6 +72,8 @@ export function initializeEmbeddedServer(): EmbeddedModeHandler | null {
   // context, which a plugin keeps on its web view, is kept here instead.
   disposer = setupRequestQueueProcessor(requestQueue, {
     name: "EmbeddedServer request processor",
+    // the host page's requests, as its reports of undoable actions, are identified as kHostPageId
+    requesterId: kHostPageId,
     hostPageDataContextLink: createDataContextLink()
   })
 
