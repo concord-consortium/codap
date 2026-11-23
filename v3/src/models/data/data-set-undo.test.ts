@@ -426,12 +426,13 @@ describe("DataSet undo/redo", () => {
   })
 
   describe("undoing a sort after changes that can't be undone", () => {
-    // ITEM0 is a=1, b=2; I1, I2, I3 are a=2/0/1, b=x2/x0/x1
-    function setupSorted() {
+    // ITEM0 is a=1, b=2; I1, I2, I3 are a=2/0/1, b=x2/x0/x1 unless other b values are given
+    function setupSorted(bValues = ["x2", "x0", "x1"]) {
       const setup = setupDocument()
       const { data } = setup
       data.addCases([
-        { __id__: "I1", aId: 2, bId: "x2" }, { __id__: "I2", aId: 0, bId: "x0" }, { __id__: "I3", aId: 1, bId: "x1" }
+        { __id__: "I1", aId: 2, bId: bValues[0] }, { __id__: "I2", aId: 0, bId: bValues[1] },
+        { __id__: "I3", aId: 1, bId: bValues[2] }
       ])
       data.validateCases()
       return setup
@@ -498,7 +499,7 @@ describe("DataSet undo/redo", () => {
     })
 
     it("keeps each item's values in a hierarchical data set", async () => {
-      const { data, whenTreeManagerIsReady, undoManager } = setupSorted()
+      const { data, whenTreeManagerIsReady, undoManager } = setupSorted(["x", "x", "x"])
       // b's values group the items: ITEM0 alone, the x items together
       data.applyModelChange(() => data.moveAttributeToNewCollection("bId"))
       await whenTreeManagerIsReady()
@@ -506,11 +507,14 @@ describe("DataSet undo/redo", () => {
       const before = rows(data)
       sortItemsWithCustomUndoRedo(data, "aId")
       await whenTreeManagerIsReady()
+      // the x items are sorted within their parent case
+      expect(rows(data)).toEqual(["ITEM0:1/2", "I2:0/x", "I3:1/x", "I1:2/x"])
       data.applyModelChange(() => data.moveItems(["I1"], { before: "ITEM0" }))
       await whenTreeManagerIsReady()
 
       undoManager?.undo()
       await whenTreeManagerIsReady()
+      data.validateCases()
       expect(rows(data)).toEqual(before)
     })
 

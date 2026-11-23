@@ -378,10 +378,7 @@ const sortItemsCustomUndoRedo: ICustomUndoRedoPatcher = {
       const data = resolveIdentifier<typeof DataSet>(DataSet, node, dataId)
       if (!data) return
 
-      // Restore the order by item id, since changes that aren't undoable (a plugin's reorder, create or
-      // delete) can come between the sort and its undo. Items deleted since are skipped, and items added
-      // since go to the end in their current order. A reorder made since the sort is undone with it, and
-      // the order restored is always the one from before the sort, even after a redo.
+      // restore by item id, since non-undoable plugin changes can come between (deleted items skipped, added ones last)
       const current = new Set(data._itemIds)
       const restored = beforeItemIds.filter(itemId => current.has(itemId))
       const restoredSet = new Set(restored)

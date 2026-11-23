@@ -1833,14 +1833,15 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     }
 
     const finalItemIds = Array.from(self._itemIds)
-    const itemIdToIndexMap: Record<string, { beforeIndex: number, afterIndex: number }> = {}
-    self._itemIds.forEach((itemId, beforeIndex) => itemIdToIndexMap[itemId] = { beforeIndex, afterIndex: -1 })
-
-    const collection = self.getCollectionForAttribute(attributeId)
-    const parentCollection = collection?.parent
+    const parentCollection = self.getCollectionForAttribute(attributeId)?.parent
 
     // if there's a parent collection, items are sorted within their parent cases
     if (parentCollection) {
+      // an item in no case group (e.g. under a parent whose items are all set aside) keeps its place
+      const itemIdToIndexMap: Record<string, { beforeIndex: number, afterIndex: number }> = {}
+      self._itemIds.forEach((itemId, beforeIndex) => {
+        itemIdToIndexMap[itemId] = { beforeIndex, afterIndex: beforeIndex }
+      })
       parentCollection.caseGroups.forEach(group => {
         // combine all the child item ids for this parent case
         const origGroupItemIds = [...group.childItemIds, ...group.hiddenChildItemIds]
@@ -1856,20 +1857,18 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           const origItemIdAtIndex = origGroupItemIds[index]
           itemIdToIndexMap[itemId].afterIndex = itemIdToIndexMap[origItemIdAtIndex].beforeIndex
         })
-        // sort the items into their appropriate sorted locations
-        finalItemIds.sort((aItemId, bItemId) => {
-          return itemIdToIndexMap[aItemId].afterIndex - itemIdToIndexMap[bItemId].afterIndex
-        })
+      })
+      // sort the items into their appropriate sorted locations
+      finalItemIds.sort((aItemId, bItemId) => {
+        return itemIdToIndexMap[aItemId].afterIndex - itemIdToIndexMap[bItemId].afterIndex
       })
     }
 
     // if no parent collection, items can be sorted globally
     else {
       finalItemIds.sort(compareFn)
-      finalItemIds.forEach((itemId, index) => itemIdToIndexMap[itemId].afterIndex = index)
     }
 
-    // moves each item's values with it and keeps item lookups right (does nothing if the order is unchanged)
     self.setItemOrder(finalItemIds)
   },
   // Moves the given items, in their current order, before or after another item, or to the end. The order
