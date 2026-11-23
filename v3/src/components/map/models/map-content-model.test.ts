@@ -556,7 +556,7 @@ describe("MapContentModel", () => {
     })
   })
 
-  // CODAP-1713: a plugin's autoScale, like the inspector's rescale button, fits the map through the leaflet
+  // A plugin's autoScale, like the inspector's rescale button, fits the map through the leaflet
   // state with undo strings and a log, so the move it causes is recorded as one labeled entry, as V2's
   // map.fitBounds was (map_view.js:532-575)
   describe("rescale", () => {

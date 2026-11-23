@@ -46,7 +46,9 @@ export const UndoStore = types
   undoIdx: 0
 })
 .volatile(() => ({
-  historyListener: undefined as UndoHistoryListener | undefined
+  historyListener: undefined as UndoHistoryListener | undefined,
+  // the number of undos and redos made so far
+  undoRedoCount: 0
 }))
 .views((self) => ({
   get undoLevels() {
@@ -74,6 +76,11 @@ export const UndoStore = types
   },
   findHistoryEntry(historyEntryId: string) {
     return self.history.find(entry => entry.id === historyEntryId)
+  },
+  // whether an entry clears the redo list when it completes: a change that can't be undone, made on purpose, and
+  // with no undo or redo made since it was made
+  clearsRedoOnCompletion(entry: HistoryEntryType) {
+    return !!entry.clearsRedo && !entry.noDirty && entry.undoRedoCountAtStart === self.undoRedoCount
   }
 }))
 .actions((self) => ({
@@ -237,6 +244,15 @@ export const UndoStore = types
     )
   }
 
+  // An undo or redo can come before the entries of the changes made just before it complete, as when a plugin
+  // sends a change and undoButtonPress in one request. The redo list those changes clear is cleared before the
+  // undo or redo, as V2 cleared it when the change was made, and the undo or redo keeps what it can redo.
+  function beginUndoOrRedo() {
+    const manager = getParent<{ activeHistoryEntries: HistoryEntryType[] }>(self)
+    if (manager.activeHistoryEntries.some(entry => self.clearsRedoOnCompletion(entry))) self.clearRedo()
+    self.undoRedoCount++
+  }
+
   return {
     addHistoryEntry(entry: Instance<typeof HistoryEntry>) {
       // Find if there is already an HistoryEntry with this
@@ -281,6 +297,7 @@ export const UndoStore = types
         throw new Error("undo not possible, nothing to undo")
       }
 
+      beginUndoOrRedo()
       const entryToUndo = self.history[self.undoIdx -1]
       let patchesApplied: Promise<Maybe<IApplyFailure>> | undefined
 
@@ -321,6 +338,9 @@ export const UndoStore = types
         throw new Error("redo not possible, nothing to redo")
       }
 
+      beginUndoOrRedo()
+      // the changes made just before may have cleared what could be redone
+      if (!self.canRedo) return {}
       const entryToRedo = self.history[self.undoIdx]
       let patchesApplied: Promise<Maybe<IApplyFailure>> | undefined
 

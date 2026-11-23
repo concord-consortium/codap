@@ -44,14 +44,11 @@ export class AppHistoryService implements IHistoryService {
       withUndoRedoStrings(undoStringKey, redoStringKey)
     } else {
       withoutUndo({ noDirty, suppressWarning })
-      // A change made on purpose that can't be undone clears the redo list when it completes (see
-      // TreeManager.completeHistoryEntry). Changes made while undoing or redoing don't, including those a custom
-      // undo or redo makes through applyModelChange (MST's action context reaches the undo store's undo or
-      // redo), nor does a plugin's request while it answers undoAction or redoAction for its own reported action
-      // (undo-redo-answer.ts).
-      // the env is the outermost action's, so a nested change marks the entry it belongs to
+      // Mark the entry (the outermost action's) to clear the redo list when it completes, unless the change is
+      // made while undoing or redoing, or by a plugin answering undoAction or redoAction (undo-redo-answer.ts).
+      // TreeManager.completeHistoryEntry skips entries that don't dirty the document.
       const env = getRunningActionCall()?.env
-      if (env && !noDirty && !keepRedo && !isUndoingOrRedoing() &&
+      if (env && !keepRedo && !isUndoingOrRedoing() &&
           !isAnsweringUndoRedo(getNotificationRequesterTileId())) {
         env.clearsRedo = true
       }

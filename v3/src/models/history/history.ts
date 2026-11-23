@@ -57,7 +57,15 @@ export const HistoryEntry = types.model("HistoryEntry", {
   // for debugging an activeExchange that hasn't been ended.
   // The {name: "activeExchanges"} is a feature of MobX that can also
   // help with debugging.
-  activeExchanges: observable.map<string, string>({}, {name: "activeExchanges"})
+  activeExchanges: observable.map<string, string>({}, {name: "activeExchanges"}),
+  // the undo store's undoRedoCount when the entry was created, so an undo or redo made before the entry
+  // completes can be detected
+  undoRedoCountAtStart: 0
+}))
+.actions(self => ({
+  setUndoRedoCountAtStart(count: number) {
+    self.undoRedoCountAtStart = count
+  }
 }))
 .views(self => ({
   get modelActionKey() {

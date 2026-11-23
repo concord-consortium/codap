@@ -43,7 +43,6 @@ export const DatasetInfoModal = ({showInfoModal, setShowInfoModal}: IProps) => {
       data.setUserTitle(datasetTitle)
       metadata?.setDescription(description)
       metadata?.setSource(source)
-      // an unchanged date is left as it is
       if (importDate !== initialImportDate) {
         try {
           // Save an ISO string if we can parse the submitted string as a date

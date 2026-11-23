@@ -59,7 +59,7 @@ describe("openTableOrCardForDatasetWithNotifications", () => {
     broadcastSpy.mockRestore()
   })
 
-  // CODAP-1713: undoing the open removes the table it made, and redoing makes it again, as V2's caseTable.open
+  // undoing the open removes the table it made, and redoing makes it again, as V2's caseTable.open
   // did (app_controller.js:122-123)
   it("sends `delete` on undo and `create` on redo for a table it made", async () => {
     const sharedDataSet = addDataset("fish1713")
@@ -79,6 +79,35 @@ describe("openTableOrCardForDatasetWithNotifications", () => {
     document.redoLastAction()
     await settled()
     expect(componentNotices(broadcastSpy)).toEqual([["create", toV2Id(tile.id)]])
+    broadcastSpy.mockRestore()
+    document.treeMonitor!.disableMonitoring()
+  })
+
+  it("sends `delete` on undo and `create` on redo when it shows a closed table again", async () => {
+    const sharedDataSet = addDataset("frogs1713")
+    const { document } = appState
+    document.treeMonitor!.enableMonitoring()
+    const settled = () => when(() => (document.treeManagerAPI as TreeManagerType).activeHistoryEntries.length === 0)
+    const tile = openTableOrCardForDatasetWithNotifications(sharedDataSet)!
+    content.applyModelChange(() => content.toggleNonDestroyableTileVisibility(tile.id))
+    await settled()
+    expect(content.isTileHidden(tile.id)).toBe(true)
+    expect(openTableOrCardForDatasetWithNotifications(sharedDataSet)).toBe(tile)
+    await settled()
+    const tableNotices = (spy: jest.SpyInstance) => spy.mock.calls.map(([msg]: any[]) => msg)
+      .filter(msg => msg.resource === "component")
+      .map(msg => [msg.values.operation, msg.values.id, msg.values.type])
+
+    const broadcastSpy = jest.spyOn(content, "broadcastMessage")
+    document.undoLastAction()
+    await settled()
+    expect(content.isTileHidden(tile.id)).toBe(true)
+    expect(tableNotices(broadcastSpy)).toEqual([["delete", toV2Id(tile.id), "DG.TableView"]])
+    broadcastSpy.mockClear()
+    document.redoLastAction()
+    await settled()
+    expect(content.isTileHidden(tile.id)).toBe(false)
+    expect(tableNotices(broadcastSpy)).toEqual([["create", toV2Id(tile.id), "DG.TableView"]])
     broadcastSpy.mockRestore()
     document.treeMonitor!.disableMonitoring()
   })

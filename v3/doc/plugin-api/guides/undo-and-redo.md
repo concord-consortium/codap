@@ -32,13 +32,20 @@ match a single action in CODAP's interface and undo the same way it does:
   calculator that is already showing hides it, and its entry undoes the hide, also as in v2
 - `delete` on `component`, which closes a component as its close button does
 
-**A request that adds no entry usually erases what can be redone**, as in v2, so the user can't redo
-an undone action after it. As in v2, these don't: updating, moving or deleting items (`item`,
+**A request that adds no entry usually erases what can be redone**, so the user can't redo an
+undone action after it. As in v2, these don't: updating, moving or deleting items (`item`,
 `itemByID`, `itemByCaseID`, `itemSearch`), creating cases, deleting cases (`caseByID`,
 `caseByIndex`, `allCases`), setting cases aside and restoring them (`notify` on `dataContext` with
 `setAside` or `restoreSetasides`), and `update` on `interactiveFrame`. Creating items does, as v2's
-did. Nor do your plugin's own requests while it answers `undoAction` or `redoAction` for an action
-it reported; see below.
+did. Nor does `update` on a `global` to the value it already has, or an update to cases that sets
+no attribute that exists, though v2's did. Nor do your plugin's own requests while it answers
+`undoAction` or `redoAction` for an action it reported; see below.
+
+**Unlike v2, `create` and `update` on `global`, and `update` on `component`, erase what can be
+redone.** v2 left its history alone for them. The exception was `update` on a map `component` with
+a `center` or `zoom`, which moved the map and could record an undoable map change, which erased
+it. So `update` on `component` for your plugin's own frame erases what can be redone, while
+`update` on `interactiveFrame` doesn't.
 
 Entries use v2's labels, so the user sees, for example, "Undo adding a graph".
 
@@ -213,10 +220,11 @@ CODAP also sends `clearUndo` and `clearRedo` to the page it is embedded in, if a
 keep its own buttons in step.
 
 Undoing or redoing sends neither. Instead, CODAP sends every plugin a notification on
-[`document`](../resources/document.md) with operation `undo` or `redo`, as v2 did. It also carries
-`canUndo` and `canRedo`, which v2's did not, so set your buttons from it too. When the change undone
-or redone has a notification of its own, such as a component's `create` or `delete`, CODAP sends
-that after the `document` one; see [Notifications](../notifications.md).
+[`document`](../resources/document.md) with operation `undo` or `redo`, as v2 did for most changes.
+It also carries `canUndo` and `canRedo`, which v2's did not, so set your buttons from it too. When
+the change undone or redone has a notification of its own, such as a component's `create` or
+`delete`, CODAP sends that after the `document` one, where v2 sometimes sent only the change's own;
+see [Notifications](../notifications.md#lifecycle).
 
 ## Known limitations
 

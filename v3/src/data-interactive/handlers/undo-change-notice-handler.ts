@@ -4,7 +4,6 @@ import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { kHostPageId } from "../../lib/embedded-mode/embedded-mode-registry"
 import { appState } from "../../models/app-state"
 import { ICustomUndoRedoPatcher, registerCustomUndoRedo } from "../../models/history/custom-undo-redo-registry"
-import { HistoryEntryType } from "../../models/history/history"
 import { ICustomPatch } from "../../models/history/tree-types"
 import { withCustomUndoRedo } from "../../models/history/with-custom-undo-redo"
 import { getDocumentContentFromNode } from "../../utilities/mst-document-utils"
@@ -27,17 +26,17 @@ function isPluginUndoRedoPatch(patch: ICustomPatch): patch is IPluginUndoRedoPat
   return patch.type === kPluginUndoRedoPatchType
 }
 
-function sendUndoRedoMessage(tileId: string, operation: "undoAction" | "redoAction", historyEntryId: string) {
+function sendUndoRedoMessage(tileId: string, operation: "undoAction" | "redoAction") {
   const documentContent = appState.document.content
   if (!documentContent) return
   // the requests it sends to reverse or reapply its action keep what can be redone
-  startUndoRedoAnswer(tileId, historyEntryId)
+  const answerGeneration = startUndoRedoAnswer(tileId)
   documentContent.broadcastMessage({
     action: "notify",
     resource: "undoChangeNotice",
     values: { operation }
   }, (response: any) => {
-    replyToUndoRedoAnswer(tileId)
+    replyToUndoRedoAnswer(tileId, answerGeneration)
     // as in V2, only an explicit `success: false` is a failure
     if (response?.success === false) {
       const requester = tileId === kHostPageId ? "The host page" : `Plugin ${tileId}`
@@ -50,14 +49,14 @@ function sendUndoRedoMessage(tileId: string, operation: "undoAction" | "redoActi
 }
 
 const pluginUndoRedoPatcher: ICustomUndoRedoPatcher = {
-  undo: (_node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
+  undo: (_node: IAnyStateTreeNode, patch: ICustomPatch) => {
     if (isPluginUndoRedoPatch(patch)) {
-      sendUndoRedoMessage(patch.data.tileId, "undoAction", entry.id)
+      sendUndoRedoMessage(patch.data.tileId, "undoAction")
     }
   },
-  redo: (_node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
+  redo: (_node: IAnyStateTreeNode, patch: ICustomPatch) => {
     if (isPluginUndoRedoPatch(patch)) {
-      sendUndoRedoMessage(patch.data.tileId, "redoAction", entry.id)
+      sendUndoRedoMessage(patch.data.tileId, "redoAction")
     }
   }
 }

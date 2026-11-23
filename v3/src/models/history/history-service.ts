@@ -19,8 +19,8 @@ export interface IApplyModelChangeOptions {
   excludeTileId?: string
   // all changes dirty the document by default; specify noDirty to disable dirtying the document
   noDirty?: boolean
-  // a change that can't be undone clears the redo list by default; keepRedo leaves it, e.g. for a change that
-  // erases the whole history itself afterward
+  // a change that can't be undone clears the redo list by default; keepRedo leaves it, e.g. for the plugin
+  // requests V2 made without touching its history
   keepRedo?: boolean
   // undo/redo strings indicate undo-ability; if not provided, the action is not undoable
   undoStringKey?: string

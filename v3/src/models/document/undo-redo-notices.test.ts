@@ -1,10 +1,12 @@
 import { when } from "mobx"
 import { getSnapshot, Instance } from "mobx-state-tree"
-import { processAction, ProcessActionOptions } from "../../data-interactive/data-interactive-request-processor"
+import {
+  processAction, ProcessActionOptions, processRequest
+} from "../../data-interactive/data-interactive-request-processor"
 import { kWebViewTileType } from "../../components/web-view/web-view-defs"
 import { DIAction, DIComponentInfo } from "../../data-interactive/data-interactive-types"
 import {
-  endUndoRedoAnswer, isAnsweringUndoRedo, kUndoRedoAnswerGraceMs, replyToUndoRedoAnswer
+  endUndoRedoAnswer, isAnsweringUndoRedo, kUndoRedoAnswerGraceMs
 } from "../../data-interactive/undo-redo-answer"
 import { kHostPageId } from "../../lib/embedded-mode/embedded-mode-registry"
 import { ICoreNotification } from "../../data-interactive/notification-core-types"
@@ -18,7 +20,7 @@ import { TreeManager } from "../history/tree-manager"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
 import "../../register-tile-types"
 
-// CODAP-1713: what plugins hear when a change is undone or redone, and when a change that can't be undone
+// What plugins hear when a change is undone or redone, and when a change that can't be undone
 // clears the redo list
 describe("undo and redo notices", () => {
   const { document } = appState
@@ -88,6 +90,11 @@ describe("undo and redo notices", () => {
       broadcastSpy.mockClear()
       await changeThatCantBeUndone(20, { noDirty: true })
       await changeThatCantBeUndone(21, { keepRedo: true })
+      // a change that doesn't dirty the document, wrapping one made without options
+      document.content!.applyModelChange(() => {
+        document.content!.applyModelChange(() => global.setValue(22), { suppressWarning: true })
+      }, { noDirty: true })
+      await historySettled()
       expect(document.canRedo).toBe(true)
       expect(notices("undoChangeNotice")).toEqual([])
     })
@@ -104,6 +111,48 @@ describe("undo and redo notices", () => {
       expect(global.value).toBe(6)
     })
 
+    describe("followed by an undo or redo before its history entry completes", () => {
+      const updateGlobal = (value: number): DIAction =>
+        ({ action: "update", resource: `global[${global.name}]`, values: { value } })
+      const buttonPress = (operation: string): DIAction =>
+        ({ action: "notify", resource: "undoChangeNotice", values: { operation } })
+      const redoLevels = () => document.treeManagerAPI!.undoManager.redoLevels
+
+      it("clears the redo list first, so the undo can be redone", async () => {
+        await undoableChange(50)
+        await undoableChange(51)
+        await undo()
+        expect(redoLevels()).toBe(1)
+        broadcastSpy.mockClear()
+
+        const replies = await processRequest([updateGlobal(52), buttonPress("undoButtonPress")])
+        await historySettled()
+        expect(replies).toEqual([
+          { success: true },
+          { success: true, values: { canUndo: true, canRedo: true } }
+        ])
+        // the redo list holds only the change just undone, as in V2
+        expect([document.canRedo, redoLevels()]).toEqual([true, 1])
+        expect(notices("undoChangeNotice").map(([, values]) => values.operation)).toEqual(["clearRedo"])
+        await redo()
+        expect(global.value).toBe(50)
+      })
+
+      it("clears the redo list first, so a redo after it has nothing to redo", async () => {
+        await undoableChange(53)
+        await undo()
+        expect(document.canRedo).toBe(true)
+
+        const replies = await processRequest([updateGlobal(54), buttonPress("redoButtonPress")])
+        await historySettled()
+        expect(replies).toEqual([
+          { success: true },
+          { success: true, values: { canUndo: true, canRedo: false } }
+        ])
+        expect(global.value).toBe(54)
+      })
+    })
+
     describe("a plugin answering undoAction or redoAction for its own reported action", () => {
       const reportUndoable = async (requester: ProcessActionOptions) => {
         await processAction({
@@ -116,6 +165,14 @@ describe("undo and redo notices", () => {
         await historySettled()
       }
       afterEach(() => endUndoRedoAnswer())
+      // the plugin replies to the undoAction or redoAction notices CODAP sent it, the latest first
+      const replyToNotices = (tileId: string, count = 1) => {
+        const sent = broadcastSpy.mock.calls.filter(([message, , targetTileId]) =>
+          message.resource === "undoChangeNotice" && targetTileId === tileId &&
+          ["undoAction", "redoAction"].includes(message.values.operation))
+        expect(sent.length).toBeGreaterThanOrEqual(count)
+        sent.slice(-count).reverse().forEach(([, callback]) => callback({ success: true }))
+      }
       const addWebView = () =>
         document.content!.insertTileSnapshotInDefaultRow({ content: { type: kWebViewTileType } })!
 
@@ -142,7 +199,7 @@ describe("undo and redo notices", () => {
         await undo()
         jest.useFakeTimers()
         try {
-          replyToUndoRedoAnswer(plugin.tile.id)
+          replyToNotices(plugin.tile.id)
           jest.advanceTimersByTime(kUndoRedoAnswerGraceMs - 1)
           expect(isAnsweringUndoRedo(plugin.tile.id)).toBe(true)
           jest.advanceTimersByTime(1)
@@ -181,7 +238,7 @@ describe("undo and redo notices", () => {
         expect(isAnsweringUndoRedo(pluginA.tile.id)).toBe(true)
         expect(isAnsweringUndoRedo(pluginB.tile.id)).toBe(true)
         // replying for one doesn't end the other's answer
-        replyToUndoRedoAnswer(pluginB.tile.id)
+        replyToNotices(pluginB.tile.id)
         await updateGlobal(pluginA, 48)
         await updateGlobal(pluginB, 49)
         expect(document.canRedo).toBe(true)
@@ -265,6 +322,58 @@ describe("undo and redo notices", () => {
       await request({ action: "update", resource: `dataContext[keepRedoItems].caseByID[${toV2Id(bCase)}]`,
         values: { values: { a1: "z" } } })
       expect(document.canRedo).toBe(false)
+    })
+
+    it("doesn't come from any of the requests on the keep list, nor from one that sets no value", async () => {
+      const name = "keepRedoTable"
+      const { dataset } = setupTestDataset({ datasetName: name })
+      const docData = document.content!.createDataSet(getSnapshot(dataset)).sharedDataSet.dataSet
+      docData.validateCases()
+      const webView = document.content!.insertTileSnapshotInDefaultRow({ content: { type: kWebViewTileType } })!
+      await historySettled()
+      const itemId = (index: number) => toV2Id(docData.itemIds[index])
+      const caseId = (collectionIndex: number, index = 0) => toV2Id(docData.collections[collectionIndex].caseIds[index])
+      const dc = `dataContext[${name}]`
+      // [description, request, whether it succeeds]
+      const requests: Array<[string, () => DIAction, boolean?]> = [
+        ["update caseByID setting no value", () => ({ action: "update",
+          resource: `${dc}.collection[collection1].caseByID[${caseId(0)}]`, values: { values: { noSuchAttr: 1 } } }),
+          false],
+        ["update case setting no value", () => ({ action: "update", resource: `${dc}.collection[collection1].case`,
+          values: [{ id: caseId(0), values: {} }] })],
+        ["update global to its current value", () => ({ action: "update", resource: `global[${global.name}]`,
+          values: { value: global.value } })],
+        ["update item", () => ({ action: "update", resource: `${dc}.item`,
+          values: [{ id: itemId(0), values: { a3: 10 } }] })],
+        ["update itemByID", () => ({ action: "update", resource: `${dc}.itemByID[${itemId(0)}]`,
+          values: { a3: 11 } })],
+        ["update itemByCaseID", () => ({ action: "update", resource: `${dc}.itemByCaseID[${caseId(2)}]`,
+          values: { a3: 12 } })],
+        ["notify itemSearch itemOrder", () => ({ action: "notify", resource: `${dc}.itemSearch[a3>0]`,
+          values: { itemOrder: "last" } })],
+        ["delete itemByCaseID", () => ({ action: "delete", resource: `${dc}.itemByCaseID[${caseId(2)}]` })],
+        ["delete itemSearch", () => ({ action: "delete", resource: `${dc}.itemSearch[a3==12]` })],
+        ["create case", () => ({ action: "create", resource: `${dc}.collection[collection1].case`,
+          values: [{ values: { a1: "c" } }] })],
+        ["delete caseByID", () => ({ action: "delete",
+          resource: `${dc}.collection[collection1].caseByID[${caseId(0)}]` })],
+        ["delete caseByIndex", () => ({ action: "delete", resource: `${dc}.collection[collection1].caseByIndex[0]` })],
+        ["delete allCases", () => ({ action: "delete", resource: `${dc}.allCases` })]
+      ]
+      for (const [description, request, succeeds = true] of requests) {
+        await undoableChange(80)
+        await undo()
+        const { success } = await processAction(request())
+        await historySettled()
+        expect([description, success, document.canRedo]).toEqual([description, succeeds, true])
+      }
+      // a plugin's update of its own interactiveFrame
+      await undoableChange(81)
+      await undo()
+      const result = await processAction({ action: "update", resource: "interactiveFrame", values: { title: "Kept" } },
+        { tile: webView })
+      await historySettled()
+      expect([result.success, document.canRedo]).toEqual([true, true])
     })
 
     it("includes a plugin's request, such as update global", async () => {
