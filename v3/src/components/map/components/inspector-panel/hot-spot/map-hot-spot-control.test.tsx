@@ -6,7 +6,7 @@ import { AppHistoryService } from "../../../../../models/history/app-history-ser
 import { MapPointLayerModel } from "../../../models/map-point-layer-model"
 import { MapHotSpotControl } from "./map-hot-spot-control"
 
-jest.mock("../../../../utilities/translation/translate", () => ({
+jest.mock("../../../../../utilities/translation/translate", () => ({
   t: (key: string) => key,
   translate: (key: string) => key
 }))

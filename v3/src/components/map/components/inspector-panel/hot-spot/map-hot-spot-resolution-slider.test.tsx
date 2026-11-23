@@ -6,7 +6,7 @@ import { MapPointLayerModel } from "../../../models/map-point-layer-model"
 import { kResolutionRangeFactor } from "../../../utilities/hot-spot-utils"
 import { formatBandwidth, MapHotSpotResolutionSlider } from "./map-hot-spot-resolution-slider"
 
-jest.mock("../../../../utilities/translation/translate", () => ({
+jest.mock("../../../../../utilities/translation/translate", () => ({
   t: (key: string) => key,
   translate: (key: string) => key
 }))

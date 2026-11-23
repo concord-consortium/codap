@@ -6,7 +6,7 @@ import { MapPointLayerModel } from "../../../models/map-point-layer-model"
 import { formatColorBins, MapHotSpotBinningSlider } from "./map-hot-spot-binning-slider"
 
 // Includes any variables after the key, so tests can see the count in "n classes"
-jest.mock("../../../../utilities/translation/translate", () => {
+jest.mock("../../../../../utilities/translation/translate", () => {
   const t = (key: string, options?: { vars?: unknown[] }) =>
     options?.vars ? `${key}:${options.vars.join(",")}` : key
   return { t, translate: t }
