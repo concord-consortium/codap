@@ -131,6 +131,23 @@ describe("SliderInspector", () => {
       expect(slider.ownsSelection).toBe(false)
     })
 
+    it("resumes on a press in a palette's menu, which renders outside the palette", async () => {
+      const { tile, dataSet, slider } = await setupPausedSelectionSlider()
+      render(<SliderInspector tile={tile} show={true}/>)
+      await userEvent.click(screen.getByTestId("slider-config-button"))
+      await userEvent.click(screen.getByTestId("slider-type-button"))
+      const option = screen.getAllByRole("option").find(o => o.textContent === "Selection")!
+      expect(palette().contains(option)).toBe(false)
+      pauseSlider(dataSet)
+      await userEvent.keyboard("{Escape}")
+      expect(slider.ownsSelection).toBe(false)
+      await userEvent.click(screen.getByTestId("slider-type-button"))
+      pauseSlider(dataSet)
+      await userEvent.click(screen.getAllByRole("option").find(o => o.textContent === "Selection")!)
+      expect(slider.ownsSelection).toBe(true)
+      expect(selectedA3(dataSet)).toEqual([2, 3, 4])
+    })
+
     it("leaves the selection alone for a slider that isn't a selection slider", async () => {
       const { tile, dataSet, slider } = await setupPausedSelectionSlider()
       act(() => slider.setSliderType("variable"))

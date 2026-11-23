@@ -35,7 +35,9 @@ export const SliderInspector = observer(function SliderInspector({ tile, show }:
   if (!isSliderModel(sliderModel)) return null
 
   // Using the slider's inspector resumes a paused selection slider, like touching the slider itself: opening or
-  // closing a palette, and pressing or typing in one, including in its menus, whose events reach here through React.
+  // closing a palette with its button, and pressing or typing in one, including in its menus, whose events reach here
+  // through React. Closing a palette with Escape or a press elsewhere doesn't resume it, since that press may be the
+  // user making a selection of their own.
   const resumeSelection = () => sliderModel.resumeSelection()
   const handlePalettePointerDownCapture = (e: React.PointerEvent) => {
     if (!e.button && e.isPrimary !== false) resumeSelection()
