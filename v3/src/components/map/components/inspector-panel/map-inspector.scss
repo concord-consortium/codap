@@ -1,16 +1,5 @@
 @use "../../../vars";
 
-@mixin subsection-divider {
-  padding-top: 0;
-
-  &::before {
-    content: "";
-    display: block;
-    margin-bottom: 10px;
-    border-top: 1px solid vars.$charcoal-light-4;
-  }
-}
-
 @mixin color-ramp-option {
   display: flex;
   align-items: center;
@@ -103,21 +92,25 @@
 
       .palette-row {
         font-weight: normal;
+
+        &.slider-row {
+          margin-top: 8px;
+        }
       }
 
       > .palette-form {
-        @include subsection-divider;
+        border-top: 1px solid vars.$charcoal-light-5;
 
         > :first-child.react-aria-Checkbox {
           font-weight: 500;
         }
+
+        > .react-aria-RadioGroup {
+          margin-top: 8px;
+        }
       }
 
       .map-hot-spot-controls {
-        .slider-row {
-          margin-top: 8px;
-        }
-
         .color-ramp-row {
           justify-content: space-between;
           height: auto;
