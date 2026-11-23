@@ -65,7 +65,7 @@ through `allCases`, `caseSearch` or the `item` resources instead.
 | `collections` | yes | each with its attributes — **not** its cases (see above) |
 | `flexibleGroupingChangeFlag` | yes | |
 | `preventReorg` | yes | |
-| `setAsideItems` | yes | the items currently set aside, with their values; `true` and `false` read back as booleans, as on [`item`](item.md) |
+| `setAsideItems` | yes | the items currently set aside, with their values read back as on [`item`](item.md) |
 | `contextStorage` | yes | carries `_links_.selectedCases` |
 | `metadata` | no | `{description, source, importDate}` — present only when the data set carries at least one of them |
 | `v3.filterFormula` | no | present only when the data context has a filter formula |
@@ -157,7 +157,7 @@ and attributes — and has no cases:
         "attrs": [
           {
             "name": "Species",
-            "type": "categorical",
+            "type": null,
             "title": "Species",
             "cid": "ATTR43",
             "editable": true,

@@ -70,11 +70,18 @@ like a silent no-op. To use this resource you must first opt in:
 
 Then issue `get document` and handle `newDocumentState` in your notification handler.
 
-The document holds values as CODAP stores them, so a `true` or `false` value is the text `"true"`
-or `"false"`, where the other resources return booleans; see
-[Booleans](../guides/data-types.md#booleans). This matches the file CODAP saves. v2's document kept a
-`true` a plugin sent as a boolean, but CODAP stores it the same way as a typed `true`, so it can't
-tell them apart. This is a deliberate difference.
+The values in the document's cases and set-aside items don't always read back as they do from
+[`item`](item.md), [`case`](case.md) and the other resources; see
+[Reading values back](../guides/data-types.md#reading-values-back):
+
+- Text that counts as a number appears as that number, so `"0x1F"` is `31`, `"12.50"` is `12.5`,
+  and `"$12.50"` in a `numeric` attribute is `12.5`, where the other resources return the text as
+  it was sent. v2's document had each value as it was sent. This is a known bug; see
+  [Known limitations](../guides/data-types.md#known-limitations).
+- A `true` or `false` value is the text `"true"` or `"false"`, where the other resources return
+  booleans; see [Booleans](../guides/data-types.md#booleans). v2's document kept a `true` a plugin
+  sent as a boolean, but CODAP stores it the same way as a typed `true`, so it can't tell them
+  apart. This is a deliberate difference.
 
 ## update — replacing the document
 
