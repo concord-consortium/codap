@@ -156,4 +156,16 @@ describe("getChoroplethColors", () => {
     expect(three[2]).toBe("#ffffff")
     expect(getChoroplethColors("#000000", "#ffffff", 7)).toHaveLength(7)
   })
+
+  // Other libraries (e.g. pixi.js) register colord's names plugin globally, which must not
+  // make color names parse as strict colors. Keep this test last, since the import persists.
+  it("parseColor and parseColorToHex ignore color names after pixi.js loads", async () => {
+    await import("pixi.js")
+    expect(parseColor("red")).toBe("")
+    expect(parseColor("TOMATO")).toBe("")
+    expect(parseColorToHex("red")).toBe("")
+    expect(parseColor("#ff0000")).toBe("#ff0000")
+    expect(parseColor("red", { colorNames: true })).toBe("red")
+    expect(parseColorToHex("red", { colorNames: true })).toBe("#ff0000")
+  })
 })

@@ -46,6 +46,16 @@ namesPlugin(Colord, parsers)
 // Extract the parsing function that the plugin installed into the parser arrays.
 const parseColorName = parsers.string[0][0]
 
+/**
+ * Returns true if the string is a color in a strict (non-name) format, e.g. hex, rgb() or hsl().
+ * Other libraries (e.g. pixi.js) may register the names plugin with colord's global parsers,
+ * so the format must be checked rather than relying on colord to reject names.
+ */
+export function isStrictColorString(str: string) {
+  const format = getColorFormat(str)
+  return !!format && format !== "name"
+}
+
 export interface ParseColorOptions {
   colorNames?: boolean
   alpha?: number
@@ -62,7 +72,7 @@ export function parseColor(str: string, options?: ParseColorOptions) {
   // if it's a valid color name, return it
   if (options?.colorNames && parseColorName(str)) return str.toLowerCase()
   // if it's a valid color string, return its hex equivalent
-  return getColorFormat(str) ? colord(str).toHex() : ""
+  return isStrictColorString(str) ? colord(str).toHex() : ""
 }
 
 /**
@@ -80,7 +90,7 @@ export function parseColorToHex(str: string, options?: ParseColorOptions) {
     }
 
     // If not a named color, attempt to parse as a regular color string
-    if (!parsed && getColorFormat(str)) {
+    if (!parsed && isStrictColorString(str)) {
       parsed = colord(str).toRgb()
     }
 

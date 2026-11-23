@@ -89,6 +89,12 @@ describe("isColor", () => {
     expect(fn.evaluate({ x: "#aabbcc88" })).toBe(true)
     expect(fn.evaluate({ x: "rgb(1, 2, 3)" })).toBe(true)
   })
+  it("rejects color names even after pixi.js registers them with colord", async () => {
+    await import("pixi.js")
+    const fn = math.compile("isColor(x)")
+    expect(fn.evaluate({ x: "red" })).toBe(false)
+    expect(fn.evaluate({ x: "#aabbcc" })).toBe(true)
+  })
 })
 
 describe("isDate", () => {
