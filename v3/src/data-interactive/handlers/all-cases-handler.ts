@@ -1,9 +1,8 @@
-import { IValueType } from "../../models/data/attribute-types"
 import { deleteCasesNotification } from "../../models/data/data-set-notifications"
 import { getGroupedCases } from "../../models/data/data-set-utils"
 import { maybeToV2Id, toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { toPluginValue } from "../data-interactive-utils"
+import { getCaseValues } from "../data-interactive-utils"
 import { DIHandler, DIResources } from "../data-interactive-types"
 import { collectionNotFoundResult, dataContextNotFoundResult } from "./di-results"
 
@@ -28,8 +27,6 @@ export const diAllCasesHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
     if (!collection) return collectionNotFoundResult
 
-    const attributes = collection.attributes ?? []
-
     const cases = dataContext.getCasesForCollection(collection.id).map(({ __id__ }, index) => {
       const pseudoCase = dataContext.caseInfoMap.get(__id__)
       const parentCase = dataContext.getParentCaseInfo(__id__)
@@ -39,10 +36,7 @@ export const diAllCasesHandler: DIHandler = {
       if (pseudoCase) {
         children.push(...(pseudoCase.childCaseIds ?? []).map(childId => toV2Id(childId)))
       }
-      const values: Record<string, IValueType> = {}
-      attributes.forEach(attr => {
-        if (attr) values[attr.name] = toPluginValue(dataContext.getValue(__id__, attr.id))
-      })
+      const values = getCaseValues(__id__, dataContext, collection.id)
       return {
         case: { id: toV2Id(__id__), parent, children, values },
         caseIndex: index
