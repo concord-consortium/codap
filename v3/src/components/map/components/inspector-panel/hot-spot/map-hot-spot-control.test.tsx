@@ -1,9 +1,9 @@
 import { act, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { ISerializedActionCall, onAction } from "mobx-state-tree"
-import { featureFlagManager } from "../../../../models/feature-flags/feature-flag-manager"
-import { AppHistoryService } from "../../../../models/history/app-history-service"
-import { MapPointLayerModel } from "../../models/map-point-layer-model"
+import { featureFlagManager } from "../../../../../models/feature-flags/feature-flag-manager"
+import { AppHistoryService } from "../../../../../models/history/app-history-service"
+import { MapPointLayerModel } from "../../../models/map-point-layer-model"
 import { MapHotSpotControl } from "./map-hot-spot-control"
 
 jest.mock("../../../../utilities/translation/translate", () => ({

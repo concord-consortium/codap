@@ -1,8 +1,8 @@
 import { act, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { ISerializedActionCall, onAction } from "mobx-state-tree"
-import { AppHistoryService } from "../../../../models/history/app-history-service"
-import { MapPointLayerModel } from "../../models/map-point-layer-model"
+import { AppHistoryService } from "../../../../../models/history/app-history-service"
+import { MapPointLayerModel } from "../../../models/map-point-layer-model"
 import { formatColorBins, MapHotSpotBinningSlider } from "./map-hot-spot-binning-slider"
 
 // Includes any variables after the key, so tests can see the count in "n classes"

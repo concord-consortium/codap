@@ -1,15 +1,15 @@
 import { observer } from "mobx-react-lite"
 import { Label, Slider, SliderTrack } from "react-aria-components"
-import { logStringifiedObjectMessage } from "../../../../lib/log-message"
-import { t } from "../../../../utilities/translation/translate"
-import { ValueTextSliderThumb } from "../../../common/value-text-slider-thumb"
-import { IMapPointLayerModel } from "../../models/map-point-layer-model"
+import { logStringifiedObjectMessage } from "../../../../../lib/log-message"
+import { t } from "../../../../../utilities/translation/translate"
+import { ValueTextSliderThumb } from "../../../../common/value-text-slider-thumb"
+import { IMapPointLayerModel } from "../../../models/map-point-layer-model"
 import {
   colorBinsToSliderValue, getEffectiveColorBins, HotSpotColorBins, kContinuousColorBins, kContinuousSliderValue,
   kMinColorBins, sliderValueToColorBins
-} from "../../utilities/hot-spot-utils"
+} from "../../../utilities/hot-spot-utils"
 
-/** Formats color bins for the readout and for screen readers, e.g. "5 classes" or "continuous" */
+/** Formats display text for color bins. */
 export function formatColorBins(colorBins: HotSpotColorBins) {
   const effectiveColorBins = getEffectiveColorBins(colorBins)
   return effectiveColorBins === kContinuousColorBins
@@ -31,10 +31,9 @@ export const MapHotSpotBinningSlider = observer(function MapHotSpotBinningSlider
   const colorBinsText = formatColorBins(displayColorBins)
 
   const commitColorBins = (colorBins: HotSpotColorBins) => {
-    // Compare with the effective value so that an out-of-range saved count isn't replaced by the limit it is
-    // already treated as
+    // Do not commit when nothing has changed. Compare with the effective value so that an out-of-range
+    // saved count isn't replaced by the limit it is already treated as.
     if (colorBins === hotSpotModel.effectiveColorBins) {
-      // Nothing to commit, so just end the in-progress change.
       hotSpotModel.setDynamicColorBins(undefined)
       return
     }
