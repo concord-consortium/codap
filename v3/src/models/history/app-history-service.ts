@@ -44,11 +44,12 @@ export class AppHistoryService implements IHistoryService {
       withUndoRedoStrings(undoStringKey, redoStringKey)
     } else {
       withoutUndo({ noDirty, suppressWarning })
-      // Mark the entry (the outermost action's) to clear the redo list when it completes, unless the change is
-      // made while undoing or redoing, or by a plugin answering undoAction or redoAction (undo-redo-answer.ts).
-      // TreeManager.completeHistoryEntry skips entries that don't dirty the document.
+      // Mark the entry (the outermost action's) to clear the redo list when it completes, unless the change
+      // doesn't dirty the document or is made while undoing or redoing, or by a plugin answering undoAction or
+      // redoAction (undo-redo-answer.ts). TreeManager.completeHistoryEntry also skips entries that don't dirty
+      // the document, such as a noDirty change wrapping one made without options.
       const env = getRunningActionCall()?.env
-      if (env && !keepRedo && !isUndoingOrRedoing() &&
+      if (env && !noDirty && !keepRedo && !isUndoingOrRedoing() &&
           !isAnsweringUndoRedo(getNotificationRequesterTileId())) {
         env.clearsRedo = true
       }

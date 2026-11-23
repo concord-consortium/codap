@@ -80,7 +80,8 @@ export const UndoStore = types
   // whether an entry clears the redo list when it completes: a change that can't be undone, made on purpose, and
   // with no undo or redo made since it was made
   clearsRedoOnCompletion(entry: HistoryEntryType) {
-    return !!entry.clearsRedo && !entry.noDirty && entry.undoRedoCountAtStart === self.undoRedoCount
+    return !entry.undoable && !!entry.clearsRedo && !entry.noDirty &&
+      entry.undoRedoCountAtStart === self.undoRedoCount
   }
 }))
 .actions((self) => ({

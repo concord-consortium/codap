@@ -38,8 +38,8 @@ undone action after it. As in v2, these don't: updating, moving or deleting item
 `caseByIndex`, `allCases`), setting cases aside and restoring them (`notify` on `dataContext` with
 `setAside` or `restoreSetasides`), and `update` on `interactiveFrame`. Creating items does, as v2's
 did. Nor does `update` on a `global` to the value it already has, or an update to cases that sets
-no attribute that exists, though v2's did. Nor do your plugin's own requests while it answers
-`undoAction` or `redoAction` for an action it reported; see below.
+no attribute that exists (v2's case update did erase it). Nor do your plugin's own requests while it
+answers `undoAction` or `redoAction` for an action it reported; see below.
 
 **Unlike v2, `create` and `update` on `global`, and `update` on `component`, erase what can be
 redone.** v2 left its history alone for them. The exception was `update` on a map `component` with
@@ -210,12 +210,12 @@ CODAP, so CODAP also tells every plugin when it changes:
 | `clearUndo` | the undo history is erased; sent with `clearRedo` |
 
 Both carry `canUndo` and `canRedo` as they are after the change. Set your buttons from those values
-whatever the operation is called. v2 erased the undo history, and sent `clearUndo`, whenever a
-change could not be undone and after an `update document`. CODAP erases it after an `update
+whatever the operation is called. v2 erased the undo history, and sent `clearUndo`, after most
+changes that could not be undone and after an `update document`. CODAP erases it after an `update
 document`, just before `updateDocumentEnded`, as v2 did. It keeps the undo history after a change
 that cannot be undone, so it does not send `clearUndo` for that. Such a change does erase what could
 be redone, with the exceptions listed under [What the history holds](#what-the-history-holds), and
-CODAP then sends `clearRedo`, once for a burst of changes; v2 sent it for every change. Unlike v2,
+CODAP then sends `clearRedo`, once for a burst of changes; v2 sent it for every such change. Unlike v2,
 CODAP also sends `clearUndo` and `clearRedo` to the page it is embedded in, if any, so that page can
 keep its own buttons in step.
 

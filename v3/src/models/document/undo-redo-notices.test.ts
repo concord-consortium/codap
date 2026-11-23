@@ -13,11 +13,13 @@ import { ICoreNotification } from "../../data-interactive/notification-core-type
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { toV2Id } from "../../utilities/codap-utils"
 import { appState } from "../app-state"
+import { IDataSet } from "../data/data-set"
 import { GlobalValue } from "../global/global-value"
 import { GlobalValueManager } from "../global/global-value-manager"
 import { registerCustomUndoRedo } from "../history/custom-undo-redo-registry"
 import { TreeManager } from "../history/tree-manager"
 import { withCustomUndoRedo } from "../history/with-custom-undo-redo"
+import { ITileModel } from "../tiles/tile-model"
 import "../../register-tile-types"
 
 // What plugins hear when a change is undone or redone, and when a change that can't be undone
@@ -99,6 +101,19 @@ describe("undo and redo notices", () => {
       expect(notices("undoChangeNotice")).toEqual([])
     })
 
+    it("leaves the redo list for a change that keeps it, wrapping one that doesn't dirty the document",
+        async () => {
+      await undoableChange(23)
+      await undoableChange(24)
+      await undo()
+      expect(document.canRedo).toBe(true)
+      document.content!.applyModelChange(() => {
+        document.content!.applyModelChange(() => global.setValue(25), { noDirty: true, suppressWarning: true })
+      }, { keepRedo: true })
+      await historySettled()
+      expect(document.canRedo).toBe(true)
+    })
+
     it("isn't made by undo or redo themselves", async () => {
       await undoableChange(5)
       await undoableChange(6)
@@ -136,6 +151,19 @@ describe("undo and redo notices", () => {
         expect(notices("undoChangeNotice").map(([, values]) => values.operation)).toEqual(["clearRedo"])
         await redo()
         expect(global.value).toBe(50)
+      })
+
+      it("doesn't clear the redo list for a change that can be undone", async () => {
+        await undoableChange(55)
+        await undo()
+        const replies = await processRequest([
+          { action: "create", resource: "component", values: { type: "text" } }, buttonPress("undoButtonPress")
+        ])
+        await historySettled()
+        expect(replies).toEqual([
+          expect.objectContaining({ success: true }), expect.objectContaining({ success: true })
+        ])
+        expect(document.canRedo).toBe(true)
       })
 
       it("clears the redo list first, so a redo after it has nothing to redo", async () => {
@@ -324,56 +352,58 @@ describe("undo and redo notices", () => {
       expect(document.canRedo).toBe(false)
     })
 
-    it("doesn't come from any of the requests on the keep list, nor from one that sets no value", async () => {
+    // each request runs after an undo, and must leave what can be redone; they run in order, on one data set
+    describe("doesn't come from any of the requests on the keep list, nor from one that sets no value", () => {
       const name = "keepRedoTable"
-      const { dataset } = setupTestDataset({ datasetName: name })
-      const docData = document.content!.createDataSet(getSnapshot(dataset)).sharedDataSet.dataSet
-      docData.validateCases()
-      const webView = document.content!.insertTileSnapshotInDefaultRow({ content: { type: kWebViewTileType } })!
-      await historySettled()
+      let docData: IDataSet
+      let webView: ITileModel
+      beforeAll(() => {
+        const { dataset } = setupTestDataset({ datasetName: name })
+        docData = document.content!.createDataSet(getSnapshot(dataset)).sharedDataSet.dataSet
+        docData.validateCases()
+        webView = document.content!.insertTileSnapshotInDefaultRow({ content: { type: kWebViewTileType } })!
+      })
       const itemId = (index: number) => toV2Id(docData.itemIds[index])
       const caseId = (collectionIndex: number, index = 0) => toV2Id(docData.collections[collectionIndex].caseIds[index])
       const dc = `dataContext[${name}]`
-      // [description, request, whether it succeeds]
-      const requests: Array<[string, () => DIAction, boolean?]> = [
+      // [description, request, whether it succeeds, whether the web view sends it]
+      const requests: Array<[string, () => DIAction, boolean, boolean]> = [
         ["update caseByID setting no value", () => ({ action: "update",
           resource: `${dc}.collection[collection1].caseByID[${caseId(0)}]`, values: { values: { noSuchAttr: 1 } } }),
-          false],
+          false, false],
         ["update case setting no value", () => ({ action: "update", resource: `${dc}.collection[collection1].case`,
-          values: [{ id: caseId(0), values: {} }] })],
+          values: [{ id: caseId(0), values: {} }] }), true, false],
         ["update global to its current value", () => ({ action: "update", resource: `global[${global.name}]`,
-          values: { value: global.value } })],
+          values: { value: global.value } }), true, false],
         ["update item", () => ({ action: "update", resource: `${dc}.item`,
-          values: [{ id: itemId(0), values: { a3: 10 } }] })],
+          values: [{ id: itemId(0), values: { a3: 10 } }] }), true, false],
         ["update itemByID", () => ({ action: "update", resource: `${dc}.itemByID[${itemId(0)}]`,
-          values: { a3: 11 } })],
+          values: { a3: 11 } }), true, false],
         ["update itemByCaseID", () => ({ action: "update", resource: `${dc}.itemByCaseID[${caseId(2)}]`,
-          values: { a3: 12 } })],
+          values: { a3: 12 } }), true, false],
         ["notify itemSearch itemOrder", () => ({ action: "notify", resource: `${dc}.itemSearch[a3>0]`,
-          values: { itemOrder: "last" } })],
-        ["delete itemByCaseID", () => ({ action: "delete", resource: `${dc}.itemByCaseID[${caseId(2)}]` })],
-        ["delete itemSearch", () => ({ action: "delete", resource: `${dc}.itemSearch[a3==12]` })],
+          values: { itemOrder: "last" } }), true, false],
+        ["delete itemByCaseID", () => ({ action: "delete", resource: `${dc}.itemByCaseID[${caseId(2)}]` }),
+          true, false],
+        ["delete itemSearch", () => ({ action: "delete", resource: `${dc}.itemSearch[a3==12]` }), true, false],
         ["create case", () => ({ action: "create", resource: `${dc}.collection[collection1].case`,
-          values: [{ values: { a1: "c" } }] })],
+          values: [{ values: { a1: "c" } }] }), true, false],
         ["delete caseByID", () => ({ action: "delete",
-          resource: `${dc}.collection[collection1].caseByID[${caseId(0)}]` })],
-        ["delete caseByIndex", () => ({ action: "delete", resource: `${dc}.collection[collection1].caseByIndex[0]` })],
-        ["delete allCases", () => ({ action: "delete", resource: `${dc}.allCases` })]
+          resource: `${dc}.collection[collection1].caseByID[${caseId(0)}]` }), true, false],
+        ["delete caseByIndex", () => ({ action: "delete",
+          resource: `${dc}.collection[collection1].caseByIndex[0]` }), true, false],
+        ["delete allCases", () => ({ action: "delete", resource: `${dc}.allCases` }), true, false],
+        ["update interactiveFrame", () => ({ action: "update", resource: "interactiveFrame",
+          values: { title: "Kept" } }), true, true]
       ]
-      for (const [description, request, succeeds = true] of requests) {
+      it.each(requests)("%s", async (_description, request, succeeds, fromWebView) => {
+        await historySettled()
         await undoableChange(80)
         await undo()
-        const { success } = await processAction(request())
+        const { success } = await processAction(request(), fromWebView ? { tile: webView } : {})
         await historySettled()
-        expect([description, success, document.canRedo]).toEqual([description, succeeds, true])
-      }
-      // a plugin's update of its own interactiveFrame
-      await undoableChange(81)
-      await undo()
-      const result = await processAction({ action: "update", resource: "interactiveFrame", values: { title: "Kept" } },
-        { tile: webView })
-      await historySettled()
-      expect([result.success, document.canRedo]).toEqual([true, true])
+        expect([success, document.canRedo]).toEqual([succeeds, true])
+      })
     })
 
     it("includes a plugin's request, such as update global", async () => {
