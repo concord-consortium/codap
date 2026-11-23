@@ -26,6 +26,12 @@ export interface IFeatureFlagInfo {
  * `never`, which would make every call to isFeatureEnabled() a type error.
  */
 export const kFeatureFlags = {
+  combineDateTime: {
+    description: "Attribute menu item that combines a date attribute with a time attribute",
+    owner: "MappingTime",
+    added: "2026-11-19",
+    expires: "2027-11-30"
+  },
   legendBinCount: {
     description: "Number-of-bins control for numeric legends",
     owner: "MappingTime",

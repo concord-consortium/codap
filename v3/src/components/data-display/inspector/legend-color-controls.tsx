@@ -15,6 +15,7 @@ import { missingColor } from "../../../utilities/color-utils"
 import { binBoundaryDecimalPlaces } from "../../../utilities/math-utils"
 import { PointShape } from "../../../utilities/point-shape-utils"
 import { t } from "../../../utilities/translation/translate"
+import { ColorSetting } from "../../common/color-setting"
 import { If } from "../../common/if"
 import { PaletteCheckbox } from "../../palette-checkbox"
 import { getLegendBoundaries } from "../components/legend/choropleth-legend/choropleth-legend"
@@ -25,7 +26,6 @@ import {
 } from "../data-display-notifications"
 import { IDataConfigurationModel, kDefaultLegendBinCount } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
-import { PointColorSetting } from "./point-color-setting"
 import { PointShapeSetting } from "./point-shape-setting"
 
 interface ILegendColorControlsProps {
@@ -235,13 +235,13 @@ export const LegendColorControls = observer(function LegendColorControls(
         <div className="num-color-setting">
           <div className="palette-row color-picker-row">
             <label className="form-label color-picker">{t("DG.Inspector.legendColor")}</label>
-            <PointColorSetting
+            <ColorSetting
               propertyLabel={t("DG.Inspector.legendColorLow")}
               testIdSuffix="legend-low"
               onColorChange={(color) => handleLowAttributeColorChange(color)}
               swatchBackgroundColor={colorRange?.low ?? kDefaultLowAttributeColor}
             />
-            <PointColorSetting
+            <ColorSetting
               propertyLabel={t("DG.Inspector.legendColorHigh")}
               testIdSuffix="legend-high"
               onColorChange={(color) => handleHighAttributeColorChange(color)}
@@ -269,7 +269,7 @@ export const LegendColorControls = observer(function LegendColorControls(
                           color={displayItemDescription.pointColor}
                           onShapeChange={handlePointShapeChange}/>
       </If>
-      <PointColorSetting propertyLabel={t("DG.Inspector.color")} testIdSuffix="point"
+      <ColorSetting propertyLabel={t("DG.Inspector.color")} testIdSuffix="point"
                         onColorChange={(color) => handlePointColorChange(color)}
                         swatchBackgroundColor={displayItemDescription.pointColor}/>
     </div>
@@ -309,7 +309,7 @@ const CategoricalColorControls = observer(function CategoricalColorControls(
               color={dataConfiguration.getLegendColorForCategory(category)}
               onShapeChange={(shape) => onCatPointShapeChange(shape, category)}/>
           </If>
-          <PointColorSetting key={category} propertyLabel={category}
+          <ColorSetting key={category} propertyLabel={category}
             testIdSuffix={attrIndex}
             closeTrigger={scrollVersion}
             onColorChange={(color) => onCatPointColorChange(color, category)}

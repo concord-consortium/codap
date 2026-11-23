@@ -1,8 +1,9 @@
+import { rgb } from "d3"
 import { CRS, latLng, Point } from "leaflet"
-import { getChoroplethColors } from "../../../utilities/color-utils"
 import { computeMeanCenter, greatCircleDistance } from "../../../utilities/geo-utils"
 import { degreesToRadians, mod, quantileOfSortedArray } from "../../../utilities/math-utils"
 import { ILatLong } from "../map-types"
+import { ColorInterpolator } from "./hot-spot-color-ramps"
 import { LatLongProjector } from "./map-utils"
 
 /** Grid cell side length, in CSS pixels */
@@ -47,11 +48,17 @@ export function bandwidthToWorldUnits(bandwidthMeters: number, lat: number) {
 
 // Spreads smaller than this are floating-point error from coincident points
 const kMinSpreadMeters = 0.001
+/**
+ * ArcGIS's default search radius (see computeDefaultBandwidth) is divided by this (≈ 3.3) to give the default
+ * bandwidth. Together with kResolutionRangeFactor, this makes the slider span from about 0.85 times ArcGIS's default
+ * (10^−0.07) down to about 0.11 times it (10^−0.97), with the default in the center. Both values were tuned by hand.
+ */
+export const kDefaultBandwidthDivisor = 10 ** 0.52
 
 /**
- * Returns the default bandwidth in meters, using the default search radius of ArcGIS's Kernel Density tool:
+ * Returns the default bandwidth in meters, based on the default search radius of ArcGIS's Kernel Density tool,
  * 0.9 · min(SD, √(1/ln 2) · Dm) · n^(−0.2), where SD is the standard distance of the points from their mean center
- * and Dm is their median distance from it.
+ * and Dm is their median distance from it, divided by kDefaultBandwidthDivisor.
  *
  * Despite the median term, a far outlier does inflate the bandwidth: it moves the mean center, which increases
  * every point's distance, including the median. (A 3 × 3 cluster plus one point on another continent gives a
@@ -72,7 +79,35 @@ export function computeDefaultBandwidth(latLongs: ILatLong[]) {
   const spread = medianDistance < kMinSpreadMeters
     ? standardDistance
     : Math.min(standardDistance, Math.sqrt(1 / Math.LN2) * medianDistance)
-  return 0.9 * spread * n ** -0.2
+  return 0.9 * spread * n ** -0.2 / kDefaultBandwidthDivisor
+}
+
+/**
+ * The resolution slider spans bandwidths from the default divided by this factor (≈ 2.8) (resolution 1) to the default
+ * multiplied by it (resolution -1), on a log scale with the default at resolution 0. See kDefaultBandwidthDivisor.
+ */
+export const kResolutionRangeFactor = 10 ** 0.45
+const kLogResolutionRangeFactor = Math.log(kResolutionRangeFactor)
+
+/** Converts a bandwidth to a resolution, the slider's log-scale position. Higher resolution is a smaller bandwidth. */
+export function bandwidthToResolution(bandwidthMeters: number, defaultBandwidthMeters: number) {
+  return -Math.log(bandwidthMeters / defaultBandwidthMeters) / kLogResolutionRangeFactor
+}
+
+/** Converts a resolution, the slider's log-scale position, to a bandwidth */
+export function resolutionToBandwidth(resolution: number, defaultBandwidthMeters: number) {
+  return defaultBandwidthMeters * kResolutionRangeFactor ** -resolution
+}
+
+/**
+ * Returns the limit of the resolution slider's symmetric range: normally 1, but widened (to a multiple of step) to
+ * include the given resolution, so that a bandwidth outside the usual range stays on the slider with the default
+ * still in the center.
+ */
+export function resolutionLimit(resolution: number, step: number) {
+  // Subtract 1e-9 because converting a bandwidth to a resolution can add floating-point noise
+  // (e.g. 1.0000000000000002 for the end of the range), which mustn't round up to the next step
+  return Math.max(1, Math.ceil(Math.abs(resolution) / step - 1e-9) * step)
 }
 
 /** A Gaussian kernel centered at (x, y) with bandwidth h, all in the same units */
@@ -186,6 +221,16 @@ export function computeMaxDensity(kernels: IKernel[]) {
   return maxDensity
 }
 
+/**
+ * Returns a cheap approximation of computeMaxDensity: the largest density at the kernels' centers, without climbing
+ * to the local maxima between them. It is a lower bound on the true maximum, so colors are a little brighter than
+ * they should be where the maximum falls between points.
+ */
+export function computeApproximateMaxDensity(kernels: IKernel[]) {
+  const index = new WorldKernelIndex(kernels)
+  return kernels.reduce((max, { x, y }) => Math.max(max, index.densityAt(x, y)), 0)
+}
+
 /** A point to plot, with its position and bandwidth in zoom-0 world units */
 export interface IHotSpotPoint extends IKernel {
   latLong: ILatLong
@@ -198,24 +243,26 @@ export interface IHotSpotSurface {
   /**
    * The maximum density over all the points, not just those in the viewport, so a location's color doesn't change
    * as the map pans or zooms. Densities are in zoom-0 world coordinates, so the value at a location is the same at
-   * every zoom level and this is computed once per data or bandwidth change.
+   * every zoom level and this is computed once per data or bandwidth change. Approximated while optimizing.
    */
   maxDensity: number
 }
 
 /**
- * Returns the density surface of the points, or undefined if there are none. If bandwidthMeters isn't a positive
- * number, a default is computed from the points' spread.
+ * Returns the density surface of the points with the given bandwidth in meters, or undefined if there are no points.
+ * If optimize is true, speed is prioritized over accuracy.
  */
-export function computeHotSpotSurface(latLongs: ILatLong[], bandwidthMeters?: number): Maybe<IHotSpotSurface> {
+export function computeHotSpotSurface(
+  latLongs: ILatLong[], bandwidth: number, optimize = false
+): Maybe<IHotSpotSurface> {
   if (!latLongs.length) return
 
-  const bandwidth = bandwidthMeters && bandwidthMeters > 0 ? bandwidthMeters : computeDefaultBandwidth(latLongs)
   const points = latLongs.map(latLong => {
     const { x, y } = latLongToWorldPoint(latLong)
     return { latLong, x, y, h: bandwidthToWorldUnits(bandwidth, latLong.lat) }
   })
-  return { points, bandwidthMeters: bandwidth, maxDensity: computeMaxDensity(points) }
+  const maxDensity = optimize ? computeApproximateMaxDensity(points) : computeMaxDensity(points)
+  return { points, bandwidthMeters: bandwidth, maxDensity }
 }
 
 /** A grid of square cells, positioned in container pixels */
@@ -311,18 +358,18 @@ export function hotSpotFade(normalizedDensity: number) {
 export const kColorLUTSize = 256
 
 /**
- * Returns a lookup table of kColorLUTSize RGBA colors (4 bytes each) running from lowColor to highColor, sampled
- * with getChoroplethColors so the gradient matches CODAP's legend gradients. Each entry's alpha is multiplied by
- * hotSpotFade of its normalized density, so low densities fade to transparent. Future multi-stop gradients and
- * binning (getChoroplethColors with the bin count) plug in here.
+ * Returns a lookup table of kColorLUTSize RGBA colors (4 bytes each) sampled along the ramp, from low density to
+ * high. Each entry's alpha is multiplied by hotSpotFade of its normalized density, so low densities fade to
+ * transparent. Binning would plug in here.
  */
-export function buildColorLUT(lowColor: string, highColor: string) {
+export function buildColorLUT(interpolator: ColorInterpolator) {
   const lut = new Uint8ClampedArray(kColorLUTSize * 4)
-  getChoroplethColors(lowColor, highColor, kColorLUTSize, { format: "rgba" }).forEach(({ r, g, b, a }, i) => {
-    const fade = hotSpotFade(i / (kColorLUTSize - 1))
-    // Uint8ClampedArray rounds the unrounded channels
-    lut.set([r, g, b, a * fade * 255], i * 4)
-  })
+  for (let i = 0; i < kColorLUTSize; i++) {
+    const normalizedDensity = i / (kColorLUTSize - 1)
+    const { r, g, b, opacity } = rgb(interpolator(normalizedDensity))
+    // Uint8ClampedArray rounds the alpha
+    lut.set([r, g, b, opacity * hotSpotFade(normalizedDensity) * 255], i * 4)
+  }
   return lut
 }
 

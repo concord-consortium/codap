@@ -6,10 +6,10 @@ import { IDataDisplayContentModel } from "../data-display/models/data-display-co
 import { axisPlaceToAttrRole, kDataDisplayFont, transitionDuration } from "../data-display/data-display-types"
 import {measureText, measureTextExtent} from "../../hooks/use-measure-text"
 import { determineLevels } from "../../utilities/date-utils"
-import { GraphLayout } from "../graph/models/graph-layout"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { kAxisGap, kAxisTickLength, kDefaultFontHeight } from "./axis-constants"
 import {AxisPlace, labelPaddingX, labelPaddingY} from "./axis-types"
+import { IAxisLayout } from "./models/axis-layout-context"
 import { updateAxisNotification } from "./models/axis-notifications"
 import { IBaseNumericAxisModel } from "./models/base-numeric-axis-model"
 
@@ -64,15 +64,25 @@ export const collisionExists = (props: ICollisionProps) => {
 }
 
 /**
+ * Returns the number of categories that fit on one sub-axis of a categorical axis. A split axis
+ * repeats once per category of the split attribute, so the limit comes from the length of one
+ * sub-axis (MultiScale.cellLength) rather than the full axis length. The result is at least 1,
+ * since a limit of 0 is stored as "no limit"; a sub-axis too short for one label shows only OTHER.
+ */
+export const getNumberOfCategoriesLimit = (layout: IAxisLayout, axisPlace: AxisPlace) => {
+  const length = layout.getAxisMultiScale(axisPlace)?.cellLength || layout.getAxisLength(axisPlace)
+  return Math.max(1, Math.floor(length / kDefaultFontHeight))
+}
+
+/**
  * Having this utility function makes it possible to set the number of categories limit for a categorical
  * axis early in the process of treating an attribute as categorical so that, if there is a large number of categories,
  * we can limit the computation involved in figuring out which cases belong to which subplot.
  */
 export const setNumberOfCategoriesLimit = (dataConfig: IDataConfigurationModel, axisPlace: AxisPlace,
-                                           layout: GraphLayout) => {
-  const axisLength = layout.getAxisLength(axisPlace),
-    numCategoriesLimit = Math.floor(axisLength / kDefaultFontHeight)
-  dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace], numCategoriesLimit)
+                                           layout: IAxisLayout) => {
+  dataConfig?.setNumberOfCategoriesLimitForRole(axisPlaceToAttrRole[axisPlace],
+    getNumberOfCategoriesLimit(layout, axisPlace))
 }
 
 interface ILabelPlacement {
@@ -357,6 +367,8 @@ export function zoomAxis(
   )
 }
 
+export const kAxisLabelArrowWidth = 24
+
 interface IRenderLabelBackgroundOptions<GElement extends BaseType> {
   gSelection: Selection<GElement, unknown, any, any>
   textSelector: string
@@ -377,9 +389,8 @@ export function renderLabelBackground<GElement extends BaseType>(
 
   const paddingX = labelPaddingX
   const paddingY = labelPaddingY
-  const arrowWidth = 24
 
-  const rectWidth = textBBox.width + paddingX + arrowWidth
+  const rectWidth = textBBox.width + paddingX + kAxisLabelArrowWidth
   const rectHeight = textBBox.height + paddingY * 2
   const rectX = textBBox.x - paddingX
   const rectY = textBBox.y - paddingY
@@ -400,7 +411,7 @@ export function renderLabelBackground<GElement extends BaseType>(
   rectSelection.lower()
 
   const arrowX = textBBox.x + textBBox.width
-  const arrowY = textBBox.y + (textBBox.height - arrowWidth) / 2
+  const arrowY = textBBox.y + (textBBox.height - kAxisLabelArrowWidth) / 2
 
   // Safari/WebKit doesn't apply the transform attribute to a nested <svg> element, so we
   // use a <g> and fold the (arrowX, arrowY) position into its transform via translate.

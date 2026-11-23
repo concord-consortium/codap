@@ -10,6 +10,7 @@ import { getDIHandler } from "./data-interactive-handler"
 import {
   DIAction, DIHandlerFnResult, DIRequest, DIRequestCallback, DIRequestResponse
 } from "./data-interactive-types"
+import { IDefaultDataContextLink } from "./default-data-context-link"
 import { createItemsInSegments } from "./handlers/item-handler"
 import { errorResult } from "./handlers/di-results"
 import { withNotificationRequester } from "./notification-requester"
@@ -23,6 +24,8 @@ export interface ProcessActionOptions {
   cfm?: CloudFileManager
   // who made the request when it comes from no tile, e.g. the host page (kHostPageId)
   requesterId?: string
+  // the host page's default data context, for requests from no tile
+  hostPageDataContextLink?: IDefaultDataContextLink
 }
 
 /**
@@ -33,7 +36,7 @@ export async function processAction(
   action: DIAction,
   options: ProcessActionOptions = {}
 ): Promise<DIHandlerFnResult> {
-  const { tile, cfm, requesterId } = options
+  const { tile, cfm, requesterId, hostPageDataContextLink } = options
 
   if (!action) return errorResult(t("V3.DI.Error.noAction"))
 
@@ -45,7 +48,7 @@ export async function processAction(
   }
 
   const resourceSelector = parseResourceSelector(action.resource)
-  const resources = resolveResources(resourceSelector, action.action, tile, cfm)
+  const resources = resolveResources(resourceSelector, action.action, tile, cfm, hostPageDataContextLink)
   const type = resourceSelector.type ?? ""
   const a = action.action
   const func = getDIHandler(type)?.[a]
@@ -203,7 +206,8 @@ export function setupRequestQueueProcessor(
     const { resource, members, segments } = unit
 
     const { dataContext } = resolveResources(
-      parseResourceSelector(resource), "create", processOptions.tile, processOptions.cfm)
+      parseResourceSelector(resource), "create", processOptions.tile, processOptions.cfm,
+      processOptions.hostPageDataContextLink)
 
     // When the dataContext can't be resolved, the batched create never runs and nothing is
     // mutated, so it's safe to process the members individually for exact per-request semantics

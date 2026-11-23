@@ -17,7 +17,7 @@ jobs:
           patterns: v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: v3/package-lock.json
       - name: Install Dependencies
@@ -53,7 +53,7 @@ jobs:
           patterns: v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: v3/package-lock.json
       - name: Install Dependencies
@@ -95,7 +95,7 @@ jobs:
           patterns: v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: v3/package-lock.json
       - name: Install Dependencies
@@ -145,7 +145,7 @@ jobs:
           patterns: v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: v3/package-lock.json
       - name: Install Dependencies
@@ -162,9 +162,9 @@ jobs:
       - name: Run Tests
         working-directory: v3
         run: npm run test:coverage -- --maxWorkers=${{ steps.cpu-cores.outputs.count }}
-      - name: Run Date Parser Tests in a Non-UTC Time Zone
+      - name: Run Date Tests in a Non-UTC Time Zone
         working-directory: v3
-        run: TZ=Asia/Kolkata npx jest src/utilities/date-parser
+        run: TZ=Asia/Kolkata npx jest src/utilities/date-parser src/models/formula/functions/date-functions
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -186,6 +186,11 @@ jobs:
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
           patterns: v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: v3/package-lock.json
       - name: Restore Webpack Cache
         id: restore-webpack-cache
         uses: actions/cache/restore@v4

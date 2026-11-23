@@ -5,6 +5,7 @@ import { Radio, RadioGroup } from "react-aria-components"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
 import { isFeatureEnabled } from "../../../models/feature-flags/feature-flag-manager"
 import { t } from "../../../utilities/translation/translate"
+import { ColorSetting } from "../../common/color-setting"
 import { If } from "../../common/if"
 import { PaletteCheckbox } from "../../palette-checkbox"
 import { IMapPointLayerModel, isMapPointDisplayType } from "../../map/models/map-point-layer-model"
@@ -18,7 +19,6 @@ import {
   LegendBinCountInput, LegendBinsSelect, LegendColorControls, LegendRangeInputs
 } from "./legend-color-controls"
 import { PlotBackgroundControls } from "./plot-background-controls"
-import { PointColorSetting } from "./point-color-setting"
 import { PointSizeSlider } from "./point-size-slider"
 
 import "./display-item-format-control.scss"
@@ -151,7 +151,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
           aria-disabled={displayItemDescription.pointStrokeSameAsFill || undefined}>
           <div className="palette-row color-picker-row">
             <label className="form-label color-picker">{t("DG.Inspector.stroke")}</label>
-            <PointColorSetting propertyLabel={t("DG.Inspector.stroke")} testIdSuffix="stroke"
+            <ColorSetting propertyLabel={t("DG.Inspector.stroke")} testIdSuffix="stroke"
                               disabled={displayItemDescription.pointStrokeSameAsFill}
                               onColorChange={(color) => handlePointStrokeColorChange(color)}
                               swatchBackgroundColor={displayItemDescription.pointStrokeColor}/>

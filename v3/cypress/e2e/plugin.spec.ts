@@ -425,6 +425,23 @@ context("codap plugins", () => {
     webView.clearAPITesterResponses()
   })
 
+  it('will broadcast attributeChange for an axis menu\'s Treat as item', () => {
+    openAPITester()
+    webView.toggleAPITesterFilter()
+
+    c.selectTile("graph", 0)
+    ah.openAxisAttributeMenu("bottom")
+    ah.selectMenuAttribute("Sleep", "bottom")
+    // the menu change has already sent its own attributeChange
+    webView.clearAPITesterResponses()
+
+    ah.openAxisAttributeMenu("bottom")
+    ah.treatAttributeAsCategorical("bottom")
+    webView.confirmAPITesterResponseContains(/"attributeName":\s"Treat as Categorical"/)
+    webView.confirmAPITesterResponseContains(/"axisOrientation":\s"horizontal"/)
+    webView.clearAPITesterResponses()
+  })
+
   it('will broadcast notifications involving dragging attributes within the case table', () => {
     const url = `${Cypress.config("index")}?mouseSensor&noEntryModal&suppressUnsavedWarning`
     cy.visit(url)

@@ -264,6 +264,9 @@ document with only one data context. So does a plugin whose own data context has
 unless another data context has its name. CODAP never falls back to the first data context in
 the document.
 
+The page an embedded CODAP runs in has a default data context too; see
+[Embedding CODAP in your page](guides/embedded-server.md).
+
 Two more things to know:
 
 - Defaulting does **not** apply to these, which are not scoped to a data context:

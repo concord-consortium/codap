@@ -3,6 +3,7 @@ import { RequestQueue } from "../../components/web-view/request-queue"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { setupRequestQueueProcessor } from "../../data-interactive/data-interactive-request-processor"
 import { DIRequest, DIRequestCallback } from "../../data-interactive/data-interactive-types"
+import { createDataContextLink } from "../../data-interactive/default-data-context-link"
 import { DEBUG_PLUGINS, debugLog } from "../debug"
 import { kHostPageId, registerEmbeddedModeHandler } from "./embedded-mode-registry"
 
@@ -67,11 +68,13 @@ export function initializeEmbeddedServer(): EmbeddedModeHandler | null {
   })
 
   // Set up request queue processor using shared module
-  // Note: embedded server has no associated tile, so we don't pass one
+  // Note: embedded server has no associated tile, so we don't pass one. The host page's default data
+  // context, which a plugin keeps on its web view, is kept here instead.
   disposer = setupRequestQueueProcessor(requestQueue, {
     name: "EmbeddedServer request processor",
     // the host page's requests, as its reports of undoable actions, are identified as kHostPageId
-    requesterId: kHostPageId
+    requesterId: kHostPageId,
+    hostPageDataContextLink: createDataContextLink()
   })
 
   parentHandler = {

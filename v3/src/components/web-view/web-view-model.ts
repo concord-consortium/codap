@@ -1,6 +1,7 @@
 import iframePhone from "iframe-phone"
 import { reaction } from "mobx"
 import { addDisposer, Instance, SnapshotIn, types } from "mobx-state-tree"
+import { kImporterPluginPath } from "../../constants"
 import { DIMessage } from "../../data-interactive/iframe-phone-types"
 import { withoutUndo } from "../../models/history/without-undo"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
@@ -57,8 +58,10 @@ export const WebViewModel = TileContentModel
     respectEditableItemAttribute: kDefaultRespectEditableItemAttribute,
     // whether this web view should subscribe to notifications that pass the document to the plugin
     subscribeToDocuments: kDefaultSubscribeToDocuments,
-    // whether this web view was imported (in part) from a v2 DG.GameContext
-    hasV2GameContext: types.maybe(types.literal(true))
+    // the (v3) id of the data set imported from the v2 DG.GameContext this web view was imported (in part) with.
+    // It stays with that data set when a bare `create dataContext` moves the plugin's default (dataContextId) to a
+    // new one, so v2 export still marks it as the game context, as in V2.
+    v2GameContextId: types.maybe(types.string)
   })
   .volatile(self => ({
     dataInteractiveController: undefined as iframePhone.IframePhoneRpcEndpoint | undefined,
@@ -68,7 +71,10 @@ export const WebViewModel = TileContentModel
     isPluginCommunicating: false,
     handlesLocaleChange: false
   }))
-  .preProcessSnapshot(snap => {
+  .preProcessSnapshot(_snap => {
+    // documents saved before CODAP-1712 marked the game context with a flag beside dataContextId
+    const { hasV2GameContext, ...rest } = _snap as typeof _snap & { hasV2GameContext?: boolean }
+    const snap = hasV2GameContext && !rest.v2GameContextId ? { ...rest, v2GameContextId: rest.dataContextId } : rest
     let newSnap = snap
     const { url, ...others } = snap
     // Rewrite cross-origin resource URLs to use the same-origin proxy path and apply
@@ -97,6 +103,10 @@ export const WebViewModel = TileContentModel
     },
     get isImage() {
       return self.subType === "image"
+    },
+    // the Importer plugin, which CODAP opens to import data; its URL's host and query can vary
+    get isImporter() {
+      return self.subType === "plugin" && !!self.url?.split(/[?#]/)[0].endsWith(kImporterPluginPath)
     }
   }))
   .views(self => ({
