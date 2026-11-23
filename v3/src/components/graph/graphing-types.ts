@@ -4,6 +4,9 @@ import { PointRendererBase } from "../data-display/renderer"
 // Also defined in graph.scss — keep in sync.
 export const kDropZoneSize = 50
 export const kDropZoneGap = 1
+// Empty space below a numeric legend's value labels, so the rightmost label clears the
+// triangular resize handle in the tile's bottom-right corner.
+export const kNumericLegendBottomClearance = 10
 
 export interface IPlotProps {
   renderer?: PointRendererBase

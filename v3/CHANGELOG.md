@@ -1,5 +1,70 @@
 # Changelog
 
+## Version 3.2.0 - November 24, 2026
+
+### ✨ Features & Improvements:
+- **CODAP-1232:** Plugins can subscribe to notifications about UI changes
+- **CODAP-1492:** Hide case-table collections whose attributes are all hidden
+- **CODAP-1500:** Plugins can highlight parts of CODAP and lead users through step-by-step tours
+- **CODAP-1551:** Plugins can show and configure every graph adornment
+- **CODAP-1577:** Plugins can request the size of their content area
+- **CODAP-1595:** Add an About CODAP dialog with licensing information
+- **CODAP-1637:** Choose a matching date precision when an attribute is changed to date
+- **CODAP-1641:** Add epochToDate and dateToEpoch formula functions
+- **CODAP-1681:** Copy to Clipboard and New from Clipboard work when the browser blocks clipboard access
+
+### 🐞 Bug Fixes:
+- **CODAP-1354:** Plugins receive undo and redo notifications, as in V2
+- **CODAP-1356:** Plugins receive item-level change notices, as in V2
+- **CODAP-1382:** Keep graph labels clear of the resize handle
+- **CODAP-1457:** Read numbers written with a decimal comma (e.g. 38,7223) correctly
+- **CODAP-1527:** Show the correct attribution for each map base layer
+- **CODAP-1546:** Plugins are notified when graph and legend attributes change, as in V2
+- **CODAP-1550:** Plugins get a proper error when a graph image can't be made
+- **CODAP-1557:** Plugins always learn when a document update ends, even on failure
+- **CODAP-1564:** Fix plugins' editable setting making attributes read-only
+- **CODAP-1567:** Plugin requests no longer ignore 0, false or empty values
+- **CODAP-1579:** Fix "Lock legend color bins" not keeping the legend's range
+- **CODAP-1585:** Plugins are notified of data changes made through the plugin API
+- **CODAP-1590:** Data change notices reach plugins in V2's form; exclude requesting plugin
+- **CODAP-1594:** Plugin changes no longer clutter the undo history
+- **CODAP-1597:** Plugins are notified when a case table closes, a map legend changes, or a global value changes
+- **CODAP-1601:** A page that embeds CODAP can request undo, configuration and logging, as in V2
+- **CODAP-1602:** One failed action in a plugin's batch request no longer stops the rest
+- **CODAP-1611:** Dates with a time-zone offset are read in the right time zone
+- **CODAP-1613:** Plugin case requests and replies behave as in V2
+- **CODAP-1614:** Fix moving items with itemSearch when items are set aside
+- **CODAP-1616:** A plugin's default data context is its own, not the document's first
+- **CODAP-1617:** Plugin attribute moves and component create/delete can be undone, as in V2
+- **CODAP-1620:** Reading attributes through the plugin API no longer creates category sets
+- **CODAP-1624:** Aggregate function filters exclude cases where the filter is 0 or "false"
+- **CODAP-1630:** Fix category display on split categorical axes
+- **CODAP-1635:** Inspector palettes stay in place and below the toolbar
+- **CODAP-1639:** Binned date values land in the correct bins
+- **CODAP-1663:** hours(), minutes() and seconds() read time-only values such as 13:45
+- **CODAP-1667:** Fix wrong items and values when some cases are set aside
+- **CODAP-1668:** Fix a freeze when undoing a slider's scale type change
+- **CODAP-1669:** Replacing the document from a plugin clears the undo history, as in V2
+- **CODAP-1672:** True and false values sent by plugins stay booleans, as in V2
+- **CODAP-1674:** Fix a freeze when graphing a date attribute that has no dates
+- **CODAP-1679:** Undo and redo recover cleanly when a step can no longer be applied
+- **CODAP-1693:** Fix a crash when touching a histogram bar on a touch screen
+- **CODAP-1707:** Plugins can reorder many items reliably, placed as in V2
+- **CODAP-1708:** Plugins can clear a plugin title; global values accept only numbers
+- **CODAP-1709:** Deleting items reports every vanished case; deleting a case removes its set-aside items
+- **CODAP-1710:** "Treat as Categorical/Numeric" notifies plugins, as in V2
+- **CODAP-1711:** Refuse graph and map requests that name a missing data context or attribute
+- **CODAP-1712:** The embedding page gets a default data context; game plugins keep theirs on V2 export
+
+### 🛠️ Under the Hood:
+- **CODAP-1236:** Add stable element identifiers for plugins and testing
+
+### Asset Sizes
+|      File |          Size | % Change from Previous Release |
+|-----------|---------------|--------------------------------|
+|  main.css |  255490 bytes |                          1.26% |
+|  index.js | 7646232 bytes |                          3.51% |
+
 ## Version 3.1.2 - October 24, 2026
 
 ### ✨ Features & Improvements:

@@ -210,10 +210,20 @@ a plugin cannot. Every other property `get` returns can be sent back to `update`
 
 **`showConnectingLines` is ignored on `create`.** Set it with a following `update`.
 
-**Attributes are applied on `create` only when `dataContext` names the data set exactly.** The
-match is on name, not on id or title, and there is no defaulting — a `create` that gives the
-context by id, by title, or not at all produces a graph with no attributes assigned, and reports
-success.
+**A `dataContext` or an attribute that isn't found is refused.** `create` and `update` reply
+`success: false` with an error naming it (see [Errors](#errors)). Nothing is created or changed,
+including the title, position and other properties sent in the same request, and no notification
+is sent. The same holds for an attribute a role can't take, and for a `yAttributeIDs` or
+`yAttributeNames` that isn't an array. `dataContext` can be the data set's name, title or id.
+Attributes, by id or by name, are looked for in that data set; on `update` without one, in the
+graph's data set, or the document's first if the graph has none. In a document with no data sets,
+any attribute named is one that isn't found. `null` means no attribute: on `update`, an id of
+`null` removes the attribute even when a name is sent with it; on `create`, a name sent with a
+`null` id is used. An empty name is ignored. This is a deliberate change from v2, which created
+the graph anyway and replied with success. A `create` with no `dataContext` uses a document's only
+data set and assigns its attributes, as v2 did (v2 looked only in its child collection). With
+several data sets, it links none and ignores the attributes. That is a v3 choice: v2 still chose
+one when exactly one of them had a visible case table or case card.
 
 ### slider
 
@@ -282,6 +292,13 @@ else is refused with `global values must be numbers`, and nothing changes.
 `geoRaster` can be set but not read back; a plugin that reads a map's position in order to
 restore it later gets nothing. `geoRaster` is also ignored on `create` — set it with a following
 `update`. That `get` returns all four is the intended behavior and a known bug today.
+
+**A `dataContext`, or a `legendAttributeName` in it, that isn't found is refused** on `create`,
+as on a graph, and nothing is created. As in v2, `create` uses `legendAttributeName` only with a
+`dataContext`. On `update`, `legendAttributeName` works as choosing the attribute from the legend's
+menu: each data set the map's visible layers show that has the attribute gives it to one of those
+layers. A name none of those data sets has is refused, as is any name on a map whose layers are all
+hidden, and nothing in the request is applied. A map that shows no data ignores it.
 
 A map's `geoRaster` is an object of its own:
 
@@ -577,6 +594,16 @@ hide on close — the case table, case card, calculator and guide views — are 
 than deleted. They stay in the document, keep their ids, and continue to appear in
 `componentList` with `hidden: true`. Every other type is genuinely deleted.
 
+**A graph `update` in a document with no data sets drops the graph's settings.** It replies
+`success: true` and applies the generic properties, such as `title` and `position`, but ignores
+`pointColor`, the axis bounds, `transparent` and every other graph setting. This is a known bug.
+
+**`pointsAreFusedIntoBars` and plot settings are checked after the rest of an `update` applies.**
+A request refused with `Current plot type does not support fusing points into bars`, or with an
+error from a plot setting such as `Invalid bar chart scale: <value>`, has already changed the
+attributes, colors, bounds and generic properties it sent. This is a known bug: like a missing
+attribute, these should refuse the whole request.
+
 **The `image` component type is not accepted.** v2 took `"type": "image"` for an image component;
 v3 registers only `imageComponentView` and returns `Unsupported component type <value>` for
 `image`. A v2 plugin carrying that spelling breaks. This is a known bug — unlike `guide`, this
@@ -642,7 +669,10 @@ notifies nobody at all, not just the sender.
 | `Component does not support rescale` | `autoScale` on a type other than graph, map or case table |
 | `<action> <type>: dataContext required` | `create` of a `caseTable` or `caseCard` without a resolvable `dataContext` |
 | `DataSetMetadata not found for <value>` | the data context resolved but carries no metadata |
+| `DataContext not found: <value>` | a graph `create` or `update`, or a map `create`, named a `dataContext` that does not exist |
+| `Attribute not found: <value>` | a graph or map `create` or `update` named an attribute, by id or by name, that its data set does not have |
 | `Cannot assign <value1> to <value2>` | a graph `create` or `update` assigned an attribute to a role that cannot take it |
+| `<value> must be an array.` | a graph `create` or `update` sent a `yAttributeIDs` or `yAttributeNames` that is not an array |
 | `Current plot type does not support fusing points into bars` | `pointsAreFusedIntoBars` on a plot that cannot show bars |
 | `Invalid bar chart scale: <value>` | `barChartScale` with a value that is not a breakdown type |
 | `Global not found: <value>` | a slider named a `globalValueName` that does not exist |

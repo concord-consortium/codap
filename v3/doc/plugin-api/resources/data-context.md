@@ -34,7 +34,8 @@ This page covers the data context as a whole. Its [collections](collection.md),
 <!-- END GENERATED: selectors -->
 
 `<context>` accepts a data context's name, its title, or its numeric id. Accepting a title is new
-in v3; v2 accepted a name or id only.
+in v3; v2 accepted a name or id only. CODAP returns the first data context, in document order,
+that matches any of the three, so a data context titled the same as another's name can shadow it.
 
 <!-- BEGIN GENERATED: scope -->
 This resource is scoped to a data context. Omitting one selects `#default`, your plugin's

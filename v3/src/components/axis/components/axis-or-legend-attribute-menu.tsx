@@ -22,6 +22,7 @@ import { If } from "../../common/if"
 import { GraphPlace } from "../../axis-graph-shared"
 import { graphPlaceToAttrRole } from "../../data-display/data-display-types"
 import { removeAttributeLabel } from "../../data-display/remove-attribute-label"
+import { treatAsLabel } from "../../data-display/treat-as-label"
 import { useDataConfigurationContext } from "../../data-display/hooks/use-data-configuration-context"
 import { placeTestId as axisPlaceTestId, isAxisPlace } from "../axis-types"
 
@@ -456,9 +457,7 @@ export const AxisOrLegendAttributeMenu = observer(function AxisOrLegendAttribute
                           onPointerOver={() => handleCollectionHover(null)}
                           data-testid={`treat-as-menu-item-${graphPlaceTestId(place)}-${treatAs}`}
                         >
-                          {treatAs === "categorical" && t("DG.DataDisplayMenu.treatAsCategorical")}
-                          {treatAs === "numeric" && t("DG.DataDisplayMenu.treatAsNumeric")}
-                          {treatAs === "date" && t("V3.DataDisplayMenu.treatAsDate")}
+                          {treatAsLabel(treatAs)}
                         </MenuItem>
                       }
                     </>
