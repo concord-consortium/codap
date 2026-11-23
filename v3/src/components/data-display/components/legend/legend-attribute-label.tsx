@@ -8,7 +8,7 @@ import {getStringBounds, renderLabelBackground} from "../../../axis/axis-utils"
 import {useDataConfigurationContext} from "../../hooks/use-data-configuration-context"
 import {useTileModelContext} from "../../../../hooks/use-tile-model-context"
 import {useTileSelectionContext} from "../../../../hooks/use-tile-selection-context"
-import {legendMenuAttributeChangeNotification} from "../../data-display-notifications"
+import {legendMenuAttributeChangeNotification, legendTreatAsNotification} from "../../data-display-notifications"
 import {AttributeLabel} from "../attribute-label"
 import { logMessageWithReplacement } from "../../../../lib/log-message"
 
@@ -80,12 +80,13 @@ export const LegendAttributeLabel =
       dataConfiguration?.applyModelChange(
         () => dataConfiguration.setAttributeType('legend', treatAs),
         {
+          notify: () => legendTreatAsNotification(tile, _attrId, treatAs),
           undoStringKey: "V3.Undo.attributeTreatAs",
           redoStringKey: "V3.Redo.attributeTreatAs",
           log: logMessageWithReplacement("Treat attribute as %@", {treatAs, _attrId, _place})
         }
       )
-    }, [dataConfiguration])
+    }, [dataConfiguration, tile])
 
     useEffect(function setupTitle() {
 

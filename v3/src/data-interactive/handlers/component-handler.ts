@@ -6,6 +6,7 @@ import { resizeAllColumns } from "../../components/case-table/case-table-utils"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { isMapContentModel } from "../../components/map/models/map-content-model"
 import { getCreateTileHistoryOptions } from "../../components/tool-shelf/tool-shelf-utilities"
+import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { INewTileOptions } from "../../models/codap/create-tile"
@@ -49,6 +50,9 @@ export interface DIComponentHandler {
   create: (args: ICreateArgs) => ICreateResult | DIErrorResult,
   get: (content: ITileContentModel) => Maybe<Record<string, any>>
   update?: (content: ITileContentModel, values: DIValues) => DIHandlerFnResult
+  // Checks an update before any of it, the component's generic properties included, is applied; an error
+  // refuses the whole request
+  validateUpdate?: (content: ITileContentModel, values: DIValues) => Maybe<DIErrorResult>
 }
 
 // registry of tile component handlers -- key is v2 tile type
@@ -144,6 +148,10 @@ export const diComponentHandler: DIHandler = {
     const { component } = resources
     if (!component) return componentNotFoundResult
 
+    // The Importer closes itself once it has imported the data. Opening it isn't an undoable step,
+    // so closing it isn't either; otherwise Undo would reopen it.
+    const isImporterClosingItself = resources.interactiveFrame?.id === component.id &&
+      isWebViewModel(component.content) && component.content.isImporter
     const { document } = appState
     document.applyModelChange(() => {
       document.content?.deleteOrHideTile(component.id)
@@ -151,8 +159,10 @@ export const diComponentHandler: DIHandler = {
       notify: closeCaseTableNotification(component) ?? deleteTileNotification(component),
       // as in V2, closing a component is undoable and logged, as it is from its close box
       log: logMessageWithReplacement("Close component: %@", {tileType: component.content.type}, "component"),
-      undoStringKey: "DG.Undo.component.close",
-      redoStringKey: "DG.Redo.component.close",
+      ...(isImporterClosingItself ? {} : {
+        undoStringKey: "DG.Undo.component.close",
+        redoStringKey: "DG.Redo.component.close"
+      }),
       excludeTileId: resources.interactiveFrame?.id
     })
 
@@ -251,6 +261,13 @@ export const diComponentHandler: DIHandler = {
 
     if (!values) return valuesRequiredResult
 
+    const v2Type = getTileContentInfo(content.type)?.getV2Type?.(content) ?? kComponentTypeV3ToV2Map[content.type]
+    const handler = diComponentHandlers.get(v2Type)
+    if (typeof values === "object" && !Array.isArray(values)) {
+      const error = handler?.validateUpdate?.(content, values)
+      if (error) return error
+    }
+
     // We don't want to notify if the request to update is coming from the component itself. Doing so causes
     // Story Builder to mark the selected moment as changed.
     // Also exclude the requesting plugin from cross-component updates (e.g. Story Builder updating its
@@ -303,8 +320,6 @@ export const diComponentHandler: DIHandler = {
       }
 
       // Handle updating type specific features
-      const v2Type = getTileContentInfo(content.type)?.getV2Type?.(content) ?? kComponentTypeV3ToV2Map[content.type]
-      const handler = diComponentHandlers.get(v2Type)
       if (handler) {
         result = handler.update?.(content, values) ?? { success: true }
       }

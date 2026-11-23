@@ -4,16 +4,19 @@ import { kWebViewTileType } from "../components/web-view/web-view-defs"
 import { IWebViewModel } from "../components/web-view/web-view-model"
 import "../components/web-view/web-view-registration"
 import { appState } from "../models/app-state"
+import { gDataBroker } from "../models/data/data-broker"
 import { createDefaultTileOfType } from "../models/codap/add-default-content"
 import { SharedDataSet } from "../models/shared/shared-data-set"
+import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { uiState } from "../models/ui-state"
 import { setupTestDataset } from "../test/dataset-test-utils"
 import { toV2Id, toV3ItemId } from "../utilities/codap-utils"
 import { editingBlockedPluginId } from "../utilities/plugin-utils"
 import { registerDIHandler } from "./data-interactive-handler"
 import * as itemHandler from "./handlers/item-handler"
-import { processRequest, setupRequestQueueProcessor } from "./data-interactive-request-processor"
+import { processAction, processRequest, setupRequestQueueProcessor } from "./data-interactive-request-processor"
 import { DIRequest, DIRequestResponse, DISuccessResult } from "./data-interactive-types"
+import { createDataContextLink } from "./default-data-context-link"
 
 describe("setupRequestQueueProcessor", () => {
   const { content } = appState.document
@@ -447,6 +450,65 @@ describe("setupRequestQueueProcessor", () => {
         expect.objectContaining({ success: true })
       ]
     ])
+  })
+})
+
+describe("the host page's default data context", () => {
+  beforeAll(() => gDataBroker.setSharedModelManager(getSharedModelManager(appState.document)!))
+
+  it("is the data context the host page last created without naming one, as in V2", async () => {
+    const hostPageDataContextLink = createDataContextLink()
+    const host = { hostPageDataContextLink }
+    // nothing named and nothing created yet: not found
+    expect((await processAction({ action: "get", resource: "dataContext" }, host)).success).toBe(false)
+
+    expect((await processAction({ action: "create", resource: "dataContext", values: { name: "Host" } }, host))
+      .success).toBe(true)
+    const result = await processAction({ action: "get", resource: "dataContext" }, host) as DISuccessResult
+    expect(result.success).toBe(true)
+    expect((result.values as any).name).toBe("Host")
+
+    // a request that names its data context leaves the default alone
+    await processAction({ action: "create", resource: "dataContext[Other]", values: { name: "Other" } }, host)
+    expect(((await processAction({ action: "get", resource: "dataContext" }, host) as DISuccessResult)
+      .values as any).name).toBe("Host")
+
+    // another bare create moves it
+    await processAction({ action: "create", resource: "dataContext", values: { name: "Host2" } }, host)
+    expect(((await processAction({ action: "get", resource: "dataContext" }, host) as DISuccessResult)
+      .values as any).name).toBe("Host2")
+
+    // without the link there is no default
+    expect((await processAction({ action: "get", resource: "dataContext" })).success).toBe(false)
+  })
+
+  it("receives coalesced item creates that name no data context", async () => {
+    const hostPageDataContextLink = createDataContextLink()
+    await processAction({ action: "create", resource: "dataContext", values: {
+      name: "HostItems", collections: [{ name: "Cases", attrs: [{ name: "v" }] }]
+    } }, { hostPageDataContextLink })
+    const hostDataSet = gDataBroker.getDataSetByName("HostItems")!
+    const queue = new RequestQueue()
+    jest.useFakeTimers()
+    const disposer = setupRequestQueueProcessor(queue, { hostPageDataContextLink })
+    const actionNames: string[] = []
+    const actionDisposer = onAction(appState.document, call => { actionNames.push(call.name) })
+    try {
+      const responses: DIRequestResponse[] = []
+      for (let i = 0; i < 3; ++i) {
+        const request: DIRequest = { action: "create", resource: "item", values: { v: i } }
+        queue.push({ request, callback: r => responses.push(r) })
+      }
+      await jest.runAllTimersAsync()
+      expect(responses.map(r => (r as DISuccessResult).success)).toEqual([true, true, true])
+      expect(hostDataSet.items.length).toBe(3)
+      // as one batched change, not one by one
+      expect(actionNames.filter(actionName => actionName === "applyModelChange").length).toBe(1)
+    } finally {
+      actionDisposer()
+      disposer()
+      jest.useRealTimers()
+    }
   })
 })
 

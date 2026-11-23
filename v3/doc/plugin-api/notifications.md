@@ -238,6 +238,11 @@ the user's language:
 | Right categorical axis, once the graph is split | `right` | `Remove Vertical Layout by <name>` |
 | Legend, from its menu | `none` | `Remove Legend: <name>` |
 
+When the change is a **Treat as** item in an axis's or the legend's menu, `attributeName` is that
+item's title, `Treat as Categorical` or `Treat as Numeric`, in the user's language, as in v2.
+`Treat as Date`, for an attribute that holds dates, is new in v3, and so is the item on the right
+numeric axis, whose menu had none in v2.
+
 ### Axis
 
 <!-- BEGIN GENERATED: notifications-component-axis -->
@@ -266,9 +271,9 @@ the user's language:
 <!-- END GENERATED: notifications-component-map -->
 
 Dropping an attribute on a map or its legend sends `legendAttributeChange`, as on a graph (see
-[Graph](#graph)), with `type` `DG.MapModel`, as in v2. Changing or removing the legend attribute
-from the legend's menu sends `attributeChange` with `axisOrientation` `none`, as on a graph. Its
-`type` is `DG.GraphView`, as v2 sent it for maps too.
+[Graph](#graph)), with `type` `DG.MapModel`, as in v2. Changing or removing the legend attribute,
+or choosing a **Treat as** item, from the legend's menu sends `attributeChange` with
+`axisOrientation` `none`, as on a graph. Its `type` is `DG.GraphView`, as v2 sent it for maps too.
 
 ### Case table and case card
 
@@ -313,7 +318,7 @@ Shared by graphs and maps.
 | `change legend bins type` | a numeric legend switches between linear and quantile binning | `binningType` |
 | `change legend range` | a numeric legend's min or max is edited | `max`, `min` |
 | `swap categories` | the user finishes dragging a category label to reorder it | `place` |
-| `attributeChange` | on a graph, an attribute is placed on, replaced on, or removed from an axis, by dropping it or from an axis label's menu, including when an attribute dropped on the plot area of a graph with no attributes goes to the x axis. On a graph or a map, the legend attribute is changed or removed from the legend's menu. See [Graph](#graph) for `axisOrientation` | `attributeId`, `attributeName`, `axisOrientation`, … |
+| `attributeChange` | on a graph, an attribute is placed on, replaced on, or removed from an axis, by dropping it or from an axis label's menu, including when an attribute dropped on the plot area of a graph with no attributes goes to the x axis. On a graph or a map, the legend attribute is changed or removed from the legend's menu. An axis's or the legend's **Treat as** item sends it too. See [Graph](#graph) for `axisOrientation` | `attributeId`, `attributeName`, `axisOrientation`, … |
 <!-- END GENERATED: notifications-component-data-display -->
 
 A legend whose attribute holds colors uses those colors directly, so it has no color control and
@@ -452,11 +457,6 @@ the `Create <X> component` events among them. A plugin that registered a `logMes
 matches on `formatStr` sees different strings from the ones v2 emitted, and adornment toggles in
 particular collapsed to a generic `Added <x>` / `Removed <x>` where v2 named each adornment. This
 is a known bug; the intended behavior is that the tokens match v2's.
-
-**"Treat as Categorical" and "Treat as Numeric" send no notification.** v2 sent `attributeChange`
-for every attribute-menu item, so choosing either one on an axis or a legend sent `attributeChange`
-with `attributeName` `Treat as Categorical` or `Treat as Numeric`. v3 sends nothing. This is a known
-bug.
 
 **The drop that first splits a graph sends `attributeChange` with `top` or `right`.** v2 showed
 the top and right axes only once the graph was split, so that drop landed on another target: near

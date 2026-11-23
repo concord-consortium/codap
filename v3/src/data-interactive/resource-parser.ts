@@ -14,6 +14,7 @@ import { ITileModel } from "../models/tiles/tile-model"
 import { toV3CaseId, toV3GlobalId, toV3ItemId } from "../utilities/codap-utils"
 import { resolveAdornmentType } from "./data-interactive-adornment-base-types"
 import { ActionName, DIResources, DIResourceSelector, DIParsedOperand } from "./data-interactive-types"
+import { IDefaultDataContextLink } from "./default-data-context-link"
 import { getAttribute, getCollection, toPluginValue } from "./data-interactive-utils"
 import { evaluateCaseFormula, findTileFromNameOrId, parseSearchQuery } from "./resource-parser-utils"
 
@@ -72,11 +73,17 @@ export function resolveResources(
   _resourceSelector: DIResourceSelector | string,
   action: ActionName,
   interactiveFrame: Maybe<ITileModel>,
-  cfm: Maybe<CloudFileManager>
+  cfm: Maybe<CloudFileManager>,
+  hostPageDataContextLink?: IDefaultDataContextLink
 ) {
   const resourceSelector = typeof _resourceSelector === "string"
     ? parseResourceSelector(_resourceSelector) : _resourceSelector
   const document = appState.document
+  // A plugin's default data context is kept on its web view; a request from no tile (the host page) uses
+  // the link the embedded server passes, as V2 gave the host page its own default
+  const webView = isWebViewModel(interactiveFrame?.content) ? interactiveFrame.content : undefined
+  const defaultDataContextLink: Maybe<IDefaultDataContextLink> =
+    webView ?? (interactiveFrame ? undefined : hostPageDataContextLink)
   function resolveContext(selector?: string) {
     if (!selector) {
       return
@@ -84,8 +91,7 @@ export function resolveResources(
     const dataSets = getSharedDataSets(document).map(sharedDataSet => sharedDataSet.dataSet)
     if (selector === '#default') {
       // The plugin's linked data context, else one named for it; no other fallback (as in V2)
-      const webView = isWebViewModel(interactiveFrame?.content) ? interactiveFrame.content : undefined
-      const linkedId = webView?.dataContextId
+      const linkedId = defaultDataContextLink?.dataContextId
       const linked = linkedId ? dataSets.find(dataSet => dataSet.id === linkedId) : undefined
       const pluginName = interactiveFrame?.name
       return linked ?? (pluginName ? dataSets.find(dataSet => dataSet.name === pluginName) : undefined)
@@ -93,7 +99,7 @@ export function resolveResources(
     return dataSets.find(dataSet => dataSet.matchTitleOrNameOrId(selector))
   }
 
-  const result: DIResources = { interactiveFrame }
+  const result: DIResources = { interactiveFrame, defaultDataContextLink }
 
   if (resourceSelector.type === 'interactiveApi') {
     // interactiveApi resource always gets the cfm to use in the handler
