@@ -15,9 +15,6 @@ export const MapTileElements = {
     // Menu content renders in a React Aria Popover portal outside the inspector panel DOM
     cy.get("[data-testid=inspector-menu-hide-show]").should("be.visible")
   },
-  getDisplayValuesButton() {
-    return c.getInspectorPanel().find("[data-testid=map-display-values-button]")
-  },
   getDisplayConfigButton() {
     return c.getInspectorPanel().find("[data-testid=map-display-config-button]")
   },

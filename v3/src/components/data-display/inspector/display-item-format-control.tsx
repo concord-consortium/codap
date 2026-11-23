@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import { ReactNode, useId } from "react"
 import { Radio, RadioGroup } from "react-aria-components"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { isFeatureEnabled } from "../../../models/feature-flags/feature-flag-manager"
 import { t } from "../../../utilities/translation/translate"
 import { ColorSetting } from "../../common/color-setting"
@@ -54,6 +55,8 @@ interface IDisplayItemFormatControlProps {
   // The map layers palette omits this: it repeats these controls per layer under the layer's own
   // name, so a heading inside each would be noise.
   showSectionHeaders?: boolean
+  // When true (and mapPointLayerModel is provided), shows a checkbox for hiding the layer's points.
+  enablePointToggle?: boolean
 }
 
 export const DisplayItemFormatControl = observer(function DisplayItemFormatControl(
@@ -62,7 +65,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
   const {
     dataConfiguration, displayItemDescription, mapPointLayerModel, pointDisplayType,
     isTransparent, onBackgroundTransparencyChange, plotBackgroundColor, onBackgroundColorChange,
-    showSectionHeaders
+    showSectionHeaders, enablePointToggle
   } = props
   const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
@@ -83,6 +86,18 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
     )
   }
 
+  const handlePointsVisibilityChange = (checked: boolean) => {
+    const op = checked ? "show" : "hide"
+    mapPointLayerModel?.applyModelChange(
+      () => mapPointLayerModel.setPointsAreVisible(checked),
+      {
+        undoStringKey: `DG.Undo.map.${op}Points`,
+        redoStringKey: `DG.Redo.map.${op}Points`,
+        log: logStringifiedObjectMessage("mapAction: %@", {mapAction: `${op}Points`})
+      }
+    )
+  }
+
   const handlePointStrokeColorChange = (color: string) => {
     displayItemDescription.applyModelChange(
       () => displayItemDescription.setPointStrokeColor(color),
@@ -98,6 +113,14 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
   return (
     <div className="palette-form">
       <PaletteSection title={dataPointsTitle}>
+        {enablePointToggle && mapPointLayerModel &&
+          <PaletteCheckbox data-testid={`map-layers-checkbox-points-${mapPointLayerModel.id}`}
+            isSelected={mapPointLayerModel.pointsAreVisible}
+            onChange={handlePointsVisibilityChange}
+          >
+            {t("DG.Inspector.mapPoints")}
+          </PaletteCheckbox>
+        }
         <If condition={!!(mapPointLayerModel && legendAttrID)}>
           <RadioGroup
             value={mapPointLayerModel?.displayType}

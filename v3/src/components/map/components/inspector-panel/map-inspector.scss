@@ -1,26 +1,20 @@
 @use "../../../vars";
 
-@mixin top-divider {
-  border-top: 1px solid vars.$charcoal-light-2;
-  padding-top: 10px;
+@mixin subsection-divider {
+  padding-top: 0;
+
+  &::before {
+    content: "";
+    display: block;
+    margin-bottom: 10px;
+    border-top: 1px solid vars.$charcoal-light-4;
+  }
 }
 
 @mixin color-ramp-option {
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.map-values-controls {
-  display: flex;
-  flex-direction: column;
-  margin: 5px;
-
-  .map-values-layer-label{
-    display: flex;
-    align-items: center;
-    font-weight: 500;
-  }
 }
 
 // The preview strip of a hot spot color ramp, in the menu's button and in its options.
@@ -98,24 +92,28 @@
     }
 
     .map-layer-controls {
+      border-top: 1px solid vars.$charcoal-light-2;
       margin: 10px;
-      @include top-divider;
+      padding-top: 10px;
 
-      > .react-aria-Checkbox {
+      > :first-child.react-aria-Checkbox {
         font-weight: 500;
+        margin-bottom: 10px;
       }
 
       .palette-row {
         font-weight: normal;
       }
 
-      .map-hot-spot-controls {
-        @include top-divider;
+      > .palette-form {
+        @include subsection-divider;
 
-        > .react-aria-Checkbox {
+        > :first-child.react-aria-Checkbox {
           font-weight: 500;
         }
+      }
 
+      .map-hot-spot-controls {
         .slider-row {
           margin-top: 8px;
         }
