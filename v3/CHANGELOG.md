@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 3.2.0 - November 24, 2026
+## Version 3.2.0 - November 25, 2026
 
 ### ✨ Features & Improvements:
 - **CODAP-1232:** Plugins can subscribe to notifications about UI changes
@@ -49,12 +49,15 @@
 - **CODAP-1674:** Fix a freeze when graphing a date attribute that has no dates
 - **CODAP-1679:** Undo and redo recover cleanly when a step can no longer be applied
 - **CODAP-1693:** Fix a crash when touching a histogram bar on a touch screen
+- **CODAP-1704:** Undoing a sort keeps each case's values, even after a plugin reorders cases
 - **CODAP-1707:** Plugins can reorder many items reliably, placed as in V2
 - **CODAP-1708:** Plugins can clear a plugin title; global values accept only numbers
 - **CODAP-1709:** Deleting items reports every vanished case; deleting a case removes its set-aside items
 - **CODAP-1710:** "Treat as Categorical/Numeric" notifies plugins, as in V2
 - **CODAP-1711:** Refuse graph and map requests that name a missing data context or attribute
 - **CODAP-1712:** The embedding page gets a default data context; game plugins keep theirs on V2 export
+- **CODAP-1713:** Undo and redo send component notices to plugins, and changes that can't be undone clear redo, as in V2
+- **CODAP-1714:** Plugins read back text values as sent, and an inferred attribute type as null, as in V2
 
 ### 🛠️ Under the Hood:
 - **CODAP-1236:** Add stable element identifiers for plugins and testing
@@ -63,7 +66,7 @@
 |      File |          Size | % Change from Previous Release |
 |-----------|---------------|--------------------------------|
 |  main.css |  255490 bytes |                          1.26% |
-|  index.js | 7646232 bytes |                          3.51% |
+|  index.js | 7649835 bytes |                          3.56% |
 
 ## Version 3.1.2 - October 24, 2026
 
