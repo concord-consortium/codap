@@ -1,9 +1,13 @@
+import { when } from "mobx"
 import { appState } from "../models/app-state"
 import {
   getDataSetNotificationAdapter, setDataSetNotificationAdapter
 } from "../models/data/data-set-notification-adapter"
 import { V2DataSetNotificationAdapter } from "../models/data/data-set-notification-adapter-v2"
+import { AttributeFormulaAdapter } from "../models/formula/attribute-formula-adapter"
+import { FormulaManager } from "../models/formula/formula-manager"
 import { ISharedDataSet } from "../models/shared/shared-data-set"
+import { getFormulaManager } from "../models/tiles/tile-environment"
 import { processAction } from "./data-interactive-request-processor"
 import { DIAction } from "./data-interactive-types"
 import { toPluginValue } from "./data-interactive-utils"
@@ -14,7 +18,11 @@ describe("toPluginValue", () => {
     expect(toPluginValue("-3.5")).toBe(-3.5)
     expect(toPluginValue("0.30000000000000004")).toBe(0.30000000000000004)
     expect(toPluginValue("1e+21")).toBe(1e21)
-    for (const text of ["0x1F", "1e3", "$12.50", "02134", "12.50", ".5", "+5", "-0", "Infinity", "NaN", "abc", ""]) {
+    // as in v2, which returned the number Infinity a plugin sent or a formula such as 1/0 computed
+    expect(toPluginValue("Infinity")).toBe(Infinity)
+    expect(toPluginValue("-Infinity")).toBe(-Infinity)
+    for (const text of ["0x1F", "1e3", "$12.50", "02134", "12.50", ".5", "+5", "-0", "+Infinity", "infinity", "NaN",
+      "abc", ""]) {
       expect(toPluginValue(text)).toBe(text)
     }
     expect(toPluginValue("true")).toBe(true)
@@ -127,6 +135,41 @@ describe("values a plugin sends as text", () => {
       setDataSetNotificationAdapter(adapter)
       await request("update", `${dc}.collection[Cases].caseByIndex[4]`, { values: { code: "abc" } })
     }
+  })
+})
+
+describe("infinite values", () => {
+  const dc = "dataContext[Infinities]"
+  let sharedDataSet: ISharedDataSet
+
+  beforeAll(async () => {
+    // compute formulas, as app.tsx arranges in the app
+    AttributeFormulaAdapter.register()
+    const formulaManager = getFormulaManager(appState.document) as FormulaManager
+    await when(() => formulaManager.areAdaptersInitialized, { timeout: 1000 })
+    sharedDataSet = appState.document.content!.createDataSet({
+      name: "Infinities",
+      attributes: [{ name: "value" }]
+    } as any).sharedDataSet
+    await processAction({
+      action: "create", resource: `${dc}.item`, values: [{ value: Infinity }, { value: "-Infinity" }, { value: 1 }]
+    })
+    await processAction({
+      action: "create", resource: `${dc}.collection[Cases].attribute`, values: { name: "ratio", formula: "1/0" }
+    })
+  })
+
+  afterAll(() => {
+    appState.document.content!.removeSharedModelsAndTiles([sharedDataSet])
+  })
+
+  it("read back as numbers, as in v2", async () => {
+    const { values } = await processAction({ action: "get", resource: `${dc}.itemSearch[*]` }) as any
+    expect(values.map(({ values: { value } }: any) => value)).toEqual([Infinity, -Infinity, 1])
+    expect(values.map(({ values: { ratio } }: any) => ratio)).toEqual([Infinity, Infinity, Infinity])
+    const allCases = await processAction({ action: "get", resource: `${dc}.collection[Cases].allCases` }) as any
+    const { cases } = allCases.values
+    expect(cases.map(({ case: aCase }: any) => aCase.values.value)).toEqual([Infinity, -Infinity, 1])
   })
 })
 

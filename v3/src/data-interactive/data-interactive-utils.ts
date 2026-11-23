@@ -44,16 +44,14 @@ export function contentDimensionsFromTile({ width, height }: IDimensions): IDime
   return { ...(width != null && { width }), ...(height != null && { height: Math.max(height - kTitleBarHeight, 0) }) }
 }
 
-// A stored value as a plugin reads it. V2 returned each value as it was sent (case_model.js:186-190), but V3
-// stores every value as text. So text reads back unchanged, unless it's exactly how JavaScript writes a finite
-// number, as every number a plugin sends is stored, or it's "true" or "false", which read back as booleans,
-// as V2 kept the booleans plugins sent (data_utilities.js:63-71).
+// A stored value as a plugin reads it. V2 returned each value as sent (case_model.js:186-190), but V3 keeps every
+// value as text, so text reads back unchanged unless it's how JavaScript writes a number (including "Infinity"),
+// as every number a plugin sends is stored, or it's "true" or "false", as V2 kept booleans (data_utilities.js:63-71).
 export function toPluginValue(value?: string) {
-  if (value == null) return value
   if (value === "true") return true
   if (value === "false") return false
   const num = Number(value)
-  return isFinite(num) && String(num) === value ? num : value
+  return !isNaN(num) && String(num) === value ? num : value
 }
 
 export function getCaseValues(caseId: string, dataSet: IDataSet, collectionId?: string) {

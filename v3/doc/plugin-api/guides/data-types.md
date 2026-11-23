@@ -41,6 +41,11 @@ A number can be sent as a JavaScript number or as text. Text counts as a number 
 | `"0x1F"` (31, read as hexadecimal) | `"Infinity"`, `"NaN"` |
 | | `true`, `false` |
 
+`Infinity` and `-Infinity`, whether sent as numbers or as text, don't count as numbers when CODAP
+decides an attribute's type, so one of them makes the attribute categorical. Such a value still
+counts as an infinite number, though: searches compare it as a number, and it
+[reads back](#reading-values-back) as one.
+
 A period is always a decimal point. To have CODAP read numbers that are written with other text,
 such as currency symbols or units, give the attribute the explicit type `numeric`; see
 [An explicit type](#an-explicit-type).
@@ -89,7 +94,7 @@ words back as booleans, as v2 returned the booleans it was sent: `get` on items 
 `get dataContext`, and the `updateCases`, `deleteCases` and `selectCases` notices all return `true`
 and `false`. The text `true` typed into a table, imported from a file, or set by a checkbox reads
 back as a boolean too, where v2 returned the text. Only the lowercase words are converted; `TRUE`
-stays text. `get document` returns the stored text.
+stays text. `get document` returns the stored text; see [`document`](../resources/document.md).
 
 ## Colors
 
@@ -132,13 +137,19 @@ attributes.
 cases in notifications return each value as it was sent, as in v2, with two exceptions:
 
 - **Numbers.** CODAP keeps every value as text, so it can't tell `12` from `"12"`: text that is
-  exactly how JavaScript writes a finite number reads back as that number. Other text that counts
-  as a number reads back unchanged, so `"0x1F"`, `"1e3"`, `"12.50"` and `"02134"` come back as
-  sent, and so does `"$12.50"` in a `numeric` attribute. `Infinity` and `NaN` come back as text.
-  This is a deliberate difference.
+  exactly how JavaScript writes a number reads back as that number, because that's the text every
+  number a plugin sends is kept as. This includes `Infinity` and `-Infinity`, so an infinite number
+  a plugin sends, or a formula result such as `1/0`, reads back as a number, as in v2. Other text
+  that counts as a number reads back unchanged, so `"0x1F"`, `"1e3"`, `"12.50"` and `"02134"` come
+  back as sent, and so does `"$12.50"` in a `numeric` attribute. `NaN` comes back as the text
+  `"NaN"`. Reading the text `"12"` or `"Infinity"` back as a number is a deliberate difference.
 - **Booleans.** The text `true` and `false` reads back as a boolean; see [Booleans](#booleans).
 
 Surrounding spaces are removed when a value is stored, so `" abc "` reads back as `"abc"`.
+
+`get document` doesn't follow these rules: its document has text that counts as a number as that
+number, and `true` and `false` as text. See [Known limitations](#known-limitations) and
+[`document`](../resources/document.md).
 
 `caseSearch` and `itemSearch` compare the number a value counts as, so `code==31` finds `"0x1F"`,
 and `price==12.5` finds `"$12.50"` in a `numeric` attribute.
@@ -158,6 +169,14 @@ These are improvements on v2 that a plugin written for it could notice:
 
 **A two-digit year of `49` is 2049, not 1949.** The years 2000–2048 and 1950–1999 are read as
 described above. This is a known bug.
+
+**`get document` has text that counts as a number as that number.** In the document that
+[`get document`](../resources/document.md) sends in its `newDocumentState` notice, the values of
+cases and set-aside items don't read back as described in
+[Reading values back](#reading-values-back): `"0x1F"` appears as `31`, `"12.50"` as `12.5`, and
+`"$12.50"` in a `numeric` attribute as `12.5`. v2's document had each value as it was sent. This is
+a known bug. (`true` and `false` appear there as the text `"true"` and `"false"`, which is
+deliberate; see [`document`](../resources/document.md).)
 
 ## See also
 

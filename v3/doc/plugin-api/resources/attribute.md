@@ -62,13 +62,12 @@ deleted or renamed, while `update` also accepts the negated spellings. See
 
 "Always present" below means the key is always there. Its value may still be `undefined`: replies
 reach a plugin by structured clone rather than JSON, so a key with no value survives the trip.
-`formula`, `deletedFormula`, `description`, `unit`, `type` and `precision` are all commonly
-`undefined`.
+`formula`, `deletedFormula`, `description`, `unit` and `precision` are all commonly `undefined`.
 
 | Property | Always present | Notes |
 |---|---|---|
 | `name` | yes | |
-| `type` | yes | the type set with `create` or `update`, or `null` when CODAP infers it from the values, as in v2 |
+| `type` | yes | the type set with `create` or `update`, or `null` when CODAP infers it from the values. v2 returned `null` for an attribute that never had a type, and `"none"` for one whose type v2's attribute editor saved as unspecified, such as `Height` in the Mammals sample; CODAP returns `null` for both |
 | `title` | yes | |
 | `cid` | yes | |
 | `description` | yes | |

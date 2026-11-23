@@ -148,7 +148,7 @@ Clear the data context before loading new data:
 ## Known limitations
 
 **The text `true` and `false` reads back as a boolean.** A value a plugin sent as `true` reads back
-as `true` in `get`'s reply, as in v2. CODAP stores every value as a number or text, so it cannot
+as `true` in `get`'s reply, as in v2. CODAP keeps every value as text, so it cannot
 tell that boolean from the text `true` typed into a table, imported from a file, or set by a
 checkbox: those read back as booleans too, where v2 returned the text. Only the lowercase words are
 converted; `TRUE` stays text. This is a deliberate difference.
