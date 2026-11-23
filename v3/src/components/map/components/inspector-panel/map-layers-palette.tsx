@@ -90,24 +90,21 @@ export const MapLayersPalette = observer(function MapLayersPalette(
     )
 
     const renderOneFormatControl = (layer: IMapLayerModel) => {
+      if (isMapPinLayerModel(layer)) return renderPinLayerControls(layer)
+
       const mapPointLayerModel = isMapPointLayerModel(layer) ? layer : undefined
       return (
         <>
-          <div className="top-spacer" />
-          {isMapPinLayerModel(layer) ? renderPinLayerControls(layer)
-            : (
-              <>
-                <DisplayItemFormatControl
-                  dataConfiguration={layer.dataConfiguration}
-                  displayItemDescription={layer.displayItemDescription}
-                  mapPointLayerModel={mapPointLayerModel}
-                  enablePointToggle={true}
-                />
-                <MapHotSpotControl mapPointLayerModel={mapPointLayerModel}/>
-                {mapPointLayerModel && renderGridAndLinesSections(mapPointLayerModel)}
-              </>
-          )}
-        </>)
+          <DisplayItemFormatControl
+            dataConfiguration={layer.dataConfiguration}
+            displayItemDescription={layer.displayItemDescription}
+            mapPointLayerModel={mapPointLayerModel}
+            enablePointToggle={true}
+          />
+          <MapHotSpotControl mapPointLayerModel={mapPointLayerModel}/>
+          {mapPointLayerModel && renderGridAndLinesSections(mapPointLayerModel)}
+        </>
+      )
     }
 
     return mapModel.layers.map(layer => {
