@@ -1402,7 +1402,7 @@
     "V3.Inspector.map.hotSpotHighColor": "High color",
     "V3.Inspector.map.hotSpotColorBinning": "Color binning",
     "V3.Inspector.map.hotSpotColorBinning.classes": "%@ classes",
-    "V3.Inspector.map.hotSpotColorBinning.continuous": "continuous",
+    "V3.Inspector.map.hotSpotColorBinning.continuous": "Continuous",
     "V3.Inspector.graph.legendBins": "Legend Bins",
     "V3.Inspector.graph.legendBins.quantize": "Linear",
     "V3.Inspector.graph.legendBins.quantile": "Quantile",
