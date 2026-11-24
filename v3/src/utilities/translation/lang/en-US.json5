@@ -1400,6 +1400,9 @@
     "V3.Inspector.map.hotSpotColorRamp.custom": "Custom",
     "V3.Inspector.map.hotSpotLowColor": "Low color",
     "V3.Inspector.map.hotSpotHighColor": "High color",
+    "V3.Inspector.map.hotSpotColorBinning": "Color binning",
+    "V3.Inspector.map.hotSpotColorBinning.classes": "%@ classes",
+    "V3.Inspector.map.hotSpotColorBinning.continuous": "Continuous",
     "V3.Inspector.graph.legendBins": "Legend Bins",
     "V3.Inspector.graph.legendBins.quantize": "Linear",
     "V3.Inspector.graph.legendBins.quantile": "Quantile",
@@ -1479,6 +1482,8 @@
     "V3.Redo.map.changeHotSpotLowColor": "Redo changing hot spot low color",
     "V3.Undo.map.changeHotSpotHighColor": "Undo changing hot spot high color",
     "V3.Redo.map.changeHotSpotHighColor": "Redo changing hot spot high color",
+    "V3.Undo.map.changeHotSpotColorBinning": "Undo changing hot spot color binning",
+    "V3.Redo.map.changeHotSpotColorBinning": "Redo changing hot spot color binning",
 
     "V3.Undo.calculator.calculate": "Undo calculation",
     "V3.Redo.calculator.calculate": "Redo calculation",

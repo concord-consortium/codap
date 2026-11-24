@@ -6,9 +6,12 @@ import {
   HotSpotColorRamp, HotSpotColorRamps, isHotSpotColorRamp, kDefaultHotSpotColorRamp, kDefaultHotSpotHighColor,
   kDefaultHotSpotLowColor
 } from "../utilities/hot-spot-color-ramps"
-import { computeDefaultBandwidth, computeHotSpotSurface, IHotSpotSurface } from "../utilities/hot-spot-utils"
+import {
+  computeDefaultBandwidth, computeHotSpotSurface, getEffectiveColorBins, HotSpotColorBins, IHotSpotSurface,
+  isHotSpotColorBins, kContinuousColorBins
+} from "../utilities/hot-spot-utils"
 
-// Separate from the real MapHotSpotModel so it can filter out an illegal colorRamp.
+// Separate from the real MapHotSpotModel so it can filter out an illegal colorRamp or colorBins.
 const BaseMapHotSpotModel = types.model("MapHotSpotModel", {
   isVisible: false,
   // Kernel bandwidth in meters on the ground; undefined means compute a default from the data's spread
@@ -16,24 +19,33 @@ const BaseMapHotSpotModel = types.model("MapHotSpotModel", {
   opacity: 0.75,
   colorRamp: types.optional(types.enumeration([...HotSpotColorRamps]), kDefaultHotSpotColorRamp),
   lowColor: kDefaultHotSpotLowColor,
-  highColor: kDefaultHotSpotHighColor
+  highColor: kDefaultHotSpotHighColor,
+  colorBins: types.optional(types.union(types.literal(kContinuousColorBins), types.number), kContinuousColorBins)
 })
 
-// A saved color ramp is an unvalidated string: it may come from a build with ramps this one doesn't have
-export interface IMapHotSpotModelSnapshot extends Omit<SnapshotIn<typeof BaseMapHotSpotModel>, "colorRamp"> {
+// A saved colorRamp or colorBins is unvalidated: it may come from a build with ramps or bins this one doesn't have
+export interface IMapHotSpotModelSnapshot
+  extends Omit<SnapshotIn<typeof BaseMapHotSpotModel>, "colorRamp" | "colorBins"> {
   colorRamp?: string
+  colorBins?: number | string
 }
 
 export const MapHotSpotModel = BaseMapHotSpotModel
-  // Drop a color ramp this build doesn't know, so the hot spot loads with the default ramp
+  // Drop a color ramp this build doesn't know, or color bins that aren't valid, so the hot spot loads with
+  // the default for that property
   .preProcessSnapshot((snap: Maybe<IMapHotSpotModelSnapshot>) => {
-    const { colorRamp, ...others } = snap ?? {}
-    return isHotSpotColorRamp(colorRamp) ? { ...others, colorRamp } : others
+    const { colorRamp, colorBins, ...others } = snap ?? {}
+    return {
+      ...others,
+      ...(isHotSpotColorRamp(colorRamp) ? { colorRamp } : {}),
+      ...(isHotSpotColorBins(colorBins) ? { colorBins } : {})
+    }
   })
   .volatile(() => ({
     latLongSource: undefined as Maybe<ILatLongSource>,
     dynamicOpacity: undefined as Maybe<number>,
-    dynamicBandwidth: undefined as Maybe<number>
+    dynamicBandwidth: undefined as Maybe<number>,
+    dynamicColorBins: undefined as Maybe<HotSpotColorBins>
   }))
   .views(self => ({
     // True while the bandwidth is changing interactively, so rendering should favor speed over quality
@@ -50,6 +62,14 @@ export const MapHotSpotModel = BaseMapHotSpotModel
     },
     get defaultBandwidth() {
       return computeDefaultBandwidth(self.plottedLatLongs)
+    },
+    // The color bins that have been set (ignoring any in-progress slider value), limited to the allowed range
+    get effectiveColorBins() {
+      return getEffectiveColorBins(self.colorBins)
+    },
+    // The color bins to render: the in-progress slider value if there is one, otherwise the set value
+    get displayColorBins() {
+      return getEffectiveColorBins(self.dynamicColorBins ?? self.colorBins)
     }
   }))
   .views(self => ({
@@ -96,6 +116,13 @@ export const MapHotSpotModel = BaseMapHotSpotModel
     },
     setHighColor(color: string) {
       self.highColor = color
+    },
+    setColorBins(colorBins: HotSpotColorBins) {
+      self.colorBins = colorBins
+      self.dynamicColorBins = undefined
+    },
+    setDynamicColorBins(colorBins: Maybe<HotSpotColorBins>) {
+      self.dynamicColorBins = colorBins
     },
     setLatLongSource(latLongSource: ILatLongSource) {
       self.latLongSource = latLongSource

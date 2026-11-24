@@ -1,12 +1,12 @@
 import { act, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { ISerializedActionCall, onAction } from "mobx-state-tree"
-import { AppHistoryService } from "../../../../models/history/app-history-service"
-import { MapPointLayerModel } from "../../models/map-point-layer-model"
-import { kResolutionRangeFactor } from "../../utilities/hot-spot-utils"
+import { AppHistoryService } from "../../../../../models/history/app-history-service"
+import { MapPointLayerModel } from "../../../models/map-point-layer-model"
+import { kResolutionRangeFactor } from "../../../utilities/hot-spot-utils"
 import { formatBandwidth, MapHotSpotResolutionSlider } from "./map-hot-spot-resolution-slider"
 
-jest.mock("../../../../utilities/translation/translate", () => ({
+jest.mock("../../../../../utilities/translation/translate", () => ({
   t: (key: string) => key,
   translate: (key: string) => key
 }))

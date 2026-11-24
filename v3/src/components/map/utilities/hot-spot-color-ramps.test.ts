@@ -9,8 +9,8 @@ describe("hot spot color ramps", () => {
   it("lists the ramps in menu order, with heat as the default", () => {
     expect(HotSpotColorRamps).toEqual(["heat", "viridis", "cividis", "monochrome", "custom"])
     expect(kDefaultHotSpotColorRamp).toBe("heat")
-    expect(low).toBe("#fff3a3")
-    expect(high).toBe("#5b1a8c")
+    expect(low).toBe("#5b1a8c")
+    expect(high).toBe("#fff3a3")
   })
 
   it("recognizes ramp names", () => {
@@ -39,8 +39,8 @@ describe("hot spot color ramps", () => {
 
   it("interpolates the custom ramp in CIELAB, not RGB", () => {
     const custom = getHotSpotRampInterpolator("custom", low, high)
-    expect(custom(0)).toBe("rgb(255, 243, 163)")
-    expect(custom(1)).toBe("rgb(91, 26, 140)")
+    expect(custom(0)).toBe("rgb(91, 26, 140)")
+    expect(custom(1)).toBe("rgb(255, 243, 163)")
     // the RGB midpoint would be rgb(173, 135, 152)
     expect(custom(0.5)).toBe("rgb(178, 133, 156)")
     // the RGB midpoint of blue and yellow would be gray

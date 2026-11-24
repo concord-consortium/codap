@@ -1,9 +1,9 @@
 import { clsx } from "clsx"
 import { Button, Key, Label, ListBox, ListBoxItem, Popover, Select, SelectValue } from "react-aria-components"
-import { t } from "../../../../utilities/translation/translate"
+import { t } from "../../../../../utilities/translation/translate"
 import {
   getHotSpotRampGradient, HotSpotColorRamp, HotSpotColorRamps, isHotSpotColorRamp
-} from "../../utilities/hot-spot-color-ramps"
+} from "../../../utilities/hot-spot-color-ramps"
 
 interface IProps {
   colorRamp: HotSpotColorRamp
