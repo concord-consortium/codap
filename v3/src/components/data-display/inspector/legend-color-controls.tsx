@@ -31,10 +31,11 @@ import { PointShapeSetting } from "./point-shape-setting"
 interface ILegendColorControlsProps {
   dataConfiguration: IDataConfigurationModel
   displayItemDescription: IDisplayItemDescriptionModel
+  disabled?: boolean
 }
 
 export const LegendColorControls = observer(function LegendColorControls(
-  { dataConfiguration, displayItemDescription }: ILegendColorControlsProps
+  { dataConfiguration, displayItemDescription, disabled }: ILegendColorControlsProps
 ) {
   const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
@@ -187,6 +188,7 @@ export const LegendColorControls = observer(function LegendColorControls(
             </svg>
           </If>
           <PointShapeSetting propertyLabel={t("V3.Inspector.pointShape")}
+                            disabled={disabled}
                             shape={displayItemDescription.pointShape}
                             color={glyphColor}
                             fillGradientId={hasFillGradient ? gradientId : undefined}
@@ -208,6 +210,7 @@ export const LegendColorControls = observer(function LegendColorControls(
       <CategoricalColorControls
         categories={categoriesRef.current}
         dataConfiguration={dataConfiguration}
+        disabled={disabled}
         showShape={showShape}
         // A category with no shape of its own draws the display's, so the control has to show that
         // rather than the bare default, or it would disagree with the plot.
@@ -221,6 +224,7 @@ export const LegendColorControls = observer(function LegendColorControls(
   const lockCheckbox = (
     <PaletteCheckbox
       data-testid="lock-legend-quantiles-checkbox"
+      isDisabled={disabled}
       isSelected={dataConfiguration.legendQuantilesAreLocked}
       onChange={handleLockQuantilesChange}
     >
@@ -236,12 +240,14 @@ export const LegendColorControls = observer(function LegendColorControls(
           <div className="palette-row color-picker-row">
             <label className="form-label color-picker">{t("DG.Inspector.legendColor")}</label>
             <ColorSetting
+              disabled={disabled}
               propertyLabel={t("DG.Inspector.legendColorLow")}
               testIdSuffix="legend-low"
               onColorChange={(color) => handleLowAttributeColorChange(color)}
               swatchBackgroundColor={colorRange?.low ?? kDefaultLowAttributeColor}
             />
             <ColorSetting
+              disabled={disabled}
               propertyLabel={t("DG.Inspector.legendColorHigh")}
               testIdSuffix="legend-high"
               onColorChange={(color) => handleHighAttributeColorChange(color)}
@@ -266,11 +272,13 @@ export const LegendColorControls = observer(function LegendColorControls(
       <If condition={showShape}>
         <PointShapeSetting propertyLabel={t("V3.Inspector.pointShape")}
                           shape={displayItemDescription.pointShape}
+                          disabled={disabled}
                           color={displayItemDescription.pointColor}
                           onShapeChange={handlePointShapeChange}/>
       </If>
       <ColorSetting propertyLabel={t("DG.Inspector.color")} testIdSuffix="point"
                         onColorChange={(color) => handlePointColorChange(color)}
+                        disabled={disabled}
                         swatchBackgroundColor={displayItemDescription.pointColor}/>
     </div>
   )
@@ -281,16 +289,16 @@ export const LegendColorControls = observer(function LegendColorControls(
 interface ICategoricalColorControlsProps {
   categories?: string[]
   dataConfiguration: IDataConfigurationModel
+  disabled?: boolean
   showShape: boolean
   shapeIfUnset: PointShape
   onCatPointColorChange: (color: string, cat: string) => void
   onCatPointShapeChange: (shape: PointShape, cat: string) => void
 }
 
-const CategoricalColorControls = observer(function CategoricalColorControls(
-  { categories, dataConfiguration, showShape, shapeIfUnset, onCatPointColorChange, onCatPointShapeChange }:
-    ICategoricalColorControlsProps
-) {
+const CategoricalColorControls = observer(function CategoricalColorControls({
+  categories, dataConfiguration, disabled, showShape, shapeIfUnset, onCatPointColorChange, onCatPointShapeChange
+}: ICategoricalColorControlsProps) {
   const [scrollVersion, setScrollVersion] = useState(0)
 
   const handleScroll = () => {
@@ -304,12 +312,14 @@ const CategoricalColorControls = observer(function CategoricalColorControls(
           <label className="form-label color-picker">{category}</label>
           <If condition={showShape}>
             <PointShapeSetting propertyLabel={category}
+              disabled={disabled}
               closeTrigger={scrollVersion}
               shape={dataConfiguration.getLegendShapeForCategory(category, shapeIfUnset)}
               color={dataConfiguration.getLegendColorForCategory(category)}
               onShapeChange={(shape) => onCatPointShapeChange(shape, category)}/>
           </If>
           <ColorSetting key={category} propertyLabel={category}
+            disabled={disabled}
             testIdSuffix={attrIndex}
             closeTrigger={scrollVersion}
             onColorChange={(color) => onCatPointColorChange(color, category)}
@@ -322,10 +332,11 @@ const CategoricalColorControls = observer(function CategoricalColorControls(
 
 interface ILegendBinsSelectProps {
   dataConfiguration: IDataConfigurationModel
+  disabled?: boolean
 }
 
 export const LegendBinsSelect = observer(function LegendBinsSelect(
-  { dataConfiguration }: ILegendBinsSelectProps
+  { dataConfiguration, disabled }: ILegendBinsSelectProps
 ) {
   const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
@@ -358,7 +369,7 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
       <Select
         aria-label={t("V3.Inspector.graph.legendBins")}
         value={binningType}
-        isDisabled={isLocked}
+        isDisabled={isLocked || disabled}
         onChange={handleAttributeBinningTypeChange}
         data-testid="legend-bins-type-select"
       >
@@ -382,10 +393,11 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
 
 interface ILegendBinCountInputProps {
   dataConfiguration: IDataConfigurationModel
+  disabled?: boolean
 }
 
 export const LegendBinCountInput = observer(function LegendBinCountInput(
-  { dataConfiguration }: ILegendBinCountInputProps
+  { dataConfiguration, disabled }: ILegendBinCountInputProps
 ) {
   const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
@@ -394,7 +406,7 @@ export const LegendBinCountInput = observer(function LegendBinCountInput(
   const cap = Math.min(values.length, new Set(values).size)
   // While the quantiles are locked the legend scale is frozen, so this control has no effect.
   const isLocked = !!dataConfiguration.legendQuantilesAreLocked
-  const isDisabled = isLocked || cap < 2
+  const isDisabled = disabled || isLocked || cap < 2
   // The bin count the legend actually renders: the effective (clamped) count, or the locked count
   // while locked. The locked count can be outside the live limits (e.g. after cases are hidden), so
   // the field's limits widen to include it rather than clamping the displayed value.
@@ -492,10 +504,11 @@ type LegendBound = "min" | "max"
 
 interface ILegendRangeInputsProps {
   dataConfiguration: IDataConfigurationModel
+  disabled?: boolean
 }
 
 export const LegendRangeInputs = observer(function LegendRangeInputs(
-  { dataConfiguration }: ILegendRangeInputsProps
+  { dataConfiguration, disabled }: ILegendRangeInputsProps
 ) {
   const { tile } = useTileModelContext()
   const headingId = useId()
@@ -516,7 +529,7 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
   const effectiveMax = overrideMax ?? dataMax
   // While the quantiles are locked the legend scale is frozen, so edits here have no
   // effect; disable the inputs to reflect that.
-  const isLocked = !!dataConfiguration.legendQuantilesAreLocked
+  const isLocked = disabled || !!dataConfiguration.legendQuantilesAreLocked
   // While locked, show the legend's range (legendDisplayRange) rather than the live one, so the
   // inputs match the legend.
   const shownRange = isLocked ? dataConfiguration.legendDisplayRange : { min: effectiveMin, max: effectiveMax }

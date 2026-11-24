@@ -72,6 +72,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
   const attrType = dataConfiguration.attributeType("legend")
   const dataPointsTitle = showSectionHeaders ? t("V3.Inspector.section.dataPoints") : undefined
   const graphTitle = showSectionHeaders ? t("V3.Inspector.section.graph") : undefined
+  const optionsDisabled = !!mapPointLayerModel && !mapPointLayerModel.pointsAreVisible
 
   const handlePointTypeChange = (pointType: string) => {
     if (!isMapPointDisplayType(pointType)) return
@@ -123,6 +124,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
         }
         <If condition={!!(mapPointLayerModel && legendAttrID)}>
           <RadioGroup
+            isDisabled={optionsDisabled}
             value={mapPointLayerModel?.displayType}
             onChange={handlePointTypeChange}
             aria-label={t("V3.map.inspector.displayType")}
@@ -149,6 +151,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
         <If condition={!displayItemDescription.isPolygon}>
           <PointSizeSlider
             displayItemDescription={displayItemDescription}
+            disabled={optionsDisabled}
             pointDisplayType={pointDisplayType}
           />
         </If>
@@ -156,17 +159,18 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
         <LegendColorControls
           dataConfiguration={dataConfiguration}
           displayItemDescription={displayItemDescription}
+          disabled={optionsDisabled}
         />
 
         {/* Not for a legend this display cannot honor: every point is drawn in the missing-value
             color, so binning and range have nothing to act on. */}
         <If condition={attrType === "numeric" && !dataConfiguration.legendAttributeIsInoperable}>
-          <LegendBinsSelect dataConfiguration={dataConfiguration} />
+          <LegendBinsSelect dataConfiguration={dataConfiguration} disabled={optionsDisabled} />
           <If condition={isFeatureEnabled("legendBinCount")}>
-            <LegendBinCountInput dataConfiguration={dataConfiguration} />
+            <LegendBinCountInput dataConfiguration={dataConfiguration} disabled={optionsDisabled} />
           </If>
           <If condition={isFeatureEnabled("legendRange")}>
-            <LegendRangeInputs dataConfiguration={dataConfiguration} />
+            <LegendRangeInputs dataConfiguration={dataConfiguration} disabled={optionsDisabled} />
           </If>
         </If>
 
@@ -175,13 +179,14 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
           <div className="palette-row color-picker-row">
             <label className="form-label color-picker">{t("DG.Inspector.stroke")}</label>
             <ColorSetting propertyLabel={t("DG.Inspector.stroke")} testIdSuffix="stroke"
-                              disabled={displayItemDescription.pointStrokeSameAsFill}
+                              disabled={optionsDisabled || displayItemDescription.pointStrokeSameAsFill}
                               onColorChange={(color) => handlePointStrokeColorChange(color)}
                               swatchBackgroundColor={displayItemDescription.pointStrokeColor}/>
           </div>
         </div>
         <PaletteCheckbox
           data-testid="stroke-same-as-fill-checkbox"
+          isDisabled={optionsDisabled}
           isSelected={displayItemDescription.pointStrokeSameAsFill}
           onChange={(checked) => {
             displayItemDescription.applyModelChange(
