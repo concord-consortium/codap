@@ -168,6 +168,7 @@ context("Map UI", () => {
     map.getHideUnselectedCases().should("not.have.attr", "aria-disabled")
     map.getShowAllCases().should("have.attr", "aria-disabled", "true")
   })
+
   it("checks heatmap", () => {
     cfm.openLocalDoc(filename1)
     c.getIconFromToolShelf("map").click()
@@ -194,9 +195,9 @@ context("Map UI", () => {
     map.getHeatmapCanvas().should("exist")
 
     // Hidden when points are hidden
-    map.getInspectorPalette().contains("Points").click()
+    cy.get("[data-testid^=map-layers-checkbox-points-]").click()
     map.getHeatmapCanvas().should("not.exist")
-    map.getInspectorPalette().contains("Points").click()
+    cy.get("[data-testid^=map-layers-checkbox-points-]").click()
     map.getHeatmapCanvas().should("exist")
 
     // Hidden when points are toggled
@@ -211,6 +212,7 @@ context("Map UI", () => {
     mlh.removeAttributeFromLegend("Length")
     map.getHeatmapCanvas().should("not.exist")
   })
+
   it("checks map pins", () => {
     c.getIconFromToolShelf("table").click()
     toolbar.getNewCaseTable().click()
@@ -278,9 +280,9 @@ context("Map UI", () => {
 
     cy.log("Can hide pins using the Pins checkbox in the layers menu")
     map.getDisplayConfigButton().click()
-    map.getInspectorPalette().contains("Pins").click()
+    cy.get("[data-testid^=map-layers-checkbox-pins-]").click()
     map.getMapPins().should("not.exist")
-    map.getInspectorPalette().contains("Pins").click()
+    cy.get("[data-testid^=map-layers-checkbox-pins-]").click()
     map.getMapPin().should("exist")
 
     cy.log("Can hide pins using the layer checkbox in the layers menu")
