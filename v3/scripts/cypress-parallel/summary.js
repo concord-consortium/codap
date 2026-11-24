@@ -30,9 +30,11 @@ function formatSummary(results, { outDir, wallMs }) {
   const failedFirst = (a, b) =>
     (a.status === "passed") - (b.status === "passed") || a.spec.localeCompare(b.spec)
   const rows = [...results].sort(failedFirst).map(r => [
-    shortName(r.spec), r.status, r.tests, r.passing, r.failing, r.flaky, formatDuration(r.durationMs)
+    // Skipped counts Cypress's pending tests (it.skip) and the tests it skipped after a hook failed.
+    shortName(r.spec), r.status, r.tests, r.passing, r.failing, r.pending + r.skipped, r.flaky,
+    formatDuration(r.durationMs)
   ])
-  const header = ["Spec", "Status", "Tests", "Passing", "Failing", "Flaky", "Time"]
+  const header = ["Spec", "Status", "Tests", "Passing", "Failing", "Skipped", "Flaky", "Time"]
   const widths = header.map((h, i) => Math.max(h.length, ...rows.map(row => String(row[i]).length)))
   // The first two columns are text and line up on the left; the rest line up on the right.
   const pad = (cell, i) => i < 2 ? String(cell).padEnd(widths[i]) : String(cell).padStart(widths[i])

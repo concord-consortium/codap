@@ -44,7 +44,14 @@ describe("formatSummary", () => {
 
   it("shows each spec's counts and status", () => {
     const text = formatSummary([failed], { outDir: "/out", wallMs: 1000 })
-    expect(text).toMatch(/z\.spec\.ts +failed +3 +2 +1 +0 +1m02s/)
+    expect(text).toMatch(/Tests +Passing +Failing +Skipped +Flaky +Time/)
+    expect(text).toMatch(/z\.spec\.ts +failed +3 +2 +1 +0 +0 +1m02s/)
+  })
+
+  it("counts pending and skipped tests together as skipped", () => {
+    const spec = result("p.spec.ts", "passed", { tests: 10, passing: 4, pending: 5, skipped: 1 })
+    expect(formatSummary([spec], { outDir: "/out", wallMs: 1000 }))
+      .toMatch(/p\.spec\.ts +passed +10 +4 +0 +6 +0 +1m02s/)
   })
 
   it("totals the run", () => {
