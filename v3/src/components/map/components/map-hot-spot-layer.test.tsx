@@ -5,12 +5,19 @@ import { featureFlagManager } from "../../../models/feature-flags/feature-flag-m
 import { IMapPointLayerModel, MapPointLayerModel } from "../models/map-point-layer-model"
 import { HotSpotCanvasLayer } from "../utilities/hot-spot-canvas-layer"
 import { getHotSpotRampInterpolator } from "../utilities/hot-spot-color-ramps"
+import { buildColorLUT } from "../utilities/hot-spot-utils"
 import { kHotSpotPaneName, MapHotSpotLayer } from "./map-hot-spot-layer"
 
 // Wraps the real function so tests can see which ramp the layer draws with
 jest.mock("../utilities/hot-spot-color-ramps", () => {
   const actual = jest.requireActual("../utilities/hot-spot-color-ramps")
   return { ...actual, getHotSpotRampInterpolator: jest.fn(actual.getHotSpotRampInterpolator) }
+})
+
+// Wraps the real function so tests can see which color bins the layer draws with
+jest.mock("../utilities/hot-spot-utils", () => {
+  const actual = jest.requireActual("../utilities/hot-spot-utils")
+  return { ...actual, buildColorLUT: jest.fn(actual.buildColorLUT) }
 })
 
 describe("MapHotSpotLayer", () => {
@@ -120,12 +127,42 @@ describe("MapHotSpotLayer", () => {
     const { pointLayer } = mountHotSpotLayer(layer => {
       layer.hotSpotModel.setLatLongSource({ plottedLatLongs: [{ lat: 0, long: 0 }] })
     })
-    expect(getInterpolator).toHaveBeenLastCalledWith("heat", "#fff3a3", "#5b1a8c")
+    expect(getInterpolator).toHaveBeenLastCalledWith("heat", "#5b1a8c", "#fff3a3")
     expect(context.putImageData).toHaveBeenCalledTimes(1)
 
     act(() => pointLayer.hotSpotModel.setColorRamp("viridis"))
     // the redraw is debounced
-    await waitFor(() => expect(getInterpolator).toHaveBeenLastCalledWith("viridis", "#fff3a3", "#5b1a8c"))
+    await waitFor(() => expect(getInterpolator).toHaveBeenLastCalledWith("viridis", "#5b1a8c", "#fff3a3"))
     expect(context.putImageData).toHaveBeenCalledTimes(2)
+  })
+
+  it("redraws with the model's color bins when they change", async () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    // jsdom gives the map no size and the canvas no context, and the layer draws only when it has both
+    jest.spyOn(LeafletMap.prototype, "getSize").mockReturnValue(new Point(100, 100))
+    const context = {
+      createImageData: (width: number, height: number) => ({ data: new Uint8ClampedArray(width * height * 4) }),
+      putImageData: jest.fn()
+    }
+    jest.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(context as any)
+    const buildLUT = jest.mocked(buildColorLUT)
+
+    const { pointLayer } = mountHotSpotLayer(layer => {
+      layer.hotSpotModel.setLatLongSource({ plottedLatLongs: [{ lat: 0, long: 0 }] })
+    })
+    expect(buildLUT).toHaveBeenLastCalledWith(expect.any(Function), "continuous")
+    expect(context.putImageData).toHaveBeenCalledTimes(1)
+
+    // an in-progress slider value redraws without being committed
+    act(() => pointLayer.hotSpotModel.setDynamicColorBins(4))
+    // the redraw is debounced
+    await waitFor(() => expect(buildLUT).toHaveBeenLastCalledWith(expect.any(Function), 4))
+    expect(context.putImageData).toHaveBeenCalledTimes(2)
+    expect(pointLayer.hotSpotModel.colorBins).toBe("continuous")
+
+    // an out-of-range count is drawn as the nearest limit
+    act(() => pointLayer.hotSpotModel.setColorBins(15))
+    await waitFor(() => expect(buildLUT).toHaveBeenLastCalledWith(expect.any(Function), 10))
+    expect(context.putImageData).toHaveBeenCalledTimes(3)
   })
 })

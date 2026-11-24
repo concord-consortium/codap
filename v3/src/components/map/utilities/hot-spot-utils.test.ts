@@ -2,12 +2,13 @@ import { Map as LeafletMap, Point, Projection } from "leaflet"
 import { greatCircleDistance } from "../../../utilities/geo-utils"
 import { getHotSpotRampInterpolator } from "./hot-spot-color-ramps"
 import {
-  bandwidthToResolution, bandwidthToWorldUnits, buildColorLUT, colorizeDensityGrid, computeApproximateMaxDensity,
-  computeDefaultBandwidth, computeDensityGrid, computeHotSpotSurface, computeMaxDensity, hotSpotFade,
-  IDensityGridRegion, IKernel, kColorLUTSize, kDefaultBandwidthDivisor, kernelWeight, kFallbackBandwidthMeters,
-  kHotSpotFadeFloor, kHotSpotFadeFull, kMaxMercatorLatitude, kResolutionRangeFactor, kWebMercatorRadiusMeters,
-  kWorldSize, latLongToWorldPoint, projectHotSpotKernels, renderHotSpotSurface, resolutionLimit, resolutionToBandwidth,
-  wrapWorldDelta
+  bandwidthToResolution, bandwidthToWorldUnits, buildColorLUT, colorBinsToSliderValue, colorizeDensityGrid,
+  computeApproximateMaxDensity, computeDefaultBandwidth, computeDensityGrid, computeHotSpotSurface, computeMaxDensity,
+  getEffectiveColorBins, hotSpotFade, IDensityGridRegion, IKernel, isHotSpotColorBins, kColorLUTSize,
+  kContinuousColorBins, kContinuousSliderValue, kDefaultBandwidthDivisor, kernelWeight, kFallbackBandwidthMeters,
+  kHotSpotFadeFloor, kHotSpotFadeFull, kMaxColorBins, kMaxMercatorLatitude, kMinColorBins, kResolutionRangeFactor,
+  kWebMercatorRadiusMeters, kWorldSize, latLongToWorldPoint, projectHotSpotKernels, renderHotSpotSurface,
+  resolutionLimit, resolutionToBandwidth, sliderValueToColorBins, wrapWorldDelta
 } from "./hot-spot-utils"
 import { createLatLongProjector } from "./map-utils"
 
@@ -388,6 +389,71 @@ describe("hotSpotFade", () => {
   })
 })
 
+describe("color bin limits", () => {
+  it("allows 2 through 10 bins, with continuous one slider step past the maximum", () => {
+    expect(kMinColorBins).toBe(2)
+    expect(kMaxColorBins).toBe(10)
+    expect(kContinuousSliderValue).toBe(11)
+    expect(kContinuousColorBins).toBe("continuous")
+  })
+
+  it("recognizes valid stored values", () => {
+    expect(isHotSpotColorBins("continuous")).toBe(true)
+    expect(isHotSpotColorBins(5)).toBe(true)
+    // out of range but finite: valid to store, limited when used
+    expect(isHotSpotColorBins(15)).toBe(true)
+    expect(isHotSpotColorBins(0)).toBe(true)
+    expect(isHotSpotColorBins("many")).toBe(false)
+    expect(isHotSpotColorBins("5")).toBe(false)
+    expect(isHotSpotColorBins(NaN)).toBe(false)
+    expect(isHotSpotColorBins(Infinity)).toBe(false)
+    expect(isHotSpotColorBins(null)).toBe(false)
+    expect(isHotSpotColorBins(undefined)).toBe(false)
+  })
+
+  it("keeps continuous and in-range counts", () => {
+    expect(getEffectiveColorBins("continuous")).toBe("continuous")
+    expect(getEffectiveColorBins(2)).toBe(2)
+    expect(getEffectiveColorBins(7)).toBe(7)
+    expect(getEffectiveColorBins(10)).toBe(10)
+  })
+
+  it("treats counts below the minimum as the minimum and above the maximum as the maximum", () => {
+    expect(getEffectiveColorBins(1)).toBe(2)
+    expect(getEffectiveColorBins(0)).toBe(2)
+    expect(getEffectiveColorBins(-3)).toBe(2)
+    expect(getEffectiveColorBins(-Infinity)).toBe(2)
+    expect(getEffectiveColorBins(11)).toBe(10)
+    expect(getEffectiveColorBins(100)).toBe(10)
+    expect(getEffectiveColorBins(Infinity)).toBe(10)
+  })
+
+  it("rounds non-integer counts", () => {
+    expect(getEffectiveColorBins(2.4)).toBe(2)
+    expect(getEffectiveColorBins(2.6)).toBe(3)
+    expect(getEffectiveColorBins(1.2)).toBe(2)
+    expect(getEffectiveColorBins(10.4)).toBe(10)
+  })
+
+  it("treats NaN as continuous", () => {
+    expect(getEffectiveColorBins(NaN)).toBe("continuous")
+  })
+
+  it("converts between color bins and slider values", () => {
+    expect(colorBinsToSliderValue("continuous")).toBe(11)
+    expect(colorBinsToSliderValue(2)).toBe(2)
+    expect(colorBinsToSliderValue(10)).toBe(10)
+    // out-of-range counts sit at the nearest numeric end, never at the continuous position
+    expect(colorBinsToSliderValue(15)).toBe(10)
+    expect(colorBinsToSliderValue(0)).toBe(2)
+    expect(colorBinsToSliderValue(3.6)).toBe(4)
+
+    expect(sliderValueToColorBins(11)).toBe("continuous")
+    expect(sliderValueToColorBins(10)).toBe(10)
+    expect(sliderValueToColorBins(2)).toBe(2)
+  })
+})
+
 describe("buildColorLUT", () => {
   const rgbaAt = (lut: Uint8ClampedArray, i: number) => Array.from(lut.slice(i * 4, i * 4 + 4))
   // the first LUT index at or above the full cutoff
@@ -434,6 +500,73 @@ describe("buildColorLUT", () => {
     // within the fade, both apply
     const midIndex = 30
     expect(lut[midIndex * 4 + 3]).toBe(Math.round(midIndex * hotSpotFade(midIndex / (kColorLUTSize - 1))))
+  })
+
+  describe("with color bins", () => {
+    const monochrome = getHotSpotRampInterpolator("monochrome", "", "")
+    // Returns the distinct colors of the entries from first to last
+    const colorsIn = (lut: Uint8ClampedArray, first: number, last: number) => {
+      const colors = new Map<string, number[]>()
+      for (let i = first; i <= last; i++) {
+        const rgba = rgbaAt(lut, i)
+        colors.set(rgba.join(), rgba)
+      }
+      return Array.from(colors.values())
+    }
+
+    it("is unchanged when continuous", () => {
+      expect(buildColorLUT(monochrome, "continuous")).toEqual(buildColorLUT(monochrome))
+    })
+
+    it("draws 2 bins as the transparent low color, then the middle of the ramp and the high color", () => {
+      const lut = buildColorLUT(monochrome, 2)
+      // Entries 85 and 170 are exactly on the bin edges (1/3 and 2/3), so floating point decides their bin
+      expect(colorsIn(lut, 0, 84)).toEqual([[0, 0, 0, 0]])
+      expect(colorsIn(lut, 86, 169)).toEqual([[128, 128, 128, 255]])
+      expect(colorsIn(lut, 171, 255)).toEqual([[255, 255, 255, 255]])
+    })
+
+    it("draws 3 bins after the transparent bin, at 1/3, 2/3 and 1 along the ramp, each faded at its position", () => {
+      const lut = buildColorLUT(monochrome, 3)
+      // the bin edges are at entries 63.75, 127.5 and 191.25
+      expect(colorsIn(lut, 0, 63)).toEqual([[0, 0, 0, 0]])
+      // 1/3 is just below kHotSpotFadeFull, so this bin is not quite opaque
+      const partialAlpha = Math.round(hotSpotFade(1 / 3) * 255)
+      expect(partialAlpha).toBeLessThan(255)
+      expect(colorsIn(lut, 64, 127)).toEqual([[85, 85, 85, partialAlpha]])
+      expect(colorsIn(lut, 128, 191)).toEqual([[170, 170, 170, 255]])
+      expect(colorsIn(lut, 192, 255)).toEqual([[255, 255, 255, 255]])
+    })
+
+    it("uses the ramp's own end colors", () => {
+      const lut = buildColorLUT(getHotSpotRampInterpolator("heat", "", ""), 5)
+      // #000004, fully faded
+      expect(rgbaAt(lut, 0)).toEqual([0, 0, 4, 0])
+      // #fcffa4
+      expect(rgbaAt(lut, 255)).toEqual([252, 255, 164, 255])
+    })
+
+    it("has exactly as many distinct visible colors as bins, plus the transparent bin", () => {
+      for (let bins = kMinColorBins; bins <= kMaxColorBins; bins++) {
+        const colors = colorsIn(buildColorLUT(monochrome, bins), 0, kColorLUTSize - 1)
+        expect(colors).toHaveLength(bins + 1)
+        expect(colors.filter(([, , , alpha]) => alpha > 0)).toHaveLength(bins)
+      }
+    })
+
+    it("treats counts below 2 as 2 and counts above 10 as 10", () => {
+      const twoBins = buildColorLUT(monochrome, 2)
+      expect(buildColorLUT(monochrome, 1)).toEqual(twoBins)
+      expect(buildColorLUT(monochrome, 0)).toEqual(twoBins)
+      expect(buildColorLUT(monochrome, -3)).toEqual(twoBins)
+      const tenBins = buildColorLUT(monochrome, 10)
+      expect(buildColorLUT(monochrome, 11)).toEqual(tenBins)
+      expect(buildColorLUT(monochrome, 100)).toEqual(tenBins)
+    })
+
+    it("rounds a non-integer count", () => {
+      expect(buildColorLUT(monochrome, 2.6)).toEqual(buildColorLUT(monochrome, 3))
+    })
   })
 })
 

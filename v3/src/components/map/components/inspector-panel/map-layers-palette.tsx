@@ -10,8 +10,8 @@ import { isMapContentModel } from "../../models/map-content-model"
 import { IMapLayerModel, isMapLayerModel } from "../../models/map-layer-model"
 import { IMapPinLayerModel, isMapPinLayerModel } from "../../models/map-pin-layer-model"
 import { IMapPointLayerModel, isMapPointLayerModel } from "../../models/map-point-layer-model"
+import { MapHotSpotControl } from "./hot-spot/map-hot-spot-control"
 import { MapBaseLayerControl } from "./map-base-layer-control"
-import { MapHotSpotControl } from "./map-hot-spot-control"
 
 import "./map-inspector.scss"
 
