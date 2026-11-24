@@ -372,15 +372,53 @@ $attribute-row-height: $attribute-button-offset + $attribute-button-height + $at
       // halves' outline; the bottom one is 1px, the axis line's width.
       // fills: one step darker than the thumbs in every state, along CODAP's light-blue ladder
       // (#d3f4ff > #bbefff > #a5e3f6 > #8ddaf2): default #bbefff, hover/focus #a5e3f6, dragging #8ddaf2
+      // PROTOTYPE option (prototype-options.ts), "Split Thumb Range Band": how tall the band is. Measured in the
+      // thumb's 24x30 box (top 0, the line at 30): its outline's top is 0-2px and the body's bottom 22-24px. The
+      // inset is the band's original one, 2px: its top edge starts just under the thumb's top outline.
+      //   Full Height           0px to the line      Top Inset (the original)  2px to the line
+      //   Height of Body        0px to 24px          Top and Bottom Inset      2px to 22px
+      // Bands that stop at the body get a 2px bottom edge to match the top one (Mike); the others keep the 1px edge
+      // over the axis line. --open-top / --open-height: the space between the edges, which the decorations fill or
+      // centre in.
       .range-band {
         background-color: vars.$accent-light-3;
         // the top edge as an inset shadow (Chrome rounds border widths down to whole pixels)
         box-shadow: inset 0 2px 0 vars.$accent;
-        // from 2px below the thumbs' top (30px above the line) down to the line
         height: 30px - 2px;
         pointer-events: none;
         position: absolute;
         top: 12px - 30px + 2px;
+        --open-top: 2px;
+        // the open space: 2px (under the top edge) to 27.5px (the 1px bottom edge, drawn 0.5px low over the line)
+        --open-height: 25.5px;
+
+        &.band-full {
+          height: 30px;
+          top: 12px - 30px;
+          --open-height: 27.5px;  // 2px to 29.5px
+
+          // room for a fourth row of dots (3.5px gap above and below)
+          .range-band-decoration.dot-pattern { --dot-rows: 24px; }
+        }
+        // a fourth row here too: 2.5px gap above and below, not 5.5px (Mike)
+        &.band-top-inset .range-band-decoration.dot-pattern { --dot-rows: 24px; }
+        &.band-body, &.band-top-bottom-inset {
+          box-shadow: inset 0 2px 0 vars.$accent, inset 0 -2px 0 vars.$accent;
+          &::after { display: none; }
+        }
+        &.band-body {
+          height: 24px;
+          top: 12px - 30px;
+          --open-height: 20px;  // 2px to 22px
+        }
+        &.band-top-bottom-inset {
+          height: 24px - 2px - 2px;
+          top: 12px - 30px + 2px;
+          --open-height: 16px;  // 2px to 18px
+
+          // two rows of dots: three left only 0.75px above and below; two leave 3.75px (Mike)
+          .range-band-decoration.dot-pattern { --dot-rows: 12px; }
+        }
         // over the axis line (z-index 1), under the thumbs
         z-index: 2;
 
@@ -391,41 +429,58 @@ $attribute-row-height: $attribute-button-offset + $attribute-button-height + $at
         // open space, in the outline's teal, 1px lines 16px tall, 3px apart (Mike: thinner and taller than the
         // thumb's grip, grown equally up and down); 2.5px dots, 4px apart, the thumb's dot size. The spacing never changes; the pattern runs to the very edges (the halves' straight
         // edges reach 1px into the band) and is cut off there, centred on the band so both ends are cut alike.
-        // Vertically centred in the band's open space -- between its 2px top edge and its bottom edge (1px, drawn
-        // 0.5px low over the axis line): 2px to 27.5px, centre 14.75px. The layer is the lines' 16px; dots sit on its
-        // middle.
+        // Vertically centred in the band's open space (--open-top, --open-height above; for Top Inset 2px to 27.5px,
+        // centre 14.75px). The layer is the lines' 16px; dots sit on its middle. Placed with a transform, not an
+        // offset: offsets are painted on whole pixels, transforms aren't.
         .range-band-decoration {
           height: 16px;
           left: 1px;
           position: absolute;
           right: 1px;
-          top: 14px - 8px;
-          // the last 0.75px to the centre (offsets are painted on whole pixels, transforms aren't)
-          transform: translateY(0.75px);
+          top: 0;
+          transform: translateY(calc(var(--open-top) + (var(--open-height) - 16px) / 2));
 
+          // Vertical Lines: as tall as the band's open space allows with a 2px gap above and below, in every band
+          // option (Mike, from Height of Thumb Body, where that made them 16px): Full Height 23.5px, Top Inset 21.5px,
+          // Height of Thumb Body 16px, Top and Bottom Body Inset 12px
           &.lines {
             background: linear-gradient(90deg, transparent 1px, vars.$accent 1px 2px, transparent 2px)
               50% 0 / 3px 100% repeat-x;
+            height: calc(var(--open-height) - 2px - 2px);
+            transform: translateY(calc(var(--open-top) + 2px));
+            // Chrome paints the 100%-tall background tile rounded up to a whole pixel, so on a half-pixel height
+            // (Full Height 23.5px, Top Inset 21.5px) the lines ran 0.5px long; clip them to the box
+            clip-path: inset(0);
           }
           &.dots {
             background: radial-gradient(circle, vars.$accent 1.25px, transparent 1.5px) 50% 50% / 4px 4px repeat-x;
           }
-          // Vertical Lines (Full Height): the same lines, over the band's whole open space (2px to 27.5px), meeting
+          // Dot Pattern (Mike's, worked out in DevTools): the same 2.5px dots on a 6px grid in both directions, in the
+          // full teal like the other decorations (Mike; it began at 77%), so the Decoration Opacity slider alone sets
+          // how strong it is. The layer is a whole number of 6px rows, each dot centred in its row, so
+          // no dot is cut; it's centred in the band's open space. Rows per band (Mike): Full Height and Top Inset 4,
+          // Height of Thumb Body 3 (this default), Top and Bottom Body Inset 2.
+          // The grid starts at the band's left edge (0 0), not centred like the other patterns.
+          &.dot-pattern {
+            background: radial-gradient(circle, vars.$accent 1.25px, transparent 1.5px) 0 0 / 6px 6px repeat;
+            --dot-rows: 18px;
+            height: var(--dot-rows);
+            transform: translateY(calc(var(--open-top) + (var(--open-height) - var(--dot-rows)) / 2));
+          }
+          // Vertical Lines (Full Height): the same lines, over the band's whole open space, meeting
           // its top edge and bottom line
           &.full-lines {
             background: linear-gradient(90deg, transparent 1px, vars.$accent 1px 2px, transparent 2px)
               50% 0 / 3px 100% repeat-x;
-            height: 27.5px - 2px;
-            top: 2px;
-            transform: none;
+            height: var(--open-height);
+            transform: translateY(var(--open-top));
           }
           // Gradient: a teal tint at each end, fading to none across the middle third
           &.gradient {
             background: linear-gradient(90deg, rgba(vars.$accent, 0.25), rgba(vars.$accent, 0) 33.33% 66.67%,
               rgba(vars.$accent, 0.25));
-            height: 27.5px - 2px;
-            top: 2px;
-            transform: none;
+            height: var(--open-height);
+            transform: translateY(var(--open-top));
           }
           // Diagonal: 45-degree stripes over the band's whole open space, from a 6px square tile whose two stripes run
           // corner to corner, so the pattern sits on whole pixels and repeats exactly every 6px (a repeating gradient
@@ -434,9 +489,8 @@ $attribute-row-height: $attribute-button-offset + $attribute-button-height + $at
           &.diagonal {
             background: linear-gradient(45deg, vars.$accent 0 5.9%, transparent 5.9% 44.1%, vars.$accent 44.1% 55.9%,
               transparent 55.9% 94.1%, vars.$accent 94.1%) 0 0 / 6px 6px repeat;
-            height: 27.5px - 2px;
-            top: 2px;
-            transform: none;
+            height: var(--open-height);
+            transform: translateY(var(--open-top));
           }
         }
 

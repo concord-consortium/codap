@@ -11,7 +11,7 @@
   column-gap: 24px;
   display: grid;
   font: 400 14px Roboto, sans-serif;
-  grid-template-columns: auto auto;
+  grid-template-columns: auto auto auto;
   letter-spacing: vars.$letter-spacing;
   padding: 10px 14px 8px;
   position: fixed;
@@ -29,6 +29,82 @@
       line-height: 16px;
       margin-bottom: 4px;
       padding: 0;
+    }
+  }
+
+  // the decoration opacity slider under the Split Thumb Decoration radios: a plain track (no fill, Mike), the
+  // stop labels under the thumb positions (8px in from each end: half the 16px thumb), checks under the passing ones
+  .prototype-option-slider {
+    // a medium-gray rule separates it from the radios above (Mike)
+    border-top: 1px solid #999;
+    margin-top: 8px;
+    padding-top: 8px;
+
+    label {
+      display: block;
+      font-weight: 500;
+      line-height: 16px;
+    }
+    input[type="range"] {
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+      display: block;
+      height: 24px;
+      margin: 0;
+      width: 100%;
+
+      &::-webkit-slider-runnable-track {
+        background: #767676;
+        border-radius: 2px;
+        height: 4px;
+      }
+      &::-webkit-slider-thumb {
+        appearance: none;
+        background: vars.$accent;
+        border-radius: 50%;
+        height: 16px;
+        margin-top: -6px;
+        width: 16px;
+      }
+      &::-moz-range-track {
+        background: #767676;
+        border-radius: 2px;
+        height: 4px;
+      }
+      &::-moz-range-thumb {
+        background: vars.$accent;
+        border: none;
+        border-radius: 50%;
+        height: 16px;
+        width: 16px;
+      }
+      &:focus-visible {
+        outline: 2px solid vars.$focus-outline-color;
+        outline-offset: 2px;
+      }
+    }
+    .prototype-slider-stops {
+      height: 36px;
+      position: relative;
+    }
+    .prototype-slider-stop {
+      align-items: center;
+      display: flex;
+      flex-direction: column;
+      line-height: 16px;
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+    .prototype-slider-check {
+      color: vars.$accent;
+      font-weight: 700;
+    }
+    .prototype-slider-note {
+      line-height: 16px;
+      margin: 4px 0 0;
     }
   }
 

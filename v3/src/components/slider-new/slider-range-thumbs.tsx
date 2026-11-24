@@ -282,9 +282,11 @@ export const SliderRangeThumbs = observer(function SliderRangeThumbs({
     <div className="slider-range" data-testid="slider-range" ref={boxRef}>
       {/* the light-blue band is drawn under the axis line; its hit area sits above everything */}
       {/* PROTOTYPE option: the band's decoration (prototype-options.ts) */}
-      <div className="range-band" style={{ left: lowerX, width: Math.max(0, upperX - lowerX) }}>
+      <div className={`range-band band-${prototypeOptions.bandHeight}`}
+           style={{ left: lowerX, width: Math.max(0, upperX - lowerX) }}>
         {prototypeOptions.splitDecoration !== "none" &&
-          <div className={`range-band-decoration ${prototypeOptions.splitDecoration}`} />}
+          <div className={`range-band-decoration ${prototypeOptions.splitDecoration}`}
+               style={{ opacity: prototypeOptions.decorationOpacity / 100 }} />}
       </div>
       <div
         aria-label={`${sliderModel.sliderType === "visibility" ? "Visible" : "Selected"} range of ${attrName}`}
