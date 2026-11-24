@@ -109,8 +109,9 @@ export const MapLayersPalette = observer(function MapLayersPalette(
 
     return mapModel.layers.map(layer => {
       if (isMapLayerModel(layer)) {
+        const layerLabelId = `map-layer-label-${layer.id}`
         return (
-          <div className="map-layer-controls" key={layer.id}>
+          <div className="map-layer-controls" key={layer.id} role="group" aria-labelledby={layerLabelId}>
             <PaletteCheckbox
               data-testid={`map-layers-checkbox-layer-${layer.id}`}
               isSelected={layer.isVisible}
@@ -125,7 +126,9 @@ export const MapLayersPalette = observer(function MapLayersPalette(
                 })
               }}
             >
-              {layer.titleCollection?.title ?? t("DG.Inspector.defaultLayerName")}
+              <span id={layerLabelId}>
+                {layer.titleCollection?.title ?? t("DG.Inspector.defaultLayerName")}
+              </span>
             </PaletteCheckbox>
             {renderOneFormatControl(layer)}
           </div>)

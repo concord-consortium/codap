@@ -31,6 +31,34 @@ describe("MapLayersPalette", () => {
     // eslint-disable-next-line testing-library/no-node-access
     screen.getByTestId(`map-layers-checkbox-layer-${layerId}`).closest(".map-layer-controls") as HTMLElement
 
+  it("groups each layer's controls under the layer's name, so repeated controls can be told apart", () => {
+    const mapModel = MapContentModel.create(
+      { layers: [MapPointLayerModel.create() as any, MapPointLayerModel.create() as any] },
+      { historyService: new AppHistoryService() }
+    )
+    render(<MapLayersPalette tile={{ content: mapModel } as any} setShowPalette={jest.fn()}/>)
+
+    const groups = screen.getAllByRole("group", { name: "DG.Inspector.defaultLayerName" })
+    expect(groups).toHaveLength(2)
+    mapModel.layers.forEach((layer, index) => {
+      const group = groups[index]
+      // The group is labelled by the layer's own name, inside the group's visibility checkbox.
+      const labelId = group.getAttribute("aria-labelledby")
+      // eslint-disable-next-line testing-library/no-node-access
+      const label = labelId ? document.getElementById(labelId) : null
+      const layerCheckbox = within(group).getByTestId(`map-layers-checkbox-layer-${layer.id}`)
+      expect(layerCheckbox).toContainElement(label)
+      // The layer checkbox keeps its own name.
+      expect(within(group).getAllByRole("checkbox", { name: "DG.Inspector.defaultLayerName" })).toHaveLength(1)
+      // Each group holds its own layer's controls and none of the other layer's.
+      const otherLayer = mapModel.layers[1 - index]
+      for (const kind of ["points", "grid", "lines"]) {
+        expect(within(group).getByTestId(`map-layers-checkbox-${kind}-${layer.id}`)).toBeInTheDocument()
+        expect(within(group).queryByTestId(`map-layers-checkbox-${kind}-${otherLayer.id}`)).not.toBeInTheDocument()
+      }
+    })
+  })
+
   it("has the points, grid, connecting lines, and pins checkboxes in the layer's controls", () => {
     renderPalette()
 
