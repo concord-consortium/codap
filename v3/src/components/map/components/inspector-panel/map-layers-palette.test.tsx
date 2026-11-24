@@ -18,7 +18,7 @@ describe("MapLayersPalette", () => {
   const renderPalette = () => {
     // applyModelChange requires a history service in the MST environment
     const mapModel = MapContentModel.create(
-      { layers: [MapPointLayerModel.create(), MapPinLayerModel.create()] },
+      { layers: [MapPointLayerModel.create() as any, MapPinLayerModel.create()] },
       { historyService: new AppHistoryService() }
     )
     pointLayer = mapModel.layers[0] as IMapPointLayerModel
