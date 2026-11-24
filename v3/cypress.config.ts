@@ -3,6 +3,8 @@ import fs from 'fs-extra';
 import path from 'path';
 import { addMatchImageSnapshotPlugin } from 'cypress-image-snapshot/plugin'
 
+const kDefaultBaseUrl = 'http://localhost:8080'
+
 export default defineConfig({
     video: false,
     projectId: 'msrfxa',
@@ -49,10 +51,13 @@ export default defineConfig({
 
             return getConfigurationByFile(env)
                 .then(envConfig => {
+                    // A baseUrl passed with --config or through the Module API (as the parallel runner
+                    // does) wins over the env file's.
+                    if (config.baseUrl !== kDefaultBaseUrl) delete envConfig.baseUrl
                     return require('@cypress/code-coverage/task')(on, { ...config, ...envConfig });
                 });
         },
-        baseUrl: 'http://localhost:8080',
+        baseUrl: kDefaultBaseUrl,
         // Excludes the CODAP-1323 v2-v3-redirect conformance spec from the default /
         // regression specPattern (its temp subdomain exists only pre-flip; running it
         // outside that window would always fail). Run on demand with

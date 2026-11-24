@@ -91,6 +91,7 @@
     "test:watch": "jest --watch",
     "test:coverage:watch": "jest --coverage --watchAll",
     "test:cypress": "cypress run --browser chrome",
+    "test:cypress:parallel": "node scripts/cypress-parallel/cli.js",
     "test:cypress:dev": "cypress run --env testEnv=dev",
     "test:cypress:staging": "cypress run --env testEnv=staging",
     "test:cypress:open": "cypress open --browser chrome",
