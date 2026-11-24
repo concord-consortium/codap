@@ -72,9 +72,11 @@ describe("runSpec", () => {
     }
     return false
   }
-  const grandchildPid = async () => {
+  const grandchildPid = async (timeoutMs = 5000) => {
     const file = path.join(outDir, "grandchild.pid")
-    while (!fs.existsSync(file)) await delay(20)
+    for (const end = Date.now() + timeoutMs; !fs.existsSync(file); await delay(20)) {
+      if (Date.now() > end) throw new Error("the fixture didn't start its grandchild process")
+    }
     return Number(fs.readFileSync(file, "utf8"))
   }
 

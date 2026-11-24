@@ -130,7 +130,7 @@ The prior manual steps for building a release are listed below for posterity:
 
 ##### Running the Cypress Tests in Parallel Locally
 
-With `npm start` running, `npm run test:cypress:parallel` runs the whole Cypress suite on several workers at once, each spec in its own Cypress process. It doesn't report to Cypress Cloud, so it doesn't use any of our Cypress Cloud quota. That makes it a way to check a branch before adding the `run regression` label, but it doesn't replace the CI run.
+With `npm start` running, `npm run test:cypress:parallel` runs the whole Cypress suite on several workers at once, each spec in its own Cypress process. It doesn't report to Cypress Cloud, so it doesn't use any of our Cypress Cloud quota. That makes it a way to check a branch before adding the `run regression` label, but it doesn't replace the CI run. It works on macOS and Linux, but not Windows.
 
 On a 16-core Mac the full suite takes about 4.5 minutes with 8 workers, compared with about 8.5 minutes with 4. More than 8 workers saves little, because the longest specs slow down under the load and set the total time.
 

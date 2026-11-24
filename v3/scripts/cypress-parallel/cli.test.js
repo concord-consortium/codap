@@ -1,7 +1,7 @@
 const fs = require("fs")
 const os = require("os")
 const path = require("path")
-const { checkBaseUrl, defaultWorkers, keepAwake, main, parseArgs, selectSpecs } = require("./cli")
+const { checkBaseUrl, checkPlatform, defaultWorkers, keepAwake, main, parseArgs, selectSpecs } = require("./cli")
 
 const v3Root = path.resolve(__dirname, "../..")
 
@@ -35,6 +35,11 @@ describe("parseArgs", () => {
       .toMatchObject({ workers: 2, spec: ["a.ts", "b.ts", "c.ts"] })
   })
 
+  it("keeps the commas inside a brace glob", () => {
+    expect(parseArgs(["--spec", "cypress/e2e/{graph,text}.spec.ts,b.ts"]))
+      .toMatchObject({ spec: ["cypress/e2e/{graph,text}.spec.ts", "b.ts"] })
+  })
+
   it("rejects a stray argument that doesn't follow --spec", () => {
     expect(() => parseArgs(["a.ts"])).toThrow(/a\.ts/)
   })
@@ -65,6 +70,17 @@ describe("parseArgs", () => {
 
   it("rejects --spec together with --rerun-failed", () => {
     expect(() => parseArgs(["--spec", "x", "--rerun-failed"])).toThrow(/--spec.*--rerun-failed/)
+  })
+})
+
+describe("checkPlatform", () => {
+  it("refuses to run on Windows, where it can't stop a hung spec's processes", () => {
+    expect(() => checkPlatform("win32")).toThrow(/Windows/)
+  })
+
+  it("runs on macOS and Linux", () => {
+    expect(() => checkPlatform("darwin")).not.toThrow()
+    expect(() => checkPlatform("linux")).not.toThrow()
   })
 })
 

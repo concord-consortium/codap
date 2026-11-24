@@ -32,7 +32,8 @@ function parseArgs(argv) {
     workers: defaultWorkers(os.availableParallelism()), spec: null, rerunFailed: false, baseUrl: DEFAULT_BASE_URL,
     specTimeoutMinutes: DEFAULT_SPEC_TIMEOUT_MINUTES
   }
-  const addSpecs = value => { args.spec = [...(args.spec || []), ...value.split(",").filter(Boolean)] }
+  // Commas inside braces belong to a glob like {graph,text}.spec.ts, so only split at the others.
+  const addSpecs = value => { args.spec = [...(args.spec || []), ...value.split(/,(?![^{]*})/).filter(Boolean)] }
   let afterSpec = false
   for (let i = 0; i < argv.length; i++) {
     // npm's shell expands an unquoted glob like {a,b}.spec.ts into several arguments,
@@ -74,6 +75,13 @@ function parseArgs(argv) {
   }
   if (args.spec && args.rerunFailed) throw new Error("Use --spec or --rerun-failed, not both")
   return args
+}
+
+// The runner stops a hung spec by signalling its process group, which Windows doesn't support.
+function checkPlatform(platform = process.platform) {
+  if (platform === "win32") {
+    throw new Error("The parallel Cypress runner works on macOS and Linux, not Windows. Use npm run test:cypress.")
+  }
 }
 
 // Rejects unless something answers at `url`, so a missing dev server fails the run up front.
@@ -127,6 +135,7 @@ function keepAwake({ platform = process.platform, spawnFn = spawn } = {}) {
 async function main(argv) {
   let args
   try {
+    checkPlatform()
     args = parseArgs(argv)
   } catch (error) {
     console.error(error.message)
@@ -203,4 +212,4 @@ if (require.main === module) {
   )
 }
 
-module.exports = { checkBaseUrl, defaultWorkers, keepAwake, main, parseArgs, selectSpecs }
+module.exports = { checkBaseUrl, checkPlatform, defaultWorkers, keepAwake, main, parseArgs, selectSpecs }
