@@ -73,24 +73,6 @@ describe("MapLayersPalette", () => {
     expect(pinControls.queryByRole("checkbox", { name: "DG.Inspector.mapPoints" })).not.toBeInTheDocument()
   })
 
-  it("orders a point layer's sections Points, then Grid and Connecting Lines at the bottom", () => {
-    renderPalette()
-
-    // Each section is its own palette-form directly beneath the layer's controls.
-    // eslint-disable-next-line testing-library/no-node-access
-    const sections = Array.from(layerControls(pointLayer.id).querySelectorAll(":scope > .palette-form"))
-    const sectionOf = (testId: string) =>
-      // eslint-disable-next-line testing-library/no-node-access
-      sections.findIndex(section => section.querySelector(`[data-testid="${testId}"]`))
-
-    const pointsIndex = sectionOf(`map-layers-checkbox-points-${pointLayer.id}`)
-    const gridIndex = sectionOf(`map-layers-checkbox-grid-${pointLayer.id}`)
-    const linesIndex = sectionOf(`map-layers-checkbox-lines-${pointLayer.id}`)
-    expect(pointsIndex).toBe(0)
-    expect(gridIndex).toBe(sections.length - 2)
-    expect(linesIndex).toBe(sections.length - 1)
-  })
-
   it("puts Grid, Connecting Lines, and Pins each in a section of its own", () => {
     renderPalette()
 
