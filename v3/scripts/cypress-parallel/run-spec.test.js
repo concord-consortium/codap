@@ -47,7 +47,11 @@ describe("toSpecResult", () => {
   })
 })
 
-describe("runSpec", () => {
+// These start real processes and stop them by process group, which Windows doesn't support
+// (the runner refuses to run there).
+const describeUnlessWindows = process.platform === "win32" ? describe.skip : describe
+
+describeUnlessWindows("runSpec", () => {
   const fs = require("fs")
   const os = require("os")
   const path = require("path")
@@ -82,10 +86,12 @@ describe("runSpec", () => {
   }
   const grandchildPid = async (timeoutMs = 5000) => {
     const file = path.join(outDir, "grandchild.pid")
-    for (const end = Date.now() + timeoutMs; !fs.existsSync(file); await delay(20)) {
+    // The file can exist briefly before the pid is written to it.
+    const readPid = () => fs.existsSync(file) ? Number(fs.readFileSync(file, "utf8")) : 0
+    for (const end = Date.now() + timeoutMs; !(readPid() > 0); await delay(20)) {
       if (Date.now() > end) throw new Error("the fixture didn't start its grandchild process")
     }
-    return Number(fs.readFileSync(file, "utf8"))
+    return readPid()
   }
 
   it("reports the result the child writes", async () => {

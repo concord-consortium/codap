@@ -198,7 +198,10 @@ describe("selectSpecs", () => {
   })
 })
 
-describe("main", () => {
+// main() refuses to run on Windows before it selects specs.
+const describeUnlessWindows = process.platform === "win32" ? describe.skip : describe
+
+describeUnlessWindows("main", () => {
   it("reports a --spec that matches nothing before checking whether CODAP is running", async () => {
     const log = jest.spyOn(console, "log").mockImplementation(() => {})
     const error = jest.spyOn(console, "error").mockImplementation(() => {})

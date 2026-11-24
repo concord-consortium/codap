@@ -111,12 +111,17 @@ function checkBaseUrl(url, timeoutMs = 5000) {
   const notResponding = () =>
     new Error(`Nothing is responding at ${url}. Start CODAP with \`npm start\`, or pass --base-url.`)
   return new Promise((resolve, reject) => {
+    const onResponse = response => {
+      response.resume()
+      resolve()
+    }
     let request
     try {
-      request = (url.startsWith("https:") ? https : http).get(url, response => {
-        response.resume()
-        resolve()
-      })
+      // This only checks that the server answers, so accept certificates Node doesn't trust, such as
+      // the mkcert one npm run start:secure uses (Node ignores the system store mkcert adds it to).
+      request = url.startsWith("https:")
+        ? https.get(url, { rejectUnauthorized: false }, onResponse)
+        : http.get(url, onResponse)
     } catch {
       reject(notResponding())
       return
