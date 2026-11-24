@@ -48,7 +48,7 @@ export async function addPrototypeSliders() {
 
   // the new slider's title names its type ("new Variable Slider - ...") and follows it when the type changes
   // in Config. The version and date live here -- update them with each round of changes.
-  const newSliderTitle = (typeLabel: string) => `new ${typeLabel} Slider - v1.0, updated: 11/24/26`
+  const newSliderTitle = (typeLabel: string) => `new ${typeLabel} Slider - v1.1, updated: 11/24/26`
 
   // to the right of Four Seals' tiles, which end at x = 715
   const sliders = [
