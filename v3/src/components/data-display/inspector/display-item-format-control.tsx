@@ -55,8 +55,6 @@ interface IDisplayItemFormatControlProps {
   // The map layers palette omits this: it repeats these controls per layer under the layer's own
   // name, so a heading inside each would be noise.
   showSectionHeaders?: boolean
-  // When true (and mapPointLayerModel is provided), shows a checkbox for hiding the layer's points.
-  enablePointToggle?: boolean
 }
 
 export const DisplayItemFormatControl = observer(function DisplayItemFormatControl(
@@ -65,7 +63,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
   const {
     dataConfiguration, displayItemDescription, mapPointLayerModel, pointDisplayType,
     isTransparent, onBackgroundTransparencyChange, plotBackgroundColor, onBackgroundColorChange,
-    showSectionHeaders, enablePointToggle
+    showSectionHeaders
   } = props
   const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
@@ -115,7 +113,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
   return (
     <div className="palette-form">
       <PaletteSection title={dataPointsTitle}>
-        {enablePointToggle && mapPointLayerModel &&
+        {mapPointLayerModel &&
           <PaletteCheckbox data-testid={`map-layers-checkbox-points-${mapPointLayerModel.id}`}
             isSelected={mapPointLayerModel.pointsAreVisible}
             onChange={handlePointsVisibilityChange}

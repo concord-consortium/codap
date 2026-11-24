@@ -99,7 +99,6 @@ export const MapLayersPalette = observer(function MapLayersPalette(
             dataConfiguration={layer.dataConfiguration}
             displayItemDescription={layer.displayItemDescription}
             mapPointLayerModel={mapPointLayerModel}
-            enablePointToggle={true}
           />
           <MapHotSpotControl mapPointLayerModel={mapPointLayerModel}/>
           {mapPointLayerModel && renderGridAndLinesSections(mapPointLayerModel)}

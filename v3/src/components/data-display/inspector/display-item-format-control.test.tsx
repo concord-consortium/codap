@@ -316,13 +316,12 @@ describe("DisplayItemFormatControl", () => {
   describe("points visibility toggle", () => {
     const kPointsToggleTestId = "map-layers-checkbox-points-layer-1"
 
-    it("shows the Points checkbox when enablePointToggle is true for a map point layer", () => {
+    it("shows the Points checkbox for a map point layer", () => {
       render(
         <DisplayItemFormatControl
           dataConfiguration={createMockDataConfig() as any}
           displayItemDescription={createMockDescription() as any}
           mapPointLayerModel={createMockMapPointLayer() as any}
-          enablePointToggle={true}
         />
       )
 
@@ -331,12 +330,11 @@ describe("DisplayItemFormatControl", () => {
       expect(checkbox).toHaveAttribute("data-selected", "true")
     })
 
-    it("omits the Points checkbox when enablePointToggle is not set", () => {
+    it("omits the Points checkbox when there is no map point layer", () => {
       render(
         <DisplayItemFormatControl
           dataConfiguration={createMockDataConfig() as any}
           displayItemDescription={createMockDescription() as any}
-          mapPointLayerModel={createMockMapPointLayer() as any}
         />
       )
 
@@ -352,7 +350,6 @@ describe("DisplayItemFormatControl", () => {
           dataConfiguration={createMockDataConfig() as any}
           displayItemDescription={createMockDescription() as any}
           mapPointLayerModel={layer as any}
-          enablePointToggle={true}
         />
       )
 
@@ -372,7 +369,6 @@ describe("DisplayItemFormatControl", () => {
           dataConfiguration={createMockDataConfig() as any}
           displayItemDescription={createMockDescription() as any}
           mapPointLayerModel={layer as any}
-          enablePointToggle={true}
         />
       )
 
@@ -394,7 +390,6 @@ describe("DisplayItemFormatControl", () => {
         }) as any}
         displayItemDescription={createMockDescription() as any}
         mapPointLayerModel={createMockMapPointLayer({ pointsAreVisible }) as any}
-        enablePointToggle={true}
       />
     )
 
