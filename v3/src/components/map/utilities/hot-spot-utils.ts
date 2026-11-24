@@ -356,7 +356,10 @@ export function hotSpotFade(normalizedDensity: number) {
 }
 
 export const kContinuousColorBins = "continuous"
-/** The number of color classes the density is drawn in, or kContinuousColorBins for a smooth gradient */
+/**
+ * The number of visible color classes the density is drawn in, not counting the transparent lowest class, or
+ * kContinuousColorBins for a smooth gradient
+ */
 export type HotSpotColorBins = number | typeof kContinuousColorBins
 export const kMinColorBins = 2
 export const kMaxColorBins = 10
@@ -395,19 +398,21 @@ export const kColorLUTSize = 256
  * Returns a lookup table of kColorLUTSize RGBA colors (4 bytes each) sampled along the ramp, from low density to
  * high. Each entry's alpha is multiplied by hotSpotFade, so low densities fade to transparent.
  *
- * With n color bins, the density range is split into n equal bins and every entry in bin k (0 to n − 1) gets the
- * ramp color, and the fade, at k / (n − 1). The lowest bin is therefore the low color and fully transparent, and
- * the highest is the high color. colorBins is limited by getEffectiveColorBins, so n is at least kMinColorBins.
+ * With n color bins, the density range is split into n + 1 equal bins and every entry in bin k (0 to n) gets the
+ * ramp color, and the fade, at k / n. The lowest bin is therefore the low color and fully transparent, followed by
+ * n visible colors ending with the high color. colorBins is limited by getEffectiveColorBins, so n is at least
+ * kMinColorBins.
  */
 export function buildColorLUT(interpolator: ColorInterpolator, colorBins: HotSpotColorBins = kContinuousColorBins) {
   const bins = getEffectiveColorBins(colorBins)
   const lut = new Uint8ClampedArray(kColorLUTSize * 4)
   for (let i = 0; i < kColorLUTSize; i++) {
     const normalizedDensity = i / (kColorLUTSize - 1)
-    // The ramp position this entry is colored with: its own density, or its bin's position when binned
+    // The ramp position this entry is colored with: its own density, or its bin's position when binned. Binned
+    // densities use one more bin than colorBins, for the transparent lowest bin.
     const rampPosition = bins === kContinuousColorBins
       ? normalizedDensity
-      : Math.min(bins - 1, Math.floor(normalizedDensity * bins)) / (bins - 1)
+      : Math.min(bins, Math.floor(normalizedDensity * (bins + 1))) / bins
     const { r, g, b, opacity } = rgb(interpolator(rampPosition))
     // Uint8ClampedArray rounds the alpha
     lut.set([r, g, b, opacity * hotSpotFade(rampPosition) * 255], i * 4)

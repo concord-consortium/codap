@@ -518,22 +518,16 @@ describe("buildColorLUT", () => {
       expect(buildColorLUT(monochrome, "continuous")).toEqual(buildColorLUT(monochrome))
     })
 
-    it("draws 2 bins as the transparent low color and the high color", () => {
+    it("draws 2 bins as the transparent low color, then the middle of the ramp and the high color", () => {
       const lut = buildColorLUT(monochrome, 2)
-      expect(colorsIn(lut, 0, 127)).toEqual([[0, 0, 0, 0]])
-      expect(colorsIn(lut, 128, 255)).toEqual([[255, 255, 255, 255]])
-    })
-
-    it("draws 3 bins as the low color, the middle of the ramp and the high color", () => {
-      const lut = buildColorLUT(monochrome, 3)
       // Entries 85 and 170 are exactly on the bin edges (1/3 and 2/3), so floating point decides their bin
       expect(colorsIn(lut, 0, 84)).toEqual([[0, 0, 0, 0]])
       expect(colorsIn(lut, 86, 169)).toEqual([[128, 128, 128, 255]])
       expect(colorsIn(lut, 171, 255)).toEqual([[255, 255, 255, 255]])
     })
 
-    it("draws 4 bins at 0, 1/3, 2/3 and 1 along the ramp, each with the fade at its ramp position", () => {
-      const lut = buildColorLUT(monochrome, 4)
+    it("draws 3 bins after the transparent bin, at 1/3, 2/3 and 1 along the ramp, each faded at its position", () => {
+      const lut = buildColorLUT(monochrome, 3)
       // the bin edges are at entries 63.75, 127.5 and 191.25
       expect(colorsIn(lut, 0, 63)).toEqual([[0, 0, 0, 0]])
       // 1/3 is just below kHotSpotFadeFull, so this bin is not quite opaque
@@ -552,10 +546,11 @@ describe("buildColorLUT", () => {
       expect(rgbaAt(lut, 255)).toEqual([252, 255, 164, 255])
     })
 
-    it("has exactly as many distinct colors as bins", () => {
+    it("has exactly as many distinct visible colors as bins, plus the transparent bin", () => {
       for (let bins = kMinColorBins; bins <= kMaxColorBins; bins++) {
-        const lut = buildColorLUT(monochrome, bins)
-        expect(colorsIn(lut, 0, kColorLUTSize - 1)).toHaveLength(bins)
+        const colors = colorsIn(buildColorLUT(monochrome, bins), 0, kColorLUTSize - 1)
+        expect(colors).toHaveLength(bins + 1)
+        expect(colors.filter(([, , , alpha]) => alpha > 0)).toHaveLength(bins)
       }
     })
 
