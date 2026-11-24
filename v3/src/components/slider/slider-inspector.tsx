@@ -17,6 +17,8 @@ import TimerIcon from "../../assets/icons/inspector-panel/playback-settings-icon
 const kConfigPaletteId = "slider-config-palette"
 const kPlaybackPaletteId = "slider-playback-palette"
 const kScalePaletteId = "slider-scale-palette"
+// keys that only move focus, dismiss, or modify, which don't resume a paused selection slider
+const kNonResumingKeys = new Set(["Tab", "Escape", "Shift", "Control", "Alt", "Meta", "CapsLock"])
 
 export const SliderInspector = observer(function SliderInspector({ tile, show }: ITileInspectorPanelProps) {
   const sliderModel = tile?.content
@@ -32,7 +34,20 @@ export const SliderInspector = observer(function SliderInspector({ tile, show }:
 
   if (!isSliderModel(sliderModel)) return null
 
+  // Using the slider's inspector resumes a paused selection slider, like touching the slider itself: opening or
+  // closing a palette with its button, and pressing or typing in one, including in its menus, whose events reach here
+  // through React. Closing a palette with Escape or a press elsewhere doesn't resume it, since that press may be the
+  // user making a selection of their own.
+  const resumeSelection = () => sliderModel.resumeSelection()
+  const handlePalettePointerDownCapture = (e: React.PointerEvent) => {
+    if (!e.button && e.isPrimary !== false) resumeSelection()
+  }
+  const handlePaletteKeyDownCapture = (e: React.KeyboardEvent) => {
+    if (!kNonResumingKeys.has(e.key)) resumeSelection()
+  }
+
   const handleTimerButton = (e: { target: Element }) => {
+    resumeSelection()
     buttonRef.current = e.target.closest("button") ?? e.target
     setShowPalette(showPalette === "measure" ? undefined : "measure")
   }
@@ -42,11 +57,13 @@ export const SliderInspector = observer(function SliderInspector({ tile, show }:
                      sliderModel.isRangeSlider
 
   const handleConfigButton = (e: { target: Element }) => {
+    resumeSelection()
     buttonRef.current = e.target.closest("button") ?? e.target
     setShowPalette(showPalette === "config" ? undefined : "config")
   }
 
   const handleScaleButton = (e: { target: Element }) => {
+    resumeSelection()
     buttonRef.current = e.target.closest("button") ?? e.target
     setShowPalette(showPalette === "scale" ? undefined : "scale")
   }
@@ -119,7 +136,10 @@ export const SliderInspector = observer(function SliderInspector({ tile, show }:
       >
         <MeasureIcon />
       </InspectorButton>
-      {renderPaletteIfAny()}
+      <div className="slider-palette-container" onPointerDownCapture={handlePalettePointerDownCapture}
+           onKeyDownCapture={handlePaletteKeyDownCapture}>
+        {renderPaletteIfAny()}
+      </div>
     </InspectorPanel>
   )
 })
