@@ -1555,6 +1555,27 @@
     "V3.Redo.slider.changeMinimum": "Redo change of slider minimum",
     "V3.Undo.slider.changeMaximum": "Undo change of slider maximum",
     "V3.Redo.slider.changeMaximum": "Redo change of slider maximum",
+    // PROTOTYPE (slider redesign): the first three pairs match branch mapping-time-sliders; the rest are ours
+    "V3.Undo.slider.changeType": "Undo change to slider type",
+    "V3.Redo.slider.changeType": "Redo change to slider type",
+    "V3.Undo.slider.configureFromAttribute": "Undo configuring slider from attribute",
+    "V3.Redo.slider.configureFromAttribute": "Redo configuring slider from attribute",
+    "V3.Undo.slider.changeRange": "Undo slider range change",
+    "V3.Redo.slider.changeRange": "Redo slider range change",
+    "V3.Undo.slider.removeAttribute": "Undo removing attribute from slider",
+    "V3.Redo.slider.removeAttribute": "Redo removing attribute from slider",
+    "V3.Undo.slider.changeRangeWidth": "Undo change to slider range width",
+    "V3.Redo.slider.changeRangeWidth": "Redo change to slider range width",
+    "V3.SliderView.playbackStarted": "Playback started",
+    "V3.SliderView.playbackStopped": "Playback stopped",
+    // ship-check #19: Config's own tooltip (the real build's text), "playback" as in the announcements, and a
+    // curly apostrophe in the thumb's (CODAP's DG strings are unchanged)
+    "V3.Inspector.sliderConfig.toolTip": "Set the slider type and range width",
+    "V3.Inspector.sliderPlayback.toolTip": "Set playback direction, speed, …",
+    "V3.SliderView.thumbView.toolTip": "Drag to change the slider’s value",
+    // ship-check #22: the drop hints are the real build's (mapping-time-sliders)
+    "V3.Slider.dropHint.visibility": "Show only cases in a range of %@",
+    "V3.Slider.dropHint.selection": "Select cases in a range of %@",
 
     // Date unit labels with CLDR plural categories (one/other) via Intl.PluralRules.
     "V3.dateUnit.year.one": "year",

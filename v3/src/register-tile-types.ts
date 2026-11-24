@@ -6,6 +6,8 @@ import "./components/case-table/case-table-registration"
 import "./components/case-card/case-card-registration"
 import "./components/graph/graph-registration"
 import "./components/slider/slider-registration"
+// PROTOTYPE: the "new design" slider tile (see components/slider-new)
+import "./components/slider-new/slider-registration"
 import "./components/calculator/calculator-registration"
 import "./components/text/text-registration"
 import "./components/map/map-registration"

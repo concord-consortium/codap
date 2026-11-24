@@ -27,6 +27,7 @@ import { logGAStatus } from "../lib/ga-status"
 import { Logger } from "../lib/logger"
 import { appState } from "../models/app-state"
 import { addDefaultComponents } from "../models/codap/add-default-content"
+import { isPrototypeStart } from "../prototype/slider-prototype"
 import { gDataBroker } from "../models/data/data-broker"
 import { setDataSetNotificationAdapter } from "../models/data/data-set-notification-adapter"
 import { V2DataSetNotificationAdapter } from "../models/data/data-set-notification-adapter-v2"
@@ -245,7 +246,8 @@ export const App = observer(function App() {
       <DocumentContentContext.Provider value={appState.document.content}>
         <CfmContext.Provider value={cfm}>
           <ProgressContext.Provider value={progressContextValue}>
-            <If condition={uiState.shouldRenderAnnouncementBanner}>
+            {/* PROTOTYPE: no announcement banner in the slider prototype */}
+            <If condition={uiState.shouldRenderAnnouncementBanner && !isPrototypeStart}>
               <AnnouncementBanner />
             </If>
             <SectionNavigationProvider>

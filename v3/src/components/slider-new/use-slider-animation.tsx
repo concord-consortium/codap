@@ -1,0 +1,186 @@
+import { isAlive } from "mobx-state-tree"
+import { useCallback, useEffect, useRef } from "react"
+import { prf } from "../../utilities/profiler"
+import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
+import { ISliderModel } from "./slider-model"
+import { FixValueFn, kAnimationDefaults } from "./slider-types"
+
+// Uses requestAnimationFrame instead of setInterval to ensure each animation tick
+// aligns with a browser paint cycle. When the tick work takes longer than the
+// requested interval, setInterval queues callbacks that execute back-to-back,
+// starving the browser's render loop. With rAF, each update produces a visible
+// frame, and we skip frames when the desired rate exceeds what the system can deliver.
+export function useAnimationFrame(callback: () => void, interval: number | null) {
+  const callbackRef = useRef(callback)
+  useEffect(() => { callbackRef.current = callback }, [callback])
+  useEffect(() => {
+    if (interval === null) return
+    let rafId: number
+    // Initialize lastTime to -1 so the first rAF callback sets it from the
+    // callback's own timestamp. This avoids a time-domain mismatch when
+    // Cypress fake-timers mock rAF (fake timestamps) while performance.now()
+    // returns real wall-clock time.
+    let lastTime = -1
+    const tick = (now: number) => {
+      if (lastTime < 0) lastTime = now
+      const elapsed = now - lastTime
+      if (elapsed >= interval) {
+        lastTime = now - (elapsed % interval)
+        callbackRef.current()
+      }
+      rafId = window.requestAnimationFrame(tick)
+    }
+    rafId = window.requestAnimationFrame(tick)
+    return () => window.cancelAnimationFrame(rafId)
+  }, [interval])
+}
+
+interface IUseSliderAnimationProps {
+  sliderModel?: ISliderModel
+  running: boolean
+  setRunning: (running: boolean) => void
+}
+
+export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSliderAnimationProps) => {
+  const { animationRate, animationDirection, animationMode } = sliderModel || kAnimationDefaults
+  const tickTime = running ? 1000 / animationRate : null
+  const direction = animationDirection
+  const mode = animationMode
+  const prevDirectionRef = useRef("")
+  const maxMinHitsRef = useRef(0)
+  const axisLayout = useAxisLayoutContext()
+  const multiScale = axisLayout.getAxisMultiScale("bottom")
+
+  const getAxisDomain = useCallback(function getAxisDomain(): readonly [number, number] {
+    const { axis: { domain } } = sliderModel || { axis: { domain: [0, 10] } }
+    return domain
+  }, [sliderModel])
+
+  const resetSlider = useCallback((val?: number) => {
+    if (!sliderModel || !isAlive(sliderModel)) return 0
+    const [axisMin, axisMax] = getAxisDomain()
+    const sign = animationDirection === "lowToHigh" ? 1 : -1
+    const testValue = val ?? sliderModel.value + sign * (sliderModel.increment ?? 0)
+    // During animation, resetSlider runs both at the top level and nested inside the value-change
+    // applyModelChange (validateValue calls it at a loop boundary), so suppress the child-action
+    // warning; the change is non-undoable either way.
+    if (animationDirection === "lowToHigh" && testValue >= axisMax) {
+      sliderModel.applyModelChange(
+        () => sliderModel.setValue(axisMin),
+        { noDirty: true, suppressWarning: true }
+      )
+    }
+    if (animationDirection === "highToLow" && testValue <= axisMin) {
+      sliderModel.applyModelChange(
+        () => sliderModel.setValue(axisMax),
+        { noDirty: true, suppressWarning: true }
+      )
+    }
+    return sliderModel.value
+  }, [animationDirection, getAxisDomain, sliderModel])
+
+  const updateSlider = useCallback((val: number, min: FixValueFn, max: FixValueFn) => {
+    if (sliderModel && isAlive(sliderModel)) {
+      prf.measure("Slider.animationTick", () => {
+        sliderModel.applyModelChange(
+          () => sliderModel.setValidatedValue(sliderModel.validateValue(val, min, max)),
+          { noDirty: true }
+        )
+      })
+    }
+  }, [sliderModel])
+
+  useEffect(()=> {
+    running && resetSlider()
+  }, [running, resetSlider])
+
+  // Reset the prevDirectionRef to blank when user changes animation direction.
+  // Otherwise the increment modifier in moveSlider() stays to -1 because the logic check will always return true
+  useEffect(()=> {
+    if (animationDirection === "lowToHigh" || animationDirection === "highToLow") {
+      prevDirectionRef.current = ""
+    }
+  }, [animationDirection])
+
+  useAnimationFrame(() => {
+    if (running && sliderModel) {
+      const increment = sliderModel.increment ? sliderModel.increment
+        : multiScale?.resolution ? multiScale.resolution : 1
+      const incrementModifier = direction === 'highToLow' || prevDirectionRef.current === 'highToLow' ? -1 : 1
+      const newValue = sliderModel.value + increment * incrementModifier
+
+      switch (direction) {
+        case "lowToHigh":
+          handleLowToHighAnimation(newValue)
+          break
+        case "highToLow":
+          handleHighToLowAnimation(newValue)
+          break
+        case "backAndForth":
+          handleBackAndForthAnimation(newValue)
+          break
+      }
+    }
+  }, tickTime)
+
+  const handleLowToHighAnimation = (newValue: number) => {
+    const [axisMin, axisMax] = getAxisDomain()
+    const aboveMax = (val: number) => {
+      if (mode === "onceOnly") {
+        setRunning(false)
+        return axisMax
+      } else {
+        return resetSlider(newValue)
+      }
+    }
+    const belowMin = (val: number) => {
+      return axisMin
+    }
+    updateSlider(newValue, belowMin, aboveMax)
+  }
+
+  const handleHighToLowAnimation = (newValue: number) => {
+    const [axisMin, axisMax] = getAxisDomain()
+    const aboveMax = (val: number) => {
+      return axisMax
+    }
+    const belowMin = (val: number) => {
+      if (mode === "onceOnly") {
+        setRunning(false)
+        return axisMin
+      }
+      else {
+        return resetSlider(newValue)
+      }
+    }
+    updateSlider(newValue, belowMin, aboveMax)
+  }
+
+  const handleBackAndForthAnimation = (newValue: number) => {
+    const [axisMin, axisMax] = getAxisDomain()
+    const reachedLimit = (prevDirectionRef.current === 'lowToHigh' && newValue >= axisMax) ||
+                         (prevDirectionRef.current === 'highToLow' && newValue <= axisMin)
+
+    const aboveMax = (val: number) => {
+      prevDirectionRef.current = 'highToLow'
+      maxMinHitsRef.current += 1
+      return axisMax
+    }
+    const belowMin = (val: number) => {
+      prevDirectionRef.current = 'lowToHigh'
+      maxMinHitsRef.current += 1
+      return axisMin
+    }
+
+    if (prevDirectionRef.current === "") {
+      prevDirectionRef.current = "lowToHigh"
+      maxMinHitsRef.current = 1 //prevents first time run from doing 3 laps
+    }
+
+    if (mode === "onceOnly" && maxMinHitsRef.current > 1 && reachedLimit) {
+      setRunning(false)
+      maxMinHitsRef.current = 0
+    }
+    updateSlider(newValue, belowMin, aboveMax)
+  }
+}

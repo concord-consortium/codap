@@ -9,6 +9,7 @@ import { removeDevUrlParams, urlParams } from "../../utilities/url-params"
 import { displayVersion } from "../../utilities/version-utils"
 import { DEBUG_CFM_EVENTS, DEBUG_CFM_NO_AUTO_SAVE } from "../debug"
 import { Logger } from "../logger"
+import { addPrototypeSliders } from "../../prototype/slider-prototype"
 import { wrapCfmCallback } from "./cfm-utils"
 import { resolveDocument } from "./resolve-document"
 
@@ -107,6 +108,8 @@ export async function handleCFMEvent(cfmClient: CloudFileManagerClient, event: C
 
         const resolvedDocument = await resolveDocument(content, metadata)
         await appState.setDocument(resolvedDocument, metadata)
+        // PROTOTYPE: add the old/new design sliders to the default document
+        await addPrototypeSliders()
 
         // Enable autoSave only after the new document is set as appState.document.
         // Otherwise the CFM might save the previous document while the new one is

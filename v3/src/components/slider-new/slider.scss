@@ -1,0 +1,893 @@
+@use "./../vars";
+
+// PROTOTYPE: 46px taller than the original (98 / 110):
+// +15 so the play/pause button gets a 44x44 target above the thumb (29px below the body top originally)
+// +8 for 12px between the numbers and the tile's bottom border (originally 4px)
+// +10 so a range thumb's 44x44 target (22px above the line) doesn't overlap the play/pause target
+// +2 because the numbers moved down 2px to clear the 24px range thumb
+// +5 for more room between the play/pause button and the thumb (was a 5px visible gap, now 10px)
+// +6 because the thumb grew 6px taller (24px square body + 6px pointer), keeping that 10px gap
+$slider-component-height: 144px;
+// a date scale's second row of labels is 18px; the tile grows by all 18 (it was 12), so the thumb keeps the same
+// 10px below the Play button as with numbers (Mike)
+$date-slider-component-height: $slider-component-height + 18px;
+// how far the scale sits from the bottom; the original is -8px. +8 for the 12px gap below the numbers,
+// +2 because the numbers moved down 2px to clear the 24px thumb
+$slider-track-bottom: 2px;
+
+// PROTOTYPE: what the attribute label adds to the tile (Mike): 8px from the digits to the 24px button, 10px
+// below it. The digits' ink ends 4px above their text box, so the button starts 4px below that box. Without
+// the label there are 8px below the numbers' box, so the tile grows by 4 + 24 + 10 - 8 = 30px.
+$attribute-button-height: 24px;
+$attribute-button-gap-below: 10px;
+$numbers-ink-to-box-bottom: 4px;
+$attribute-button-offset: 8px - $numbers-ink-to-box-bottom;
+$numbers-gap-below: 8px;
+$attribute-row-height: $attribute-button-offset + $attribute-button-height + $attribute-button-gap-below
+  - $numbers-gap-below;
+
+// PROTOTYPE: the tile's name and value fields, per the CODAP v3 UI Sketch spec (Slider Tile > Number Field
+// States) except that by default they have no border (Mike) -- it's transparent, so nothing shifts when it
+// shows. Hover: #d3f4ff with the 1px #006c8e border (text cursor). Selected (clicked or tabbed to): the
+// border becomes 2px #0957d0 inside -- the second pixel an inset shadow so the field doesn't grow -- and the
+// text is highlighted in #b4d8ff (the field selects its text on focus). 4px corners.
+@mixin spec-entry-field {
+  background-color: white;
+  border: 1px solid transparent;
+  border-radius: vars.$border-radius-four-corners;
+  cursor: text;
+
+  &:hover {
+    background-color: vars.$icon-fill-light;
+    border-color: vars.$accent;
+  }
+  // drawn as an outline over the edge (not an inset shadow, which the selected text's highlight covers)
+  &:focus {
+    background-color: white;
+    border-color: vars.$focus-outline-color;
+    outline: 2px solid vars.$focus-outline-color;
+    outline-offset: -2px;
+  }
+  &::selection {
+    background-color: #b4d8ff;
+    color: vars.$label-color;
+  }
+}
+
+// PROTOTYPE: the pointer thumb (thumb-shape.tsx), coloured like the house Slider Thumb in the CODAP v3 UI
+// Sketch file (Graph Tile PART 1 > "Slider Thumb States + Track Interaction"): default #d3f4ff, hover
+// #bbefff, pressed/dragging #a5e3f6, 2px #006c8e outline; keyboard focus = #bbefff plus a separate 2px
+// #0957d0 ring 2px out. Cursors per the spec: grab on hover, grabbing while pressed/dragging.
+@mixin pointer-thumb-states {
+  cursor: grab;
+
+  .thumb-shape {
+    display: block;
+    overflow: visible;
+    .shape {
+      fill: vars.$icon-fill-light;
+      stroke: vars.$accent;
+      stroke-linejoin: round;
+      // 2px (the house symbol's is 1.5px)
+      stroke-width: 2px;
+    }
+    // PROTOTYPE option: a whole thumb's grip lines, in the outline's colour
+    .decoration.lines {
+      fill: none;
+      stroke: vars.$accent;
+      stroke-linecap: round;
+      stroke-width: 1.5px;
+    }
+    // the shape-following ring drawn in thumb-shape.tsx; only shown for keyboard focus
+    .focus-ring {
+      display: none;
+      fill: vars.$focus-outline-color;
+    }
+  }
+  &:hover .thumb-shape .shape {
+    fill: vars.$accent-light-3;
+  }
+  &.dragging {
+    cursor: grabbing;
+    .thumb-shape .shape { fill: vars.$accent-light-2; }
+  }
+  &.focus-visible .thumb-shape {
+    .shape { fill: vars.$accent-light-3; }
+    .focus-ring { display: inline; }
+  }
+}
+
+
+// PROTOTYPE: all text in our tiles is Roboto 14px (Regular or Medium) with 0.2px letter spacing.
+// The title is already CODAP's Roboto Medium 14; it only needs the spacing.
+.codap-component.codap-slider-new .title-bar {
+  .title-text, .title-text-input {
+    letter-spacing: vars.$letter-spacing;
+  }
+}
+
+// PROTOTYPE: minimizing works like the case table's (Mike): the body closes up under the title bar, cutting off the
+// content, which stays where it is (it sits in .slider-new-content, which keeps the full height, pinned to the top),
+// and the tile's outline and shadow close with it. A slider's frame has no height of its own (isFixedHeight), so it
+// snaps to the title bar; the tile, normally 100% of the frame, follows its content instead, so its outline tracks
+// the closing body rather than snapping with the frame. (The original slider shrank its body with the track and axis
+// anchored to the bottom, so they slid up over the Play button.)
+.codap-component.codap-slider-new {
+  height: auto;
+
+  &.minimized .slider-new-wrapper {
+    height: 0;
+  }
+
+  // minimized, the title bar is the whole tile, so its bottom corners round like the tile's (Mike) -- once the
+  // 0.4s close has finished, so the body doesn't show through them as it closes; square again at once on restore
+  .component-title-bar {
+    transition: border-radius 0s;
+  }
+  &.minimized .component-title-bar {
+    border-radius: vars.$border-radius-four-corners;
+    transition: border-radius 0s 0.4s;
+  }
+}
+
+.slider-new-wrapper {
+  position: relative;
+  overflow: clip;
+  // the body's full height, which .slider-new-content always keeps
+  --slider-full-height: calc(#{$slider-component-height} - #{vars.$title-bar-height} + var(--readout-extra, 0px));
+  height: var(--slider-full-height);
+  transition: vars.$minimize-transition;
+  background: #fff;
+  border-radius: vars.$border-radius-bottom-corners;
+  // Roboto Regular 14 for everything in the body; the play/pause label overrides to Medium
+  font: 400 14px Roboto, sans-serif;
+  letter-spacing: vars.$letter-spacing;
+
+  &.twoLevel {
+    --slider-full-height: calc(#{$date-slider-component-height} - #{vars.$title-bar-height} + var(--readout-extra, 0px));
+  }
+
+  // PROTOTYPE: with an attribute, the label row is added under the numbers: the tile grows by the
+  // row's height and the scale moves up by the same amount, so nothing above it moves
+  &.has-attribute {
+    --slider-full-height: calc(#{$slider-component-height} + #{$attribute-row-height} - #{vars.$title-bar-height} +
+      var(--readout-extra, 0px));
+    .slider { bottom: $slider-track-bottom + $attribute-row-height; }
+    &.twoLevel {
+      --slider-full-height: calc(#{$date-slider-component-height} + #{$attribute-row-height} - #{vars.$title-bar-height} +
+        var(--readout-extra, 0px));
+    }
+  }
+
+  .slider-new-content {
+    height: var(--slider-full-height);
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+
+  // PROTOTYPE: a visibility/selection slider with no attribute shows only the prompt (doc figure 3)
+  &.is-empty {
+    .slider-control, .slider { visibility: hidden; }
+  }
+  .slider-empty-state {
+    align-items: center;
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    position: absolute;
+    z-index: 3;
+  }
+
+  // PROTOTYPE: the attribute drop zone covers the body; it only paints while a usable attribute is dragged
+  .slider-drop-zone {
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+    // above everything, the Paused pill included
+    z-index: 9;
+
+    &.active {
+      box-shadow: inset 0 0 0 2px white, inset 0 0 0 5px vars.$accent;
+    }
+    &.over {
+      background: vars.$drop-highlight-color;
+    }
+  }
+
+  // the prompt and the attribute label, styled like the graph's axis label (attribute-label.scss, axis-utils.ts): 24px tall, 8px
+  // in, the text, then a 24px caret box; 4px corners. Default: no fill, no border, no caret. The caret shows
+  // when the tile is selected, hovered, focused or open; hover #bbefff + 1px #006c8e; keyboard focus a 2px
+  // #0957d0 border; open #a5e3f6 with the caret flipped up.
+  .slider-attribute-button {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: vars.$border-radius-four-corners;
+    color: vars.$label-color;
+    cursor: pointer;
+    box-sizing: border-box;
+    font: 400 14px Roboto, sans-serif;
+    height: 24px;
+    letter-spacing: normal;
+    line-height: 16px;
+    padding: 0 0 0 7px;   // 8px less the 1px border
+
+    .prompt-content {
+      align-items: center;
+      display: inline-flex;
+    }
+    .prompt-caret path {
+      fill: transparent;
+    }
+
+    // no hover look during an attribute drag (the graph does the same)
+    &:hover:not(.drag-active) {
+      background-color: vars.$accent-light-3;
+      border-color: vars.$accent;
+    }
+    &:focus-visible {
+      background-color: vars.$accent-light-3;
+      border-color: vars.$focus-outline-color;
+      outline: 2px solid vars.$focus-outline-color;
+      outline-offset: -2px;
+    }
+    &.open {
+      background-color: vars.$accent-light-2;
+      border-color: vars.$accent;
+
+      .prompt-caret path {
+        transform: scaleY(-1);
+        transform-box: fill-box;
+        transform-origin: center;
+      }
+    }
+    &:hover:not(.drag-active), &:focus-visible, &.open {
+      .prompt-caret path { fill: vars.$accent; }
+    }
+  }
+  // a selected tile shows the attribute label's caret, as the graph's axis label does -- but not the empty
+  // prompt's: "Drag an attribute or click here" is text only at rest, and gets its outline and caret together
+  // on hover, focus or open (Mike)
+  .codap-component.focused & .slider-attribute-label .prompt-caret path {
+    fill: vars.$accent;
+  }
+  // the label: the graph's attribute label font, Roboto Medium 14 #222 ($label-font)
+  .slider-attribute-label {
+    font: vars.$label-font;
+    letter-spacing: normal;
+  }
+
+  // PROTOTYPE: a selection slider paused by a selection made elsewhere (doc figure 5)
+  // No white scrim (Mike): the Paused pill shows the state, and a paused slider is still operable, so dimming it
+  // would fail contrast. The layer only places the pill; presses go through to the slider (which resumes it, or
+  // moves it), except on the pill itself.
+  .slider-paused {
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+    // above a joined thumb's halves (6 and 7): the pill comes before the track in the DOM (first in the Tab
+    // order), so it can't win a tie at 7 by coming later
+    z-index: 8;
+
+    // centred across the slider and on the thumb's height (its 30px box). Measured: the thumb's centre is
+    // 46px above the scale's bottom with one row of labels, and a two-row date scale is 18px taller.
+    // A 36px-tall teal pill (Mike), coloured like the Play button while playing: solid accent, white label
+    // (#222 is only 2.68:1 on the accent), Roboto Medium 14px with 0.2px tracking. A true pill: fully rounded
+    // ends, radius half the height (Mike).
+    .slider-paused-label {
+      align-items: center;
+      background-color: vars.$accent;
+      border-radius: 18px;
+      bottom: $slider-track-bottom + $attribute-row-height + 46px;
+      box-sizing: border-box;
+      color: white;
+      display: inline-flex;
+      font: vars.$label-font;
+      height: 36px;
+      left: 50%;
+      letter-spacing: vars.$letter-spacing;
+      line-height: 1;
+      // the letters paint 15px from each end (Mike): measured, "Paused" paints 1px inside its box on the left
+      // and 1.25px on the right
+      padding: 0 13.75px 0 14px;
+      position: absolute;
+      transform: translate(-50%, 50%);
+      border: none;
+      cursor: pointer;
+      pointer-events: auto;
+
+      // button states (Mike): hover as the playing Play button's, pressed the spec's Select fill (#a5e3f6) with
+      // #222 text, keyboard focus the spec's 2px #0957d0 border, inside the pill
+      &:hover {
+        background-color: vars.$codap-teal-dark;
+      }
+      &:active {
+        background-color: vars.$accent-light-2;
+        color: vars.$label-color;
+      }
+      // on the dark teal fill the blue ring alone is 1.08:1 (ship-check #4), so a 1px white ring sits inside
+      // it: blue on the tile's white 6.39:1, white on the teal 5.94:1 (Mike: blue ring -> white ring)
+      &:focus-visible {
+        box-shadow: inset 0 0 0 2px vars.$focus-outline-color, inset 0 0 0 3px white;
+        outline: none;
+      }
+      // pressed is the light fill, where the blue ring alone already reads (4.54:1 on #a5e3f6)
+      &:focus-visible:active {
+        box-shadow: inset 0 0 0 2px vars.$focus-outline-color;
+      }
+    }
+  }
+  &.twoLevel .slider-paused .slider-paused-label {
+    bottom: $slider-track-bottom + $attribute-row-height + 46px + 18px;
+  }
+
+  .slider {
+    position: absolute;
+    // PROTOTYPE: see kAxisMargin in slider-component.tsx (was 15px)
+    margin: 0 20px;
+    bottom: $slider-track-bottom;
+
+    // Variable mode: the 24x30 pointer thumb with its tip on the axis line. The element keeps the
+    // original's 12px of flow above the line; the shape (30px tall) hangs from 18px higher.
+    .slider-thumb-icon {
+      bottom: 12px;
+      display: block;
+      height: 12px;
+      position: relative;
+      width: 24px;
+      // above the axis (z-index 1)
+      z-index: 2;
+
+      .thumb-shape {
+        left: 0;
+        position: absolute;
+        top: 12px - 30px;
+      }
+
+      // 44x44 target around the whole thumb: from its top (30px above the line) to 14px below the line,
+      // 10px either side. It clears the play/pause target, which ends above the thumb.
+      &::after {
+        content: "";
+        height: 44px;
+        left: -10px;
+        position: absolute;
+        top: 12px - 30px;
+        width: 44px;
+      }
+
+      @include pointer-thumb-states;
+    }
+
+    // PROTOTYPE: range thumb -- the pointer thumb split in half (one half per end), joined by an edged bar
+    // (see slider-range-thumbs.tsx). The box is the 12px above the axis line, so the line is at y = 12.
+    .slider-range {
+      position: relative;
+      bottom: 12px;
+      height: 12px;
+
+      // the bar joining the two halves: its top 2px below the thumbs' top, its bottom edge over the axis line. Its
+      // edges are #006c8e (5.94:1 on white) because the bar is a control (drag it to move the range) and
+      // #d3f4ff alone is only 1.16:1 -- WCAG 1.4.11 asks for 3:1. The top edge is 2px to continue the
+      // halves' outline; the bottom one is 1px, the axis line's width.
+      // fills: one step darker than the thumbs in every state, along CODAP's light-blue ladder
+      // (#d3f4ff > #bbefff > #a5e3f6 > #8ddaf2): default #bbefff, hover/focus #a5e3f6, dragging #8ddaf2
+      .range-band {
+        background-color: vars.$accent-light-3;
+        // the top edge as an inset shadow (Chrome rounds border widths down to whole pixels)
+        box-shadow: inset 0 2px 0 vars.$accent;
+        // from 2px below the thumbs' top (30px above the line) down to the line
+        height: 30px - 2px;
+        pointer-events: none;
+        position: absolute;
+        top: 12px - 30px + 2px;
+        // over the axis line (z-index 1), under the thumbs
+        z-index: 2;
+
+        // the bottom edge, drawn exactly over the 1px axis line (which is centred on the line, so it
+        // runs 0.5px either side). Positioned offsets are painted on whole pixels, so the half-pixel
+        // shift is a transform, which isn't rounded.
+        // PROTOTYPE option (prototype-options.ts), "Split Thumb Decoration": Lines or Dots across the band's whole
+        // open space, in the outline's teal, 1px lines 16px tall, 3px apart (Mike: thinner and taller than the
+        // thumb's grip, grown equally up and down); 2.5px dots, 4px apart, the thumb's dot size. The spacing never changes; the pattern runs to the very edges (the halves' straight
+        // edges reach 1px into the band) and is cut off there, centred on the band so both ends are cut alike.
+        // Vertically centred in the band's open space -- between its 2px top edge and its bottom edge (1px, drawn
+        // 0.5px low over the axis line): 2px to 27.5px, centre 14.75px. The layer is the lines' 16px; dots sit on its
+        // middle.
+        .range-band-decoration {
+          height: 16px;
+          left: 1px;
+          position: absolute;
+          right: 1px;
+          top: 14px - 8px;
+          // the last 0.75px to the centre (offsets are painted on whole pixels, transforms aren't)
+          transform: translateY(0.75px);
+
+          &.lines {
+            background: linear-gradient(90deg, transparent 1px, vars.$accent 1px 2px, transparent 2px)
+              50% 0 / 3px 100% repeat-x;
+          }
+          &.dots {
+            background: radial-gradient(circle, vars.$accent 1.25px, transparent 1.5px) 50% 50% / 4px 4px repeat-x;
+          }
+          // Vertical Lines (Full Height): the same lines, over the band's whole open space (2px to 27.5px), meeting
+          // its top edge and bottom line
+          &.full-lines {
+            background: linear-gradient(90deg, transparent 1px, vars.$accent 1px 2px, transparent 2px)
+              50% 0 / 3px 100% repeat-x;
+            height: 27.5px - 2px;
+            top: 2px;
+            transform: none;
+          }
+          // Gradient: a teal tint at each end, fading to none across the middle third
+          &.gradient {
+            background: linear-gradient(90deg, rgba(vars.$accent, 0.25), rgba(vars.$accent, 0) 33.33% 66.67%,
+              rgba(vars.$accent, 0.25));
+            height: 27.5px - 2px;
+            top: 2px;
+            transform: none;
+          }
+          // Diagonal: 45-degree stripes over the band's whole open space, from a 6px square tile whose two stripes run
+          // corner to corner, so the pattern sits on whole pixels and repeats exactly every 6px (a repeating gradient
+          // at 45 degrees lands its stripes on fractions of a pixel, so they look unevenly spaced). Stripes are 4.24px
+          // apart measured square to them (6 / sqrt 2) and 1px thick (11.8% of the tile's 8.49px diagonal).
+          &.diagonal {
+            background: linear-gradient(45deg, vars.$accent 0 5.9%, transparent 5.9% 44.1%, vars.$accent 44.1% 55.9%,
+              transparent 55.9% 94.1%, vars.$accent 94.1%) 0 0 / 6px 6px repeat;
+            height: 27.5px - 2px;
+            top: 2px;
+            transform: none;
+          }
+        }
+
+        &::after {
+          background-color: vars.$accent;
+          bottom: 0;
+          transform: translateY(0.5px);
+          content: "";
+          height: 1px;
+          left: 0;
+          position: absolute;
+          right: 0;
+        }
+      }
+
+      // the band's pointer and keyboard target, above the axis so the axis's own drag doesn't take it
+      // the bar is drawn by .range-band but targeted by .range-band-hit, so its states come through :has()
+      &:has(.range-band-hit:hover) .range-band,
+      &:has(.range-band-hit.focus-visible) .range-band {
+        background-color: vars.$accent-light-2;
+      }
+      &:has(.range-band-hit.dragging) .range-band {
+        background-color: vars.$accent-light-1;
+      }
+      // keyboard focus rings the visible bar (2px, 2px out, like the thumbs), not its taller target
+      &:has(.range-band-hit.focus-visible) .range-band {
+        outline: 2px solid vars.$focus-outline-color;
+        outline-offset: 2px;
+      }
+
+      // its target: the whole stretch between the two values (the halves' targets only reach outward),
+      // from the thumbs' top to 14px below the line, like the halves' targets
+      .range-band-hit {
+        cursor: grab;
+
+        &.dragging {
+          cursor: grabbing;
+        }
+        height: 44px;
+        position: absolute;
+        top: 12px - 30px;
+        touch-action: none;
+        z-index: 3;
+
+        // the ring is drawn on the visible bar instead (see :has above)
+        &:focus-visible, &.focus-visible {
+          outline: none;
+        }
+      }
+
+      // the two halves of the pointer thumb, each 12px + 1px wide so their straight 2px outlines
+      // overlap into one line when the ends meet
+      .range-thumb {
+        @include pointer-thumb-states;
+        // an end resizes the range, so it shows the edge-drag arrow (as the published build's handles do), not the
+        // band's grab hand, which moves it (Mike). The arrow has no "grabbing" form, so it stays while dragging.
+        cursor: ew-resize;
+        &.dragging { cursor: ew-resize; }
+        height: 30px;
+        top: 12px - 30px;
+        touch-action: none;
+        width: 13px;
+        z-index: 4;
+
+        &.upper {
+          z-index: 5;
+        }
+
+        // 44x44 target reaching OUTWARD from the half's straight edge (the value), so the bar between the
+        // two values stays grabbable however narrow the range is -- except 4px inward: at either end of the
+        // scale the outer part is cut off by the tile's edge and its 2px resize handle (the value is 22px in),
+        // and 4px inward keeps the target 24px+ wide there (WCAG 2.5.8; measured 25px). Vertically from the
+        // thumb's top to 14px below the line.
+        &::after {
+          bottom: -14px;
+          content: "";
+          position: absolute;
+          top: 0;
+          width: 44px;
+        }
+        &.lower::after {
+          right: -4px;
+        }
+        &.upper::after {
+          left: -4px;
+        }
+
+      }
+
+      // when the two ends are joined (Mike's design): an overlay on each half. The left one moves the whole
+      // thumb (grab / grabbing); the right one splits it, the drag direction picking the end (ew-resize, like the
+      // ends). The hover fill on just that half shows which one you're about to grab.
+      // Each has a 44x44 target reaching outward from the value, like the split halves' targets. The two targets meet
+      // exactly at the value: each overlay reaches 1px past it (the halves overlap by half the outline), so each
+      // target is pulled back 1px. (They used to overlap by 10px, and the split one, on top, took presses on the
+      // inner 5px of the left half -- so pressing the left half could split the thumb instead of moving it.)
+      .range-move, .range-split {
+        height: 30px;
+        position: absolute;
+        top: 12px - 30px;
+        touch-action: none;
+        width: 13px;
+
+        &::after {
+          bottom: -14px;
+          content: "";
+          position: absolute;
+          top: 0;
+          width: 44px;
+        }
+      }
+      .range-move {
+        cursor: grab;
+        z-index: 6;
+        &.dragging { cursor: grabbing; }
+        &::after { right: 1px; }
+      }
+      // pulling a joined thumb apart opens the range -- a resize, so the ends' arrow (Mike; the published build
+      // uses grab here)
+      .range-split {
+        cursor: ew-resize;
+        z-index: 7;
+        &.dragging { cursor: ew-resize; }
+        &::after { left: 1px; }
+      }
+      // the halves under the overlays still show hover and dragging: the left half for a move (both halves
+      // while it moves), the right half for a split (React Aria marks the end being pulled out)
+      &:has(.range-move:hover) .range-thumb.lower .shape,
+      &:has(.range-split:hover) .range-thumb.upper .shape {
+        fill: vars.$accent-light-3;
+      }
+      // both halves while it moves -- named one by one so this is as specific as the hover rule above, and wins
+      // (it used to lose to it, leaving the left half at the hover colour while the right half showed pressed)
+      &:has(.range-move.dragging) .range-thumb.lower .shape,
+      &:has(.range-move.dragging) .range-thumb.upper .shape {
+        fill: vars.$accent-light-2;
+      }
+      // and the right half while it's pressed or pulled out (the split), likewise as specific as its hover rule
+      &:has(.range-split.dragging) .range-thumb.upper .shape,
+      & .range-thumb.upper.dragging .shape {
+        fill: vars.$accent-light-2;
+      }
+    }
+
+    .slider-axis-wrapper {
+      position: relative;
+      // PROTOTYPE: above the range band, below the range thumbs
+      z-index: 1;
+      display: flex;
+      flex-direction: row;
+      bottom: 12px;
+      left: 0;
+      height: 19px;
+
+      .axis {
+        // D3 puts font-size="10" and font-family="sans-serif" on an inner group, which beats
+        // anything inherited from here, so the tick text is targeted directly
+        // the scale's numbers match the graph axis in the CODAP v3 UI Sketch file (Graph Tile PART 1):
+        // Noto Sans Mono Medium 12, black, no letter spacing, digits 4.5px below the ticks.
+        // D3 leaves 3px (its tickPadding), so they move down another 1.5px -- plus 2px more so the
+        // 24px range thumb clears the digits by 0.5px (so 6.5px below the ticks in all).
+        text {
+          fill: #000;
+          font-family: "Noto Sans Mono", monospace;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0;
+          transform: translateY(3.5px);
+        }
+        // CODAP's axis code writes stroke: lightgrey and stroke-opacity: 0.7 inline on every line,
+        // so these need !important to win (scoped to this tile only)
+        // the horizontal line is drawn twice: D3's .domain path, with CODAP's own .axis-line on top
+        .domain, .axis-line {
+          stroke: #333 !important;
+          stroke-opacity: 1 !important;
+          stroke-width: 1px;
+        }
+        .tick line {
+          stroke: #8f8f8f !important;
+          stroke-opacity: 1 !important;
+          stroke-width: 1.5px;
+        }
+        fill: black;
+      }
+      // PROTOTYPE: a date scale's labels are in Roboto (Mike), otherwise as above
+      &.date .axis text {
+        font-family: Roboto, sans-serif;
+      }
+
+      .axis-end {
+        position: relative;
+        top: -7px;
+        height: 15px;
+        width: 2px;
+        // PROTOTYPE: the end caps (Mike): the line's #333, as wide as the ticks (1.5px), centred on the line's ends --
+        // the axis min and max -- as the ticks are on their values (with "day", the left cap on the 0 tick). The 2px
+        // box keeps the axis's inset that the thumbs' positions use; the line runs exactly between the two boxes, so
+        // each cap starts on the box's side touching the line and moves 0.75px (half its width) onto the line's end.
+        // Raised 0.5px so its 15px is centred on the line.
+        &::before {
+          background-color: #333;
+          bottom: 0;
+          content: "";
+          position: absolute;
+          top: 0;
+          // Chrome snaps a box's width to whole pixels, so 1.5px is a 1px box scaled up, from the end touching the line
+          transform: translateY(-0.5px) scaleX(1.5);
+          width: 1px;
+        }
+
+        &.min {
+          left: 0;
+          &::before { right: 0; transform: translate(0.75px, -0.5px) scaleX(1.5); transform-origin: right; }
+        }
+        &.max {
+          right: 0;
+          &::before { left: 0; transform: translate(-0.75px, -0.5px) scaleX(1.5); transform-origin: left; }
+        }
+      }
+
+      .slider-axis {
+        // the axis line sits on the svg's top edge; without this its top half is clipped
+        overflow: visible;
+        width: 100%;
+      }
+
+    }
+    .two-lines {
+      height: 37px;
+    }
+
+    // PROTOTYPE: the attribute label, centred under the numbers
+    .slider-attribute-row {
+      display: flex;
+      justify-content: center;
+      left: 0;
+      position: absolute;
+      right: 0;
+      // the track's top edge is the axis line (its contents are shifted up 12px), and the numbers'
+      // text box ends 25px below the line (D3's y=9, its 0.71em, our 3.5px shift)
+      top: 25px + $attribute-button-offset;
+      // above the axis (z-index 1), whose drag area covers the numbers and reaches down over this row
+      z-index: 3;
+    }
+    // a two-level date scale has a second row of labels (the axis wrapper is 37px, not 19px)
+    .slider-axis-wrapper.two-lines ~ .slider-attribute-row {
+      top: 25px + $attribute-button-offset + (37px - 19px);
+    }
+  }
+
+  .slider-control {
+    align-items: center;
+    line-height: 1;
+    display: flex;
+    flex-wrap: nowrap;
+
+    // PROTOTYPE: a range slider's readout flows like text, so in a narrow tile it wraps (the label's words, and
+    // each field whole) rather than squeezing its fields; it wraps 10px before the tile's edge. Its lines are 24px
+    // (the fields' height), the first centred on the Play button's 44px target like a one-line readout.
+    &:has(.range-readout) {
+      align-items: flex-start;
+    }
+    // At most two lines (Mike): the label and the values can break apart, but neither breaks itself; one wider than
+    // the tile is cut off at its edge. So the tile grows by one line at most. (The fields' hover and focus
+    // borders are drawn inside them, so the clip only cuts them where a field itself is cut.)
+    .slider-inputs.range-readout {
+      display: block;
+      flex: 1 1 auto;
+      height: auto;
+      line-height: 24px;
+      margin-top: 10px;
+      max-height: 2 * 24px;
+      min-width: 0;
+      overflow: hidden;
+      // wraps 10px before the tile's edge, but cut-off text runs to the edge (Mike): the cut is outside padding
+      padding-right: 10px;
+
+      .value-input {
+        display: inline-block;
+        vertical-align: top;
+      }
+      .range-part {
+        white-space: nowrap;
+      }
+    }
+
+    // PROTOTYPE: play/pause styled like CODAP's other buttons: a 30px-tall pill (glyph + label)
+    // centred in a 44px-tall click target, with 10px of target to its left and right.
+    .play-pause {
+      align-items: center;
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      flex-shrink: 0;
+      height: 44px;
+      line-height: 1;
+      min-width: 0;
+      padding: 0 10px;
+
+      // states per the CODAP v3 UI Sketch file (Slider Tile > Playback Direction Dropdown Button States, the
+      // spec's labelled pill button): default #d3f4ff with a 1px #006c8e border inside, hover #bbefff,
+      // pressed #a5e3f6, keyboard focus = a 2px #0957d0 border inside with the #bbefff fill
+      .play-pause-face {
+        align-items: center;
+        background-color: vars.$icon-fill-light;
+        border: 1px solid vars.$accent;
+        border-radius: vars.$border-radius-four-corners;
+        box-sizing: border-box;
+        color: vars.$accent;
+        display: inline-flex;
+        // Mike's spacing, from the pill's outer edge: 3px to the icon, 24px icon, 5px to the text,
+        // 8px from "Pause" to the right edge. The 1px inside border is part of the 3 and the 8.
+        gap: 5px;
+        height: 30px;
+        padding: 0 7px 0 2px;
+      }
+      .glyph {
+        display: block;
+        flex-shrink: 0;
+        height: 24px;
+        width: 24px;
+
+        // the icons' shapes carry a fixed fill; follow the pill's colour instead
+        path, polygon {
+          fill: currentColor;
+        }
+      }
+
+      .play-pause-label {
+        // CODAP's label style: Roboto Medium 14px, 0.2px tracking, #222
+        color: vars.$label-color;
+        display: grid;
+        font: vars.$label-font;
+        letter-spacing: vars.$letter-spacing;
+
+        // both words are centred in a box as wide as "Pause", so "Pause" fills it and
+        // "Play" sits centred with equal space either side
+        > span {
+          grid-area: 1 / 1;
+          text-align: center;
+        }
+        .hidden {
+          visibility: hidden;
+        }
+      }
+
+      &:hover .play-pause-face {
+        background-color: vars.$accent-light-3;
+      }
+      &:active .play-pause-face {
+        background-color: vars.$accent-light-2;
+      }
+
+      // PROTOTYPE: playing (our addition, not in the spec): solid accent with a white glyph and label
+      &.running {
+        .play-pause-face {
+          background-color: vars.$accent;
+          border-color: vars.$accent;
+          color: white;
+        }
+        // #222 is only 2.68:1 on the accent fill, so the label stays white while playing
+        .play-pause-label {
+          color: white;
+        }
+        &:hover .play-pause-face {
+          background-color: vars.$codap-teal-dark;
+          border-color: vars.$codap-teal-dark;
+        }
+      }
+
+      // keyboard focus: the border becomes 2px #0957d0, inside the pill. The second pixel is an inset
+      // shadow so the pill doesn't grow and shift its contents.
+      &:focus-visible {
+        outline: none;
+
+        .play-pause-face {
+          border-color: vars.$focus-outline-color;
+          box-shadow: inset 0 0 0 1px vars.$focus-outline-color;
+        }
+        &.paused .play-pause-face {
+          background-color: vars.$accent-light-3;
+        }
+        // playing (dark teal fill): the blue ring alone is 1.08:1 on it (ship-check #4), so a 1px white ring
+        // sits inside it, as on the Paused pill. 1px fits the 3px before the icon without touching it.
+        &.running .play-pause-face {
+          box-shadow: inset 0 0 0 1px vars.$focus-outline-color, inset 0 0 0 2px white;
+        }
+      }
+    }
+
+
+    .slider-inputs {
+      height: inherit;
+      align-items: center;
+      display: flex;
+      flex-wrap: nowrap;
+      // inputs don't inherit fonts by default
+      input {
+        font: inherit;
+        letter-spacing: inherit;
+      }
+
+      // PROTOTYPE: the variable's name and value fields are sized like the slider's Number Field in the
+      // CODAP v3 UI Sketch file (Slider Tile > Number Field States): 24px tall (a 16px line with 4px above
+      // and below) and only as wide as the text plus 6px each side. At least 24px wide, so a one-character
+      // name or value is still a 24x24 target (WCAG 2.5.8).
+      .name-text-input, .value-input {
+        box-sizing: border-box;
+        field-sizing: content;
+        height: 24px;
+        line-height: 16px;
+        // the spec draws short fields 28px wide (also 24+ for the target size)
+        min-width: 28px;
+        // 3px/5px + the 1px border: the text sits 4px from the top and 6px from the sides
+        padding: 3px 5px;
+      }
+
+      .name-input {
+        align-items: center;
+        border-radius: 3px;
+        border: none;
+        display: inline-flex;
+        flex: none;
+        max-height: 40px;
+        white-space: nowrap;
+
+        .text-input {
+          // PROTOTYPE: styled as the spec's Number Field (Slider Tile > Number Field States) -- see .value-input
+          padding-inline-start: 5px;
+          padding-inline-end: 5px;
+          @include spec-entry-field;
+        }
+      }
+
+      .value-input {
+        overflow-wrap: normal;
+        // numbers sit at the right of their field, as in the spec
+        text-align: right;
+        @include spec-entry-field;
+      }
+
+      .equals-sign {
+        padding-bottom: 2px;
+      }
+    }
+  }
+}
+
+.slider-new-input {
+  input {
+    padding-right: 8px;
+  }
+}

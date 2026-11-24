@@ -1,0 +1,107 @@
+import { autorun } from "mobx"
+import { observer } from "mobx-react-lite"
+import { isAlive } from "mobx-state-tree"
+import React, { useState, useEffect } from "react"
+import { useTileModelContext } from "../../hooks/use-tile-model-context"
+import { convertToDate } from "../../utilities/date-utils"
+import { logMessageWithReplacement } from "../../lib/log-message"
+import { t } from "../../utilities/translation/translate"
+import { MultiScale } from "../axis/models/multi-scale"
+import { ISliderModel } from "./slider-model"
+import { changeSliderValueNotification } from "./slider-notifications"
+import { withHyphen } from "./minus-sign"
+import { useSliderAxisAnimation } from "./use-slider-axis-animation"
+
+import './slider.scss'
+
+interface IProps {
+  sliderModel: ISliderModel
+  multiScale: MultiScale
+  onStatusMessage?: (message: string) => void
+}
+
+export const EditableSliderValue = observer(function EditableSliderValue({sliderModel, multiScale,
+    onStatusMessage}: IProps) {
+  const [candidate, setCandidate] = useState("")
+  const { tile } = useTileModelContext()
+  const { animateAxisToEncompass } = useSliderAxisAnimation(sliderModel)
+
+  useEffect(() => {
+    return autorun(() => {
+      if (!isAlive(sliderModel)) return
+      // trigger update on domain change
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const domain = sliderModel.domain
+      setCandidate(multiScale.formatValueForScale(sliderModel.value, sliderModel.scaleType === "date",
+                                    sliderModel.multipleOf !== undefined ? sliderModel.dateMultipleOfUnit : undefined))
+    })
+  }, [multiScale, sliderModel])
+
+  const parseValue = (value: string) => {
+    if (sliderModel.scaleType === 'numeric') {
+      // PROTOTYPE: values are shown with a minus sign (U+2212), which parseFloat doesn't read
+      return parseFloat(withHyphen(value))
+    }
+    const dateValue = convertToDate(value)
+    return (dateValue?.valueOf() ?? 0) / 1000
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const {key} = e
+    if (key === "Escape" || key === "Enter") {
+      e.currentTarget.blur()
+    }
+  }
+
+  const handleValueChange = (value: string) => {
+    setCandidate(value)
+  }
+
+  const formatCurrentValue = () => {
+    return multiScale.formatValueForScale(sliderModel.value, sliderModel.scaleType === "date",
+      sliderModel.multipleOf !== undefined ? sliderModel.dateMultipleOfUnit : undefined)
+  }
+
+  const handleSubmitValue = (e: React.FocusEvent<HTMLInputElement>) => {
+    const inputValue = parseValue(e.target.value)
+    if (isFinite(inputValue)) {
+      animateAxisToEncompass(inputValue, {
+        notify: () => changeSliderValueNotification(tile, sliderModel.value),
+        undoStringKey: "DG.Undo.slider.change",
+        redoStringKey: "DG.Redo.slider.change",
+        log: logMessageWithReplacement("sliderEdit: { expression: %@ = %@ }",
+          {name: sliderModel.name, value: inputValue})
+      })
+    } else {
+      const formattedValue = formatCurrentValue()
+      setCandidate(formattedValue)
+      if (onStatusMessage) {
+        onStatusMessage(t("DG.SliderView.invalidValue", { vars: [formattedValue] }))
+      }
+    }
+  }
+
+  const renderValueInputField = () => {
+    return (
+      <input
+        aria-label={t("DG.SliderView.sliderValue", { vars: [sliderModel.name] })}
+        className="value-text-input value-input"
+        data-testid="slider-variable-value-text-input"
+        maxLength={sliderModel.scaleType === "numeric" ? 15 : 30}
+        type="text"
+        value={candidate}
+        onBlur={handleSubmitValue}
+        // PROTOTYPE: selecting the field highlights its value, per the spec
+        onFocus={e => e.target.select()}
+        onChange={(e) => handleValueChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+      />
+    )
+  }
+
+  return (
+    <>
+      {renderValueInputField()}
+    </>
+  )
+})

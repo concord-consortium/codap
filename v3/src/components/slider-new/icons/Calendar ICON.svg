@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Calendar ICON</title>
+    <g id="Calendar-ICON" stroke="none" fill="none">
+        <rect id="Rectangle" fill-rule="nonzero" x="0" y="0" width="24" height="24"></rect>
+        <path d="M5,22 C4.44666667,22 3.97666667,21.8033333 3.59,21.41 C3.20333333,21.0166667 3.00666667,20.5466667 3,20 L3,6 C3,5.45333333 3.19666667,4.98333333 3.59,4.59 C3.98333333,4.19666667 4.45333333,4 5,4 L6,4 L6,2 L8,2 L8,4 L16,4 L16,2 L18,2 L18,4 L19,4 C19.5533333,4 20.0233333,4.19666667 20.41,4.59 C20.8033333,4.98333333 21,5.45333333 21,6 L21,20 C21,20.5466667 20.8033333,21.0166667 20.41,21.41 C20.0166667,21.8033333 19.5466667,22 19,22 L5,22 Z M5,20 L19,20 L19,10 L5,10 L5,20 Z" id="Shape" fill="#006C8E" fill-rule="nonzero"></path>
+        <polygon id="Path" fill="#D3F4FF" fill-rule="evenodd" points="5 8 19 8 19 6 5 6"></polygon>
+    </g>
+</svg>

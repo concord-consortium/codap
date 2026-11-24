@@ -1,3 +1,5 @@
+// PROTOTYPE: must be the first import -- sets the default document before CODAP reads the URL
+import "./prototype/slider-prototype"
 // https://github.com/welldone-software/why-did-you-render#options
 // uncomment the line below to enable why-did-you-render (for development only)
 // import "../why-did-you-render"
