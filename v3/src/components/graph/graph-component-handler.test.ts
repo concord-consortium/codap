@@ -7,6 +7,7 @@ import { testGetComponent } from "../../data-interactive/handlers/component-hand
 import { appState } from "../../models/app-state"
 import { DataSet } from "../../models/data/data-set"
 import { getSharedDataSets } from "../../models/shared/shared-data-utils"
+import { ITileModel } from "../../models/tiles/tile-model"
 import { toV2Id, toV3Id } from "../../utilities/codap-utils"
 import { IBaseNumericAxisModel } from "../axis/models/base-numeric-axis-model"
 import { kGraphIdPrefix } from "./graph-defs"
@@ -107,7 +108,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
     handler.delete!({ component: tileModel })
     expect(documentContent.tileMap.size).toBe(0)
 
-    // Create a graph with explicit axis bounds (CODAP-1421 — V2 parity with xLowerBound/etc.
+    // Create a graph with explicit axis bounds (V2 parity with xLowerBound/etc.
     // in componentStorage at create time)
     const boundsCreateResult = create({}, {
       type: "graph", dataContext: "data", xAttributeName: "a3", yAttributeName: "a4",
@@ -513,6 +514,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
     // y lists must be arrays; a string isn't read a character at a time
     refuses({ dataContext: "data", yAttributeNames: "a3" }, "yAttributeNames must be an array.")
     refuses({ dataContext: "data", yAttributeIDs: toV2Id(a3.id) }, "yAttributeIDs must be an array.")
+    refuses({ dataContext: "data", hiddenCases: 5 }, "hiddenCases must be an array.")
     // with no data context named, the document's only data set is used, as in V2
     refuses({ xAttributeName: "NoSuchAttr" }, "Attribute not found: NoSuchAttr")
     const noContext = create({}, { type: "graph", xAttributeName: "a3", yAttributeName: "a4" })
@@ -563,6 +565,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
     updateRefuses({ xAttributeID: 999999, xAttributeName: "" }, "Attribute not found: 999999")
     updateRefuses({ yAttributeNames: "a3" }, "yAttributeNames must be an array.")
     updateRefuses({ yAttributeIDs: toV2Id(a3.id) }, "yAttributeIDs must be an array.")
+    updateRefuses({ hiddenCases: 5 }, "hiddenCases must be an array.")
     // attributes are looked for in the data context named
     const _other = DataSet.create({ name: "other" })
     _other.addAttribute({ name: "b1" })
@@ -590,6 +593,12 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(dataConfiguration.attributeDescriptionForRole("x")?.attributeID).toBeUndefined()
   })
 
+  const createGraphTile = (values: Record<string, unknown>) => {
+    const result = create({}, { type: "graph", dataContext: "data", ...values })
+    expect(result.success).toBe(true)
+    return documentContent.tileMap.get(toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!))!
+  }
+
   it("checks barChartScale and pointsAreFusedIntoBars before anything changes", () => {
     const result = create({}, { type: "graph", dataContext: "data", xAttributeName: "a3", yAttributeName: "a4" })
     const tile = documentContent.tileMap.get(toV3Id(kGraphIdPrefix, (result.values as DIComponentInfo).id!))!
@@ -607,6 +616,8 @@ describe("DataInteractive ComponentHandler Graph", () => {
     updateRefuses({ legendAttributeID: null, pointsAreFusedIntoBars: true },
       "Current plot type does not support fusing points into bars")
     updateRefuses({ barChartScale: "bogus" }, "Invalid bar chart scale: bogus")
+    updateRefuses({ barChartScale: { scale: "count" } }, 'Invalid bar chart scale: {"scale":"count"}')
+    updateRefuses({ pointsAreFusedIntoBars: "true" }, "pointsAreFusedIntoBars must be true or false.")
 
     // when the request also changes the attributes, fusing is checked once they've changed, before the rest
     const dotPlot = create({}, { type: "graph", dataContext: "data", xAttributeName: "a3" })
@@ -622,11 +633,146 @@ describe("DataInteractive ComponentHandler Graph", () => {
     expect(dotTile.title).toBe("Late")
     expect(dotContent.pointDescription.pointColor).toBe(pointColor)
 
-    // the plot is brought up to date before the check: once the scatter plot's y attribute is removed, it's a dot
-    // plot, which can fuse
-    expect(content.plotType).toBe("scatterPlot")
-    expect(update({ component: tile }, { yAttributeID: null, pointsAreFusedIntoBars: true }).success).toBe(true)
-    expect(content.plotType).toBe("dotPlot")
+    // the plot is brought up to date before the check: once the y attribute is removed, the categorical x makes
+    // a dot chart, which fuses into a bar chart
+    const chartTile = createGraphTile({ xAttributeName: "a1", yAttributeName: "a3" })
+    const chartContent = chartTile.content as IGraphContentModel
+    expect(chartContent.pointsCanBeFusedIntoBars).toBe(false)
+    expect(update({ component: chartTile }, { yAttributeID: null, pointsAreFusedIntoBars: true }).success).toBe(true)
+    expect(chartContent.plotType).toBe("barChart")
+  })
+
+  it("checks pointsAreFusedIntoBars late only when the request changes the x or y attributes or their types", () => {
+    const fuseError =
+      { success: false, values: { error: "Current plot type does not support fusing points into bars" } }
+    // refused before anything changes
+    const refusesEarly = (tile: ITileModel, values: Record<string, unknown>) => {
+      const before = getSnapshot(tile)
+      expect(update({ component: tile }, { ...values, title: "Early", pointsAreFusedIntoBars: true }))
+        .toEqual(fuseError)
+      expect(getSnapshot(tile)).toEqual(before)
+    }
+    // refused once the new attributes are in place, so the title has changed
+    const refusesLate = (tile: ITileModel, values: Record<string, unknown>) => {
+      expect(update({ component: tile }, { ...values, title: "Late", pointsAreFusedIntoBars: true }))
+        .toEqual(fuseError)
+      expect(tile.title).toBe("Late")
+    }
+    const fuses = (tile: ITileModel, values: Record<string, unknown>) => {
+      expect(update({ component: tile }, { ...values, pointsAreFusedIntoBars: true }).success).toBe(true)
+      expect((tile.content as IGraphContentModel).plotType).toBe("barChart")
+    }
+
+    // A line plot can't fuse. Nothing here changes its x or y attributes or their types, so the request is refused
+    // before anything changes; were any counted as a change, the plot would become a dot plot, which can.
+    const lineTile = createGraphTile({ xAttributeName: "a3" })
+    const lineContent = lineTile.content as IGraphContentModel
+    lineContent.setPlotType("linePlot")
+    expect(lineContent.pointsCanBeFusedIntoBars).toBe(false)
+    refusesEarly(lineTile, {})
+    refusesEarly(lineTile, { dataContext: "data" })
+    refusesEarly(lineTile, { xAttributeName: "a3" })
+    refusesEarly(lineTile, { xAttributeID: toV2Id(a3.id), xAttributeType: "numeric" })
+    refusesEarly(lineTile, { yAttributeID: null })
+    refusesEarly(lineTile, { yAttributeName: null })
+    refusesEarly(lineTile, { yAttributeType: "categorical", y2AttributeType: "categorical" })
+    refusesEarly(lineTile, { legendAttributeName: "a1", captionAttributeName: "a2" })
+    refusesEarly(lineTile, { topSplitAttributeName: "a1", rightSplitAttributeName: "a2" })
+
+    // a get → update round trip changes nothing, so it's refused early
+    const scatterTile = createGraphTile({ xAttributeName: "a3", yAttributeName: "a4", legendAttributeName: "a1" })
+    refusesEarly(scatterTile, handler.get!({ component: scatterTile }).values as Record<string, unknown>)
+
+    // Re-sending an attribute without its type drops a type the graph stored for it, which is a change; with the
+    // same type, it isn't
+    const treatedTile = createGraphTile({ xAttributeName: "a3", xAttributeType: "categorical", yAttributeName: "a4" })
+    const treatedConfig = (treatedTile.content as IGraphContentModel).dataConfiguration
+    refusesEarly(treatedTile, { xAttributeName: "a3", xAttributeType: "categorical" })
+    refusesLate(treatedTile, { xAttributeName: "a3" })
+    expect(treatedConfig.attributeType("x")).toBe("numeric")
+
+    // each kind of change is checked once it has been made
+    fuses(createGraphTile({ xAttributeName: "a3" }), { xAttributeType: "categorical" })
+    fuses(createGraphTile({ xAttributeName: "a1", yAttributeName: "a3" }), { yAttributeIDs: [] })
+    fuses(createGraphTile({ xAttributeName: "a1", yAttributeName: "a3" }), { yAttributeNames: [] })
+    fuses(createGraphTile({ xAttributeName: "a3", yAttributeName: "a1" }), { xAttributeID: null })
+    // removing the first of several y attributes leaves the next one
+    fuses(createGraphTile({ yAttributeNames: ["a1", "a2"] }), { yAttributeID: null })
+    // a new first y attribute, on a line plot with no x, which can't fuse until the plot is brought up to date
+    const yLineTile = createGraphTile({ yAttributeName: "a3" })
+    ;(yLineTile.content as IGraphContentModel).setPlotType("linePlot")
+    refusesEarly(yLineTile, {})
+    fuses(yLineTile, { yAttributeName: "a1" })
+    // with no left y attribute, the y2 attribute is the graph's y
+    fuses(createGraphTile({ xAttributeName: "a3", yAttributeName: "a4", rightNumericAttributeName: "a3" }),
+      { xAttributeID: null, yAttributeIDs: [], y2AttributeType: "categorical" })
+    // a request that leaves the graph with no x or y attribute can't fuse, so it's refused early
+    const emptiedTile = createGraphTile({ xAttributeName: "a1" })
+    refusesEarly(emptiedTile, { xAttributeID: null })
+    // ...as it does: the x attribute is removed, not moved to y
+    const emptiedConfig = (emptiedTile.content as IGraphContentModel).dataConfiguration
+    expect(update({ component: emptiedTile }, { xAttributeID: null }).success).toBe(true)
+    expect([emptiedConfig.attributeID("x"), emptiedConfig.attributeID("y")]).toEqual(["", ""])
+
+    // linking another data set clears the attributes
+    const _fusing = DataSet.create({ name: "fusing" })
+    _fusing.addAttribute({ name: "b1" })
+    _fusing.addCases([{ b1: "p" }, { b1: "q" }], { canonicalize: true })
+    const fusing = documentContent.createDataSet(getSnapshot(_fusing)).sharedDataSet
+    try {
+      const dotChartTile = createGraphTile({ xAttributeName: "a1" })
+      expect((dotChartTile.content as IGraphContentModel).pointsCanBeFusedIntoBars).toBe(true)
+      refusesEarly(dotChartTile, { dataContext: "fusing" })
+      fuses(dotChartTile, { dataContext: "fusing", xAttributeName: "b1" })
+      expect((dotChartTile.content as IGraphContentModel).dataset).toBe(fusing.dataSet)
+    } finally {
+      documentContent.removeSharedModelsAndTiles([fusing])
+    }
+  })
+
+  it("removes an x or y attribute rather than moving it to the other axis", () => {
+    const xTile = createGraphTile({ xAttributeName: "a1" })
+    const xConfig = (xTile.content as IGraphContentModel).dataConfiguration
+    expect(update({ component: xTile }, { xAttributeID: null }).success).toBe(true)
+    expect(xConfig.attributeID("x")).toBe("")
+    expect(xConfig.attributeID("y")).toBe("")
+    const yTile = createGraphTile({ yAttributeName: "a1" })
+    const yConfig = (yTile.content as IGraphContentModel).dataConfiguration
+    expect(update({ component: yTile }, { yAttributeID: null }).success).toBe(true)
+    expect(yConfig.attributeID("x")).toBe("")
+    expect(yConfig.attributeID("y")).toBe("")
+    // the data configuration's own removal, which update uses for x, doesn't move y to x either
+    const yOnlyConfig = (createGraphTile({ yAttributeName: "a1" }).content as IGraphContentModel).dataConfiguration
+    yOnlyConfig.setAttribute("y")
+    expect(yOnlyConfig.attributeID("x")).toBe("")
+    expect(yOnlyConfig.attributeID("y")).toBe("")
+  })
+
+  it("treats pointsAreFusedIntoBars that matches the graph as no change, and refuses one that isn't a boolean", () => {
+    const tile = createGraphTile({ xAttributeName: "a1" })
+    const content = tile.content as IGraphContentModel
+    // false on a graph that isn't fused
+    expect(update({ component: tile }, { pointsAreFusedIntoBars: false }).success).toBe(true)
+    expect(content.plotType).toBe("dotChart")
+    expect(update({ component: tile }, { pointsAreFusedIntoBars: true }).success).toBe(true)
+    expect(content.plotType).toBe("barChart")
+    // true on a graph that is, so a get → update round trip succeeds
+    expect(update({ component: tile }, { pointsAreFusedIntoBars: true, title: "Again" }).success).toBe(true)
+    expect(tile.title).toBe("Again")
+    const values = handler.get!({ component: tile }).values as Record<string, unknown>
+    expect(values.pointsAreFusedIntoBars).toBe(true)
+    expect(update({ component: tile }, values).success).toBe(true)
+    // ...also when the request changes the attributes
+    expect(update({ component: tile }, { xAttributeName: "a2", pointsAreFusedIntoBars: true }).success).toBe(true)
+    expect(content.plotType).toBe("barChart")
+
+    // anything but a boolean is refused before anything changes, rather than read as truthy or falsy
+    const before = getSnapshot(tile)
+    for (const pointsAreFusedIntoBars of [0, "false", 1, "true"]) {
+      expect(update({ component: tile }, { title: "Renamed", pointsAreFusedIntoBars })).toEqual(
+        { success: false, values: { error: "pointsAreFusedIntoBars must be true or false." } })
+    }
+    expect(getSnapshot(tile)).toEqual(before)
   })
 
   it("applies a request's other settings, and links no data set, when it names no data context or attribute", () => {
@@ -688,7 +834,7 @@ describe("DataInteractive ComponentHandler Graph", () => {
     // on update, a null id removes rather than naming an attribute
     expect(update({ component: tile }, { xAttributeID: null, xAttributeName: "a3" }).success).toBe(true)
 
-    // the graph's other settings still apply with no data sets (CODAP-1732)
+    // the graph's other settings still apply with no data sets
     const content = tile.content as IGraphContentModel
     expect(update({ component: tile }, { backgroundColor: "#ffeeee", transparent: true }).success).toBe(true)
     expect(content.plotBackgroundColor).toBe("#ffeeee")
