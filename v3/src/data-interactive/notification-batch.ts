@@ -5,7 +5,8 @@ import { isDataContextChangeNotice } from "./notification-utils"
 // sends them when it ends, with the data context change notices for each data context combined into one. V2 did
 // much the same: each applyChange queued its change and published it at the end of the outermost SproutCore run
 // loop (data_context.js:456-473), whose notice held every change since the last one
-// (notification_manager.js:186-235). Batches never span a wait, so nothing else is held up.
+// (notification_manager.js:186-235); a plugin's whole message ran in one run loop
+// (data_interactive_phone_handler.js:495-505). Batches never span a wait, so nothing else is held up.
 
 type NotifyFn = ICoreNotifyFunctionEnv["notify"]
 type NotifyArgs = Parameters<NotifyFn>
@@ -49,6 +50,8 @@ export function sendNotice(notify: NotifyFn, message: NotifyArgs[0], callback: N
   pending.push({ notify, message, callbacks: [callback], targetTileId, excludeTileId })
 }
 
+// A notice that fails to send is skipped, so it neither loses the rest of the batch nor replaces an exception
+// thrown by the change itself.
 function flush() {
   const notices = pending
   pending = []
@@ -62,7 +65,11 @@ function flush() {
                             console.warn("exception in notification callback", error)
                           }
                         })
-    notify(message, callback, targetTileId, excludeTileId)
+    try {
+      notify(message, callback, targetTileId, excludeTileId)
+    } catch (error) {
+      console.warn("exception sending notification", error)
+    }
   })
 }
 

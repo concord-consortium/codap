@@ -60,11 +60,31 @@ describe("sendNotice", () => {
     expect(sent().map(([, operations]) => operations)).toEqual([["create"], ["delete"]])
   })
 
+  it("doesn't combine data notices with a different action, notify function or target", () => {
+    const otherNotify = jest.fn()
+    withNoticeBatch(() => {
+      sendNotice(notify, dataNotice("A", "createCases"), jest.fn())
+      sendNotice(notify, { ...dataNotice("A", "updateCases"), action: "other" }, jest.fn())
+      sendNotice(otherNotify, dataNotice("A", "deleteCases"), jest.fn())
+      sendNotice(notify, dataNotice("A", "createItems"), jest.fn(), "TILE")
+      sendNotice(notify, dataNotice("A", "updateItems"), jest.fn(), "TILE")
+    })
+    expect(sent()).toEqual([
+      ["dataContextChangeNotice[A]", ["createCases"], undefined, undefined],
+      ["dataContextChangeNotice[A]", ["updateCases"], undefined, undefined],
+      ["dataContextChangeNotice[A]", ["createItems", "updateItems"], "TILE", undefined]
+    ])
+    expect(otherNotify).toHaveBeenCalledTimes(1)
+  })
+
   it("sends the notices when the outermost batch ends, even if it throws", () => {
     beginNoticeBatch()
-    withNoticeBatch(() => sendNotice(notify, dataNotice("A", "createCases"), jest.fn()))
-    expect(notify).not.toHaveBeenCalled()
-    endNoticeBatch()
+    try {
+      withNoticeBatch(() => sendNotice(notify, dataNotice("A", "createCases"), jest.fn()))
+      expect(notify).not.toHaveBeenCalled()
+    } finally {
+      endNoticeBatch()
+    }
     expect(notify).toHaveBeenCalledTimes(1)
 
     expect(() => withNoticeBatch(() => {
@@ -72,6 +92,40 @@ describe("sendNotice", () => {
       throw new Error("oops")
     })).toThrow("oops")
     expect(notify).toHaveBeenCalledTimes(2)
+  })
+
+  it("sends the rest of the notices when one fails to send, without hiding the change's exception", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => null)
+    const failingNotify = jest.fn(() => { throw new Error("can't send") })
+    try {
+      expect(() => withNoticeBatch(() => {
+        sendNotice(failingNotify, dataNotice("A", "createCases"), jest.fn())
+        sendNotice(notify, dataNotice("B", "updateCases"), jest.fn())
+        throw new Error("oops")
+      })).toThrow("oops")
+      expect(failingNotify).toHaveBeenCalledTimes(1)
+      expect(sent()).toEqual([["dataContextChangeNotice[B]", ["updateCases"], undefined, undefined]])
+      expect(warnSpy).toHaveBeenCalledTimes(1)
+    } finally {
+      warnSpy.mockRestore()
+    }
+  })
+
+  it("calls every combined notice's callback when one of them throws", () => {
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => null)
+    const callbacks = [jest.fn(() => { throw new Error("oops") }), jest.fn()]
+    try {
+      withNoticeBatch(() => {
+        sendNotice(notify, dataNotice("A", "createCases"), callbacks[0])
+        sendNotice(notify, dataNotice("A", "createItems"), callbacks[1])
+      })
+      notify.mock.calls[0][1]({ success: true })
+      expect(callbacks[0]).toHaveBeenCalledWith({ success: true })
+      expect(callbacks[1]).toHaveBeenCalledWith({ success: true })
+      expect(warnSpy).toHaveBeenCalledTimes(1)
+    } finally {
+      warnSpy.mockRestore()
+    }
   })
 })
 
@@ -165,6 +219,22 @@ describe("data context change notices", () => {
       ]
     })
     expect(operationsByNotice()).toEqual([["deleteCases", "updateCases", "createCases"]])
+  })
+
+  it("go out for the changes completed within a change that throws, and the exception isn't lost", () => {
+    expect(() => dataset.applyModelChange(() => {
+      dataset.applyModelChange(() => null, {
+        notify: notification(`dataContextChangeNotice[${dataset.name}]`, [{ operation: "deleteCases" }]),
+        suppressWarning: true
+      })
+      throw new Error("oops")
+    }, {
+      notify: notification(`dataContextChangeNotice[${dataset.name}]`, [{ operation: "createCases" }])
+    })).toThrow("oops")
+    expect(operationsByNotice()).toEqual([["deleteCases"]])
+    // the batch closed, so later changes aren't held
+    update(1, 20)
+    expect(operationsByNotice()).toEqual([["deleteCases"], ["updateCases"]])
   })
 
   it("arrive separately for changes made separately", () => {

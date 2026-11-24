@@ -84,7 +84,7 @@ CODAP helps when a plugin streams one case per request anyway. When several `cre
 on `item` with exactly the same resource are waiting next to each other in the queue, CODAP
 applies them together as one change. Each request can carry one item or many. The resources must
 match character for character: `dataContext[Mammals].item` and `dataContext[mammals].item` are
-not combined. A plugin sees three effects:
+not combined. A plugin sees four effects:
 
 - **Each request still gets its own response**, with the same `itemIDs` and `caseIDs` it would
   have had alone.
@@ -94,9 +94,10 @@ not combined. A plugin sees three effects:
 - **A failure fails the whole batch.** If applying the batch fails, every request in it gets
   `An error occurred while processing the request.`, and some of the batch's cases may already
   have been added.
-- **Notifications are combined.** A batch sends one `createCases` notification per collection
-  for all its requests, then one `createItems`, before any of their responses. Do not count these
-  notifications to count requests or cases; read the ids they carry.
+- **Notifications are combined.** A batch sends one notification for all its requests, before
+  any of their responses. Its `values` holds one `createCases` for each collection that got new
+  cases, then one `createItems`. Do not count these notifications or changes to count requests or
+  cases; read the ids they carry.
 
 Only consecutive item creates with the same resource are combined. Anything else between them —
 a `get`, a selection change, a create on another data context — ends the run, so the order of
@@ -143,10 +144,11 @@ loads.
 
 ## Known limitations
 
-**Data notifications are not combined as v2 combined them.** v2 sent one data-change notification
-per request, whose `values` was an array of every change the request made. CODAP sends one
-notification per change, each with a `values` array of one. This is a known bug; the intended
-behavior is v2's. See [the notification catalog](../notifications.md#known-limitations).
+**Each request in an array gets its own data notifications.** For each data context, v2 sent one
+data-change notification for a whole message, whose `values` held every change the message made
+there, including those of each request in an array. CODAP sends one for each request. A plugin
+that iterates over `values` sees the same changes in the same order. See
+[the notification catalog](../notifications.md#known-limitations).
 
 ## See also
 
