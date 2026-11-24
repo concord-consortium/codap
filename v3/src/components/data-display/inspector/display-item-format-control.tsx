@@ -73,6 +73,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
   const dataPointsTitle = showSectionHeaders ? t("V3.Inspector.section.dataPoints") : undefined
   const graphTitle = showSectionHeaders ? t("V3.Inspector.section.graph") : undefined
   const optionsDisabled = !!mapPointLayerModel && !mapPointLayerModel.pointsAreVisible
+  const strokeDisabled = optionsDisabled || displayItemDescription.pointStrokeSameAsFill
 
   const handlePointTypeChange = (pointType: string) => {
     if (!isMapPointDisplayType(pointType)) return
@@ -174,12 +175,12 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
           </If>
         </If>
 
-        <div className={clsx("stroke-section", { disabled: displayItemDescription.pointStrokeSameAsFill })}
-          aria-disabled={displayItemDescription.pointStrokeSameAsFill || undefined}>
+        <div className={clsx("stroke-section", { disabled: strokeDisabled })}
+          aria-disabled={strokeDisabled || undefined}>
           <div className="palette-row color-picker-row">
             <label className="form-label color-picker">{t("DG.Inspector.stroke")}</label>
             <ColorSetting propertyLabel={t("DG.Inspector.stroke")} testIdSuffix="stroke"
-                              disabled={optionsDisabled || displayItemDescription.pointStrokeSameAsFill}
+                              disabled={strokeDisabled}
                               onColorChange={(color) => handlePointStrokeColorChange(color)}
                               swatchBackgroundColor={displayItemDescription.pointStrokeColor}/>
           </div>

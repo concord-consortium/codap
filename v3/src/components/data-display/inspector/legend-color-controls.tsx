@@ -173,7 +173,8 @@ export const LegendColorControls = observer(function LegendColorControls(
 
   const displayShapeRow = showShape
     ? (
-        <div className="palette-row color-picker-row shape-row">
+        <div className={clsx("palette-row", "color-picker-row", "shape-row", { disabled })}
+          aria-disabled={disabled || undefined}>
           <label className="form-label color-picker">{t("V3.Inspector.points")}</label>
           {/* A gradient has to live in an svg in the same document; this one only carries it. */}
           <If condition={hasFillGradient}>
@@ -237,7 +238,8 @@ export const LegendColorControls = observer(function LegendColorControls(
       <>
         {displayShapeRow}
         <div className="num-color-setting">
-          <div className="palette-row color-picker-row">
+          <div className={clsx("palette-row", "color-picker-row", { disabled })}
+            aria-disabled={disabled || undefined}>
             <label className="form-label color-picker">{t("DG.Inspector.legendColor")}</label>
             <ColorSetting
               disabled={disabled}
@@ -267,7 +269,8 @@ export const LegendColorControls = observer(function LegendColorControls(
   const singleRowLabel = showShape ? t("V3.Inspector.points") : t("DG.Inspector.color")
   const singleRow = (
     // shape-row marks a row carrying both controls, so it aligns them the way the category rows do
-    <div className={clsx("palette-row", "color-picker-row", { "shape-row": showShape })}>
+    <div className={clsx("palette-row", "color-picker-row", { "shape-row": showShape, disabled })}
+      aria-disabled={disabled || undefined}>
       <label className="form-label color-picker">{singleRowLabel}</label>
       <If condition={showShape}>
         <PointShapeSetting propertyLabel={t("V3.Inspector.pointShape")}
@@ -308,7 +311,8 @@ const CategoricalColorControls = observer(function CategoricalColorControls({
   return (
     <div className="cat-color-setting" onScroll={handleScroll}>
       {categories?.map((category, attrIndex) => (
-        <div key={category} className="palette-row color-picker-row cat-color-picker">
+        <div key={category} className={clsx("palette-row", "color-picker-row", "cat-color-picker", { disabled })}
+          aria-disabled={disabled || undefined}>
           <label className="form-label color-picker">{category}</label>
           <If condition={showShape}>
             <PointShapeSetting propertyLabel={category}
@@ -345,6 +349,7 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
   // While the quantiles are locked the legend scale is frozen, so this control has no
   // effect; disable it to reflect that.
   const isLocked = !!dataConfiguration.legendQuantilesAreLocked
+  const isDisabled = disabled || isLocked
   const binningTypes = isFeatureEnabled("legendLogarithmic")
     ? AttributeBinningTypes
     : AttributeBinningTypes.filter(type => type !== "logarithmic")
@@ -363,13 +368,13 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
   }
 
   return (
-    <div className={clsx("legend-bins-row", { disabled: isLocked })}>
+    <div className={clsx("legend-bins-row", { disabled: isDisabled })} aria-disabled={isDisabled || undefined}>
       {/* not a <label>: it names no single control; the Select carries its own aria-label */}
       <span className="form-label legend-bins-menu">{t("V3.Inspector.graph.legendBins")}</span>
       <Select
         aria-label={t("V3.Inspector.graph.legendBins")}
         value={binningType}
-        isDisabled={isLocked || disabled}
+        isDisabled={isDisabled}
         onChange={handleAttributeBinningTypeChange}
         data-testid="legend-bins-type-select"
       >
@@ -529,7 +534,8 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
   const effectiveMax = overrideMax ?? dataMax
   // While the quantiles are locked the legend scale is frozen, so edits here have no
   // effect; disable the inputs to reflect that.
-  const isLocked = disabled || !!dataConfiguration.legendQuantilesAreLocked
+  const isLocked = !!dataConfiguration.legendQuantilesAreLocked
+  const isDisabled = disabled || isLocked
   // While locked, show the legend's range (legendDisplayRange) rather than the live one, so the
   // inputs match the legend.
   const shownRange = isLocked ? dataConfiguration.legendDisplayRange : { min: effectiveMin, max: effectiveMax }
@@ -624,7 +630,7 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
   }
 
   const renderInput = (bound: LegendBound, text: string, onChange: (v: string) => void) => (
-    <TextField value={text} isDisabled={isLocked} onChange={(v) => onChange(filterLegendRangeInput(v))}>
+    <TextField value={text} isDisabled={isDisabled} onChange={(v) => onChange(filterLegendRangeInput(v))}>
       <Label className="form-label">
         {t(`V3.Inspector.graph.legendRange.${bound}`)}
       </Label>
@@ -642,8 +648,8 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
     <div
       role="group"
       aria-labelledby={headingId}
-      className={clsx("legend-range-section", { disabled: isLocked })}
-      aria-disabled={isLocked || undefined}
+      className={clsx("legend-range-section", { disabled: isDisabled })}
+      aria-disabled={isDisabled || undefined}
     >
       {/* a group heading, not a <label>: it names the Min/Max group, not one control */}
       <div id={headingId} className="form-label">{t("V3.Inspector.graph.legendRange")}</div>
