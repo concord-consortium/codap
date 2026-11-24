@@ -20,8 +20,13 @@ const { loadTimings, orderSpecs, saveTimings } = require("./timings")
 function defaultWorkers(cores) {
   return Math.max(1, Math.min(8, Math.floor(cores / 2)))
 }
-// Well above the slowest spec, which takes about 5 minutes alone.
+// Well above the slowest spec, which takes under 4 minutes even with 12 workers.
 const DEFAULT_SPEC_TIMEOUT_MINUTES = 15
+// setTimeout fires at once for a delay that doesn't fit in 32 bits.
+const MAX_SPEC_TIMEOUT_MINUTES = Math.floor((2 ** 31 - 1) / 60000)
+// Under npm run, one Ctrl-C arrives twice (from the terminal and forwarded by npm), so a second
+// interrupt this soon after the first is the same keypress.
+const REPEAT_INTERRUPT_MS = 1000
 const v3Root = path.resolve(__dirname, "../..")
 const outDir = path.join(v3Root, ".cache", "cypress-parallel")
 const timingsFile = path.join(outDir, "timings.json")
@@ -65,7 +70,9 @@ function parseArgs(argv) {
       case "--spec-timeout": {
         const raw = value()
         const minutes = Number(raw)
-        if (!(minutes > 0)) throw new Error(`--spec-timeout must be a positive number of minutes, not "${raw}"`)
+        if (!(minutes > 0 && minutes <= MAX_SPEC_TIMEOUT_MINUTES)) {
+          throw new Error(`--spec-timeout must be between 0 and ${MAX_SPEC_TIMEOUT_MINUTES} minutes, not "${raw}"`)
+        }
         args.specTimeoutMinutes = minutes
         break
       }
@@ -77,7 +84,21 @@ function parseArgs(argv) {
   return args
 }
 
-// The runner stops a hung spec by signalling its process group, which Windows doesn't support.
+// Returns the handler for an interrupt: the first asks the running specs to stop, and a later one
+// (not a duplicate of the first) forces them to stop at once.
+function makeInterruptHandler({ stop, forceStop, now = Date.now }) {
+  let firstAt = null
+  return () => {
+    if (firstAt == null) {
+      firstAt = now()
+      stop()
+    } else if (now() - firstAt > REPEAT_INTERRUPT_MS) {
+      forceStop()
+    }
+  }
+}
+
+// The runner stops a hung spec by signaling its process group, which Windows doesn't support.
 function checkPlatform(platform = process.platform) {
   if (platform === "win32") {
     throw new Error("The parallel Cypress runner works on macOS and Linux, not Windows. Use npm run test:cypress.")
@@ -119,7 +140,10 @@ function selectSpecs(args, { cwd, lastRunFile: file }) {
     return { specs: failed }
   }
   const specs = findSpecs({ cwd, ...(args.spec ? { pattern: args.spec } : {}) })
-  if (!specs.length) return { specs: [], exitCode: 1, message: `No specs match ${args.spec.join(", ")}.` }
+  if (!specs.length) {
+    const message = args.spec ? `No specs match ${args.spec.join(", ")}.` : "No specs found in cypress/e2e."
+    return { specs: [], exitCode: 1, message }
+  }
   return { specs }
 }
 
@@ -165,17 +189,20 @@ async function main(argv) {
   console.log(`Logs: ${path.join(outDir, "logs")}\n`)
 
   const controller = new AbortController()
-  const interrupt = () => {
-    if (controller.signal.aborted) {
+  const interrupt = makeInterruptHandler({
+    stop: () => {
+      controller.abort()
+      console.log("\nInterrupted. Stopping the running specs… (interrupt again to stop at once)")
+      stopAll()
+    },
+    forceStop: () => {
       console.log("Stopping now.")
       stopAll({ force: true })
       process.exit(130)
     }
-    controller.abort()
-    console.log("\nInterrupted. Stopping the running specs… (interrupt again to stop at once)")
-    stopAll()
-  }
-  // The specs run in their own process groups, so closing the terminal doesn't reach them.
+  })
+  // Handle all three, since the specs run in their own process groups and closing the terminal
+  // doesn't reach them.
   for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(signal, interrupt)
 
   const start = Date.now()
@@ -212,4 +239,6 @@ if (require.main === module) {
   )
 }
 
-module.exports = { checkBaseUrl, checkPlatform, defaultWorkers, keepAwake, main, parseArgs, selectSpecs }
+module.exports = {
+  checkBaseUrl, checkPlatform, defaultWorkers, keepAwake, main, makeInterruptHandler, parseArgs, selectSpecs
+}

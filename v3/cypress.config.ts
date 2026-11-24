@@ -51,8 +51,9 @@ export default defineConfig({
 
             return getConfigurationByFile(env)
                 .then(envConfig => {
-                    // A baseUrl passed with --config or through the Module API (as the parallel runner
-                    // does) wins over the env file's.
+                    // A baseUrl other than the default (from --config, CYPRESS_BASE_URL, or the Module
+                    // API, as the parallel runner uses) wins over the env file's. Cypress doesn't say
+                    // where a value came from, so passing the default itself still loses to the env file.
                     if (config.baseUrl !== kDefaultBaseUrl) delete envConfig.baseUrl
                     return require('@cypress/code-coverage/task')(on, { ...config, ...envConfig });
                 });

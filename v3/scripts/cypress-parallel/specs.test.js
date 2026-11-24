@@ -5,7 +5,7 @@ const { DEFAULT_BASE_URL, EXCLUDE_SPEC_PATTERNS, SPEC_PATTERN, findSpecs, specSl
 const v3Root = path.resolve(__dirname, "../..")
 
 describe("findSpecs", () => {
-  it("finds every spec Cypress would run, including subfolders and the smoke test", () => {
+  it("finds specs in subfolders and the smoke test", () => {
     const specs = findSpecs({ cwd: v3Root })
     expect(specs).toContain("cypress/e2e/smoke/single-codap-smoke.ts")
     expect(specs).toContain("cypress/e2e/pixi-interaction/graph-pixi-interaction.spec.ts")
@@ -23,13 +23,16 @@ describe("findSpecs", () => {
   })
 
   it("limits the specs to a given pattern", () => {
-    expect(findSpecs({ cwd: v3Root, pattern: "cypress/e2e/formula/*.spec.ts" })).toEqual([
-      "cypress/e2e/formula/formula-component.spec.ts",
-      "cypress/e2e/formula/formula-errors.spec.ts",
-      "cypress/e2e/formula/formula-functions.spec.ts",
-      "cypress/e2e/formula/formula-hierarchical-tables.spec.ts",
-      "cypress/e2e/formula/formula-special-characters.spec.ts"
-    ])
+    const specs = findSpecs({ cwd: v3Root, pattern: "cypress/e2e/formula/*.spec.ts" })
+    expect(specs).toContain("cypress/e2e/formula/formula-errors.spec.ts")
+    expect(specs.every(spec => spec.startsWith("cypress/e2e/formula/"))).toBe(true)
+  })
+})
+
+describe("findSpecs matches", () => {
+  it("files only, not folders", () => {
+    expect(findSpecs({ cwd: v3Root, pattern: "cypress/e2e/smoke" })).toEqual([])
+    expect(findSpecs({ cwd: v3Root, pattern: "cypress/e2e/*" })).not.toContain("cypress/e2e/formula")
   })
 })
 

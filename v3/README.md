@@ -130,18 +130,18 @@ The prior manual steps for building a release are listed below for posterity:
 
 ##### Running the Cypress Tests in Parallel Locally
 
-With `npm start` running, `npm run test:cypress:parallel` runs the whole Cypress suite on several workers at once, each spec in its own Cypress process. It doesn't report to Cypress Cloud, so it doesn't use any of our Cypress Cloud quota. That makes it a way to check a branch before adding the `run regression` label, but it doesn't replace the CI run. It works on macOS and Linux, but not Windows.
+With `npm start` running, `npm run test:cypress:parallel` runs the whole Cypress suite on several workers at once, each spec in its own Cypress process. It doesn't report to Cypress Cloud, so it doesn't use any of our Cypress Cloud quota. That makes it a way to check a branch before adding the `run regression` label, but it doesn't replace the CI run. It needs Node 22 or later. It has been used on macOS; it should work on Linux in a desktop session, but headless Linux (no display) is untested, and it refuses to run on Windows.
 
 On a 16-core Mac the full suite takes about 4.5 minutes with 8 workers, compared with about 8.5 minutes with 4. More than 8 workers saves little, because the longest specs slow down under the load and set the total time.
 
 Options (after `--`, e.g. `npm run test:cypress:parallel -- --workers 4`):
 - `--workers N`: how many specs run at once. The default is half the CPU cores, up to 8.
-- `--spec <glob>`: run only the matching specs. Separate several globs with commas.
+- `--spec <glob>`: run only the matching specs, e.g. `cypress/e2e/graph*.spec.ts` (relative to `v3/`). Separate several globs with commas.
 - `--rerun-failed`: run only the specs that failed or crashed in the last run.
 - `--base-url <url>`: test CODAP at another address than `http://localhost:8080`, e.g. a static production build.
 - `--spec-timeout <minutes>`: stop a spec that runs longer than this and report it as crashed (default 15).
 
-The runner prints a line as each spec finishes and a summary at the end. Each spec's console output, failure screenshots and per-spec timings are written to `.cache/cypress-parallel/`. The timings are used to start the longest specs first next time. On macOS the runner keeps the computer from idle-sleeping while it runs, because a Cypress run that's in progress when the computer sleeps hangs instead of resuming. Closing the lid still puts it to sleep.
+The runner prints a line as each spec finishes and a summary at the end. Each spec's console output, failure screenshots and per-spec timings are written to `.cache/cypress-parallel/`. Each run replaces the previous run's logs and screenshots. The timings are used to start the longest specs first next time. On macOS the runner keeps the computer from idle-sleeping while it runs, because a Cypress run that's in progress when the computer sleeps hangs instead of resuming. Closing the lid still puts it to sleep.
 
 ##### Cypress Run Options
 

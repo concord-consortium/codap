@@ -63,7 +63,8 @@ function runSpec(spec, { baseUrl, outDir, cwd, timeoutMs, childScript = path.joi
   const resultFile = path.join(resultDir, `${slug}.json`)
   fs.rmSync(resultFile, { force: true })
 
-  // Without --record nothing goes to Cypress Cloud; removing the key makes sure of it.
+  // cypress.run() records to Cypress Cloud only when asked to, and run-one.js never asks; removing
+  // the key makes sure of it.
   const env = { ...process.env }
   delete env.CYPRESS_RECORD_KEY
 

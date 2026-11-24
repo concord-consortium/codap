@@ -22,7 +22,7 @@ describe("toSpecResult", () => {
     })
   })
 
-  it("reports a spec whose tests all passed as passed", () => {
+  it("reports a spec with no failing tests as passed", () => {
     const result = toSpecResult(spec, runResult({ totalTests: 2, totalPassed: 1, totalPending: 1 }, [
       test("passed", "passed"),
       test("pending")
@@ -53,9 +53,17 @@ describe("runSpec", () => {
   const path = require("path")
   const { activeChildren, runSpec, stopAll } = require("./run-spec")
 
+  // These tests start real processes, which can be slow on a busy machine, and their own waits
+  // add up to several seconds.
+  jest.setTimeout(20000)
+
   let outDir
   beforeEach(() => { outDir = fs.mkdtempSync(path.join(os.tmpdir(), "cypress-parallel-")) })
-  afterEach(() => { fs.rmSync(outDir, { recursive: true, force: true }) })
+  afterEach(() => {
+    // Don't leave hung fixture processes behind when a test fails.
+    stopAll({ force: true })
+    fs.rmSync(outDir, { recursive: true, force: true })
+  })
 
   const options = (fixture, timeoutMs = 10000) => ({
     baseUrl: "http://localhost:8080", outDir, cwd: process.cwd(), timeoutMs,

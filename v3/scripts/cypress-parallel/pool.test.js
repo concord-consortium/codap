@@ -65,9 +65,10 @@ describe("runPool", () => {
     expect(results).toHaveLength(2)
   })
 
-  it("uses no more workers than there are specs", async () => {
+  it("runs every spec once when there are more workers than specs", async () => {
     const runner = fakeRunner()
-    await runPool(["a"], 4, runner.run)
-    expect(runner.started).toEqual(["a"])
+    const results = await runPool(["a", "b"], 5, runner.run)
+    expect(runner.started).toEqual(["a", "b"])
+    expect(results.map(r => r.spec).sort()).toEqual(["a", "b"])
   })
 })

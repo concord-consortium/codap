@@ -1,7 +1,9 @@
 const fs = require("fs")
 const os = require("os")
 const path = require("path")
-const { checkBaseUrl, checkPlatform, defaultWorkers, keepAwake, main, parseArgs, selectSpecs } = require("./cli")
+const {
+  checkBaseUrl, checkPlatform, defaultWorkers, keepAwake, main, makeInterruptHandler, parseArgs, selectSpecs
+} = require("./cli")
 
 const v3Root = path.resolve(__dirname, "../..")
 
@@ -52,7 +54,8 @@ describe("parseArgs", () => {
     expect(parseArgs(["--spec-timeout", "2.5"])).toMatchObject({ specTimeoutMinutes: 2.5 })
   })
 
-  it.each(["0", "-1", "soon"])("rejects --spec-timeout %s", value => {
+  // setTimeout fires at once for delays that don't fit in 32 bits (about 35,791 minutes).
+  it.each(["0", "-1", "soon", "Infinity", "40000"])("rejects --spec-timeout %s", value => {
     expect(() => parseArgs(["--spec-timeout", value])).toThrow(/--spec-timeout/)
   })
 
@@ -70,6 +73,40 @@ describe("parseArgs", () => {
 
   it("rejects --spec together with --rerun-failed", () => {
     expect(() => parseArgs(["--spec", "x", "--rerun-failed"])).toThrow(/--spec.*--rerun-failed/)
+  })
+})
+
+describe("makeInterruptHandler", () => {
+  const setup = () => {
+    let time = 1000
+    const stop = jest.fn(), forceStop = jest.fn()
+    const interrupt = makeInterruptHandler({ stop, forceStop, now: () => time })
+    return { interrupt, stop, forceStop, advance: ms => { time += ms } }
+  }
+
+  it("asks the specs to stop on the first interrupt", () => {
+    const { interrupt, stop, forceStop } = setup()
+    interrupt()
+    expect(stop).toHaveBeenCalledTimes(1)
+    expect(forceStop).not.toHaveBeenCalled()
+  })
+
+  // Under npm run, one Ctrl-C arrives twice: from the terminal and forwarded by npm.
+  it("ignores a repeat that arrives right after the first", () => {
+    const { interrupt, stop, forceStop, advance } = setup()
+    interrupt()
+    advance(50)
+    interrupt()
+    expect(stop).toHaveBeenCalledTimes(1)
+    expect(forceStop).not.toHaveBeenCalled()
+  })
+
+  it("forces the specs to stop on a later interrupt", () => {
+    const { interrupt, forceStop, advance } = setup()
+    interrupt()
+    advance(2000)
+    interrupt()
+    expect(forceStop).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -133,6 +170,12 @@ describe("selectSpecs", () => {
   it("fails when --spec matches nothing", () => {
     expect(select({ spec: ["cypress/e2e/nope*.ts"] })).toEqual({
       specs: [], exitCode: 1, message: expect.stringMatching(/No specs match cypress\/e2e\/nope\*\.ts/)
+    })
+  })
+
+  it("says no specs were found when the default pattern matches nothing", () => {
+    expect(selectSpecs({ ...parseArgs([]) }, { cwd: dir, lastRunFile })).toEqual({
+      specs: [], exitCode: 1, message: expect.stringMatching(/No specs found/)
     })
   })
 

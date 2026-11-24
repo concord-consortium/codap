@@ -22,7 +22,7 @@ async function main() {
         trashAssetsBeforeRuns: false,
         // Cypress puts each spec's screenshots in a folder named after the spec.
         screenshotsFolder: path.join(outDir, "screenshots"),
-        // Some specs empty the downloads folder, so each spec gets its own.
+        // A spec may empty the downloads folder (graph.spec.ts has such a test), so each spec gets its own.
         downloadsFolder: path.join(outDir, "downloads", specSlug(spec))
       }
     })
