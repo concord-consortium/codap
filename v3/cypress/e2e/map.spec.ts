@@ -460,6 +460,38 @@ context("Map UI", () => {
     cy.wait(2000)
     cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 0)
   })
+
+  it("shows and hides points and the grid from the Layers palette", () => {
+    cfm.openLocalDoc(filename1)
+    c.getIconFromToolShelf("map").click()
+    c.selectTile("map", 0)
+
+    const pointRenderer = (tileId: string) => cy.window().its("rendererArrayMap").its(tileId).its(0)
+    const pointsAreVisible = (tileId: string) => pointRenderer(tileId).its("isVisible")
+
+    mch.getMapTileId().then(tileId => {
+      // `its` retries until the renderer exists and has its points, so no fixed wait is needed
+      pointRenderer(tileId).its("pointsCount").should("be.greaterThan", 0)
+      map.getDisplayConfigButton().click()
+
+      cy.log("Points checkbox hides and shows the points")
+      pointsAreVisible(tileId).should("eq", true)
+      cy.get("[data-testid^=map-layers-checkbox-points-]").click()
+      pointsAreVisible(tileId).should("eq", false)
+      // the point formatting options are disabled while the points are hidden
+      cy.get("[data-testid=stroke-same-as-fill-checkbox]").should("have.attr", "data-disabled")
+      cy.get("[data-testid^=map-layers-checkbox-points-]").click()
+      pointsAreVisible(tileId).should("eq", true)
+      cy.get("[data-testid=stroke-same-as-fill-checkbox]").should("not.have.attr", "data-disabled")
+    })
+
+    cy.log("Grid checkbox shows and hides the grid")
+    map.getMapTile().find(".leaflet-rectangle").should("not.exist")
+    cy.get("[data-testid^=map-layers-checkbox-grid-]").click()
+    map.getMapTile().find(".leaflet-rectangle").should("have.length.greaterThan", 0)
+    cy.get("[data-testid^=map-layers-checkbox-grid-]").click()
+    map.getMapTile().find(".leaflet-rectangle").should("not.exist")
+  })
 })
 
 const apiTesterUrl='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
