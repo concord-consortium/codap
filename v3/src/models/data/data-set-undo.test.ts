@@ -516,6 +516,7 @@ describe("DataSet undo/redo", () => {
       addSetAsideCases(data, ["ITEM2"])
       await whenTreeManagerIsReady()
       const entry = undoManager?.undoEntry
+      expect(entry).toBeDefined()
       addSetAsideCases(data, ["ITEM2"])
       await whenTreeManagerIsReady()
       expect(undoManager?.undoEntry).toBe(entry)

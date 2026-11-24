@@ -484,11 +484,31 @@ describe("API data changes send dataContextChangeNotice", () => {
   it("delete allCases leaves out cases whose items are all set aside, which stay", async () => {
     const [item0, item4] = [dataset.itemIds[0], dataset.itemIds[4]]
     const ax = dataset.getParentCaseId(childCase(0))!
+    expect(dataset.caseInfoMap.get(ax)?.childItemIds).toEqual([item0, item4])
     dataset.hideCasesOrItems([item0, item4])
     dataset.validateCases()
     await request("delete", "collection[collection3].allCases")
+    expect(caseIDsOf(changes()[0])).toHaveLength(9)
     expect(caseIDsOf(changes()[0])).not.toContain(toV2Id(ax))
     expect(dataset.setAsideItemIds).toEqual([item0, item4])
+  })
+
+  it.each([
+    ["set aside", () => dataset.hideCasesOrItems([dataset.itemIds[4]])],
+    ["filtered out", () => dataset.updateFilterFormulaResults([{ itemId: dataset.itemIds[4], result: false }],
+      { replaceAll: true })]
+  ])("delete allCases lists a parent whose other items are %s, and leaves those items", async (_, hide) => {
+    const item4 = dataset.itemIds[4]
+    const ax = dataset.getParentCaseId(childCase(0))!
+    hide()
+    dataset.validateCases()
+    const shownCaseIds = dataset.collections.flatMap(collection =>
+      dataset.getCasesForCollection(collection.id).map(({ __id__ }) => toV2Id(__id__)))
+    expect(shownCaseIds).toHaveLength(11)
+    expect(shownCaseIds).toContain(toV2Id(ax))
+    await request("delete", "collection[collection3].allCases")
+    expect(caseIDsOf(changes()[0])).toEqual(shownCaseIds)
+    expect(dataset._itemIds).toEqual([item4])
   })
 
   it("delete attribute sends deleteAttributes, preceded by deleteCollection when the collection goes", async () => {

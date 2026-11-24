@@ -463,7 +463,9 @@ const setAsideCustomUndoRedo: ICustomUndoRedoPatcher = {
   }
 }
 
-// Called within an undoable change that sets items aside or restores them; makes it undo and redo by item id
+// Called within an undoable change that sets items aside or restores them; makes it undo and redo by item id.
+// The custom patch replaces the history entry's standard patches, so the entry must change nothing undoable
+// but the set-aside list: undo and redo would leave anything else as it is.
 export function withSetAsideUndoRedo(data: IDataSet, change: () => void) {
   const before = new Set(data.setAsideItemIds)
   change()

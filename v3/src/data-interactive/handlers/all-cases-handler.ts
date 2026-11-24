@@ -13,8 +13,7 @@ export const diAllCasesHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
 
     const itemIds = dataContext.items.map(c => c.__id__)
-    // as in V2, which sent every collection's cases (data_interactive_phone_handler.js:1178-1195,
-    // data_context.js:193-199), the notice lists every case that goes, parents included
+    // the notice lists every case that goes, in every collection (see getVanishingCases)
     const deletedCases = getVanishingCases(dataContext, itemIds)
     dataContext.applyModelChange(() => {
       dataContext.removeCases(itemIds)
