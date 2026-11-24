@@ -19,11 +19,11 @@ context("codap toolbar", () => {
     cy.visit(url)
   })
   it("will open a new table", () => {
-    c.clickIconFromToolShelf("table")
+    toolbar.openToolShelfMenu("table")
     toolbar.getNewCaseTable().click()
     table.getCollection().should("be.visible")
     c.getComponentTitleInput("table").should("have.value", "New Dataset")
-    c.getIconFromToolShelf("table").click()
+    toolbar.openToolShelfMenu("table")
     toolbar.getDatasetListedInToolShelf("New Dataset").should("be.visible")
   })
   it("will open a graph", () => {

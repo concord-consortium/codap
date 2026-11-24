@@ -1,5 +1,6 @@
 import { ComponentElements as c } from "./component-elements"
 import { FormulaHelper as fh } from "../helpers/formula-helper"
+import { MenuHelper as mh } from "../helpers/menu-helper"
 
 type TestAttributes = Array<{ name: string, move: string }>
 type TestValues = Record<string, string[]>
@@ -137,31 +138,7 @@ export const TableTileElements = {
       .filter(isAttributeNamed(name))
   },
   openAttributeMenu(name: string, collectionIndex = 1) {
-    // Chakra hides a menu when its close animation ends, even if the menu has been reopened in the
-    // meantime, so a menu reopened while still closing stays open but invisible. Choosing a menu
-    // item or clicking elsewhere closes the menu, so if this attribute's menu is closing, wait for
-    // it to finish first. Some closed menus keep `visibility: visible` at `opacity: 0`, which also
-    // counts as closed.
-    this.getAttribute(name, collectionIndex).then($button => {
-      if ($button.attr("aria-expanded") !== "true") {
-        const menuSelector = `[id='${$button.attr("aria-controls")}']`
-        cy.get("body").should($body => {
-          const style = $body.find(menuSelector).attr("style") ?? ""
-          const isClosed = !style.includes("visibility: visible") || /opacity: 0(;|$)/.test(style)
-          expect(isClosed, `attribute menu finished closing (style: ${style})`).to.equal(true)
-        })
-      }
-    })
-    this.getAttribute(name, collectionIndex).click({force: true})
-    // Menu items can be found and clicked while the menu is still hidden, so wait for this
-    // attribute's menu to become visible. A menu that opens but never appears then fails here
-    // rather than at some later step.
-    this.getAttribute(name, collectionIndex)
-      .should("have.attr", "aria-expanded", "true")
-      .invoke("attr", "aria-controls")
-      .then(menuId => {
-        cy.get(`[id='${menuId}']`).should("have.attr", "style").and("contain", "visibility: visible")
-      })
+    mh.openMenu(() => this.getAttribute(name, collectionIndex), {force: true})
   },
   closeAttributeMenu() {
     // Choosing a menu item or clicking elsewhere (e.g. Undo) has often closed the menu already,
