@@ -105,6 +105,9 @@ describe("create and update on the univariate adornments", () => {
     expect(await request("create", `${other}.adornment`, { type: "Standard Error", _numStErrs: "x" }))
       .toEqual({ success: false, values: { error: "_numStErrs must be a number." } })
     expect((await request("get", `${other}.adornmentList`)).values).toEqual([])
+    // values are checked before the plot type, as for every other type
+    expect(await request("create", `${scatterPlot}.adornment`, { type: "Standard Error", _numStErrs: "x" }))
+      .toEqual({ success: false, values: { error: "_numStErrs must be a number." } })
     for (const _numStErrs of ["three", "2", NaN, Infinity]) {
       expect(await request("update", `${graph}.adornment`, { type: "Standard Error", _numStErrs, isVisible: false }))
         .toEqual({ success: false, values: { error: "_numStErrs must be a number." } })
@@ -121,13 +124,19 @@ describe("create and update on the univariate adornments", () => {
     const refusal = (error: string) => ({ success: false, values: { error } })
     const dot = await createGraph(testData, { xAttributeName: "a3" })
     // checked for Count and Percent alike, before anything changes
-    expect(await request("create", `${dot}.adornment`, { type: "Count", percentType: "rows" }))
-      .toEqual(refusal("percentType must be one of cell, column, row."))
+    for (const type of ["Count", "Percent"]) {
+      expect(await request("create", `${dot}.adornment`, { type, percentType: "rows" }))
+        .toEqual(refusal("percentType must be one of cell, column, row."))
+    }
     expect((await request("get", `${dot}.adornmentList`)).values).toEqual([])
     expect((await request("create", `${dot}.adornment`, { type: "Count", percentType: "cell" })).success).toBe(true)
-    expect(await request("update", `${dot}.adornment`, { type: "Count", percentType: "Row", isVisible: false }))
-      .toEqual(refusal("percentType must be one of cell, column, row."))
+    const percent = await getAdornment(dot, "Percent")
+    for (const type of ["Count", "Percent"]) {
+      expect(await request("update", `${dot}.adornment`, { type, percentType: "Row", isVisible: !percent.isVisible }))
+        .toEqual(refusal("percentType must be one of cell, column, row."))
+    }
     expect(await getAdornment(dot, "Count")).toMatchObject({ isVisible: true })
+    expect(await getAdornment(dot, "Percent")).toEqual(percent)
 
     expect(await request("create", `${dot}.adornment`, { type: "Region of Interest", primary: 5 }))
       .toEqual(refusal("primary must be an object."))
@@ -143,10 +152,34 @@ describe("create and update on the univariate adornments", () => {
       .not.toContain("Region of Interest")
     expect((await request("create", `${dot}.adornment`,
       { type: "Region of Interest", primary: { position: 2, extent: "50%" } })).success).toBe(true)
+    // a refused update changes nothing
+    const getRegion = async () => {
+      const { isVisible, primary, secondary } = await getAdornment(dot, "Region of Interest")
+      return { isVisible, primary: JSON.parse(primary), secondary: JSON.parse(secondary) }
+    }
+    const roi = await getRegion()
+    expect(roi).toMatchObject({ isVisible: true, primary: { position: 2, extent: "50%" } })
+    expect(await request("update", `${dot}.adornment`,
+      { type: "Region of Interest", isVisible: false, primary: { position: 3 }, secondary: { axis: "x" } }))
+      .toEqual(refusal("secondary.axis must be one of y."))
+    expect(await request("update", `${dot}.adornment`,
+      { type: "Region of Interest", isVisible: false, primary: { extent: 4 }, secondary: true }))
+      .toEqual(refusal("secondary must be an object."))
+    expect(await getRegion()).toEqual(roi)
 
-    // a null range is treated as absent
-    expect((await request("create", `${dot}.adornment`,
-      { type: "Region of Interest", primary: null })).success).toBe(true)
+    // a null range is treated as absent, and so is a null position, extent or axis within one
+    for (const action of ["create", "update"]) {
+      expect((await request(action, `${dot}.adornment`,
+        { type: "Region of Interest", primary: null, secondary: null })).success).toBe(true)
+      expect(await getRegion()).toEqual(roi)
+      expect((await request(action, `${dot}.adornment`, { type: "Region of Interest", isVisible: true,
+        primary: { position: null, extent: 2 }, secondary: { position: 1, extent: null, axis: null } })).success)
+        .toBe(true)
+      expect(await getRegion()).toEqual({ isVisible: true, primary: { extent: 2 }, secondary: { position: 1 } })
+      const { primary, secondary } = roi
+      expect((await request("update", `${dot}.adornment`, { type: "Region of Interest", primary, secondary })).success)
+        .toBe(true)
+    }
 
     const scatter = await createGraph(testData, { xAttributeName: "a3", yAttributeName: "a4" })
     expect(await request("create", `${scatter}.adornment`, { type: "LSRL", showRSquared: 1 }))
@@ -155,6 +188,9 @@ describe("create and update on the univariate adornments", () => {
     expect((await request("create", `${scatter}.adornment`, { type: "LSRL" })).success).toBe(true)
     expect(await request("update", `${scatter}.adornment`, { type: "LSRL", showR: "yes", isVisible: false }))
       .toEqual(refusal("showR must be true or false."))
+    expect(await request("update", `${scatter}.adornment`,
+      { type: "LSRL", showConfidenceBands: "on", isVisible: false }))
+      .toEqual(refusal("showConfidenceBands must be true or false."))
     expect(await getAdornment(scatter, "LSRL")).toMatchObject({ isVisible: true })
   })
 

@@ -55,7 +55,7 @@ export const booleanValuesError = (values: Record<string, unknown>, keys: string
 // An error for the first of `keys` in `values` that is present but not a finite number
 export const numberValuesError = (values: Record<string, unknown>, keys: string[]) => {
   const key = keys.find(_key => values[_key] != null && !Number.isFinite(values[_key]))
-  if (key) return errorResult(t("V3.DI.Error.adornmentValueNotNumber", { vars: [key] }))
+  if (key) return errorResult(t("V3.DI.Error.valueNotNumber", { vars: [key] }))
 }
 
 // An error for the first of `keys` in `values` that is present but not one of `options`

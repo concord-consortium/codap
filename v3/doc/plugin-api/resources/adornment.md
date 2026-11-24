@@ -188,7 +188,11 @@ If both `formula` and `expression` are sent, `formula` is used; a `null` value i
 absent, so `{ "formula": null, "expression": "3*x" }` uses the expression and `{ "slope": null }`
 changes nothing.
 
-`create` and `update` refuse a value of the wrong type, and change nothing:
+`create` and `update` refuse a value of the wrong type, and change nothing. A `null` value is
+treated as absent, not refused, and so is a `null` `position`, `extent` or `axis` in a
+`Region of Interest` range. A `primary` or `secondary` range that is sent replaces the previous
+one: a `position` or `extent` it leaves out, or sends as `null`, is left unset, and the region is
+drawn as if it were 0. These are refused:
 
 - for every type, an `isVisible` that isn't `true` or `false`
 - for `Box Plot`, a `showOutliers` or `showICI` that isn't either, and for `LSRL`, a

@@ -25,6 +25,7 @@ function validateInput(values: DIValues | undefined, sliderModel?: ISliderModel)
     animationDirection: _animationDirection,
     animationMode: _animationMode,
     globalValueName,
+    multipleOf,
     scaleType,
     dateMultipleOfUnit,
   } = values as V2Slider
@@ -85,6 +86,16 @@ function validateInput(values: DIValues | undefined, sliderModel?: ISliderModel)
     snapshot.animationMode = AnimationModes[modeNumber]
   }
 
+  if (multipleOf != null) {
+    // a number or text that reads as one, as for the slider's value
+    const _multipleOf = toGlobalValue(multipleOf)
+    if (_multipleOf == null) {
+      return {error: errorResult(t("V3.DI.Error.valueNotNumber", { vars: ["multipleOf"] }))}
+    }
+    // taken as positive, as setMultipleOf does for the inspector
+    snapshot.multipleOf = Math.abs(_multipleOf)
+  }
+
   return { validatedValues: snapshot }
 }
 
@@ -92,7 +103,6 @@ export const sliderComponentHandler: DIComponentHandler = {
   create({ values }) {
     const {
       animationRate,
-      multipleOf,
       lowerBound,
       upperBound,
     } = values as V2Slider
@@ -105,6 +115,7 @@ export const sliderComponentHandler: DIComponentHandler = {
       animationMode,
       dateMultipleOfUnit,
       globalValue,
+      multipleOf,
       scaleType,
     } = validatedValues
 
@@ -186,10 +197,6 @@ export const sliderComponentHandler: DIComponentHandler = {
     if (animationRate != null) {
       snapshot._animationRate = animationRate
     }
-    if (multipleOf != null) {
-      // as setMultipleOf does for the inspector
-      snapshot.multipleOf = Math.abs(multipleOf)
-    }
     if (scaleType != null) {
       // The scaleType has already been validated, so we can safely use it
       snapshot.axis.type = scaleType
@@ -203,13 +210,13 @@ export const sliderComponentHandler: DIComponentHandler = {
 
     applySnapshot(content, snapshot)
 
-    // As in V2, which rounded the slider's value whenever it or the slider's "multiple of" changed
-    // (slider_model.js:133-144), a value sent here, or the current value when only multipleOf is sent, is
-    // rounded to the slider's "multiple of" setting. Unlike a drag, it isn't kept within the axis, as in V2.
+    // as in v2 (slider_model.js:133-144), round to multipleOf but don't clamp to the axis
     if (_value != null || multipleOf != null) {
-      const { increment } = content
+      // a slider saved with a negative multipleOf rounds as if it were positive
+      const increment = Math.abs(content.increment ?? 0)
       const newValue = _value ?? content.globalValue.value
-      content.globalValue.setValue(increment ? Math.round(newValue / increment) * increment : newValue)
+      const rounded = increment ? Math.round(newValue / increment) * increment : newValue
+      content.globalValue.setValue(Number.isFinite(rounded) ? rounded : newValue)
     }
 
     return { success: true }

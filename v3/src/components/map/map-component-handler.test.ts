@@ -79,15 +79,30 @@ describe("DataInteractive ComponentHandler Map", () => {
   })
 
   it("get reports the data context of the map's first layer", () => {
-    const _places = DataSet.create({ name: "places" })
-    ;["lat", "long"].forEach(name => _places.addAttribute({ name }))
-    const places = documentContent.createDataSet(getSnapshot(_places)).sharedDataSet.dataSet
-    places.addCases([{ lat: 42, long: -71 }], { canonicalize: true })
-    const result = handler.create!({}, { type: "map", dataContext: "places" })
-    expect(result.success).toBe(true)
-    const tile = documentContent.tileMap.get(toV3Id(kMapIdPrefix, (result.values as DIComponentInfo).id!))!
+    const createPlaces = (name: string) => {
+      const _dataSet = DataSet.create({ name })
+      ;["lat", "long"].forEach(attrName => _dataSet.addAttribute({ name: attrName }))
+      const dataSet = documentContent.createDataSet(getSnapshot(_dataSet)).sharedDataSet.dataSet
+      dataSet.addCases([{ lat: 42, long: -71 }], { canonicalize: true })
+      return dataSet
+    }
+    const createMap = () => {
+      const result = handler.create!({}, { type: "map" })
+      expect(result.success).toBe(true)
+      return documentContent.tileMap.get(toV3Id(kMapIdPrefix, (result.values as DIComponentInfo).id!))!
+    }
+    const getDataContext = (mapTile: ReturnType<typeof createMap>) =>
+      (handler.get!({ component: mapTile }).values as V2Map).dataContext
+
+    const places = createPlaces("places")
+    const tile = createMap()
     expect((tile.content as IMapContentModel).datasetsArray).toEqual([places])
-    const got = handler.get!({ component: tile })
-    expect((got.values as V2Map).dataContext).toBe("places")
+    expect(getDataContext(tile)).toBe("places")
+
+    // a map showing two data sets, one per layer, reports the first
+    const stations = createPlaces("stations")
+    const tile2 = createMap()
+    expect((tile2.content as IMapContentModel).datasetsArray).toEqual([places, stations])
+    expect(getDataContext(tile2)).toBe("places")
   })
 })

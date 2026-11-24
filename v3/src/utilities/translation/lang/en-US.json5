@@ -1677,7 +1677,7 @@
     "V3.DI.Error.adornmentNotSupportedByPlotType": "Adornment not supported by plot type.",
     "V3.DI.Error.adornmentRequestNotSupported": "The %@1 adornment does not currently support %@2 requests.",
     "V3.DI.Error.adornmentValueNotBoolean": "%@ must be true or false.",
-    "V3.DI.Error.adornmentValueNotNumber": "%@ must be a number.",
+    "V3.DI.Error.valueNotNumber": "%@ must be a number.",
     "V3.DI.Error.adornmentValueNotString": "%@ must be a string.",
     "V3.DI.Error.adornmentValueNotOneOf": "%@1 must be one of %@2.",
     "V3.DI.Error.adornmentValueNotObject": "%@ must be an object.",

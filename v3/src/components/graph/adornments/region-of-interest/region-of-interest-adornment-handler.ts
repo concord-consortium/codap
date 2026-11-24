@@ -19,13 +19,14 @@ const setAdornmentProperties = (adornment: IRegionOfInterestAdornmentModel, valu
     if (isVisible != null) {
       adornment.setVisibility(isVisible)
     }
+    // a null position, extent or axis is treated as absent, as the range model doesn't accept null
     if (primary != null) {
       const { position, extent } = primary
-      adornment.setPrimary({ position, extent })
+      adornment.setPrimary({ position: position ?? undefined, extent: extent ?? undefined })
     }
     if (secondary != null) {
       const { position, extent, axis } = secondary
-      adornment.setSecondary({ position, extent, axis })
+      adornment.setSecondary({ position: position ?? undefined, extent: extent ?? undefined, axis: axis ?? undefined })
     }
   }
 }
