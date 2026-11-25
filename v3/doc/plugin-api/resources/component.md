@@ -201,7 +201,7 @@ graph, so whether `get` returns them depends on the plot:
 | `barChartScale` | only when the graph is a bar chart |
 | `barChartFormula` | only when the graph is a bar chart *and* a formula is set |
 
-`update` accepts all three.
+`update` accepts all three. On a graph that isn't a bar chart, a valid `barChartScale` is ignored.
 
 **`plotType` and `primaryAxis` are read-only.** `get` returns both; neither can be set on
 `create` or `update`. `primaryAxis` follows from which attributes are on which axes, so it is
@@ -213,17 +213,23 @@ a plugin cannot. Every other property `get` returns can be sent back to `update`
 **A `dataContext` or an attribute that isn't found is refused.** `create` and `update` reply
 `success: false` with an error naming it (see [Errors](#errors)). Nothing is created or changed,
 including the title, position and other properties sent in the same request, and no notification
-is sent. The same holds for an attribute a role can't take, and for a `yAttributeIDs` or
-`yAttributeNames` that isn't an array. `dataContext` can be the data set's name, title or id.
-Attributes, by id or by name, are looked for in that data set; on `update` without one, in the
-graph's data set, or the document's first if the graph has none. In a document with no data sets,
-any attribute named is one that isn't found. `null` means no attribute: on `update`, an id of
-`null` removes the attribute even when a name is sent with it; on `create`, a name sent with a
-`null` id is used. An empty name is ignored. This is a deliberate change from v2, which created
-the graph anyway and replied with success. A `create` with no `dataContext` uses a document's only
-data set and assigns its attributes, as v2 did (v2 looked only in its child collection). With
-several data sets, it links none and ignores the attributes. That is a v3 choice: v2 still chose
-one when exactly one of them had a visible case table or case card.
+is sent. The same holds for an attribute a role can't take, for a `yAttributeIDs`,
+`yAttributeNames` or `hiddenCases` that isn't an array, and, on `update`, for a `barChartScale`
+that isn't one of the scales, a `pointsAreFusedIntoBars` that isn't `true` or `false`, and
+`pointsAreFusedIntoBars: true` on a graph whose points aren't fused and can't be (but see [Known
+limitations](#known-limitations)). v2 did not support `hiddenCases`, `barChartScale` or
+`pointsAreFusedIntoBars`, and ignored them. `dataContext` can be the data set's name, title or
+id. Attributes, by id or by name, are looked for in that data set; on `update` without one, in
+the graph's data set, or the document's first if the graph has none, which the graph is then
+linked to. An `update` that names no data context and no attribute links no data set, and its
+other settings, such as `pointColor` or `backgroundColor`, still apply, even in a document with no
+data sets (where any attribute named is one that isn't found). `null` means no attribute: on
+`update`, an id of `null` removes the attribute even when a name is sent with it; on `create`, a
+name sent with a `null` id is used. An empty name is ignored. This is a deliberate change from
+v2, which created the graph anyway and replied with success. A `create` with no `dataContext`
+uses a document's only data set and assigns its attributes, as v2 did (v2 looked only in its
+child collection). With several data sets, it links none and ignores the attributes. That is a v3
+choice: v2 still chose one when exactly one of them had a visible case table or case card.
 
 ### slider
 
@@ -606,15 +612,19 @@ hide on close — the case table, case card, calculator and guide views — are 
 than deleted. They stay in the document, keep their ids, and continue to appear in
 `componentList` with `hidden: true`. Every other type is genuinely deleted.
 
-**A graph `update` in a document with no data sets drops the graph's settings.** It replies
-`success: true` and applies the generic properties, such as `title` and `position`, but ignores
-`pointColor`, the axis bounds, `transparent` and every other graph setting. This is a known bug.
-
-**`pointsAreFusedIntoBars` and plot settings are checked after the rest of an `update` applies.**
-A request refused with `Current plot type does not support fusing points into bars`, or with an
-error from a plot setting such as `Invalid bar chart scale: <value>`, has already changed the
-attributes, colors, bounds and generic properties it sent. This is a known bug: like a missing
-attribute, these should refuse the whole request.
+**`pointsAreFusedIntoBars` sent with a new x or y attribute is checked after it changes.** Whether
+a graph can fuse its points into bars depends on its x and y attributes and the types they are
+treated as. When the same `update` changes either attribute or its type, `Current plot type does
+not support fusing points into bars` comes after the new attributes are in place, though before
+the graph's other settings. By then the attributes, and the generic properties sent with them,
+such as `title`, have changed, and other plugins are sent the `update` notification. Only the
+first y attribute counts, or the y2 attribute when there is no other. Re-sending an x or y
+attribute without its type, such as `xAttributeType`, changes its type back if it was being
+treated as another, as after **Treat as Categorical**. Any other refusal comes before anything
+changes, including for an `update` that re-sends the current attributes with their types, as a
+`get` → `update` round trip does, changes only the legend, caption or split attributes, or leaves
+the graph with no x or y attribute. Send the attributes in one request and
+`pointsAreFusedIntoBars` in the next to have nothing change when it's refused.
 
 **The `image` component type is not accepted.** v2 took `"type": "image"` for an image component;
 v3 registers only `imageComponentView` and returns `Unsupported component type <value>` for
@@ -684,8 +694,9 @@ notifies nobody at all, not just the sender.
 | `DataContext not found: <value>` | a graph `create` or `update`, or a map `create`, named a `dataContext` that does not exist |
 | `Attribute not found: <value>` | a graph or map `create` or `update` named an attribute, by id or by name, that its data set does not have |
 | `Cannot assign <value1> to <value2>` | a graph `create` or `update` assigned an attribute to a role that cannot take it |
-| `<value> must be an array.` | a graph `create` or `update` sent a `yAttributeIDs` or `yAttributeNames` that is not an array |
-| `Current plot type does not support fusing points into bars` | `pointsAreFusedIntoBars` on a plot that cannot show bars |
+| `<value> must be an array.` | a graph `create` or `update` sent a `yAttributeIDs`, `yAttributeNames` or `hiddenCases` that is not an array |
+| `<value> must be true or false.` | a graph `update` sent a `pointsAreFusedIntoBars` that is not a boolean |
+| `Current plot type does not support fusing points into bars` | `pointsAreFusedIntoBars: true` on a graph whose points aren't fused into bars and can't be |
 | `Invalid bar chart scale: <value>` | `barChartScale` with a value that is not a breakdown type |
 | `Global not found: <value>` | a slider named a `globalValueName` that does not exist |
 | `Cannot create multiple sliders for <value>` | a second slider for a global that already has one |

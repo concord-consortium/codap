@@ -821,11 +821,11 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
       const previousLegend = self.legendAttributeAndType
       // For 'x' and 'y' roles, if the given attribute is already present on the other axis, then
-      // move whatever attribute is assigned to the given role to that axis.
-      if (['x', 'y'].includes(role)) {
+      // move whatever attribute is assigned to the given role to that axis. Removing an attribute moves nothing.
+      if (desc?.attributeID && ['x', 'y'].includes(role)) {
         const otherRole = role === 'x' ? 'y' : 'x',
           otherDesc = self.attributeDescriptionForRole(otherRole)
-        if (otherDesc?.attributeID === desc?.attributeID) {
+        if (otherDesc?.attributeID === desc.attributeID) {
           const currentDesc = self.attributeDescriptionForRole(role) ?? {attributeID: '', type: 'categorical'}
           self._setAttributeDescription(otherRole, currentDesc)
         }
