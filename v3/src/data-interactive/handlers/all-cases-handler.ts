@@ -1,5 +1,5 @@
 import { deleteCasesNotification } from "../../models/data/data-set-notifications"
-import { getGroupedCases } from "../../models/data/data-set-utils"
+import { getVanishingCases } from "../../models/data/data-set-utils"
 import { maybeToV2Id, toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
 import { getCaseValues } from "../data-interactive-utils"
@@ -12,12 +12,14 @@ export const diAllCasesHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
 
     const itemIds = dataContext.items.map(c => c.__id__)
+    // the notice lists every case that goes, in every collection (see getVanishingCases)
+    const deletedCases = getVanishingCases(dataContext, itemIds)
     dataContext.applyModelChange(() => {
       dataContext.removeCases(itemIds)
     }, {
       // as in V2, deleting cases keeps the undo history (data_context.js:520, :575)
       keepRedo: true,
-      notify: deleteCasesNotification(dataContext, getGroupedCases(dataContext, itemIds)),
+      notify: deleteCasesNotification(dataContext, deletedCases),
       log: {message: "Delete all cases", args: {}, category: "data"}
     })
     return { success: true }

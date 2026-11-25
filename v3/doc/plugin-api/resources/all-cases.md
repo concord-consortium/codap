@@ -67,6 +67,10 @@ once, at the top.
 
 `delete` takes no `values` and replies `{ "success": true }`.
 
+`delete` removes only the cases shown. Set-aside items, and items a filter formula hides, are kept,
+so a data set cleared before loading fresh data still has them afterward. v2 also kept set-aside
+items.
+
 ## Examples
 
 The examples use a data context `Mammals` with two collections: `Diets`, holding the attribute
@@ -157,8 +161,9 @@ converted; `TRUE` stays text. This is a deliberate difference.
 
 This resource takes no `notify` requests.
 
-`delete` notifies other plugins on `dataContextChangeNotice[<context>]` with `deleteCases`, as
-deleting cases in a case table does.
+`delete` notifies other plugins on `dataContextChangeNotice[<context>]` with `deleteCases`, whose
+`cases` list every case removed from view, in every collection, parents first, as in v2. A parent
+that still has set-aside or filtered-out items is listed too, since those items have no cases.
 
 ## Errors
 
