@@ -200,6 +200,29 @@ Values are validated when the config is applied
 apply. The rules for links, the logo file name and the documents list exist
 because anyone with a Concord portal login can write a partner config.
 
+The documents rules follow from how the cloud-file-manager's read-only provider
+(`readonly-provider.js`) reads a list. Pass the list to it as the `json` option,
+never `src`: with `src` the provider resolves relative links against a base URL,
+and the rules here assume links are used exactly as written.
+
+- A list that isn't an array is read as the provider's older
+  `{ filename: contents }` format, with inline content, so it is dropped.
+- The provider loads an item from `url` or, failing that, `location`. Only `url`
+  is checked, so `location` is dropped, along with inline `content`.
+- A folder with a `url` and no `children` has its contents fetched from that link
+  and used unchecked, so folders keep inline `children` only.
+- A folder with neither `children` nor `url` leaves the list loading forever, and
+  a document with neither `url` nor `content` makes the provider look itself up
+  again forever, so both are dropped.
+- The provider walks folders recursively and overflows the stack at around 2,000
+  levels, hence the 10-level limit.
+- Any `type` other than `"folder"` passes through as given, so documents are
+  rebuilt without one.
+
+A folder whose items are all dropped stays, empty: an author may make an empty
+folder on purpose. Text values are kept exactly as written; only the check for
+blank text ignores whitespace.
+
 Read a boolean partner flag with `isFeatureEnabled`, and any other with
 `getFeatureValue`, which returns `undefined` when the flag is unset:
 
@@ -223,6 +246,18 @@ Renaming or retyping a partner flag must be deliberate: a test compares the
 partner flags against a list written in the test, because a config naming a flag
 this build doesn't know is dropped silently.
 
+To add a partner flag, add its registry entry with `kind: "partner"` and a
+`type`, and add it to the expected list in `feature-flag-registry.test.ts`. A new
+`type` also needs a value type and a validator in `partner-flag-values.ts`; the
+validator map is typed so that a type without one doesn't compile. The type names
+(`boolean`, `string`, `url`, `image`, `documents`) are part of what partner
+config authors see, so treat them like flag names. Partner flags have no
+`owner`, which is what keeps owner tokens in `?features=` from ever reaching one.
+
+A document's `featureFlags` can still list a partner flag name, written there by
+hand or by another tool. The name has no effect and is left in place, since
+rewriting documents on load would mark them dirty.
+
 ## Not built yet
 
 - Caching server `off` directives in `localStorage` so the kill switch survives a
@@ -233,3 +268,5 @@ this build doesn't know is dropped silently.
 - A developer escape hatch for overriding a server `off` locally. (Overriding a
   document grant already works: `?features=-foo` disables it for the session.)
 - Exposing flags to plugins through the Data Interactive API.
+- Limits on the length of partner text values or the size of a partner
+  documents list.
