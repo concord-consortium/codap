@@ -25,24 +25,55 @@ describe("MapHotSpotModel", () => {
     const hotSpot = MapHotSpotModel.create()
     expect(hotSpot.bandwidth).toBeUndefined()
     expect(hotSpot.opacity).toBe(0.75)
-    expect(hotSpot.lowColor).toBe("#000000")
-    expect(hotSpot.highColor).toBe("#ffffff")
+    expect(hotSpot.colorRamp).toBe("heat")
+    expect(hotSpot.lowColor).toBe("#5b1a8c")
+    expect(hotSpot.highColor).toBe("#fff3a3")
+    expect(hotSpot.colorBins).toBe("continuous")
     expect(isDefaultHotSpotModel(hotSpot)).toBe(true)
+  })
+
+  it("falls back to the default color ramp when a snapshot's ramp is unknown", () => {
+    const hotSpot = MapHotSpotModel.create({ isVisible: true, colorRamp: "rainbow", lowColor: "#0000ff" })
+    expect(hotSpot.colorRamp).toBe("heat")
+    // the rest of the snapshot is kept
+    expect(hotSpot.isVisible).toBe(true)
+    expect(hotSpot.lowColor).toBe("#0000ff")
+    expect(MapHotSpotModel.create({ colorRamp: "viridis" }).colorRamp).toBe("viridis")
+
+    // a native v3 document reaches the hot spot through its point layer's snapshot
+    const layer = MapPointLayerModel.create({ hotSpotModel: { colorRamp: "rainbow", opacity: 0.5 } })
+    expect(layer.hotSpotModel.colorRamp).toBe("heat")
+    expect(layer.hotSpotModel.opacity).toBe(0.5)
+  })
+
+  it("restores a custom color ramp with non-default low and high colors", () => {
+    const hotSpot = MapPointLayerModel.create({ hotSpotModel: {
+      isVisible: true, colorRamp: "custom", lowColor: "#0000ff", highColor: "#ff0000"
+    }}).hotSpotModel
+    expect(hotSpot.colorRamp).toBe("custom")
+    expect(hotSpot.lowColor).toBe("#0000ff")
+    expect(hotSpot.highColor).toBe("#ff0000")
   })
 
   it("is not default when a display property differs", () => {
     expect(isDefaultHotSpotModel(MapHotSpotModel.create({ bandwidth: 5000 }))).toBe(false)
     expect(isDefaultHotSpotModel(MapHotSpotModel.create({ highColor: "#ff0000" }))).toBe(false)
+    expect(isDefaultHotSpotModel(MapHotSpotModel.create({ colorRamp: "viridis" }))).toBe(false)
+    expect(isDefaultHotSpotModel(MapHotSpotModel.create({ colorBins: 5 }))).toBe(false)
   })
 
   it("can set the display properties", () => {
     const hotSpot = MapHotSpotModel.create()
     hotSpot.setBandwidth(5000)
     hotSpot.setOpacity(0.5)
+    hotSpot.setColorRamp("custom")
     hotSpot.setLowColor("#0000ff")
     hotSpot.setHighColor("#ff0000")
-    expect(getSnapshot(hotSpot)).toEqual(
-      { isVisible: false, bandwidth: 5000, opacity: 0.5, lowColor: "#0000ff", highColor: "#ff0000" })
+    hotSpot.setColorBins(5)
+    expect(getSnapshot(hotSpot)).toEqual({
+      isVisible: false, bandwidth: 5000, opacity: 0.5, colorRamp: "custom", lowColor: "#0000ff",
+      highColor: "#ff0000", colorBins: 5
+    })
     hotSpot.setBandwidth(undefined)
     expect(hotSpot.bandwidth).toBeUndefined()
   })
@@ -60,6 +91,81 @@ describe("MapHotSpotModel opacity", () => {
     hotSpot.setOpacity(0.4)
     expect(hotSpot.dynamicOpacity).toBeUndefined()
     expect(hotSpot.displayOpacity).toBe(0.4)
+  })
+})
+
+describe("MapHotSpotModel color bins", () => {
+  it("uses the dynamic color bins while set and clears them when the color bins are committed", () => {
+    const hotSpot = MapHotSpotModel.create()
+    expect(hotSpot.effectiveColorBins).toBe("continuous")
+    expect(hotSpot.displayColorBins).toBe("continuous")
+
+    hotSpot.setDynamicColorBins(4)
+    expect(hotSpot.displayColorBins).toBe(4)
+    expect(hotSpot.effectiveColorBins).toBe("continuous")
+    expect(hotSpot.colorBins).toBe("continuous")
+    // the dynamic value is volatile, so it doesn't affect the snapshot
+    expect(isDefaultHotSpotModel(hotSpot)).toBe(true)
+
+    hotSpot.setColorBins(6)
+    expect(hotSpot.dynamicColorBins).toBeUndefined()
+    expect(hotSpot.colorBins).toBe(6)
+    expect(hotSpot.effectiveColorBins).toBe(6)
+    expect(hotSpot.displayColorBins).toBe(6)
+    expect(isDefaultHotSpotModel(hotSpot)).toBe(false)
+  })
+
+  it("shows continuous while it is the dynamic value, even with a number committed", () => {
+    const hotSpot = MapHotSpotModel.create({ colorBins: 3 })
+    hotSpot.setDynamicColorBins("continuous")
+    expect(hotSpot.displayColorBins).toBe("continuous")
+    expect(hotSpot.effectiveColorBins).toBe(3)
+  })
+
+  it("keeps an out-of-range count as saved but uses the nearest limit", () => {
+    const tooMany = MapHotSpotModel.create({ colorBins: 15 })
+    expect(tooMany.colorBins).toBe(15)
+    expect(tooMany.effectiveColorBins).toBe(10)
+    expect(tooMany.displayColorBins).toBe(10)
+    expect(getSnapshot(tooMany).colorBins).toBe(15)
+
+    const tooFew = MapHotSpotModel.create({ colorBins: 0 })
+    expect(tooFew.colorBins).toBe(0)
+    expect(tooFew.effectiveColorBins).toBe(2)
+    expect(tooFew.displayColorBins).toBe(2)
+    expect(getSnapshot(tooFew).colorBins).toBe(0)
+  })
+
+  it("limits an out-of-range dynamic value", () => {
+    const hotSpot = MapHotSpotModel.create()
+    hotSpot.setDynamicColorBins(15)
+    expect(hotSpot.displayColorBins).toBe(10)
+  })
+
+  it("falls back to continuous when a snapshot's color bins are invalid", () => {
+    const hotSpot = MapHotSpotModel.create({ isVisible: true, colorBins: "many", opacity: 0.5 })
+    expect(hotSpot.colorBins).toBe("continuous")
+    // the rest of the snapshot is kept
+    expect(hotSpot.isVisible).toBe(true)
+    expect(hotSpot.opacity).toBe(0.5)
+    // JSON writes NaN and Infinity as null
+    expect(MapHotSpotModel.create({ colorBins: null as any }).colorBins).toBe("continuous")
+
+    // a native v3 document reaches the hot spot through its point layer's snapshot
+    const layer = MapPointLayerModel.create({ hotSpotModel: { colorBins: "many", colorRamp: "viridis" } })
+    expect(layer.hotSpotModel.colorBins).toBe("continuous")
+    expect(layer.hotSpotModel.colorRamp).toBe("viridis")
+  })
+
+  it("keeps a valid color ramp when the color bins are invalid, and the reverse", () => {
+    expect(MapHotSpotModel.create({ colorRamp: "rainbow", colorBins: 5 }).colorBins).toBe(5)
+    expect(MapHotSpotModel.create({ colorRamp: "viridis", colorBins: "many" }).colorRamp).toBe("viridis")
+  })
+
+  it("round-trips color bins through the point layer's snapshot", () => {
+    const layer = MapPointLayerModel.create()
+    layer.hotSpotModel.setColorBins(7)
+    expect(MapPointLayerModel.create(getSnapshot(layer)).hotSpotModel.colorBins).toBe(7)
   })
 })
 

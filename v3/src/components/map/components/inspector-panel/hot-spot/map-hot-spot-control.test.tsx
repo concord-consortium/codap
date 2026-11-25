@@ -1,12 +1,12 @@
 import { act, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { ISerializedActionCall, onAction } from "mobx-state-tree"
-import { featureFlagManager } from "../../../../models/feature-flags/feature-flag-manager"
-import { AppHistoryService } from "../../../../models/history/app-history-service"
-import { MapPointLayerModel } from "../../models/map-point-layer-model"
+import { featureFlagManager } from "../../../../../models/feature-flags/feature-flag-manager"
+import { AppHistoryService } from "../../../../../models/history/app-history-service"
+import { MapPointLayerModel } from "../../../models/map-point-layer-model"
 import { MapHotSpotControl } from "./map-hot-spot-control"
 
-jest.mock("../../../../utilities/translation/translate", () => ({
+jest.mock("../../../../../utilities/translation/translate", () => ({
   t: (key: string) => key,
   translate: (key: string) => key
 }))
@@ -40,6 +40,8 @@ describe("MapHotSpotControl", () => {
     expect(pointLayer.hotSpotModel.isVisible).toBe(true)
     expect(checkbox).toBeChecked()
   })
+
+  // Opacity slider
 
   it("renders an accessible opacity slider that is disabled while the hot spot is hidden", () => {
     featureFlagManager.setServerConfig({ mapHotSpot: "on" })
@@ -134,5 +136,98 @@ describe("MapHotSpotControl", () => {
     const [first, second] = screen.getAllByRole("slider")
     expect(first).toHaveAccessibleName("V3.Inspector.map.hotSpotResolution")
     expect(second).toHaveAccessibleName("V3.Inspector.map.hotSpotOpacity")
+  })
+
+  // Color Ramp Select
+
+  function mountShownHotSpot() {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const pointLayer = MapPointLayerModel.create(undefined, { historyService: new AppHistoryService() })
+    pointLayer.hotSpotModel.setIsVisible(true)
+    render(<MapHotSpotControl mapPointLayerModel={pointLayer}/>)
+    return pointLayer.hotSpotModel
+  }
+  const rampButton = () => screen.getByTestId("map-hot-spot-color-ramp-button")
+  const lowSwatch = () => screen.getByTestId("color-swatch-button-hot-spot-low")
+  const highSwatch = () => screen.getByTestId("color-swatch-button-hot-spot-high")
+  // eslint-disable-next-line testing-library/no-node-access -- the strip is decorative, so it has no role or text
+  const rampStrip = (element: HTMLElement) => element.querySelector<HTMLElement>(".hot-spot-ramp-strip")
+
+  it("shows the selected color ramp with its preview strip", () => {
+    mountShownHotSpot()
+    expect(rampButton()).toHaveTextContent("V3.Inspector.map.hotSpotColorRamp.heat")
+    const strip = rampStrip(rampButton())
+    expect(strip).toHaveAttribute("aria-hidden", "true")
+    expect(strip?.style.background).toMatch(/^linear-gradient\(to right, #000004, /)
+  })
+
+  it("lists the color ramps in order, each with a preview strip", async () => {
+    const user = userEvent.setup()
+    mountShownHotSpot()
+    await user.click(rampButton())
+    const options = screen.getAllByRole("option")
+    expect(options.map(option => option.textContent)).toEqual(
+      ["heat", "viridis", "cividis", "monochrome", "custom"].map(ramp => `V3.Inspector.map.hotSpotColorRamp.${ramp}`))
+    options.forEach(option => expect(rampStrip(option)).toBeInTheDocument())
+  })
+
+  it("changes the color ramp", async () => {
+    const user = userEvent.setup()
+    const hotSpotModel = mountShownHotSpot()
+    await user.click(rampButton())
+    await user.click(screen.getByRole("option", { name: "V3.Inspector.map.hotSpotColorRamp.viridis" }))
+    expect(hotSpotModel.colorRamp).toBe("viridis")
+    expect(rampButton()).toHaveTextContent("V3.Inspector.map.hotSpotColorRamp.viridis")
+  })
+
+  it("disables the color ramp menu while the hot spot is hidden", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const pointLayer = MapPointLayerModel.create(undefined, { historyService: new AppHistoryService() })
+    render(<MapHotSpotControl mapPointLayerModel={pointLayer}/>)
+    expect(rampButton()).toBeDisabled()
+    expect(lowSwatch()).toBeDisabled()
+    expect(highSwatch()).toBeDisabled()
+  })
+
+  it("enables the low and high colors only for the custom ramp", () => {
+    const hotSpotModel = mountShownHotSpot()
+    expect(lowSwatch()).toBeDisabled()
+    expect(highSwatch()).toBeDisabled()
+    act(() => hotSpotModel.setColorRamp("custom"))
+    expect(lowSwatch()).toBeEnabled()
+    expect(highSwatch()).toBeEnabled()
+    expect(lowSwatch()).toHaveAccessibleName("V3.Inspector.map.hotSpotLowColor: #5b1a8c")
+    expect(highSwatch()).toHaveAccessibleName("V3.Inspector.map.hotSpotHighColor: #fff3a3")
+  })
+
+  it("shows the custom colors in the custom ramp's preview strip", () => {
+    const hotSpotModel = mountShownHotSpot()
+    act(() => {
+      hotSpotModel.setColorRamp("custom")
+      hotSpotModel.setLowColor("#000000")
+    })
+    expect(rampStrip(rampButton())?.style.background)
+      .toMatch(/^linear-gradient\(to right, rgb\(0, 0, 0\), /)
+  })
+
+  // Color binning slider
+
+  it("renders the color binning slider last, below the high color", () => {
+    mountShownHotSpot()
+    const sliders = screen.getAllByRole("slider")
+    expect(sliders).toHaveLength(3)
+    const binningSlider = sliders[2]
+    expect(binningSlider).toHaveAccessibleName("V3.Inspector.map.hotSpotColorBinning")
+    expect(highSwatch().compareDocumentPosition(binningSlider)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+
+  it("commits the color bins from the color binning slider", async () => {
+    const user = userEvent.setup()
+    const hotSpotModel = mountShownHotSpot()
+    expect(hotSpotModel.colorBins).toBe("continuous")
+    const slider = screen.getByRole("slider", { name: "V3.Inspector.map.hotSpotColorBinning" })
+    act(() => slider.focus())
+    await user.keyboard("{Home}")
+    expect(hotSpotModel.colorBins).toBe(2)
   })
 })

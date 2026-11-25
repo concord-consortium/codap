@@ -1,8 +1,9 @@
+import { rgb } from "d3"
 import { CRS, latLng, Point } from "leaflet"
-import { getChoroplethColors } from "../../../utilities/color-utils"
 import { computeMeanCenter, greatCircleDistance } from "../../../utilities/geo-utils"
 import { degreesToRadians, mod, quantileOfSortedArray } from "../../../utilities/math-utils"
 import { ILatLong } from "../map-types"
+import { ColorInterpolator } from "./hot-spot-color-ramps"
 import { LatLongProjector } from "./map-utils"
 
 /** Grid cell side length, in CSS pixels */
@@ -354,21 +355,68 @@ export function hotSpotFade(normalizedDensity: number) {
   return x * x * (3 - 2 * x)
 }
 
+export const kContinuousColorBins = "continuous"
+/**
+ * The number of visible color classes the density is drawn in, not counting the transparent lowest class, or
+ * kContinuousColorBins for a smooth gradient
+ */
+export type HotSpotColorBins = number | typeof kContinuousColorBins
+export const kMinColorBins = 2
+export const kMaxColorBins = 10
+/** The binning slider's position for continuous, one step past the most classes */
+export const kContinuousSliderValue = kMaxColorBins + 1
+
+/** True if the value can be stored as a hot spot's color bins. */
+export function isHotSpotColorBins(value: unknown): value is HotSpotColorBins {
+  return value === kContinuousColorBins || (typeof value === "number" && Number.isFinite(value))
+}
+
+/**
+ * Returns the color bins to use for the given value: continuous, or a whole number of classes from kMinColorBins
+ * to kMaxColorBins. Counts are rounded, then limited to that range. NaN can't be saved, so treating it as
+ * continuous (the default) is only a guard.
+ */
+export function getEffectiveColorBins(colorBins: HotSpotColorBins): HotSpotColorBins {
+  if (colorBins === kContinuousColorBins || Number.isNaN(colorBins)) return kContinuousColorBins
+  return Math.min(kMaxColorBins, Math.max(kMinColorBins, Math.round(colorBins)))
+}
+
+/** Converts color bins to the binning slider's position */
+export function colorBinsToSliderValue(colorBins: HotSpotColorBins) {
+  const effectiveColorBins = getEffectiveColorBins(colorBins)
+  return effectiveColorBins === kContinuousColorBins ? kContinuousSliderValue : effectiveColorBins
+}
+
+/** Converts the binning slider's position to color bins */
+export function sliderValueToColorBins(value: number): HotSpotColorBins {
+  return getEffectiveColorBins(value === kContinuousSliderValue ? kContinuousColorBins : value)
+}
+
 export const kColorLUTSize = 256
 
 /**
- * Returns a lookup table of kColorLUTSize RGBA colors (4 bytes each) running from lowColor to highColor, sampled
- * with getChoroplethColors so the gradient matches CODAP's legend gradients. Each entry's alpha is multiplied by
- * hotSpotFade of its normalized density, so low densities fade to transparent. Future multi-stop gradients and
- * binning (getChoroplethColors with the bin count) plug in here.
+ * Returns a lookup table of kColorLUTSize RGBA colors (4 bytes each) sampled along the ramp, from low density to
+ * high. Each entry's alpha is multiplied by hotSpotFade, so low densities fade to transparent.
+ *
+ * With n color bins, the density range is split into n + 1 equal bins and every entry in bin k (0 to n) gets the
+ * ramp color, and the fade, at k / n. The lowest bin is therefore the low color and fully transparent, followed by
+ * n visible colors ending with the high color. colorBins is limited by getEffectiveColorBins, so n is at least
+ * kMinColorBins.
  */
-export function buildColorLUT(lowColor: string, highColor: string) {
+export function buildColorLUT(interpolator: ColorInterpolator, colorBins: HotSpotColorBins = kContinuousColorBins) {
+  const bins = getEffectiveColorBins(colorBins)
   const lut = new Uint8ClampedArray(kColorLUTSize * 4)
-  getChoroplethColors(lowColor, highColor, kColorLUTSize, { format: "rgba" }).forEach(({ r, g, b, a }, i) => {
-    const fade = hotSpotFade(i / (kColorLUTSize - 1))
-    // Uint8ClampedArray rounds the unrounded channels
-    lut.set([r, g, b, a * fade * 255], i * 4)
-  })
+  for (let i = 0; i < kColorLUTSize; i++) {
+    const normalizedDensity = i / (kColorLUTSize - 1)
+    // The ramp position this entry is colored with: its own density, or its bin's position when binned. Binned
+    // densities use one more bin than colorBins, for the transparent lowest bin.
+    const rampPosition = bins === kContinuousColorBins
+      ? normalizedDensity
+      : Math.min(bins, Math.floor(normalizedDensity * (bins + 1))) / bins
+    const { r, g, b, opacity } = rgb(interpolator(rampPosition))
+    // Uint8ClampedArray rounds the alpha
+    lut.set([r, g, b, opacity * hotSpotFade(rampPosition) * 255], i * 4)
+  }
   return lut
 }
 

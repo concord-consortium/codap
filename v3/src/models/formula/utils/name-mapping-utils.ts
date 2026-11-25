@@ -2,6 +2,7 @@ import { BoundaryManager } from "../../boundaries/boundary-manager"
 import type { IDataSet } from "../../data/data-set"
 import type { IGlobalValueManager } from "../../global/global-value-manager"
 import { CanonicalNameMap, DisplayNameMap, IFormulaDependency } from "../formula-types"
+import { escapeBacktickString } from "./string-utils"
 
 export const CANONICAL_NAME = "__CANONICAL_NAME__"
 export const BOUNDARY_VALUE = "BOUNDARY_VALUE_"
@@ -25,6 +26,12 @@ export const safeSymbolName = (name: string) =>
     // and "a_u20_b"). Eliminating that would require resolving names to canonical ids without routing
     // through a safe symbol at all, but such collisions are vanishingly unlikely in practice.
     .replace(/[^a-zA-Z0-9_]/gu, char => `_u${char.codePointAt(0)!.toString(16)}_`)
+
+// Wraps a name in backticks if it contains characters that aren't valid in a bare formula identifier
+// (spaces, leading digit, punctuation, etc.). Any backticks or backslashes in the name are escaped so
+// the wrapped form parses correctly.
+export const asFormulaIdentifier = (name: string) =>
+  name === safeSymbolName(name) ? name : `\`${escapeBacktickString(name)}\``
 
 export const localAttrIdToCanonical = (attrId: string) => `${CANONICAL_NAME}${LOCAL_ATTR}${attrId}`
 

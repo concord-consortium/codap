@@ -238,14 +238,24 @@ global can have only one slider.
 
 **Omitting `globalValueName` on `create` discards everything else you sent.** CODAP makes a
 default slider and ignores `lowerBound`, `upperBound`, `multipleOf`, `scaleType` and the
-animation settings, reporting success. Always name a global when creating a slider with
-properties, or set them with a following `update`.
+animation settings, reporting success. A malformed `multipleOf`, `scaleType`,
+`dateMultipleOfUnit` or animation setting is still refused. Always name a global when creating a
+slider with properties, or set them with a following `update`.
 
 `lowerBound` and `upperBound` apply only when **both** are given; one alone is ignored.
 
 `animationDirection` and `animationMode` are numeric indexes, not names. `value` is honored on
 `update` only, and must be a number or text that reads as one, as for `update global`; anything
-else is refused with `global values must be numbers`, and nothing changes.
+else is refused with `global values must be numbers`, and nothing changes. As in v2, the value is
+rounded to the slider's `multipleOf`, if it has one, but it isn't kept within the slider's axis; a
+value too large to round is used as sent. Sending only `multipleOf` rounds the current value. v2
+also rounded a value set with `update global` on a slider's global value; that isn't rounded here.
+
+`multipleOf` must be a number or text that reads as one, as for `value`, and is stored as a
+number. Anything else is refused on `create` and `update` with `multipleOf must be a number.`, and
+nothing changes. A negative `multipleOf` is taken as positive, as the inspector takes it. v2
+ignored a `multipleOf` sent by a plugin, so a request v2 accepted with a malformed `multipleOf` is
+now refused as a whole.
 
 <!-- BEGIN GENERATED: values-slider source=V2Slider -->
 | Property | Type | | Declared in |
@@ -294,10 +304,12 @@ else is refused with `global values must be numbers`, and nothing changes.
 | `geoRaster` | `V2MapGeoRaster` | optional | `V2Map` |
 <!-- END GENERATED: values-map -->
 
-**A map's `get` returns only `dataContext`.** `center`, `zoom`, `legendAttributeName` and
-`geoRaster` can be set but not read back; a plugin that reads a map's position in order to
-restore it later gets nothing. `geoRaster` is also ignored on `create` — set it with a following
-`update`. That `get` returns all four is the intended behavior and a known bug today.
+**A map's `get` returns only `dataContext`.** A map with several data sets, one per layer, reports
+the first layer's. `center`, `zoom`, `legendAttributeName` and `geoRaster` can be set but not read
+back; a plugin that reads a map's position in order to restore it later gets nothing. `geoRaster`
+is also ignored on `create` — set it with a following `update`. That `get` returns all four is the
+intended behavior and a known bug today. (v2 meant to report the data context too, but looked for
+it where a map didn't keep it, so it never did.)
 
 **A `dataContext`, or a `legendAttributeName` in it, that isn't found is refused** on `create`,
 as on a graph, and nothing is created. As in v2, `create` uses `legendAttributeName` only with a
@@ -689,6 +701,7 @@ notifies nobody at all, not just the sender.
 | `Global not found: <value>` | a slider named a `globalValueName` that does not exist |
 | `Cannot create multiple sliders for <value>` | a second slider for a global that already has one |
 | `Unsupported scaleType <value>`, `Unsupported dateUnit <value>` | a slider `scaleType` or `dateMultipleOfUnit` CODAP does not recognize |
+| `multipleOf must be a number.` | a slider `multipleOf` that is neither a number nor text that reads as one |
 | `Unsupported animationDirection <value>`, `Unsupported animationMode <value>` | a slider animation index out of range |
 
 ## See also

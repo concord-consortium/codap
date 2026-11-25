@@ -23,6 +23,8 @@ export const diItemSearchHandler: DIHandler = {
     dataContext.applyModelChange(() => {
       dataContext.removeCases(itemIds)
     }, {
+      // as in V2, deleting items keeps the undo history (data_context.js:540, :575)
+      keepRedo: true,
       notify: deleteItemsNotifications(dataContext, itemIds)
     })
 
@@ -74,6 +76,8 @@ export const diItemSearchHandler: DIHandler = {
       }
       dataContext.validateCases()
     }, {
+      // as in V2, moving items keeps the undo history (data_context.js:536, :575)
+      keepRedo: true,
       // as in v2, moveCases is sent only when the order changed
       notify: () => {
         const itemIds = dataContext._itemIds

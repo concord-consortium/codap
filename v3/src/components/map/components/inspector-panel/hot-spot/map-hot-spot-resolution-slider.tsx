@@ -1,11 +1,11 @@
 import { observer } from "mobx-react-lite"
 import { Label, Slider, SliderTrack } from "react-aria-components"
-import { logStringifiedObjectMessage } from "../../../../lib/log-message"
-import { ValueTextSliderThumb } from "../../../common/value-text-slider-thumb"
-import { gLocale } from "../../../../utilities/translation/locale"
-import { t } from "../../../../utilities/translation/translate"
-import { IMapPointLayerModel } from "../../models/map-point-layer-model"
-import { bandwidthToResolution, resolutionLimit, resolutionToBandwidth } from "../../utilities/hot-spot-utils"
+import { logStringifiedObjectMessage } from "../../../../../lib/log-message"
+import { ValueTextSliderThumb } from "../../../../common/value-text-slider-thumb"
+import { gLocale } from "../../../../../utilities/translation/locale"
+import { t } from "../../../../../utilities/translation/translate"
+import { IMapPointLayerModel } from "../../../models/map-point-layer-model"
+import { bandwidthToResolution, resolutionLimit, resolutionToBandwidth } from "../../../utilities/hot-spot-utils"
 
 const kResolutionStep = 0.01
 

@@ -2,7 +2,9 @@ import { DIAdornmentHandler } from "../../../../../data-interactive/handlers/ado
 import { IGraphContentModel } from "../../../models/graph-content-model"
 import { cellKeyToString } from "../../../utilities/cell-key-utils"
 import { IAdornmentModel } from "../../adornment-models"
-import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../../utilities/adornment-handler-utils"
+import {
+  AdornmentData, adornmentMismatchResult, cellKeyToCategories, numberValuesError
+} from "../../utilities/adornment-handler-utils"
 import { isStandardErrorAdornment } from "./standard-error-adornment-model"
 import { kStandardErrorType } from "./standard-error-adornment-types"
 import { adornmentWriteHandlers } from "../../utilities/adornment-write-handlers"
@@ -32,7 +34,8 @@ function get(adornment: IAdornmentModel, graphContent: IGraphContentModel) {
   return { data, _numStErrs }
 }
 
-// as in v2, any finite number of standard errors of 0 or more; the inspector shows it rounded to the nearest 0.5
+// as in v2, any finite number of standard errors of 0 or more; the inspector shows it rounded to the nearest 0.5.
+// One that isn't a finite number is refused (validate, below); a negative one is ignored
 function applyValues(adornment: IAdornmentModel, values: Record<string, unknown>) {
   if (!isStandardErrorAdornment(adornment)) return
   const { _numStErrs } = values
@@ -41,5 +44,8 @@ function applyValues(adornment: IAdornmentModel, values: Record<string, unknown>
 
 export const standardErrorAdornmentHandler: DIAdornmentHandler = {
   get,
-  ...adornmentWriteHandlers({ adornmentType: kStandardErrorType, get, applyValues })
+  ...adornmentWriteHandlers({
+    adornmentType: kStandardErrorType, get, applyValues,
+    validate: values => numberValuesError(values, ["_numStErrs"])
+  })
 }

@@ -232,7 +232,7 @@ context("case card", () => {
       cy.log("Hide an attribute.")
       card.openAttributeMenu(9)
       cy.get('[data-testid^="attribute-header-menu-"]').should("be.visible")
-      cy.get('[data-testid^="attribute-header-menu-"]').find("button").eq(9).trigger("click")
+      cy.get('[data-testid^="attribute-header-menu-"]').find('[data-testid="attribute-menu-hide"]').trigger("click")
       card.getAttributes().should("have.length", 9)
       card.getAttributeNames().should("have.length", 9)
       card.getAttributeValues().should("have.length", 9)

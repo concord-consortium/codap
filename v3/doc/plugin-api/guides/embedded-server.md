@@ -83,8 +83,13 @@ See [How CODAP processes requests](request-processing.md) for the rest.
 
 What the host page cannot do is ask about itself. A plugin's requests can refer to the
 component it runs in; the host page has none. So `interactiveFrame` fails with
-`Interactive Frame not found` when the host page sends it. The host page also has no default
-data context; see [Known limitations](#known-limitations).
+`Interactive Frame not found` when the host page sends it.
+
+The host page has a default data context, as a plugin does (see
+[The default data context](../README.md#the-default-data-context)): the one it created most
+recently with `create dataContext` without naming a data context in the selector. As in v2,
+CODAP doesn't save it with the document, and having no component, the host page has no name to
+fall back on.
 
 ## Receiving notifications
 
@@ -113,14 +118,6 @@ registered with `logMessageMonitor`, CODAP sends the `logMessageNotice` to the h
 
 When the host page or a plugin sends `update document`, CODAP sends `updateDocumentBegun` and
 `updateDocumentEnded` to every plugin and to the host page.
-
-## Known limitations
-
-**The host page has no default data context.** A request from the host page that does not name a
-data context fails with a not-found error, even right after the host page created one with
-`create dataContext`. v2 kept a default for the host page: the data context it created most
-recently without naming one in the selector. This is a known bug. Until it is fixed, name the
-data context in every request from the host page.
 
 ## See also
 

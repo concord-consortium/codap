@@ -5,6 +5,7 @@ import { useDataSetContext } from "../../hooks/use-data-set-context"
 import { boundaryManager } from "../../models/boundaries/boundary-manager"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { getGlobalValueManager } from "../../models/global/global-value-manager"
+import { asFormulaIdentifier } from "../../models/formula/utils/name-mapping-utils"
 import { useFormulaEditorContext } from "./formula-editor-context"
 import { useFormulaMenuPlacement } from "./use-formula-menu-placement"
 
@@ -38,17 +39,13 @@ export const InsertValuesMenu = ({ buttonRef, onClose }: IProps) => {
   const [, setScrollPosition] = useState(0)
   const menuStyle = useFormulaMenuPlacement(buttonRef, containerRef, kMaxHeight, scrollableContainerRef)
 
-  const insertValueToFormula = (value: string) => {
-    // if the name begins with a digit or has any non-alphanumeric chars, wrap it in backticks
-    if (/^\d|[^\w]/.test(value)) value = `\`${value}\``
-    editorApi?.insertVariableString(value)
-    onClose()
-  }
-
   const handleAction = (key: Key) => {
-    // strip the category prefix (e.g. "attr:", "const:") to get the actual value
-    const value = String(key).replace(/^[^:]+:/, "")
-    insertValueToFormula(value)
+    // split the category prefix (e.g. "attr:", "const:") from the actual value
+    const [, category, value] = /^([^:]+):(.*)$/s.exec(String(key)) ?? []
+    if (value == null) return
+    // constants (e.g. "π") are inserted as-is; names are wrapped in backticks when necessary
+    editorApi?.insertVariableString(category === "const" ? value : asFormulaIdentifier(value))
+    onClose()
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

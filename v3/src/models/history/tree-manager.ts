@@ -148,6 +148,12 @@ export const TreeManager = types
       // Remove the entry from the activeHistoryEntries
       detach(entry)
 
+      // A change that can't be undone, made on purpose rather than as a reaction or by undo or redo, clears
+      // the redo list, as V2's changes did (undo_history.js:89-111, :233-238), even one that records nothing,
+      // such as a change to case values. Unlike V2, the undo list is kept. See AppHistoryService for the changes
+      // that don't. An undo or redo made before the entry completes has cleared it already (see UndoStore).
+      const clearsRedo = self.undoStore.clearsRedoOnCompletion(entry)
+
       // If the history entry resulted in no changes don't add it to the real
       // history.
       //
@@ -157,6 +163,7 @@ export const TreeManager = types
       // state we might want to show that somehow. There are lots of entries
       // that are empty though, so they are removed for the time being.
       if (!entry.records.length && !entry.customPatches?.length) {
+        if (clearsRedo) self.undoStore.clearRedo()
         destroy(entry)
         return
       }
@@ -178,6 +185,9 @@ export const TreeManager = types
       // stack will have incomplete entries in sometimes.
       if (entry.undoable) {
         self.undoStore.addHistoryEntry(entry)
+      }
+      else if (clearsRedo) {
+        self.undoStore.clearRedo()
       }
 
       if (!entry.noDirty) {
@@ -264,6 +274,7 @@ export const TreeManager = types
       ...entryInfo,
       undoable: undoable || !!customPatches?.length
     })
+    entry.setUndoRedoCountAtStart(self.undoStore.undoRedoCount)
     self.activeHistoryEntries.push(entry)
 
     entry.activeExchanges.set(exchangeId, `TreeManager.createHistoryEntry ${action}`)

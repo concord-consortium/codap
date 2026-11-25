@@ -6,6 +6,7 @@ import { testGetComponent } from "../../data-interactive/handlers/component-hand
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import { appState } from "../../models/app-state"
 import { DataSet } from "../../models/data/data-set"
+import { ISharedModel } from "../../models/shared/shared-model"
 import { toV3Id } from "../../utilities/codap-utils"
 import { kMapIdPrefix } from "./map-defs"
 import "./map-registration"
@@ -58,7 +59,7 @@ describe("DataInteractive ComponentHandler Map", () => {
 
     testGetComponent(tile, handler, (mapTile, values) => {
       const { dataContext } = values as V2Map
-      expect(dataContext).toBe((mapTile.content as IMapContentModel).dataConfiguration?.dataset?.name)
+      expect(dataContext).toBe((mapTile.content as IMapContentModel).datasetsArray[0]?.name)
     })
 
     const updateResult = handler.update!({ component: tile }, {
@@ -77,6 +78,39 @@ describe("DataInteractive ComponentHandler Map", () => {
     expect(tileContent.center.lat).toBe(30)
     expect(tileContent.center.lng).toBe(34)
     expect(tileContent.zoom).toBe(5)
+  })
+
+  it("get reports the data context of the map's first layer", () => {
+    const sharedDataSets: ISharedModel[] = []
+    const createPlaces = (name: string) => {
+      const _dataSet = DataSet.create({ name })
+      ;["lat", "long"].forEach(attrName => _dataSet.addAttribute({ name: attrName }))
+      const { sharedDataSet } = documentContent.createDataSet(getSnapshot(_dataSet))
+      sharedDataSets.push(sharedDataSet)
+      sharedDataSet.dataSet.addCases([{ lat: 42, long: -71 }], { canonicalize: true })
+      return sharedDataSet.dataSet
+    }
+    const createMap = () => {
+      const result = handler.create!({}, { type: "map" })
+      expect(result.success).toBe(true)
+      return documentContent.tileMap.get(toV3Id(kMapIdPrefix, (result.values as DIComponentInfo).id!))!
+    }
+    const getDataContext = (mapTile: ReturnType<typeof createMap>) =>
+      (handler.get!({ component: mapTile }).values as V2Map).dataContext
+
+    const towns = createPlaces("towns")
+    const tile = createMap()
+    expect((tile.content as IMapContentModel).datasetsArray).toEqual([towns])
+    expect(getDataContext(tile)).toBe("towns")
+
+    // a map showing two data sets, one per layer, reports the first
+    const stations = createPlaces("stations")
+    const tile2 = createMap()
+    expect((tile2.content as IMapContentModel).datasetsArray).toEqual([towns, stations])
+    expect(getDataContext(tile2)).toBe("towns")
+
+    // remove the data sets and maps, so later maps don't show them
+    documentContent.removeSharedModelsAndTiles(sharedDataSets, [tile, tile2])
   })
 
   it("refuses a data context or legend attribute that isn't found, and creates or changes nothing", () => {

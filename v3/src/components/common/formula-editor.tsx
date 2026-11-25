@@ -16,6 +16,8 @@ import { boundaryManager } from "../../models/boundaries/boundary-manager"
 import { IDataSet } from "../../models/data/data-set"
 import { typedFnRegistry } from "../../models/formula/functions/math"
 import { formulaLanguageWithHighlighting } from "../../models/formula/lezer/formula-language"
+import { asFormulaIdentifier } from "../../models/formula/utils/name-mapping-utils"
+import { unescapeBacktickString } from "../../models/formula/utils/string-utils"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { FormulaEditorApi, useFormulaEditorContext } from "./formula-editor-context"
@@ -29,7 +31,7 @@ interface ICompletionOptions {
   specials: boolean
 }
 
-const kAllOptions: ICompletionOptions = {
+export const kAllOptions: ICompletionOptions = {
   attributes: true, boundaries: true, constants: true, functions: true, globals: true, specials: true
 }
 
@@ -50,7 +52,7 @@ interface IProps {
 const cmUpdateDataSetEffect = StateEffect.define<IDataSet | null>()
 
 // Define a CodeMirror state field to store the data set with the editor state
-const cmDataSetState = StateField.define<IDataSet | null>({
+export const cmDataSetState = StateField.define<IDataSet | null>({
   create: () => null,
   update: (value, transaction) => {
     for (const effect of transaction.effects) {
@@ -68,7 +70,7 @@ const cmDataSetState = StateField.define<IDataSet | null>({
 const cmUpdateOptionsEffect = StateEffect.define<ICompletionOptions | null>()
 
 // Define a CodeMirror state field to store the completion options in the editor state
-const cmOptionsState = StateField.define<ICompletionOptions | null>({
+export const cmOptionsState = StateField.define<ICompletionOptions | null>({
   create: () => null,
   update: (value, transaction) => {
     for (const effect of transaction.effects) {
@@ -86,25 +88,21 @@ const cmOptionsState = StateField.define<ICompletionOptions | null>({
  * autocomplete
  */
 
-function cmCodapCompletions(context: CompletionContext): CompletionResult | null {
+// inserts an attribute or global value name, wrapping it in backticks when necessary
+function applyNameCompletion(view: EditorView, completion: Completion, from: number, to: number) {
+  view.dispatch({
+    ...insertCompletionText(view.state, asFormulaIdentifier(completion.label), from, to),
+    annotations: pickedCompletion.of(completion)
+  })
+}
+
+export function cmCodapCompletions(context: CompletionContext): CompletionResult | null {
   const before = context.matchBefore(/\w+/)
   // getting my completions and storing it in completions variable
   const dataSet = context.state.field(cmDataSetState)
   const options = context.state.field(cmOptionsState)
   const attributes = options?.attributes
-                      ? dataSet?.attributes.map(attr => ({
-                          label: attr.name,
-                          apply: (view: EditorView, completion: Completion, from: number, to: number) => {
-                            let label = completion.label
-                            // if the attribute name has any non-alphanumeric chars, wrap it in backticks
-                            if (/[^\w]/.test(label)) label = `\`${label}\``
-                            // apply the completion
-                            view.dispatch({
-                              ...insertCompletionText(view.state, label, from, to),
-                              annotations: pickedCompletion.of(completion)
-                            })
-                          }
-                        })) ?? []
+                      ? dataSet?.attributes.map(attr => ({ label: attr.name, apply: applyNameCompletion })) ?? []
                       : []
   const constants = options?.constants ? [
     { label: "e" },
@@ -128,7 +126,8 @@ function cmCodapCompletions(context: CompletionContext): CompletionResult | null
                           ? getGlobalValueManager(getSharedModelManager(dataSet))
                           : undefined
   const globals = globalManager
-                    ? Array.from(globalManager.globals.values()).map(global => ({ label: global.name }))
+                    ? Array.from(globalManager.globals.values())
+                        .map(global => ({ label: global.name, apply: applyNameCompletion }))
                     : []
   const functions: Completion[] = options?.functions ? Object.keys(typedFnRegistry).map(fnName => ({
     label: `${fnName}()`,
@@ -196,8 +195,8 @@ function addCodapHighlightingClasses(view: EditorView) {
     enter(node) {
       let nodeText = view.state.doc.sliceString(node.from, node.to)
       // highlight attribute names in backticks
-      const execResult = /^`(.+)`$/.exec(nodeText)
-      if (execResult?.[1]) nodeText = execResult[1]
+      const execResult = /^`(.+)`$/s.exec(nodeText)
+      if (execResult?.[1]) nodeText = unescapeBacktickString(execResult[1])
       const highlightClass = highlightClasses[node.type.name]?.(nodeText, dataSet, options ?? kAllOptions)
       if (highlightClass) {
         builder.add(node.from, node.to, Decoration.mark({ class: highlightClass }))
@@ -221,7 +220,7 @@ class CodapHighlightingPluginClass {
 }
 
 // Define the view plugin
-const codapHighlightingViewPlugin = ViewPlugin.fromClass(
+export const codapHighlightingViewPlugin = ViewPlugin.fromClass(
   CodapHighlightingPluginClass, {
     decorations: (v: CodapHighlightingPluginClass) => v.decorations as DecorationSet
   }

@@ -1,0 +1,157 @@
+import { render, screen, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
+import { AppHistoryService } from "../../../../models/history/app-history-service"
+import { MapContentModel } from "../../models/map-content-model"
+import { IMapPinLayerModel, MapPinLayerModel } from "../../models/map-pin-layer-model"
+import { IMapPointLayerModel, MapPointLayerModel } from "../../models/map-point-layer-model"
+import { MapLayersPalette } from "./map-layers-palette"
+
+jest.mock("../../../../utilities/translation/translate", () => ({
+  t: (key: string) => key,
+  translate: (key: string) => key
+}))
+
+describe("MapLayersPalette", () => {
+  let pointLayer: IMapPointLayerModel
+  let pinLayer: IMapPinLayerModel
+
+  const renderPalette = () => {
+    // applyModelChange requires a history service in the MST environment
+    const mapModel = MapContentModel.create(
+      { layers: [MapPointLayerModel.create() as any, MapPinLayerModel.create()] },
+      { historyService: new AppHistoryService() }
+    )
+    pointLayer = mapModel.layers[0] as IMapPointLayerModel
+    pinLayer = mapModel.layers[1] as IMapPinLayerModel
+    render(<MapLayersPalette tile={{ content: mapModel } as any} setShowPalette={jest.fn()}/>)
+  }
+
+  // The controls for one layer: its visibility checkbox and the sections beneath it.
+  const layerControls = (layerId: string) =>
+    // eslint-disable-next-line testing-library/no-node-access
+    screen.getByTestId(`map-layers-checkbox-layer-${layerId}`).closest(".map-layer-controls") as HTMLElement
+
+  it("groups each layer's controls under the layer's name, so repeated controls can be told apart", () => {
+    const mapModel = MapContentModel.create(
+      { layers: [MapPointLayerModel.create() as any, MapPointLayerModel.create() as any] },
+      { historyService: new AppHistoryService() }
+    )
+    render(<MapLayersPalette tile={{ content: mapModel } as any} setShowPalette={jest.fn()}/>)
+
+    const groups = screen.getAllByRole("group", { name: "DG.Inspector.defaultLayerName" })
+    expect(groups).toHaveLength(2)
+    mapModel.layers.forEach((layer, index) => {
+      const group = groups[index]
+      // The group is labelled by the layer's own name, inside the group's visibility checkbox.
+      const labelId = group.getAttribute("aria-labelledby")
+      // eslint-disable-next-line testing-library/no-node-access
+      const label = labelId ? document.getElementById(labelId) : null
+      const layerCheckbox = within(group).getByTestId(`map-layers-checkbox-layer-${layer.id}`)
+      expect(layerCheckbox).toContainElement(label)
+      // The layer checkbox keeps its own name.
+      expect(within(group).getAllByRole("checkbox", { name: "DG.Inspector.defaultLayerName" })).toHaveLength(1)
+      // Each group holds its own layer's controls and none of the other layer's.
+      const otherLayer = mapModel.layers[1 - index]
+      for (const kind of ["points", "grid", "lines"]) {
+        expect(within(group).getByTestId(`map-layers-checkbox-${kind}-${layer.id}`)).toBeInTheDocument()
+        expect(within(group).queryByTestId(`map-layers-checkbox-${kind}-${otherLayer.id}`)).not.toBeInTheDocument()
+      }
+    })
+  })
+
+  it("has the points, grid, connecting lines, and pins checkboxes in the layer's controls", () => {
+    renderPalette()
+
+    const pointControls = within(layerControls(pointLayer.id))
+    expect(pointControls.getByTestId(`map-layers-checkbox-points-${pointLayer.id}`)).toBeInTheDocument()
+    expect(pointControls.getByTestId(`map-layers-checkbox-grid-${pointLayer.id}`)).toBeInTheDocument()
+    expect(pointControls.getByTestId(`map-layers-checkbox-lines-${pointLayer.id}`)).toBeInTheDocument()
+    expect(pointControls.queryByTestId(`map-layers-checkbox-pins-${pinLayer.id}`)).not.toBeInTheDocument()
+
+    const pinControls = within(layerControls(pinLayer.id))
+    expect(pinControls.getByTestId(`map-layers-checkbox-pins-${pinLayer.id}`)).toBeInTheDocument()
+    expect(pinControls.queryByRole("checkbox", { name: "DG.Inspector.mapPoints" })).not.toBeInTheDocument()
+  })
+
+  it("puts Grid, Connecting Lines, and Pins each in a section of its own", () => {
+    renderPalette()
+
+    for (const testId of [
+      `map-layers-checkbox-grid-${pointLayer.id}`,
+      `map-layers-checkbox-lines-${pointLayer.id}`,
+      `map-layers-checkbox-pins-${pinLayer.id}`
+    ]) {
+      // eslint-disable-next-line testing-library/no-node-access
+      const section = screen.getByTestId(testId).closest(".palette-form")
+      expect(section).toHaveClass("palette-form")
+      // eslint-disable-next-line testing-library/no-node-access
+      expect(section?.querySelectorAll(".react-aria-Checkbox")).toHaveLength(1)
+    }
+  })
+
+  it("shows and hides the layer's points", async () => {
+    const user = userEvent.setup()
+    renderPalette()
+
+    const checkbox = screen.getByTestId(`map-layers-checkbox-points-${pointLayer.id}`)
+    expect(checkbox).toHaveAttribute("data-selected", "true")
+    await user.click(checkbox)
+    expect(pointLayer.pointsAreVisible).toBe(false)
+    expect(checkbox).not.toHaveAttribute("data-selected")
+    await user.click(checkbox)
+    expect(pointLayer.pointsAreVisible).toBe(true)
+  })
+
+  it("shows and hides the layer's grid", async () => {
+    const user = userEvent.setup()
+    renderPalette()
+
+    const checkbox = screen.getByTestId(`map-layers-checkbox-grid-${pointLayer.id}`)
+    expect(pointLayer.gridModel.isVisible).toBe(false)
+    await user.click(checkbox)
+    expect(pointLayer.gridModel.isVisible).toBe(true)
+    expect(checkbox).toHaveAttribute("data-selected", "true")
+    await user.click(checkbox)
+    expect(pointLayer.gridModel.isVisible).toBe(false)
+  })
+
+  it("shows and hides the layer's connecting lines", async () => {
+    const user = userEvent.setup()
+    renderPalette()
+
+    const checkbox = screen.getByTestId(`map-layers-checkbox-lines-${pointLayer.id}`)
+    expect(pointLayer.connectingLinesAreVisible).toBe(false)
+    await user.click(checkbox)
+    expect(pointLayer.connectingLinesAreVisible).toBe(true)
+    await user.click(checkbox)
+    expect(pointLayer.connectingLinesAreVisible).toBe(false)
+  })
+
+  it("shows and hides the layer's pins", async () => {
+    const user = userEvent.setup()
+    renderPalette()
+
+    const checkbox = screen.getByTestId(`map-layers-checkbox-pins-${pinLayer.id}`)
+    expect(pinLayer.pinsAreVisible).toBe(true)
+    await user.click(checkbox)
+    expect(pinLayer.pinsAreVisible).toBe(false)
+    await user.click(checkbox)
+    expect(pinLayer.pinsAreVisible).toBe(true)
+  })
+
+  it("disables the point formatting options while the layer's points are hidden", async () => {
+    const user = userEvent.setup()
+    renderPalette()
+
+    const strokeSameAsFill = screen.getByRole("checkbox", { name: "DG.Inspector.strokeSameAsFill" })
+    expect(strokeSameAsFill).toBeEnabled()
+
+    await user.click(screen.getByTestId(`map-layers-checkbox-points-${pointLayer.id}`))
+    expect(strokeSameAsFill).toBeDisabled()
+    // The other sections are independent of the points' visibility.
+    expect(within(screen.getByTestId(`map-layers-checkbox-grid-${pointLayer.id}`)).getByRole("checkbox"))
+      .toBeEnabled()
+    expect(within(screen.getByTestId(`map-layers-checkbox-lines-${pointLayer.id}`)).getByRole("checkbox"))
+      .toBeEnabled()
+  })
+})

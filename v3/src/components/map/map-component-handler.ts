@@ -126,7 +126,8 @@ export const mapComponentHandler: DIComponentHandler = {
 
   get(content) {
     if (isMapContentModel(content)) {
-      return { dataContext: content.dataConfiguration?.dataset?.name }
+      // a map keeps its data sets in its layers; one showing several reports the first
+      return { dataContext: content.datasetsArray[0]?.name }
     }
   },
 

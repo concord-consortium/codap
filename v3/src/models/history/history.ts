@@ -28,6 +28,7 @@ export interface ICreateHistoryEntry {
   action: string
   noDirty?: boolean
   undoable: boolean
+  clearsRedo?: boolean
   customPatches?: ICustomPatch[]
   clientData?: IClientUndoData
 }
@@ -41,6 +42,8 @@ export const HistoryEntry = types.model("HistoryEntry", {
   // the easiest place for now.
   noDirty: types.maybe(types.boolean),
   undoable: types.maybe(types.boolean),
+  // an explicit change that can't be undone, which clears the redo list
+  clearsRedo: types.maybe(types.boolean),
   // other standard properties
   created: types.optional(types.Date, () => new Date()),
   records: types.array(TreePatchRecord),
@@ -54,7 +57,15 @@ export const HistoryEntry = types.model("HistoryEntry", {
   // for debugging an activeExchange that hasn't been ended.
   // The {name: "activeExchanges"} is a feature of MobX that can also
   // help with debugging.
-  activeExchanges: observable.map<string, string>({}, {name: "activeExchanges"})
+  activeExchanges: observable.map<string, string>({}, {name: "activeExchanges"}),
+  // the undo store's undoRedoCount when the entry was created, so an undo or redo made before the entry
+  // completes can be detected
+  undoRedoCountAtStart: 0
+}))
+.actions(self => ({
+  setUndoRedoCountAtStart(count: number) {
+    self.undoRedoCountAtStart = count
+  }
 }))
 .views(self => ({
   get modelActionKey() {

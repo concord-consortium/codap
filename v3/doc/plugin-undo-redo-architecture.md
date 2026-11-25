@@ -60,7 +60,7 @@ This is the correct behavior from the user's perspective.
 
 ### Proactive Notifications
 
-CODAP broadcasts `clearRedo` to all plugins (and the host page) each time an undoable entry is added to the history, and `clearUndo` then `clearRedo` when `update document` erases the history. Undo and redo send `undo` or `redo` on `document` instead. All are sent as `notify` messages with `{ operation, canUndo, canRedo }`, from the undo store's history listener.
+CODAP broadcasts `clearRedo` to all plugins (and the host page) each time an undoable entry is added to the history, and when a change that can't be undone erases entries that could be redone (once for a burst; see `TreeManager.completeHistoryEntry` and the `keepRedo` option), and `clearUndo` then `clearRedo` when `update document` erases the history. Undo and redo send `undo` or `redo` on `document` instead. All are sent as `notify` messages with `{ operation, canUndo, canRedo }`, from the undo store's history listener.
 
 ### Standalone vs External Mode
 
