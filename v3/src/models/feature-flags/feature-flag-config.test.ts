@@ -16,6 +16,11 @@ describe("validateFeatureFlagConfig", () => {
     expect(validateFeatureFlagConfig({ noSuchFeature: "on" })).toEqual({})
   })
 
+  // partner flags come only from a partner config
+  it("drops partner flags", () => {
+    expect(validateFeatureFlagConfig({ hideShare: "on", [kFlag]: "on" })).toEqual({ [kFlag]: "on" })
+  })
+
   it("drops directives that are neither on nor off", () => {
     expect(validateFeatureFlagConfig({ [kFlag]: "maybe" })).toEqual({})
   })

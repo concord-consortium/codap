@@ -1,21 +1,21 @@
 import { action, makeObservable, observable } from "mobx"
 import { urlParams } from "../../utilities/url-params"
 import { FeatureFlagConfig, FeatureFlagDirective } from "./feature-flag-config"
-import { FeatureFlagName, flagsForOwner, isFeatureFlagName, isFeatureFlagOwner } from "./feature-flag-registry"
+import { flagsForOwner, isFeatureFlagOwner, isPilotFlagName, PilotFlagName } from "./feature-flag-registry"
 
 export class FeatureFlagManager {
   @observable.shallow
-  private serverFlags = new Map<FeatureFlagName, FeatureFlagDirective>()
+  private serverFlags = new Map<PilotFlagName, FeatureFlagDirective>()
 
   @observable.shallow
-  private documentFlags = new Set<FeatureFlagName>()
+  private documentFlags = new Set<PilotFlagName>()
 
   constructor() {
     makeObservable(this)
   }
 
-  private get urlFlags(): ReadonlyMap<FeatureFlagName, boolean> {
-    const flags = new Map<FeatureFlagName, boolean>()
+  private get urlFlags(): ReadonlyMap<PilotFlagName, boolean> {
+    const flags = new Map<PilotFlagName, boolean>()
     // query-string yields an array rather than a string when `features` appears
     // more than once in the url. The repeated and comma-separated forms mean the
     // same thing, so flatten to a single token list; tokens stay in url order,
@@ -30,7 +30,7 @@ export class FeatureFlagManager {
       // A flag name is tried first, so a flag name always wins over an owner name
       // on the (convention-avoided) chance the two collide. An owner token expands
       // to every flag that project owns.
-      if (isFeatureFlagName(token)) {
+      if (isPilotFlagName(token)) {
         flags.set(token, enabled)
       } else if (isFeatureFlagOwner(token)) {
         flagsForOwner(token).forEach(name => flags.set(name, enabled))
@@ -64,7 +64,7 @@ export class FeatureFlagManager {
   setServerConfig(config: FeatureFlagConfig) {
     this.serverFlags.clear()
     Object.entries(config).forEach(([name, directive]) => {
-      if (isFeatureFlagName(name) && directive) this.serverFlags.set(name, directive)
+      if (isPilotFlagName(name) && directive) this.serverFlags.set(name, directive)
     })
   }
 
@@ -72,7 +72,7 @@ export class FeatureFlagManager {
   setDocumentFlags(names: readonly string[]) {
     this.documentFlags.clear()
     names.forEach(name => {
-      if (isFeatureFlagName(name)) this.documentFlags.add(name)
+      if (isPilotFlagName(name)) this.documentFlags.add(name)
     })
   }
 
@@ -84,15 +84,15 @@ export class FeatureFlagManager {
    * turned off. Flags the server has killed are excluded because the user isn't
    * running the feature, so there is nothing to record.
    */
-  get urlEnabledFlags(): FeatureFlagName[] {
-    const flags: FeatureFlagName[] = []
+  get urlEnabledFlags(): PilotFlagName[] {
+    const flags: PilotFlagName[] = []
     this.urlFlags.forEach((enabled, name) => {
       if (enabled && this.serverFlags.get(name) !== "off") flags.push(name)
     })
     return flags
   }
 
-  isFeatureEnabled(name: FeatureFlagName): boolean {
+  isFeatureEnabled(name: PilotFlagName): boolean {
     if (this.serverFlags.get(name) === "off") return false
     const urlValue = this.urlFlags.get(name)
     if (urlValue !== undefined) return urlValue
@@ -110,6 +110,6 @@ export const featureFlagManager = new FeatureFlagManager()
  * when the flag is off, and so that a late-arriving server directive takes effect
  * without a reload. See docs/feature-flags.md.
  */
-export function isFeatureEnabled(name: FeatureFlagName): boolean {
+export function isFeatureEnabled(name: PilotFlagName): boolean {
   return featureFlagManager.isFeatureEnabled(name)
 }

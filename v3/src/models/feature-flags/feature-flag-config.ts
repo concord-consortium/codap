@@ -1,8 +1,8 @@
-import { FeatureFlagName, isFeatureFlagName } from "./feature-flag-registry"
+import { isPilotFlagName, PilotFlagName } from "./feature-flag-registry"
 
 export type FeatureFlagDirective = "on" | "off"
 
-export type FeatureFlagConfig = Partial<Record<FeatureFlagName, FeatureFlagDirective>>
+export type FeatureFlagConfig = Partial<Record<PilotFlagName, FeatureFlagDirective>>
 
 /*
  * The server-side feature-flag configuration: a JSON object mapping flag names to
@@ -25,13 +25,13 @@ function isDirective(value: unknown): value is FeatureFlagDirective {
 
 /*
  * Reduces an arbitrary payload to the directives we recognize. Entries whose key
- * isn't a registered flag, or whose value isn't "on"/"off", are dropped.
+ * isn't a registered pilot flag, or whose value isn't "on"/"off", are dropped.
  */
 export function validateFeatureFlagConfig(data: unknown): FeatureFlagConfig {
   const config: FeatureFlagConfig = {}
   if (!data || typeof data !== "object" || Array.isArray(data)) return config
   Object.entries(data).forEach(([name, value]) => {
-    if (isFeatureFlagName(name) && isDirective(value)) {
+    if (isPilotFlagName(name) && isDirective(value)) {
       config[name] = value
     }
   })
