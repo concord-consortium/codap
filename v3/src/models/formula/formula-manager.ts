@@ -216,41 +216,49 @@ export class FormulaManager implements IFormulaManager {
     }
   }
 
-  // Returns the initialized formulas that depend directly on the given formula's output attribute, either
-  // as a local attribute dependency (same dataset) or a lookup dependency (cross-dataset). When `forOrdering`
-  // is true, edges that exist only inside prev() (selfReferenceAllowed) are ignored, as cycle detection does.
-  getDirectDownstreamFormulaIds(formulaId: string, forOrdering = false): string[] {
+  // Maps each attribute (keyed by data set and attribute ID) to the initialized formulas that depend on it,
+  // either as a local attribute dependency (same dataset) or a lookup dependency (cross-dataset).
+  // Each formula's dependencies are parsed once.
+  getAttributeDependentsIndex() {
+    const index = new Map<string, Set<string>>()
+    const addDependent = (dataSetId: string, attrId: string | undefined, formulaId: string) => {
+      if (!attrId) return
+      const key = `${dataSetId}:${attrId}`
+      let dependents = index.get(key)
+      if (!dependents) index.set(key, dependents = new Set<string>())
+      dependents.add(formulaId)
+    }
+    this.formulaMetadata.forEach((metadata, formulaId) => {
+      const extraMetadata = this.extraMetadata.get(formulaId)
+      const { formula } = metadata
+      if (!metadata.isInitialized || !extraMetadata || formula.empty || !formula.canonical) return
+      const { attributeId, dataSetId, defaultArgument } = extraMetadata
+      getFormulaDependencies(formula.canonical, attributeId, defaultArgument).forEach(dep => {
+        if (dep.type === "localAttribute") {
+          addDependent(dataSetId, dep.attrId, formulaId)
+        } else if (dep.type === "lookup") {
+          addDependent(dep.dataSetId, dep.attrId, formulaId)
+          addDependent(dep.dataSetId, dep.otherAttrId, formulaId)
+        }
+      })
+    })
+    return index
+  }
+
+  // Returns the initialized formulas that depend directly on the given formula's output attribute, excluding
+  // formulas that compute the same attribute. Pass an index from getAttributeDependentsIndex() to reuse it.
+  getDirectDownstreamFormulaIds(formulaId: string, index = this.getAttributeDependentsIndex()): string[] {
     const sourceMetadata = this.extraMetadata.get(formulaId)
     const sourceDataSetId = sourceMetadata?.dataSetId
     const sourceAttributeId = sourceMetadata?.attributeId
     if (!sourceDataSetId || !sourceAttributeId) return []
 
-    const result: string[] = []
-    this.formulaMetadata.forEach((metadata, otherFormulaId) => {
-      if (otherFormulaId === formulaId || !metadata.isInitialized) return
+    const dependents = index.get(`${sourceDataSetId}:${sourceAttributeId}`)
+    return Array.from(dependents ?? []).filter(otherFormulaId => {
       const extraMetadata = this.extraMetadata.get(otherFormulaId)
-      if (!extraMetadata) return
-      // Skip if this formula computes the same attribute (avoid self-triggering)
-      if (extraMetadata.dataSetId === sourceDataSetId && extraMetadata.attributeId === sourceAttributeId) return
-
-      const { formula } = metadata
-      if (formula.empty || !formula.canonical) return
-
-      const { attributeId, defaultArgument } = extraMetadata
-      const dependencies = getFormulaDependencies(formula.canonical, attributeId, defaultArgument)
-
-      const isDependent = dependencies.some(dep => {
-        if (dep.type === "localAttribute" && extraMetadata.dataSetId === sourceDataSetId) {
-          return dep.attrId === sourceAttributeId && !(forOrdering && dep.selfReferenceAllowed)
-        }
-        if (dep.type === "lookup" && dep.dataSetId === sourceDataSetId) {
-          return dep.attrId === sourceAttributeId || dep.otherAttrId === sourceAttributeId
-        }
-        return false
-      })
-      if (isDependent) result.push(otherFormulaId)
+      return otherFormulaId !== formulaId &&
+        !(extraMetadata?.dataSetId === sourceDataSetId && extraMetadata?.attributeId === sourceAttributeId)
     })
-    return result
   }
 
   // Recalculate all formulas that depend on the given formula's output attribute.
@@ -265,13 +273,20 @@ export class FormulaManager implements IFormulaManager {
   // dependency order. Formulas that are downstream of another formula in the closure recalculate all cases.
   recalculateFormulasInOrder(affected: IAffectedFormula[]) {
     // Build the closure of the affected formulas and their transitive downstream formulas.
+    const index = this.getAttributeDependentsIndex()
+    const downstreamIds = new Map<string, string[]>()
+    const getDownstreamIds = (formulaId: string) => {
+      let ids = downstreamIds.get(formulaId)
+      if (!ids) downstreamIds.set(formulaId, ids = this.getDirectDownstreamFormulaIds(formulaId, index))
+      return ids
+    }
     const closure = new Map<string, IAffectedFormula>()
     affected.forEach(entry => {
       if (!closure.has(entry.formulaId)) closure.set(entry.formulaId, entry)
     })
     const queue = Array.from(closure.keys())
     for (let i = 0; i < queue.length; ++i) {
-      this.getDirectDownstreamFormulaIds(queue[i]).forEach(downstreamId => {
+      getDownstreamIds(queue[i]).forEach(downstreamId => {
         const existing = closure.get(downstreamId)
         if (!existing) {
           closure.set(downstreamId, { formulaId: downstreamId, cases: "ALL_CASES", forceWrite: false })
@@ -283,12 +298,13 @@ export class FormulaManager implements IFormulaManager {
       })
     }
 
-    // Sort topologically (Kahn's algorithm), ignoring prev()-only edges.
+    // Sort topologically (Kahn's algorithm). Edges through prev() count too: a prev() dependent reads its
+    // source's new values, so it must run after the source. Only mutual prev() references form a cycle.
     const edges = new Map<string, string[]>()
     const inDegree = new Map<string, number>()
     closure.forEach((_, id) => inDegree.set(id, 0))
     closure.forEach((_, id) => {
-      const downstream = this.getDirectDownstreamFormulaIds(id, true).filter(downId => closure.has(downId))
+      const downstream = getDownstreamIds(id).filter(downId => closure.has(downId))
       edges.set(id, downstream)
       downstream.forEach(downId => inDegree.set(downId, (inDegree.get(downId) ?? 0) + 1))
     })

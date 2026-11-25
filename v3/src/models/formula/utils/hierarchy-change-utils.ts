@@ -136,8 +136,14 @@ export function getAffectedFormulas(
         forceWrite = true
       }
     }
-    // 3. a dependency moved or lives in a changed collection
-    if (localAttrDeps.some(depId => isMoved(depId) || isChanged(afterAttrCollection.get(depId)))) {
+    // 3. a dependency moved or lives in another, changed collection. An unmoved dependency in the formula's
+    // own collection keeps its value for each item, so rule 2 covers that collection's new cases, and a
+    // dependency that is itself a recalculated formula widens this formula through the downstream closure.
+    const isChangedElsewhere = (depId: string) => {
+      const depCollectionId = afterAttrCollection.get(depId)
+      return depCollectionId !== ownCollectionId && isChanged(depCollectionId)
+    }
+    if (localAttrDeps.some(depId => isMoved(depId) || isChangedElsewhere(depId))) {
       allCases = true
     }
     // 4. aggregate with a collection changed, added or removed below its own

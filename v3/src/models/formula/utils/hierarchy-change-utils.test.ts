@@ -76,6 +76,15 @@ describe("getAffectedFormulas", () => {
       .toEqual([{ formulaId: "F", cases: "ALL_CASES", forceWrite: false }])
   })
 
+  it("rule 3: an unmoved dependency in the formula's own collection doesn't widen new cases to ALL_CASES", () => {
+    const before: HierarchySnapshot = [
+      { id: "P", attrIds: ["f", "g"], caseIds: ["p1", "p2", "p3"] }, { id: "C", attrIds: ["v"], caseIds: ["c1"] }]
+    const after: HierarchySnapshot = [
+      { id: "P", attrIds: ["f", "g"], caseIds: ["p4", "p3"] }, { id: "C", attrIds: ["v", "h"], caseIds: ["c1"] }]
+    expect(getAffectedFormulas(before, after, [formula({ localAttrDeps: ["g"] })]))
+      .toEqual([{ formulaId: "F", cases: ["p4"], forceWrite: true }])
+  })
+
   it("rule 3: dependency on moved attribute", () => {
     const before: HierarchySnapshot = [
       { id: "P", attrIds: ["y"], caseIds: ["p1"] }, { id: "C", attrIds: ["f"], caseIds: ["c1"] }]

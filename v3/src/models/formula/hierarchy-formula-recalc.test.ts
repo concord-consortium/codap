@@ -28,10 +28,14 @@ const valueMap = (dataSet: IDataSet, attrId: string) =>
   Object.fromEntries(itemIds(dataSet).map(id => [id, dataSet.getValue(id, attrId)]))
 const formulaIdOf = (dataSet: IDataSet, attrId: string) => dataSet.getAttribute(attrId)!.formula!.id
 
-// Deterministic formulas: a fresh recalculation must not change the stored values.
+// Deterministic formulas: a fresh recalculation must not change the stored values. It writes every item,
+// so items of one case that disagree with each other are caught too.
 function expectOracle(formulaManager: FormulaManager, dataSet: IDataSet, attrId: string) {
   const before = valuesOf(dataSet, attrId)
-  formulaManager.recalculateFormula(formulaIdOf(dataSet, attrId))
+  const formulaId = formulaIdOf(dataSet, attrId)
+  const formulaContext = formulaManager.getFormulaContext(formulaId)
+  const extraMetadata = formulaManager.getExtraMetadata(formulaId)
+  formulaContext.adapter.recalculateFormula(formulaContext, extraMetadata, "ALL_CASES", { forceWrite: true })
   expect(valuesOf(dataSet, attrId)).toEqual(before)
 }
 
@@ -128,6 +132,72 @@ describe("hierarchy formula recalculation", () => {
 
     dataSet.moveAttribute(attrId("w"), { collection: childId })
     expect(valueMap(dataSet, attrId("r"))).toEqual(rValues)
+  })
+
+  it("random() + g keeps untouched cases' values when g is unmoved in the formula's own collection", () => {
+    const items: ITestItem[] = [
+      { __id__: "i1", g: 1, h: "a", v: 1 }, { __id__: "i2", g: 1, h: "b", v: 2 },
+      { __id__: "i3", g: 2, h: "c", v: 3 }, { __id__: "i4", g: 2, h: "c", v: 4 }
+    ]
+    const { dataSet, attrId } = setup(
+      [{ name: "g" }, { name: "h" }, { name: "r", formula: { display: "random() + g" } }, { name: "v" }],
+      items
+    )
+    dataSet.moveAttributeToNewCollection(attrId("g"))
+    const parentId = dataSet.collections[0].id
+    const childId = dataSet.collections[1].id
+    dataSet.moveAttribute(attrId("h"), { collection: parentId })
+    dataSet.moveAttribute(attrId("r"), { collection: parentId })
+    expect(dataSet.collections[0].caseIds.length).toBe(3)
+    const rBefore = valueMap(dataSet, attrId("r"))
+
+    // the g=1 cases merge; the g=2 case keeps the same items
+    dataSet.moveAttribute(attrId("h"), { collection: childId })
+    expect(dataSet.collections[0].caseIds.length).toBe(2)
+    const rAfter = valueMap(dataSet, attrId("r"))
+    expect(rAfter.i2).toBe(rAfter.i1)
+    expect(rAfter.i3).toBe(rBefore.i3)
+    expect(rAfter.i4).toBe(rBefore.i4)
+  })
+
+  it("a downstream formula writes every item of a merged case", () => {
+    const items: ITestItem[] = [
+      { __id__: "i1", g1: "A", g2: "p", v: 1 }, { __id__: "i2", g1: "A", g2: "s", v: 2 },
+      { __id__: "i3", g1: "B", g2: "q", v: 3 }
+    ]
+    const { dataSet, attrId } = setup([
+      { name: "g1" }, { name: "g2" }, { name: "ci", formula: { display: "caseIndex" } },
+      { name: "f", formula: { display: "ci + 10" } }, { name: "v" }
+    ], items)
+    dataSet.moveAttributeToNewCollection(attrId("g1"))
+    const parentId = dataSet.collections[0].id
+    const childId = dataSet.collections[1].id
+    dataSet.moveAttribute(attrId("g2"), { collection: parentId })
+    dataSet.moveAttribute(attrId("ci"), { collection: parentId })
+    dataSet.moveAttribute(attrId("f"), { collection: parentId })
+    expect(valueMap(dataSet, attrId("f"))).toEqual({ i1: 11, i2: 12, i3: 13 })
+
+    // the first item of the merged A case already holds the merged case's value
+    dataSet.moveAttribute(attrId("g2"), { collection: childId })
+    expect(valueMap(dataSet, attrId("ci"))).toEqual({ i1: 1, i2: 1, i3: 2 })
+    expect(valueMap(dataSet, attrId("f"))).toEqual({ i1: 11, i2: 11, i3: 12 })
+  })
+
+  it("a prev() dependent registered before its source is recalculated after it", () => {
+    const items: ITestItem[] = [
+      { __id__: "i1", group: "A", v: 1 }, { __id__: "i2", group: "A", v: 2 },
+      { __id__: "i3", group: "B", v: 3 }, { __id__: "i4", group: "B", v: 4 }
+    ]
+    const { formulaManager, dataSet, attrId } = setup([
+      { name: "group" }, { name: "lag", formula: { display: "prev(ci, 0)" } },
+      { name: "ci", formula: { display: "caseIndex" } }, { name: "v" }
+    ], items)
+    expect(valueMap(dataSet, attrId("lag"))).toEqual({ i1: 0, i2: 1, i3: 2, i4: 3 })
+
+    dataSet.moveAttributeToNewCollection(attrId("group"))
+    expect(valueMap(dataSet, attrId("ci"))).toEqual({ i1: 1, i2: 2, i3: 1, i4: 2 })
+    expect(valueMap(dataSet, attrId("lag"))).toEqual({ i1: 0, i2: 1, i3: 0, i4: 1 })
+    expectOracle(formulaManager, dataSet, attrId("lag"))
   })
 
   it("random() in a regrouped collection: merged case shares one value, untouched case keeps its value", () => {
