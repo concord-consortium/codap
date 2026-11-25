@@ -4,9 +4,6 @@ A feature flag gates an in-development feature so it can be shown to a limited
 audience before general availability, graduated without a code change, and turned
 off in a hurry if it misbehaves.
 
-CODAP has two kinds of flag: **pilot flags**, described in most of this page, and
-**partner flags**, per-partner settings described in [Partner flags](#partner-flags).
-
 Everything lives in `src/models/feature-flags/`.
 
 ## Using a flag
@@ -175,89 +172,6 @@ already disabled.
 Retirement is deleting the flag and its code. The `expires` date exists so someone
 can be reminded when a flag is overdue.
 
-## Partner flags
-
-A partner flag is a setting for one partner's branded CODAP: a logo, a name, a
-terms link, a documents list, or a feature to hide. It is declared in the same
-registry with `kind: "partner"` and a `type` instead of `owner` and `expires`.
-An entry with both or neither fails to compile. Partner flags never expire.
-
-| Type        | Value in a partner config                                     |
-| ----------- | ------------------------------------------------------------- |
-| `boolean`   | JSON `true` or `false`                                        |
-| `string`    | text; empty or whitespace-only counts as not set              |
-| `url`       | a link starting `https://` that parses and that jQuery can't treat as JSONP |
-| `image`     | `{ "file": "<name>.png", "alt": "<text>" }`: a plain file name (a letter or digit first, then letters, digits, `_` or `-`) ending png, jpg, jpeg, gif or webp, and alt text that isn't blank |
-| `documents` | the cloud-file-manager read-only list: every item has a name that isn't blank, every document a `url` that passes the `url` rule, every folder inline `children` only; at most 10 folder levels deep. An item that fails is dropped on its own, and a list left empty counts as not set |
-
-Only a partner config sets them. The `features` URL parameter, owner tokens, the
-server config and saved documents all ignore partner flag names, and saving a
-document never records one. A partner config can't set a pilot flag; pilot flags
-still reach a partner link through `?features=`.
-
-Values are validated when the config is applied
-(`partner-flag-values.ts`). An invalid value is dropped on its own and the rest
-apply. The rules for links, the logo file name and the documents list exist
-because anyone with a Concord portal login can write a partner config.
-
-The documents rules follow from how the cloud-file-manager's read-only provider
-(`readonly-provider.js`) reads a list. Pass the list to it as the `json` option,
-never `src`: with `src` the provider resolves relative links against a base URL,
-and the rules here assume links are used exactly as written.
-
-- A list that isn't an array is read as the provider's older
-  `{ filename: contents }` format, with inline content, so it is dropped.
-- The provider loads an item from `url` or, failing that, `location`. Only `url`
-  is checked, so `location` is dropped, along with inline `content`.
-- A folder with a `url` and no `children` has its contents fetched from that link
-  and used unchecked, so folders keep inline `children` only.
-- A folder with neither `children` nor `url` leaves the list loading forever, and
-  a document with neither `url` nor `content` makes the provider look itself up
-  again forever, so both are dropped.
-- The provider walks folders recursively and overflows the stack at around 2,000
-  levels, hence the 10-level limit.
-- Any `type` other than `"folder"` passes through as given, so documents are
-  rebuilt without one.
-
-A folder whose items are all dropped stays, empty: an author may make an empty
-folder on purpose. Text values are kept exactly as written; only the check for
-blank text ignores whitespace.
-
-Read a boolean partner flag with `isFeatureEnabled`, and any other with
-`getFeatureValue`, which returns `undefined` when the flag is unset:
-
-```tsx
-{!isFeatureEnabled("hidePlugins") && <PluginsButton />}
-const logo = getFeatureValue("partnerLogo")
-```
-
-Calling `isFeatureEnabled` on a value flag, or `getFeatureValue` on a boolean
-one, is a compile error.
-
-Partner flags are fixed when CODAP starts. The partner config is applied once,
-before CODAP renders, so unlike a pilot flag, a partner flag doesn't change
-after a late server directive, and it can be read once when CODAP sets up, such
-as when the cloud-file-manager is initialized. Never read one at module scope:
-modules load before the config is applied, so a module-scope read always finds
-the flag unset. The manager's `setPartnerFlags` replaces all partner values on
-each call; tests use it to set and clear them.
-
-Renaming or retyping a partner flag must be deliberate: a test compares the
-partner flags against a list written in the test, because a config naming a flag
-this build doesn't know is dropped silently.
-
-To add a partner flag, add its registry entry with `kind: "partner"` and a
-`type`, and add it to the expected list in `feature-flag-registry.test.ts`. A new
-`type` also needs a value type and a validator in `partner-flag-values.ts`; the
-validator map is typed so that a type without one doesn't compile. The type names
-(`boolean`, `string`, `url`, `image`, `documents`) are part of what partner
-config authors see, so treat them like flag names. Partner flags have no
-`owner`, which is what keeps owner tokens in `?features=` from ever reaching one.
-
-A document's `featureFlags` can still list a partner flag name, written there by
-hand or by another tool. The name has no effect and is left in place, since
-rewriting documents on load would mark them dirty.
-
 ## Not built yet
 
 - Caching server `off` directives in `localStorage` so the kill switch survives a
@@ -268,5 +182,3 @@ rewriting documents on load would mark them dirty.
 - A developer escape hatch for overriding a server `off` locally. (Overriding a
   document grant already works: `?features=-foo` disables it for the session.)
 - Exposing flags to plugins through the Data Interactive API.
-- Limits on the length of partner text values or the size of a partner
-  documents list.

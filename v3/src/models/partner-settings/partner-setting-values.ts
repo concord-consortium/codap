@@ -1,4 +1,6 @@
-import { isPartnerFlagName, kFeatureFlags, PartnerFlagName, PartnerFlagType } from "./feature-flag-registry"
+import {
+  isPartnerSettingName, kPartnerSettings, PartnerSettingName, PartnerSettingType
+} from "./partner-settings-registry"
 
 export interface IPartnerImage {
   // a plain file name in the partner config's own folder
@@ -21,7 +23,7 @@ export interface IPartnerFolder {
 // the cloud-file-manager read-only provider's list format, restricted to inline folders
 export type PartnerDocumentItem = IPartnerDocument | IPartnerFolder
 
-interface IPartnerFlagValueTypes {
+interface IPartnerSettingValueTypes {
   boolean: boolean
   string: string
   url: string
@@ -29,9 +31,10 @@ interface IPartnerFlagValueTypes {
   documents: PartnerDocumentItem[]
 }
 
-export type PartnerFlagValue<N extends PartnerFlagName> = IPartnerFlagValueTypes[(typeof kFeatureFlags)[N]["type"]]
+export type PartnerSettingValue<N extends PartnerSettingName> =
+  IPartnerSettingValueTypes[(typeof kPartnerSettings)[N]["type"]]
 
-export type PartnerFlagValues = { [N in PartnerFlagName]?: PartnerFlagValue<N> }
+export type PartnerSettingValues = { [N in PartnerSettingName]?: PartnerSettingValue<N> }
 
 /*
  * jQuery's own test for a JSONP request (jQuery 3.7.1, src/ajax/jsonp.js). The
@@ -44,11 +47,18 @@ const kJsonpUrlRegex = /(=)\?(?=&|$)|\?\?/
 // a plain name that can't reach another folder, with a raster extension; svg can run script when opened directly
 const kPartnerImageFileRegex = /^[A-Za-z0-9][A-Za-z0-9_-]*\.(png|jpg|jpeg|gif|webp)$/i
 
+// without `<` or `>`, partner text can't form a tag even where a consumer renders it as HTML
+const kMarkupCharRegex = /[<>]/
+
 // folders nested deeper than this are dropped; cloud-file-manager's recursion overflows the stack on deep lists
 export const kMaxPartnerFolderDepth = 10
 
-function isNonBlankString(value: unknown): value is string {
-  return typeof value === "string" && value.trim() !== ""
+function isPartnerText(value: unknown): value is string {
+  return typeof value === "string" && !kMarkupCharRegex.test(value)
+}
+
+function isNonBlankPartnerText(value: unknown): value is string {
+  return isPartnerText(value) && value.trim() !== ""
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -61,12 +71,15 @@ function isObject(value: unknown): value is Record<string, unknown> {
  */
 export function isValidPartnerUrl(value: unknown): value is string {
   if (typeof value !== "string" || !/^https:\/\//i.test(value)) return false
+  let url: URL
   try {
-    new URL(value)
+    url = new URL(value)
   }
   catch {
     return false
   }
+  // credentials let a link read as one host and go to another, e.g. https://concord.org@example.com
+  if (url.username || url.password) return false
   return !kJsonpUrlRegex.test(value)
 }
 
@@ -77,12 +90,12 @@ export function isValidPartnerImageFile(value: unknown): value is string {
 function validateImage(value: unknown): IPartnerImage | undefined {
   if (!isObject(value)) return
   const { file, alt } = value
-  if (!isValidPartnerImageFile(file) || !isNonBlankString(alt)) return
+  if (!isValidPartnerImageFile(file) || !isNonBlankPartnerText(alt)) return
   return { file, alt }
 }
 
 function validateItem(item: unknown, depth: number): PartnerDocumentItem[] {
-  if (!isObject(item) || !isNonBlankString(item.name)) return []
+  if (!isObject(item) || !isNonBlankPartnerText(item.name)) return []
   const { name } = item
   if (item.type === "folder") {
     if (depth > kMaxPartnerFolderDepth) return []
@@ -91,7 +104,7 @@ function validateItem(item: unknown, depth: number): PartnerDocumentItem[] {
   }
   if (!isValidPartnerUrl(item.url)) return []
   const { url, description } = item
-  return [typeof description === "string" ? { name, url, description } : { name, url }]
+  return [isPartnerText(description) ? { name, url, description } : { name, url }]
 }
 
 // `depth` is the folder level the items sit in; the top-level list is level 1
@@ -105,26 +118,26 @@ function validateDocuments(value: unknown): PartnerDocumentItem[] | undefined {
   return items?.length ? items : undefined
 }
 
-const kPartnerFlagValidators: { [T in PartnerFlagType]: (value: unknown) => IPartnerFlagValueTypes[T] | undefined } = {
-  boolean: value => typeof value === "boolean" ? value : undefined,
-  string: value => isNonBlankString(value) ? value : undefined,
-  url: value => isValidPartnerUrl(value) ? value : undefined,
-  image: validateImage,
-  documents: validateDocuments
-}
+const kPartnerSettingValidators:
+  { [T in PartnerSettingType]: (value: unknown) => IPartnerSettingValueTypes[T] | undefined } = {
+    boolean: value => typeof value === "boolean" ? value : undefined,
+    string: value => isNonBlankPartnerText(value) ? value : undefined,
+    url: value => isValidPartnerUrl(value) ? value : undefined,
+    image: validateImage,
+    documents: validateDocuments
+  }
 
 /*
- * Reduces a partner config's `flags` object to the partner flag values that pass
- * their type's checks. Each value stands alone: an invalid one is dropped and the
- * rest still apply. Names that aren't partner flags, pilot flag names included,
- * are ignored, so a partner config can't turn on a pilot feature.
+ * Reduces a partner config's settings object to the values that pass their type's
+ * checks. Each value stands alone: an invalid one is dropped and the rest still
+ * apply. Names that aren't partner settings are ignored.
  */
-export function validatePartnerFlags(flags: unknown): PartnerFlagValues {
-  const values: PartnerFlagValues = {}
-  if (!isObject(flags)) return values
-  Object.entries(flags).forEach(([name, value]) => {
-    if (!isPartnerFlagName(name)) return
-    const valid = kPartnerFlagValidators[kFeatureFlags[name].type](value)
+export function validatePartnerSettings(settings: unknown): PartnerSettingValues {
+  const values: PartnerSettingValues = {}
+  if (!isObject(settings)) return values
+  Object.entries(settings).forEach(([name, value]) => {
+    if (!isPartnerSettingName(name)) return
+    const valid = kPartnerSettingValidators[kPartnerSettings[name].type](value)
     if (valid !== undefined) Object.assign(values, { [name]: valid })
   })
   return values

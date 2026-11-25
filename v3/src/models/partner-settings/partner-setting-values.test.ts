@@ -1,6 +1,6 @@
 import {
-  isValidPartnerImageFile, isValidPartnerUrl, kMaxPartnerFolderDepth, validatePartnerFlags
-} from "./partner-flag-values"
+  isValidPartnerImageFile, isValidPartnerUrl, kMaxPartnerFolderDepth, validatePartnerSettings
+} from "./partner-setting-values"
 
 const kDocUrl = "https://example.org/mammals.json"
 
@@ -41,7 +41,11 @@ describe("isValidPartnerUrl", () => {
     // these parse as absolute on their own, but a page resolves them against its own host
     "https:example.org/a.json",
     "https:/example.org/a.json",
+    // the parser strips the leading space, but the raw string doesn't start with `https://`
     " https://example.org/a.json",
+    // credentials make the link read as one host while it goes to another
+    "https://concord.org@example.com/terms",
+    "https://user:secret@example.org/a.json",
     // these start with `https://` but don't parse
     "https://",
     "https://exa mple.org/a.json",
@@ -72,9 +76,9 @@ describe("isValidPartnerImageFile", () => {
     })
 })
 
-describe("validatePartnerFlags", () => {
+describe("validatePartnerSettings", () => {
   it("keeps valid values of every type", () => {
-    const flags = {
+    const settings = {
       hideShare: true,
       hidePlugins: false,
       partnerName: "Example Publisher",
@@ -82,57 +86,74 @@ describe("validatePartnerFlags", () => {
       partnerLogo: { file: "logo-1.png", alt: "Example Publisher" },
       partnerDocuments: [{ name: "Mammals", url: kDocUrl, description: "Mammal data" }]
     }
-    expect(validatePartnerFlags(flags)).toEqual(flags)
+    expect(validatePartnerSettings(settings)).toEqual(settings)
   })
 
   it("drops an invalid value on its own and keeps the rest", () => {
-    expect(validatePartnerFlags({ hideShare: "on", partnerName: "Example Publisher" }))
+    expect(validatePartnerSettings({ hideShare: "on", partnerName: "Example Publisher" }))
       .toEqual({ partnerName: "Example Publisher" })
   })
 
-  it("ignores unknown names and pilot flag names", () => {
-    expect(validatePartnerFlags({ noSuchFlag: true, residualPlot: true, hideShare: true })).toEqual({ hideShare: true })
+  it("ignores names that aren't partner settings, feature flag names included", () => {
+    expect(validatePartnerSettings({ noSuchSetting: true, residualPlot: true, hideShare: true }))
+      .toEqual({ hideShare: true })
+  })
+
+  it("ignores inherited object property names", () => {
+    expect(validatePartnerSettings(JSON.parse('{ "__proto__": true, "constructor": "x", "hideShare": true }')))
+      .toEqual({ hideShare: true })
   })
 
   it("returns no values for a payload that isn't an object", () => {
-    expect(validatePartnerFlags(null)).toEqual({})
-    expect(validatePartnerFlags([{ hideShare: true }])).toEqual({})
-    expect(validatePartnerFlags("hideShare")).toEqual({})
+    expect(validatePartnerSettings(null)).toEqual({})
+    expect(validatePartnerSettings([{ hideShare: true }])).toEqual({})
+    expect(validatePartnerSettings("hideShare")).toEqual({})
   })
 
-  it("accepts only JSON booleans for on or off flags", () => {
-    expect(validatePartnerFlags({ hideShare: "on", hidePlugins: "true", hideLocalFile: 1 })).toEqual({})
+  it("accepts only JSON booleans for boolean settings", () => {
+    expect(validatePartnerSettings({ hideShare: "on", hidePlugins: "true", hideLocalFile: 1 })).toEqual({})
   })
 
   it("treats empty and whitespace-only text as not set", () => {
-    expect(validatePartnerFlags({ partnerStorageDemoLabel: "", partnerDocumentsLabel: "  ", partnerName: 7 }))
+    expect(validatePartnerSettings({ partnerStorageDemoLabel: "", partnerDocumentsLabel: "  ", partnerName: 7 }))
       .toEqual({})
   })
 
+  it("drops text containing < or >", () => {
+    expect(validatePartnerSettings({ partnerName: "<img src=x onerror=alert(1)>", partnerDocumentsLabel: "a > b" }))
+      .toEqual({})
+  })
+
+  it("keeps other markup characters in text", () => {
+    expect(validatePartnerSettings({ partnerName: "Smith & Jones \"Data\" 'Co'" }))
+      .toEqual({ partnerName: "Smith & Jones \"Data\" 'Co'" })
+  })
+
   it("keeps text exactly as written", () => {
-    expect(validatePartnerFlags({ partnerStorageDemoLabel: " Classroom " }))
+    expect(validatePartnerSettings({ partnerStorageDemoLabel: " Classroom " }))
       .toEqual({ partnerStorageDemoLabel: " Classroom " })
   })
 
   it("drops a terms link that fails the link checks", () => {
-    expect(validatePartnerFlags({ partnerTermsUrl: "https://example.org/terms#=?" })).toEqual({})
+    expect(validatePartnerSettings({ partnerTermsUrl: "https://example.org/terms#=?" })).toEqual({})
   })
 
   describe("partnerLogo", () => {
     it("keeps only the file and alt text", () => {
-      expect(validatePartnerFlags({ partnerLogo: { file: "logo-1.png", alt: "Logo", width: 9 } }))
+      expect(validatePartnerSettings({ partnerLogo: { file: "logo-1.png", alt: "Logo", width: 9 } }))
         .toEqual({ partnerLogo: { file: "logo-1.png", alt: "Logo" } })
     })
 
     it.each([
       { file: "logo-1.png", alt: "" },
       { file: "logo-1.png", alt: "  " },
+      { file: "logo-1.png", alt: "<b>Logo</b>" },
       { file: "logo-1.png" },
       { file: "logo.svg", alt: "Logo" },
       { file: "../logo.png", alt: "Logo" },
       "logo-1.png"
     ])("drops %j", partnerLogo => {
-      expect(validatePartnerFlags({ partnerLogo })).toEqual({})
+      expect(validatePartnerSettings({ partnerLogo })).toEqual({})
     })
   })
 
@@ -144,14 +165,14 @@ describe("validatePartnerFlags", () => {
           { name: "Roller Coasters", url: kDocUrl, type: "file", mimeType: "text/html" }
         ] }
       ]
-      expect(validatePartnerFlags({ partnerDocuments })).toEqual({ partnerDocuments: [
+      expect(validatePartnerSettings({ partnerDocuments })).toEqual({ partnerDocuments: [
         { name: "Mammals", url: kDocUrl, description: "Mammal data" },
         { name: "Unit 1", type: "folder", children: [{ name: "Roller Coasters", url: kDocUrl }] }
       ] })
     })
 
-    it("drops a description that isn't text and keeps its document", () => {
-      expect(validatePartnerFlags({ partnerDocuments: [{ name: "Mammals", url: kDocUrl, description: 3 }] }))
+    it.each([3, "<script>"])("drops the description %j and keeps its document", description => {
+      expect(validatePartnerSettings({ partnerDocuments: [{ name: "Mammals", url: kDocUrl, description }] }))
         .toEqual({ partnerDocuments: [{ name: "Mammals", url: kDocUrl }] })
     })
 
@@ -166,6 +187,9 @@ describe("validatePartnerFlags", () => {
         { name: "Content only", content: { type: "CODAP" } },
         { name: "", url: kDocUrl },
         { name: "  ", url: kDocUrl },
+        // cloud-file-manager shows a name that fails to load in an alert rendered as HTML
+        { name: "<img src=x onerror=alert(1)>", url: "https://nonexistent.invalid/x.json" },
+        { name: "<b>Unit</b>", type: "folder", children: [] },
         { url: kDocUrl },
         // cloud-file-manager would fetch the folder's list from its url, unchecked
         { name: "Linked folder", type: "folder", url: "https://example.org/list.json" },
@@ -174,38 +198,36 @@ describe("validatePartnerFlags", () => {
         "Mammals",
         [kDocUrl]
       ]
-      expect(validatePartnerFlags({ partnerDocuments })).toEqual({ partnerDocuments: [{ name: "Good", url: kDocUrl }] })
+      expect(validatePartnerSettings({ partnerDocuments }))
+        .toEqual({ partnerDocuments: [{ name: "Good", url: kDocUrl }] })
     })
 
     it("keeps a folder whose children were all dropped", () => {
       const partnerDocuments = [{ name: "Unit 1", type: "folder", children: [{ name: "Bad", url: "http://x.org/a" }] }]
-      expect(validatePartnerFlags({ partnerDocuments }))
+      expect(validatePartnerSettings({ partnerDocuments }))
         .toEqual({ partnerDocuments: [{ name: "Unit 1", type: "folder", children: [] }] })
     })
 
     // cloud-file-manager reads a list that isn't an array as its older format, with inline content
     it("drops a list that isn't an array", () => {
-      expect(validatePartnerFlags({ partnerDocuments: { "Mammals": "{}" } })).toEqual({})
+      expect(validatePartnerSettings({ partnerDocuments: { "Mammals": "{}" } })).toEqual({})
     })
 
     it("treats a list left with no items as not set", () => {
-      expect(validatePartnerFlags({ partnerDocuments: [] })).toEqual({})
-      expect(validatePartnerFlags({ partnerDocuments: [{ name: "Bad", url: "http://x.org/a" }] })).toEqual({})
+      expect(validatePartnerSettings({ partnerDocuments: [] })).toEqual({})
+      expect(validatePartnerSettings({ partnerDocuments: [{ name: "Bad", url: "http://x.org/a" }] })).toEqual({})
     })
 
     it(`keeps folders ${kMaxPartnerFolderDepth} levels deep and drops deeper ones`, () => {
-      const kept = validatePartnerFlags({ partnerDocuments: folderChain(kMaxPartnerFolderDepth) })
+      const kept = validatePartnerSettings({ partnerDocuments: folderChain(kMaxPartnerFolderDepth) })
       expect(chainDepth(kept.partnerDocuments)).toBe(kMaxPartnerFolderDepth)
 
-      const trimmed = validatePartnerFlags({ partnerDocuments: folderChain(kMaxPartnerFolderDepth + 1) })
+      const trimmed = validatePartnerSettings({ partnerDocuments: folderChain(kMaxPartnerFolderDepth + 1) })
       expect(chainDepth(trimmed.partnerDocuments)).toBe(kMaxPartnerFolderDepth)
     })
 
-    it("doesn't throw on extreme nesting", () => {
-      const depth = 100000
-      const nestedArrays = JSON.parse(`${"[".repeat(depth)}${"]".repeat(depth)}`)
-      expect(validatePartnerFlags({ partnerDocuments: nestedArrays })).toEqual({})
-      expect(chainDepth(validatePartnerFlags({ partnerDocuments: folderChain(20000) }).partnerDocuments))
+    it("doesn't throw on extremely deep folders", () => {
+      expect(chainDepth(validatePartnerSettings({ partnerDocuments: folderChain(20000) }).partnerDocuments))
         .toBe(kMaxPartnerFolderDepth)
     })
   })

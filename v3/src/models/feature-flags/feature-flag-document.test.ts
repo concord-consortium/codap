@@ -1,7 +1,5 @@
 import { ISerializedDocument } from "../document/serialize-document"
-import { setUrlParams } from "../../utilities/url-params"
 import { addFeatureFlagGrants } from "./feature-flag-document"
-import { FeatureFlagManager } from "./feature-flag-manager"
 
 const kFlag = "residualPlot"
 
@@ -10,10 +8,6 @@ function v3Snapshot(featureFlags?: string[]): ISerializedDocument {
 }
 
 describe("addFeatureFlagGrants", () => {
-  afterEach(() => {
-    setUrlParams("")
-  })
-
   it("records a flag this session enabled via the url", () => {
     const snapshot = v3Snapshot()
     addFeatureFlagGrants(snapshot, [kFlag])
@@ -45,14 +39,5 @@ describe("addFeatureFlagGrants", () => {
     addFeatureFlagGrants(snapshot, [kFlag])
     expect(snapshot.content).toBeUndefined()
     expect(snapshot.featureFlags).toBeUndefined()
-  })
-
-  it("never adds a partner flag name to a saved document", () => {
-    setUrlParams(`?features=${kFlag},hideShare`)
-    const manager = new FeatureFlagManager()
-    manager.setPartnerFlags({ hideShare: true, partnerName: "Example Publisher" })
-    const snapshot = v3Snapshot()
-    addFeatureFlagGrants(snapshot, manager.urlEnabledFlags)
-    expect((snapshot as any).content.featureFlags).toEqual([kFlag])
   })
 })

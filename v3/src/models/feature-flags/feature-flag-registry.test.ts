@@ -1,6 +1,5 @@
 import {
-  flagsForOwner, IFeatureFlagInfo, isFeatureFlagName, isFeatureFlagOwner, isPartnerFlagName, isPilotFlagName,
-  kFeatureFlagNames, kFeatureFlags, kPartnerFlagNames, kPilotFlagNames
+  flagsForOwner, isFeatureFlagName, isFeatureFlagOwner, kFeatureFlagNames, kFeatureFlags
 } from "./feature-flag-registry"
 
 const kLegendFlags = ["legendBinCount", "legendLogarithmic", "legendRange"] as const
@@ -36,51 +35,5 @@ describe("owner helpers", () => {
    */
   it("keeps flag names and owner names disjoint", () => {
     kFeatureFlagNames.forEach(name => expect(isFeatureFlagOwner(name)).toBe(false))
-  })
-})
-
-describe("partner flags", () => {
-  /*
-   * A partner config names its flags, and a name this build doesn't know is dropped
-   * silently, so a renamed hide flag would quietly bring back a feature a partner
-   * had hidden. Change this list only together with the registry, deliberately.
-   */
-  it("freezes the partner flag names and types", () => {
-    const actual = Object.fromEntries(kPartnerFlagNames.map(name => [name, kFeatureFlags[name].type]))
-    expect(actual).toEqual({
-      hideGoogleDrive: "boolean",
-      hideLocalFile: "boolean",
-      hidePlugins: "boolean",
-      hideShare: "boolean",
-      partnerDocuments: "documents",
-      partnerDocumentsLabel: "string",
-      partnerLogo: "image",
-      partnerName: "string",
-      partnerStorageDemoLabel: "string",
-      partnerTermsUrl: "url"
-    })
-  })
-
-  it("splits every flag into exactly one kind", () => {
-    expect(kPilotFlagNames.length).toBeGreaterThan(0)
-    expect(kPartnerFlagNames.length).toBeGreaterThan(0)
-    expect([...kPilotFlagNames, ...kPartnerFlagNames].sort()).toEqual([...kFeatureFlagNames].sort())
-    expect(isPartnerFlagName("noSuchFlag")).toBe(false)
-    expect(isPilotFlagName("noSuchFlag")).toBe(false)
-  })
-
-  // checked by the type checker (npm run build:tsc), not at runtime
-  it("rejects an entry of both kinds or neither", () => {
-    const typeChecks = () => {
-      const pilotAndPartner =
-        { description: "", added: "", owner: "X", expires: "", kind: "partner", type: "url" } as const
-      const noKind = { description: "", added: "" }
-      // @ts-expect-error an entry can't be both a pilot and a partner flag
-      const both: IFeatureFlagInfo = pilotAndPartner
-      // @ts-expect-error an entry must be one kind or the other
-      const neither: IFeatureFlagInfo = noKind
-      return [both, neither]
-    }
-    expect(typeChecks).toBeInstanceOf(Function)
   })
 })

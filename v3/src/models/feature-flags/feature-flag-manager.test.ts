@@ -1,7 +1,6 @@
 import { autorun } from "mobx"
 import { setUrlParams } from "../../utilities/url-params"
-import { FeatureFlagConfig } from "./feature-flag-config"
-import { FeatureFlagManager, featureFlagManager, getFeatureValue, isFeatureEnabled } from "./feature-flag-manager"
+import { FeatureFlagManager } from "./feature-flag-manager"
 
 // a name that is present in the registry; see feature-flag-registry.ts
 const kFlag = "residualPlot"
@@ -209,126 +208,6 @@ describe("FeatureFlagManager", () => {
       const manager = new FeatureFlagManager()
       manager.setServerConfig({ [kFlag]: "off" })
       expect(manager.urlEnabledFlags).toEqual([])
-    })
-  })
-
-  describe("partner flags", () => {
-    const kPartnerFlags = {
-      hideShare: true,
-      partnerName: "Example Publisher",
-      partnerTermsUrl: "https://example.org/terms",
-      partnerLogo: { file: "logo-1.png", alt: "Example Publisher" },
-      partnerDocuments: [{ name: "Mammals", url: "https://example.org/mammals.json" }]
-    }
-
-    it("reads every partner flag as unset when no partner config is applied", () => {
-      const manager = new FeatureFlagManager()
-      expect(manager.isFeatureEnabled("hideGoogleDrive")).toBe(false)
-      expect(manager.isFeatureEnabled("hideLocalFile")).toBe(false)
-      expect(manager.isFeatureEnabled("hidePlugins")).toBe(false)
-      expect(manager.isFeatureEnabled("hideShare")).toBe(false)
-      expect(manager.getFeatureValue("partnerDocuments")).toBeUndefined()
-      expect(manager.getFeatureValue("partnerDocumentsLabel")).toBeUndefined()
-      expect(manager.getFeatureValue("partnerLogo")).toBeUndefined()
-      expect(manager.getFeatureValue("partnerName")).toBeUndefined()
-      expect(manager.getFeatureValue("partnerStorageDemoLabel")).toBeUndefined()
-      expect(manager.getFeatureValue("partnerTermsUrl")).toBeUndefined()
-    })
-
-    it("applies the valid values of a partner config", () => {
-      const manager = new FeatureFlagManager()
-      manager.setPartnerFlags({ ...kPartnerFlags, hidePlugins: "yes", partnerStorageDemoLabel: 7 })
-      expect(manager.isFeatureEnabled("hideShare")).toBe(true)
-      expect(manager.isFeatureEnabled("hidePlugins")).toBe(false)
-      expect(manager.getFeatureValue("partnerStorageDemoLabel")).toBeUndefined()
-      expect(manager.getFeatureValue("partnerName")).toBe("Example Publisher")
-      expect(manager.getFeatureValue("partnerTermsUrl")).toBe("https://example.org/terms")
-      expect(manager.getFeatureValue("partnerLogo")).toEqual(kPartnerFlags.partnerLogo)
-      expect(manager.getFeatureValue("partnerDocuments")).toEqual(kPartnerFlags.partnerDocuments)
-    })
-
-    it("replaces the partner values on each call", () => {
-      const manager = new FeatureFlagManager()
-      manager.setPartnerFlags(kPartnerFlags)
-      manager.setPartnerFlags({})
-      expect(manager.isFeatureEnabled("hideShare")).toBe(false)
-      expect(manager.getFeatureValue("partnerName")).toBeUndefined()
-    })
-
-    it("can't turn on a pilot flag", () => {
-      const manager = new FeatureFlagManager()
-      manager.setPartnerFlags({ [kFlag]: true })
-      expect(manager.isFeatureEnabled(kFlag)).toBe(false)
-    })
-
-    it("ignores a partner flag named by the features url parameter", () => {
-      setUrlParams("?features=hideShare")
-      const manager = new FeatureFlagManager()
-      expect(manager.isFeatureEnabled("hideShare")).toBe(false)
-      expect(manager.urlEnabledFlags).toEqual([])
-    })
-
-    it("ignores a partner flag disabled by the features url parameter", () => {
-      setUrlParams("?features=-hideShare")
-      const manager = new FeatureFlagManager()
-      manager.setPartnerFlags({ hideShare: true })
-      expect(manager.isFeatureEnabled("hideShare")).toBe(true)
-    })
-
-    it("ignores a partner flag named by the server config", () => {
-      const manager = new FeatureFlagManager()
-      manager.setServerConfig({ hideShare: "on" } as FeatureFlagConfig)
-      expect(manager.isFeatureEnabled("hideShare")).toBe(false)
-      manager.setPartnerFlags({ hideShare: true })
-      manager.setServerConfig({ hideShare: "off" } as FeatureFlagConfig)
-      expect(manager.isFeatureEnabled("hideShare")).toBe(true)
-    })
-
-    it("ignores a partner flag named by the open document", () => {
-      const manager = new FeatureFlagManager()
-      manager.setDocumentFlags(["hideShare"])
-      expect(manager.isFeatureEnabled("hideShare")).toBe(false)
-    })
-
-    it("never records a partner flag for document persistence", () => {
-      setUrlParams(`?features=${kFlag},hideShare`)
-      const manager = new FeatureFlagManager()
-      manager.setPartnerFlags({ hideShare: true })
-      expect(manager.urlEnabledFlags).toEqual([kFlag])
-    })
-
-    // checked by the type checker (npm run build:tsc), not at runtime
-    it("reads value flags only with getFeatureValue and on or off flags only with isFeatureEnabled", () => {
-      const typeChecks = () => {
-        // @ts-expect-error a value flag is read with getFeatureValue(), not as on or off
-        isFeatureEnabled("partnerName")
-        // @ts-expect-error an on or off flag is read with isFeatureEnabled()
-        getFeatureValue("hideShare")
-      }
-      expect(typeChecks).toBeInstanceOf(Function)
-    })
-
-    describe("module-level readers", () => {
-      afterEach(() => {
-        featureFlagManager.setPartnerFlags({})
-      })
-
-      it("read the shared manager's partner values", () => {
-        featureFlagManager.setPartnerFlags({ hideShare: true, partnerName: "Example Publisher" })
-        expect(isFeatureEnabled("hideShare")).toBe(true)
-        expect(getFeatureValue("partnerName")).toBe("Example Publisher")
-      })
-    })
-
-    it("notifies observers when partner values are applied", () => {
-      const manager = new FeatureFlagManager()
-      const observed: Array<string | undefined> = []
-      const dispose = autorun(() => observed.push(manager.getFeatureValue("partnerName")))
-
-      manager.setPartnerFlags({ partnerName: "Example Publisher" })
-      dispose()
-
-      expect(observed).toEqual([undefined, "Example Publisher"])
     })
   })
 })
