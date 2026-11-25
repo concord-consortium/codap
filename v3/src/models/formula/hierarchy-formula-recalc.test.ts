@@ -200,20 +200,27 @@ describe("hierarchy formula recalculation", () => {
     expectOracle(formulaManager, dataSet, attrId("lag"))
   })
 
-  // expectOracle makes the assertion
-  // eslint-disable-next-line jest/expect-expect
   it("a dependent registered before a mutual prev() cycle is recalculated after the cycle", () => {
     const items: ITestItem[] = [
       { __id__: "i1", group: "A", v: 1 }, { __id__: "i2", group: "A", v: 2 },
       { __id__: "i3", group: "A", v: 3 }, { __id__: "i4", group: "B", v: 4 }
     ]
-    const { formulaManager, dataSet, attrId } = setup([
+    const { formulaManager, dataSet, adapter, attrId } = setup([
       { name: "group" }, { name: "d", formula: { display: "s + caseIndex" } },
       { name: "s", formula: { display: "caseIndex + prev(r, 0)" } },
       { name: "r", formula: { display: "prev(s, 0)" } }, { name: "v" }
     ], items)
 
+    const spy = jest.spyOn(adapter, "recalculateFormula")
     dataSet.moveAttributeToNewCollection(attrId("group"))
+    const order = spy.mock.calls.map(([ctx]) => ctx.formula.id)
+    spy.mockRestore()
+    const [dIndex, sIndex, rIndex] = ["d", "s", "r"].map(name => order.indexOf(formulaIdOf(dataSet, attrId(name))))
+    // all three recalculate once each, with the cycle (s, r) broken at s and d after s
+    expect(order).toHaveLength(3)
+    expect(sIndex).toBe(0)
+    expect(rIndex).toBeGreaterThan(sIndex)
+    expect(dIndex).toBeGreaterThan(sIndex)
     expectOracle(formulaManager, dataSet, attrId("d"))
   })
 

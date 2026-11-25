@@ -337,6 +337,36 @@ describe("FormulaManager", () => {
   describe("recalculateFormulasInOrder", () => {
     const formulaIdOf = (dataSet: IDataSet, name: string) => dataSet.attrFromName(name)!.formula!.id
 
+    it("recalculates a mutual prev() cycle and then the formula that depends on it", () => {
+      const formulaManager = new FormulaManager()
+      const dataSet = createDataSet({
+        attributes: [
+          { name: "d", formula: { display: "sunny + 1" } },
+          { name: "sunny", formula: { display: "prev(rainy, 0)" } },
+          { name: "rainy", formula: { display: "prev(sunny, 1)" } }
+        ]
+      }, { formulaManager })
+      dataSet.addCases([{ __id__: "c1" }, { __id__: "c2" }])
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
+
+      const spy = jest.spyOn(adapter, "recalculateFormula")
+      formulaManager.recalculateFormulasInOrder([
+        { formulaId: formulaIdOf(dataSet, "sunny"), cases: "ALL_CASES", forceWrite: false },
+        { formulaId: formulaIdOf(dataSet, "rainy"), cases: "ALL_CASES", forceWrite: false }
+      ])
+      const order = spy.mock.calls.map(([ctx]) => ctx.formula.id)
+      spy.mockRestore()
+      const [dIndex, sunnyIndex, rainyIndex] =
+        ["d", "sunny", "rainy"].map(name => order.indexOf(formulaIdOf(dataSet, name)))
+      // each formula runs once; the cycle is broken at its first-registered member, and d follows its source
+      expect(order).toHaveLength(3)
+      expect(sunnyIndex).toBe(0)
+      expect(rainyIndex).toBeGreaterThan(sunnyIndex)
+      expect(dIndex).toBeGreaterThan(sunnyIndex)
+    })
+
     it("recalculates a diamond once each in dependency order", () => {
       const formulaManager = new FormulaManager()
       const dataSet = createDataSet({

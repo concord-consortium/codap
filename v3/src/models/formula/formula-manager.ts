@@ -334,9 +334,11 @@ export class FormulaManager implements IFormulaManager {
       }
       return false
     }
-    for (let i = 0; sorted.length < closure.size; ++i) {
-      if (i < ready.length) {
-        if (!sortedSet.has(ready[i])) release(ready[i])
+    let next = 0
+    while (sorted.length < closure.size) {
+      if (next < ready.length) {
+        const id = ready[next++]
+        if (!sortedSet.has(id)) release(id)
         continue
       }
       // Only mutual prev() references are left blocked. Break the cycle at its first-registered member,
