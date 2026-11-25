@@ -52,7 +52,8 @@ function mix32(hash: number) {
 }
 
 // An order-invariant hash of a set of item IDs: the count plus the XOR and the sum of the mixed item hashes.
-// Different sets match only if all three agree, which is negligibly likely.
+// It is only as strong as the 32-bit per-item hash (mix32 is a bijection), so two IDs that collide in hashString
+// could trade places between cases undetected. With random ULID item IDs that is very unlikely.
 export function hashItemSet(itemIds: readonly string[]) {
   let xor = 0
   let sum = 0

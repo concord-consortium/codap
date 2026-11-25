@@ -112,7 +112,6 @@ describe("hierarchy formula recalculation", () => {
     expect(valuesOf(dataSet, attrId("x"))).toEqual(xValues)
     expectXbarCorrect(dataSet, attrId)
 
-    // redo
     applyPatch(dataSet, recorder.patches)
     expect(dataSet.collections[1].attributes.map(attr => attr?.id)).toContain(attrId("xbar"))
     expect(valuesOf(dataSet, attrId("x"))).toEqual(xValues)
@@ -674,20 +673,39 @@ describe("hierarchy formula recalculation", () => {
       expect(countCaseGroupReads(dataSet)).toBe(countCaseGroupReads(unobserved))
     })
 
-    it("recalculates every formula on a structure change when they were added since the cases last regrouped", () => {
-      const items = groupItems.map((item, i) => ({ ...item, v: i, w: item.group === "A" ? 1 : 2 }))
-      const { formulaManager, dataSet, attrId } = setup([{ name: "group" }, { name: "v" }, { name: "w" }], items)
-      dataSet.moveAttributeToNewCollection(attrId("group"))
-      dataSet.validateCases()
-      // a formula in the child collection doesn't regroup the cases
-      dataSet.addAttribute({ name: "f", formula: { display: "v * 2" } }, { collection: dataSet.collections[1].id })
-      const spy = jest.spyOn(formulaManager, "recalculateFormulasInOrder")
-      dataSet.moveAttribute(attrId("w"), { collection: dataSet.collections[0].id })
-      const batches = spy.mock.calls.map(([affected]) => affected)
-      spy.mockRestore()
-      const fFormulaId = formulaIdOf(dataSet, attrId("f"))
-      expect(batches).toEqual([[{ formulaId: fFormulaId, cases: "ALL_CASES", forceWrite: true }]])
-      expectOracle(formulaManager, dataSet, attrId("f"))
+    describe("a random() formula added to the child of already-grouped cases keeps its values when", () => {
+      const setupAddedFormula = () => {
+        const items = groupItems.map((item, i) => ({ ...item, v: i, w: item.group === "A" ? 1 : 2 }))
+        const env = setup([{ name: "group" }, { name: "v" }, { name: "w" }], items)
+        const { dataSet, attrId } = env
+        dataSet.moveAttributeToNewCollection(attrId("group"))
+        dataSet.validateCases()
+        const [parentId, childId] = dataSet.collections.map(collection => collection.id)
+        // a formula in the child collection doesn't regroup the cases
+        dataSet.addAttribute({ name: "x", formula: { display: "random()" } }, { collection: childId })
+        const xValues = valuesOf(dataSet, attrId("x"))
+        expect(xValues.every(x => typeof x === "number")).toBe(true)
+        return { ...env, parentId, childId, xValues }
+      }
+
+      it("a formula that depends on it is added to the parent", () => {
+        const { dataSet, attrId, parentId, xValues } = setupAddedFormula()
+        dataSet.addAttribute({ name: "xbar", formula: { display: "mean(x)" } }, { collection: parentId })
+        expect(valuesOf(dataSet, attrId("x"))).toEqual(xValues)
+        expectXbarCorrect(dataSet, attrId)
+      })
+
+      it("a blank attribute is added to the parent", () => {
+        const { dataSet, attrId, parentId, xValues } = setupAddedFormula()
+        dataSet.addAttribute({ name: "b" }, { collection: parentId })
+        expect(valuesOf(dataSet, attrId("x"))).toEqual(xValues)
+      })
+
+      it("an unrelated attribute moves from the child to the parent without changing case membership", () => {
+        const { dataSet, attrId, parentId, xValues } = setupAddedFormula()
+        dataSet.moveAttribute(attrId("w"), { collection: parentId })
+        expect(valuesOf(dataSet, attrId("x"))).toEqual(xValues)
+      })
     })
 
     it("does not run a batch for collections built in the action that added the data set", () => {

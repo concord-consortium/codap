@@ -24,7 +24,7 @@ import { formulaError, isRandomFunctionPresent } from "./utils/misc"
 import { getCanonicalNameMap, getDisplayNameMap } from "./utils/name-mapping-utils"
 
 // Maps `${dataSetId}:${attrId}` to the formulas that depend on that attribute. Each formula maps to true unless
-// it references the attribute only inside prev().
+// it references the attribute only inside prev() or next().
 type AttributeDependentsIndex = Map<string, Map<string, boolean>>
 
 export class FormulaManager implements IFormulaManager {
@@ -34,6 +34,9 @@ export class FormulaManager implements IFormulaManager {
   @observable.shallow dataSets = new Map<string, IDataSet>()
   // disposers for the per-data-set hierarchy change reactions
   hierarchyDisposers = new Map<string, () => void>()
+  // Changes when an attribute formula of a data set is initialized or unregistered, so the hierarchy reaction can
+  // take a snapshot as soon as the data set has attribute formulas, without waiting for a regroup.
+  hierarchyFormulaVersions = observable.map<string, number>()
 
   boundaryManager?: BoundaryManager
   globalValueManager?: IGlobalValueManager
@@ -95,6 +98,7 @@ export class FormulaManager implements IFormulaManager {
 
     this.hierarchyDisposers.get(dataSetId)?.()
     this.hierarchyDisposers.delete(dataSetId)
+    this.hierarchyFormulaVersions.delete(dataSetId)
     this.dataSets.delete(dataSetId)
   }
 
@@ -110,6 +114,7 @@ export class FormulaManager implements IFormulaManager {
     return reaction(
       () => ({
         structure: getDataSetHierarchyStructureKey(dataSet),
+        formulas: this.hierarchyFormulaVersions.get(dataSet.id),
         // changes after every regroup, so the stored snapshot stays current; observing it does not force validation
         groupings: dataSet.collections.map(collection => collection.groupingChangeVersion)
       }),
@@ -122,9 +127,8 @@ export class FormulaManager implements IFormulaManager {
           return
         }
         if (!structureChanged) {
-          // Either the first run or the structure is unchanged (cases were added, removed, hidden, reordered or
-          // regrouped by value edits). Only the snapshot is updated; this reaction doesn't recalculate formulas
-          // for these changes.
+          // Capture the initial baseline, or refresh it after a regroup or formula change that left the hierarchy
+          // structure unchanged.
           lastSnapshot = getHierarchySnapshot(dataSet)
           return
         }
@@ -267,9 +271,9 @@ export class FormulaManager implements IFormulaManager {
 
   // Returns the initialized formulas that depend directly on the given formula's output attribute, excluding
   // formulas that compute the same attribute. Pass an index from getAttributeDependentsIndex() to reuse it.
-  // With `excludePrevOnly`, formulas that reference the attribute only inside prev() are excluded.
+  // With `excludePrevNextOnly`, formulas that reference the attribute only inside prev() or next() are excluded.
   getDirectDownstreamFormulaIds(
-    formulaId: string, index?: AttributeDependentsIndex, options?: { excludePrevOnly?: boolean }
+    formulaId: string, index?: AttributeDependentsIndex, options?: { excludePrevNextOnly?: boolean }
   ): string[] {
     const sourceMetadata = this.extraMetadata.get(formulaId)
     const sourceDataSetId = sourceMetadata?.dataSetId
@@ -279,7 +283,7 @@ export class FormulaManager implements IFormulaManager {
 
     const dependents = (index ?? this.getAttributeDependentsIndex()).get(`${sourceDataSetId}:${sourceAttributeId}`)
     return Array.from(dependents ?? []).flatMap(([otherFormulaId, isDirect]) => {
-      if (options?.excludePrevOnly && !isDirect) return []
+      if (options?.excludePrevNextOnly && !isDirect) return []
       const extraMetadata = this.extraMetadata.get(otherFormulaId)
       const isSameAttribute = extraMetadata?.dataSetId === sourceDataSetId &&
         extraMetadata?.attributeId === sourceAttributeId
@@ -324,12 +328,9 @@ export class FormulaManager implements IFormulaManager {
       })
     }
 
-    // Sort in dependency order. Edges through prev() count too: a prev() dependent reads its source's new
-    // values, so it must run after the source. Cycle detection ignores references inside prev(), so every
-    // cycle includes at least one prev() edge. Group the formulas into strongly connected components
-    // (Tarjan's algorithm), order the components by their dependencies, and order the members of each cycle
-    // by their other edges, which can't form a cycle, and then by registration order. No single order gives
-    // consistent results for mutual prev() references, so those depend on registration order.
+    // Order strongly connected components (Tarjan's algorithm) using every dependency, including row-shifted
+    // (prev/next) references. Within a cycle, order by the remaining dependencies after dropping cycle-safe
+    // edges, with registration order breaking ties.
     const registrationOrder = Array.from(this.formulaMetadata.keys()).filter(id => closure.has(id))
     const registrationIndex = new Map(registrationOrder.map((id, i) => [id, i]))
     // the closure includes every downstream formula, so these edges stay within it
@@ -370,7 +371,7 @@ export class FormulaManager implements IFormulaManager {
       if (members.length < 2) return members
       const memberSet = new Set(members)
       const directEdges = new Map(members.map(id => {
-        const downIds = this.getDirectDownstreamFormulaIds(id, index, { excludePrevOnly: true })
+        const downIds = this.getDirectDownstreamFormulaIds(id, index, { excludePrevNextOnly: true })
         return [id, downIds.filter(downId => memberSet.has(downId))]
       }))
       const sourceCounts = new Map(members.map(id => [id, 0]))
@@ -485,6 +486,7 @@ export class FormulaManager implements IFormulaManager {
         const errorPresent = this.registerFormulaErrors(formulaId)
         if (!errorPresent) {
           this.updateFormulaMetadata(formulaId, { isInitialized: true })
+          this.bumpHierarchyFormulaVersion(formulaId)
           this.setupFormulaObservers(formulaId)
           this.recalculateFormula(formulaId)
         }
@@ -508,7 +510,17 @@ export class FormulaManager implements IFormulaManager {
     })
   }
 
+  // Signals the hierarchy reaction when an attribute formula is initialized or an initialized one is unregistered.
+  @action bumpHierarchyFormulaVersion(formulaId: string) {
+    const metadata = this.formulaMetadata.get(formulaId)
+    const extraMetadata = this.extraMetadata.get(formulaId)
+    if (!metadata?.isInitialized || !extraMetadata?.attributeId) return
+    const { dataSetId } = extraMetadata
+    this.hierarchyFormulaVersions.set(dataSetId, (this.hierarchyFormulaVersions.get(dataSetId) ?? 0) + 1)
+  }
+
   unregisterFormula(formulaId: string) {
+    this.bumpHierarchyFormulaVersion(formulaId)
     const formulaMetadata = this.formulaMetadata.get(formulaId)
     if (formulaMetadata) {
       formulaMetadata.dispose?.() // dispose MST observers

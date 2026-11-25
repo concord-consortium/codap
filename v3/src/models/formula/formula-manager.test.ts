@@ -554,7 +554,7 @@ describe("FormulaManager", () => {
       return { formulaManager, dataSetA, dataSetB, formulaIdOf }
     }
 
-    it("indexes initialized formulas by dependency, flagging prev()-only references", () => {
+    it("indexes initialized formulas by dependency, flagging prev()/next()-only references", () => {
       const { formulaManager, dataSetA, dataSetB, formulaIdOf } = setupTwoDataSets()
       const index = formulaManager.getAttributeDependentsIndex()
       const dependentsOf = (name: string) =>
@@ -569,13 +569,16 @@ describe("FormulaManager", () => {
       expect(dependentsOf("k")).toEqual({ [formulaIdOf(dataSetB, "w")]: true })
     })
 
-    it("can exclude formulas that reference an attribute only inside prev()", () => {
-      const { formulaManager, dataSetA, formulaIdOf } = setupTwoDataSets()
+    it("can exclude formulas that reference an attribute only inside prev() or next()", () => {
+      const { formulaManager, dataSetA, dataSetB, formulaIdOf } = setupTwoDataSets()
       dataSetA.attrFromName("val")!.setDisplayExpression("1")
       const valFormulaId = formulaIdOf(dataSetA, "val")
-      expect(formulaManager.getDirectDownstreamFormulaIds(valFormulaId)).toContain(formulaIdOf(dataSetA, "p"))
-      expect(formulaManager.getDirectDownstreamFormulaIds(valFormulaId, undefined, { excludePrevOnly: true }))
-        .not.toContain(formulaIdOf(dataSetA, "p"))
+      const [p, q, w] = [formulaIdOf(dataSetA, "p"), formulaIdOf(dataSetA, "q"), formulaIdOf(dataSetB, "w")]
+      expect(formulaManager.getDirectDownstreamFormulaIds(valFormulaId).sort()).toEqual([p, q, w].sort())
+      // the prev()/next()-only dependent is dropped, while the direct and lookup dependents stay
+      const options = { excludePrevNextOnly: true }
+      expect(formulaManager.getDirectDownstreamFormulaIds(valFormulaId, undefined, options).sort())
+        .toEqual([q, w].sort())
     })
 
     it("returns the initialized formulas of the given data set only", () => {
