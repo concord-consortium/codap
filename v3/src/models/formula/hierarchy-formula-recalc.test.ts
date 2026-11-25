@@ -224,6 +224,31 @@ describe("hierarchy formula recalculation", () => {
     expectOracle(formulaManager, dataSet, attrId("d"))
   })
 
+  it("an upstream prev() cycle is recalculated before a downstream cycle registered earlier", () => {
+    const items: ITestItem[] = [
+      { __id__: "i1", group: "A", v: 1 }, { __id__: "i2", group: "A", v: 2 },
+      { __id__: "i3", group: "B", v: 3 }, { __id__: "i4", group: "B", v: 4 }
+    ]
+    const { dataSet, adapter, attrId } = setup([
+      { name: "group" },
+      { name: "c", formula: { display: "a + prev(d, 0)" } }, { name: "d", formula: { display: "prev(c, 0)" } },
+      { name: "a", formula: { display: "caseIndex + prev(b, 0)" } }, { name: "b", formula: { display: "prev(a, 0)" } },
+      { name: "v" }
+    ], items)
+
+    const spy = jest.spyOn(adapter, "recalculateFormula")
+    dataSet.moveAttributeToNewCollection(attrId("group"))
+    const order = spy.mock.calls.map(([ctx]) => ctx.formula.id)
+    spy.mockRestore()
+    const [aIndex, bIndex, cIndex, dIndex] =
+      ["a", "b", "c", "d"].map(name => order.indexOf(formulaIdOf(dataSet, attrId(name))))
+    // each formula recalculates once, and the upstream cycle (a, b) runs before the downstream cycle (c, d)
+    expect(order).toHaveLength(4)
+    expect(Math.max(aIndex, bIndex)).toBeLessThan(Math.min(cIndex, dIndex))
+    expect(aIndex).toBeLessThan(bIndex)
+    expect(cIndex).toBeLessThan(dIndex)
+  })
+
   it("random() in a regrouped collection: merged case shares one value, untouched case keeps its value", () => {
     const items: ITestItem[] = [
       { __id__: "i1", g1: "A", g2: "p", v: 1 }, { __id__: "i2", g1: "A", g2: "p", v: 2 },

@@ -299,54 +299,46 @@ export class FormulaManager implements IFormulaManager {
       })
     }
 
-    // Sort topologically (Kahn's algorithm). Edges through prev() count too: a prev() dependent reads its
-    // source's new values, so it must run after the source. Only mutual prev() references form a cycle.
-    const edges = new Map<string, string[]>()
-    const inDegree = new Map<string, number>()
-    closure.forEach((_, id) => inDegree.set(id, 0))
-    closure.forEach((_, id) => {
-      const downstream = getDownstreamIds(id).filter(downId => closure.has(downId))
-      edges.set(id, downstream)
-      downstream.forEach(downId => inDegree.set(downId, (inDegree.get(downId) ?? 0) + 1))
-    })
-    const sorted: string[] = []
-    const sortedSet = new Set<string>()
-    const ready = Array.from(closure.keys()).filter(id => inDegree.get(id) === 0)
-    const release = (id: string) => {
-      sorted.push(id)
-      sortedSet.add(id)
+    // Sort in dependency order. Edges through prev() count too: a prev() dependent reads its source's new
+    // values, so it must run after the source. Only mutual prev() references form cycles, so group the
+    // formulas into strongly connected components (Tarjan's algorithm), order the components by their
+    // dependencies, and run the members of each cycle in registration order.
+    const registrationOrder = Array.from(closure.keys())
+    const registrationIndex = new Map(registrationOrder.map((id, i) => [id, i]))
+    const edges = new Map(registrationOrder.map(id => [id, getDownstreamIds(id).filter(downId => closure.has(downId))]))
+    const visitIndex = new Map<string, number>()
+    const lowLink = new Map<string, number>()
+    const stack: string[] = []
+    const onStack = new Set<string>()
+    // Tarjan's algorithm completes each component after every component downstream of it.
+    const componentsDownstreamFirst: string[][] = []
+    const visit = (id: string) => {
+      visitIndex.set(id, visitIndex.size)
+      lowLink.set(id, visitIndex.get(id)!)
+      stack.push(id)
+      onStack.add(id)
       edges.get(id)?.forEach(downId => {
-        const degree = (inDegree.get(downId) ?? 0) - 1
-        inDegree.set(downId, degree)
-        if (degree === 0) ready.push(downId)
+        if (!visitIndex.has(downId)) {
+          visit(downId)
+          lowLink.set(id, Math.min(lowLink.get(id)!, lowLink.get(downId)!))
+        } else if (onStack.has(downId)) {
+          lowLink.set(id, Math.min(lowLink.get(id)!, visitIndex.get(downId)!))
+        }
       })
-    }
-    // Whether the unsorted part of the graph leads from the given formula back to itself.
-    const isInCycle = (startId: string) => {
-      const visited = new Set<string>()
-      const stack = [...(edges.get(startId) ?? [])]
-      while (stack.length > 0) {
-        const id = stack.pop()!
-        if (id === startId) return true
-        if (visited.has(id) || sortedSet.has(id)) continue
-        visited.add(id)
-        stack.push(...(edges.get(id) ?? []))
+      if (lowLink.get(id) === visitIndex.get(id)) {
+        const component: string[] = []
+        let memberId: string
+        do {
+          memberId = stack.pop()!
+          onStack.delete(memberId)
+          component.push(memberId)
+        } while (memberId !== id)
+        componentsDownstreamFirst.push(component)
       }
-      return false
     }
-    let next = 0
-    while (sorted.length < closure.size) {
-      if (next < ready.length) {
-        const id = ready[next++]
-        if (!sortedSet.has(id)) release(id)
-        continue
-      }
-      // Only mutual prev() references are left blocked. Break the cycle at its first-registered member,
-      // so the formulas that depend on the cycle still run after it.
-      const cycleMemberId = Array.from(closure.keys()).find(id => !sortedSet.has(id) && isInCycle(id))
-      // a blocked formula always has a cycle upstream of it, so this fallback is only a safeguard
-      ready.push(cycleMemberId ?? Array.from(closure.keys()).find(id => !sortedSet.has(id))!)
-    }
+    registrationOrder.forEach(id => { if (!visitIndex.has(id)) visit(id) })
+    const sorted = componentsDownstreamFirst.reverse().flatMap(component =>
+      component.sort((a, b) => registrationIndex.get(a)! - registrationIndex.get(b)!))
 
     // Recalculate each formula once, without the per-formula downstream cascade.
     sorted.forEach(formulaId => {
