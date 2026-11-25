@@ -538,6 +538,7 @@ describe("FormulaManager", () => {
           { name: "k" }, { name: "val" },
           { name: "p", formula: { display: "prev(val, 0)" } },
           { name: "q", formula: { display: "prev(val, 0) + val" } },
+          { name: "n", formula: { display: "next(val, 0)" } },
           { name: "bad", formula: { display: "val +* 1" } }
         ]
       }, { formulaManager })
@@ -563,6 +564,7 @@ describe("FormulaManager", () => {
       expect(dependentsOf("val")).toEqual({
         [formulaIdOf(dataSetA, "p")]: false,
         [formulaIdOf(dataSetA, "q")]: true,
+        [formulaIdOf(dataSetA, "n")]: false,
         [formulaIdOf(dataSetB, "w")]: true
       })
       // lookupByKey()'s key attribute
@@ -573,9 +575,11 @@ describe("FormulaManager", () => {
       const { formulaManager, dataSetA, dataSetB, formulaIdOf } = setupTwoDataSets()
       dataSetA.attrFromName("val")!.setDisplayExpression("1")
       const valFormulaId = formulaIdOf(dataSetA, "val")
-      const [p, q, w] = [formulaIdOf(dataSetA, "p"), formulaIdOf(dataSetA, "q"), formulaIdOf(dataSetB, "w")]
-      expect(formulaManager.getDirectDownstreamFormulaIds(valFormulaId).sort()).toEqual([p, q, w].sort())
-      // the prev()/next()-only dependent is dropped, while the direct and lookup dependents stay
+      const [p, q, n, w] = [
+        formulaIdOf(dataSetA, "p"), formulaIdOf(dataSetA, "q"), formulaIdOf(dataSetA, "n"), formulaIdOf(dataSetB, "w")
+      ]
+      expect(formulaManager.getDirectDownstreamFormulaIds(valFormulaId).sort()).toEqual([p, q, n, w].sort())
+      // the prev()/next()-only dependents are dropped, while the direct and lookup dependents stay
       const options = { excludePrevNextOnly: true }
       expect(formulaManager.getDirectDownstreamFormulaIds(valFormulaId, undefined, options).sort())
         .toEqual([q, w].sort())
@@ -584,7 +588,7 @@ describe("FormulaManager", () => {
     it("returns the initialized formulas of the given data set only", () => {
       const { formulaManager, dataSetA, dataSetB, formulaIdOf } = setupTwoDataSets()
       expect(formulaManager.getHierarchyFormulaInfos(dataSetA.id).map(info => info.formulaId))
-        .toEqual([formulaIdOf(dataSetA, "p"), formulaIdOf(dataSetA, "q")])
+        .toEqual([formulaIdOf(dataSetA, "p"), formulaIdOf(dataSetA, "q"), formulaIdOf(dataSetA, "n")])
       expect(formulaManager.getHierarchyFormulaInfos(dataSetB.id).map(info => info.formulaId))
         .toEqual([formulaIdOf(dataSetB, "w")])
     })

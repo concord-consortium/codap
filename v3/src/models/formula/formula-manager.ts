@@ -34,8 +34,9 @@ export class FormulaManager implements IFormulaManager {
   @observable.shallow dataSets = new Map<string, IDataSet>()
   // disposers for the per-data-set hierarchy change reactions
   hierarchyDisposers = new Map<string, () => void>()
-  // Changes when an attribute formula of a data set is initialized or unregistered, so the hierarchy reaction can
-  // take a snapshot as soon as the data set has attribute formulas, without waiting for a regroup.
+  // Changes when an attribute formula of a data set is initialized or an initialized one is unregistered, so the
+  // hierarchy reaction can take a snapshot as soon as the data set has attribute formulas, without waiting for a
+  // regroup.
   hierarchyFormulaVersions = observable.map<string, number>()
 
   boundaryManager?: BoundaryManager
@@ -138,8 +139,8 @@ export class FormulaManager implements IFormulaManager {
         dataSet.syncCollectionLinks()
         dataSet.validateCases()
         const after = getHierarchySnapshot(dataSet)
-        // Without a snapshot from before the change (the formulas were added since the cases last regrouped),
-        // every formula is recalculated.
+        // Without a baseline (no attribute formulas were initialized before this change), every formula is
+        // recalculated.
         const affected: IAffectedFormula[] = lastSnapshot
           ? getAffectedFormulas(lastSnapshot, after, formulaInfos)
           : formulaInfos.map(({ formulaId }) => ({ formulaId, cases: "ALL_CASES", forceWrite: true }))
@@ -510,7 +511,6 @@ export class FormulaManager implements IFormulaManager {
     })
   }
 
-  // Signals the hierarchy reaction when an attribute formula is initialized or an initialized one is unregistered.
   @action bumpHierarchyFormulaVersion(formulaId: string) {
     const metadata = this.formulaMetadata.get(formulaId)
     const extraMetadata = this.extraMetadata.get(formulaId)
