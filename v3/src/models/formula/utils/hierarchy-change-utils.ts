@@ -1,14 +1,9 @@
 import type { IDataSet } from "../../data/data-set"
-import { hashStringSet } from "../../../utilities/js-utils"
 
 export interface ICollectionSnapshot {
   id: string
   attrIds: string[]
   caseIds: string[]
-  // An order-invariant hash of each case's visible items, parallel to caseIds. A case ID comes from its grouping
-  // values, so it can be reused for a different set of items. Omitted for the child-most collection, whose case
-  // IDs each stand for a single item.
-  caseItemHashes?: number[]
 }
 // parent-most collection first
 export type HierarchySnapshot = ICollectionSnapshot[]
@@ -41,11 +36,7 @@ function getCollectionAttrIds(collection: IDataSet["collections"][number]) {
 // Reads the collections' cases as they currently are, without triggering validation.
 export function getHierarchySnapshot(dataSet: IDataSet): HierarchySnapshot {
   return dataSet.collections.map(collection => {
-    const caseIds = Array.from(collection.caseIds)
-    const caseItemHashes = collection.child
-      ? caseIds.map(caseId => hashStringSet(collection.getCaseGroup(caseId)?.childItemIds ?? []))
-      : undefined
-    return { id: collection.id, attrIds: getCollectionAttrIds(collection), caseIds, caseItemHashes }
+    return { id: collection.id, attrIds: getCollectionAttrIds(collection), caseIds: Array.from(collection.caseIds) }
   })
 }
 
@@ -63,18 +54,10 @@ export function getDataSetHierarchyStructureKey(dataSet: IDataSet) {
   })))
 }
 
-// Returns the IDs of the cases in both snapshots whose items differ, when both snapshots record them.
-function getRegroupedCaseIds(beforeCollection: ICollectionSnapshot, afterCollection: ICollectionSnapshot) {
-  const { caseItemHashes: beforeHashes } = beforeCollection
-  const { caseIds: afterIds, caseItemHashes: afterHashes } = afterCollection
-  if (!beforeHashes || !afterHashes) return []
-  const beforeHashMap = new Map(beforeCollection.caseIds.map((id, i) => [id, beforeHashes[i]]))
-  return afterIds.filter((id, i) => beforeHashMap.has(id) && beforeHashMap.get(id) !== afterHashes[i])
-}
-
-// A collection is changed if it has new cases (including retained case IDs whose items changed), if it lost cases,
-// if any retained case changed position, or if the grouping above it changed (`aboveChanged`), since case
-// positions are counted within each parent case.
+// A case ID that is in both snapshots covers the same items: a structure change either leaves a collection's group
+// keys unchanged, or changes all of them and reuses an old case ID only for an identical set of items.
+// A collection is changed if it has new cases, if it lost cases, if any retained case changed position, or if the
+// grouping above it changed (`aboveChanged`), since case positions are counted within each parent case.
 // `disturbed` means the collection changed other than by appending new cases, which matters only to order-sensitive
 // formulas. A collection that didn't exist before isn't disturbed by changes above it: all of its cases are new.
 function getCollectionChange(
@@ -83,9 +66,8 @@ function getCollectionChange(
   const beforeIds = beforeCollection?.caseIds ?? []
   const afterIds = afterCollection.caseIds
   const beforeSet = new Set(beforeIds)
-  const regroupedIds = new Set(beforeCollection ? getRegroupedCaseIds(beforeCollection, afterCollection) : [])
-  const newCaseIds = afterIds.filter(id => !beforeSet.has(id) || regroupedIds.has(id))
-  const appendOnly = regroupedIds.size === 0 && beforeIds.every((id, i) => afterIds[i] === id)
+  const newCaseIds = afterIds.filter(id => !beforeSet.has(id))
+  const appendOnly = beforeIds.every((id, i) => afterIds[i] === id)
   const disturbed = !appendOnly || (aboveChanged && !!beforeCollection)
   return { changed: disturbed || newCaseIds.length > 0, disturbed, newCaseIds }
 }

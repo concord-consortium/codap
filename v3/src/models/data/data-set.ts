@@ -50,7 +50,8 @@ import pluralize from "pluralize"
 import { Attribute, IAttribute, IAttributeSnapshot } from "./attribute"
 import { IValueType, importValueToString } from "./attribute-types"
 import {
-  CollectionModel, ICollectionModel, ICollectionModelSnapshot, IItemData, isCollectionModel, syncCollectionLinks
+  CollectionModel, ICollectionModel, ICollectionModelSnapshot, IItemData, isCollectionModel,
+  migrateLegacyNoGroupingGroupKeys, syncCollectionLinks
 } from "./collection"
 import {
   CaseInfo, IAddAttributeOptions, IAddCasesOptions, IAddCollectionOptions, IAttributeChangeResult, ICase,
@@ -487,6 +488,15 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     const _itemIds = cases?.map(({ __id__ }) => __id__) ?? itemIds ?? []
 
     return { attributesMap, collections, _itemIds, setAsideItemIds: hiddenItemIds, ...others }
+  }
+  if (snap.collections && snap.attributesMap) {
+    const { attributesMap } = snap
+    const isGroupingAttribute = (attrId: string) => {
+      const attr = (attributesMap as Record<string, IAttributeSnapshot>)[attrId]
+      return !!attr && !attr.formula?.display
+    }
+    const collections = migrateLegacyNoGroupingGroupKeys([...snap.collections], isGroupingAttribute)
+    return { ...snap, collections }
   }
   return snap
 })

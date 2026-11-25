@@ -163,30 +163,6 @@ describe("getAffectedFormulas", () => {
     })
   })
 
-  describe("a retained case whose items changed", () => {
-    it("counts as a new case and disturbs its collection", () => {
-      const before = [{ id: "P", attrIds: ["f"], caseIds: ["p1", "p2"], caseItemHashes: [1, 2] }]
-      const after = [{ id: "P", attrIds: ["f"], caseIds: ["p1", "p2"], caseItemHashes: [1, 3] }]
-      expect(getAffectedFormulas(before, after, [formula()]))
-        .toEqual([{ formulaId: "F", cases: ["p2"], forceWrite: true }])
-      expect(getAffectedFormulas(before, after, [formula({ orderSensitive: true })]))
-        .toEqual([{ formulaId: "F", cases: "ALL_CASES", forceWrite: true }])
-    })
-    it("changes the grouping above the collections below it", () => {
-      const C = { id: "C", attrIds: ["f"], caseIds: ["c1", "c2"] }
-      const before = [{ id: "P", attrIds: ["g"], caseIds: ["p1"], caseItemHashes: [1] }, C]
-      const after = [{ id: "P", attrIds: ["g"], caseIds: ["p1"], caseItemHashes: [2] }, C]
-      expect(getAffectedFormulas(before, after, [formula({ orderSensitive: true })]))
-        .toEqual([{ formulaId: "F", cases: "ALL_CASES", forceWrite: true }])
-    })
-    it("is not compared when either snapshot lacks item hashes", () => {
-      const before = [{ id: "P", attrIds: ["f"], caseIds: ["p1"], caseItemHashes: [1] }]
-      const after = [{ id: "P", attrIds: ["f"], caseIds: ["p1"] }]
-      expect(getAffectedFormulas(before, after, [formula({ orderSensitive: true })])).toEqual([])
-      expect(getAffectedFormulas(after, before, [formula({ orderSensitive: true })])).toEqual([])
-    })
-  })
-
   it("unaffected: random() in an unchanged collection", () => {
     const before: HierarchySnapshot = [
       { id: "P", attrIds: ["a", "b"], caseIds: ["p1"] }, { id: "C", attrIds: ["f"], caseIds: ["c1", "c2"] }]

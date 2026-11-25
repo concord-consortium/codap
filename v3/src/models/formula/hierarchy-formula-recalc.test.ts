@@ -303,8 +303,7 @@ describe("hierarchy formula recalculation", () => {
   })
 
   it("random() in a parent left with only formula attributes shares one value across its single case", () => {
-    // a blank grouping value and a collection without data attributes produce the same group key,
-    // so the merged case reuses the blank group's case ID
+    // the single case's group key differs from the blank group's, so the merged case gets a new case ID
     const items: ITestItem[] = [
       { __id__: "i1", group: "", v: 1 }, { __id__: "i2", group: "A", v: 2 },
       { __id__: "i3", group: "B", v: 3 }, { __id__: "i4", group: "A", v: 4 }
@@ -320,7 +319,8 @@ describe("hierarchy formula recalculation", () => {
     expect(new Set(valuesOf(dataSet, attrId("r"))).size).toBe(3)
 
     dataSet.moveAttribute(attrId("group"), { collection: childId })
-    expect(dataSet.collections[0].caseIds).toEqual([blankCaseId])
+    expect(dataSet.collections[0].caseIds).toHaveLength(1)
+    expect(dataSet.collections[0].caseIds).not.toContain(blankCaseId)
     const rValues = valuesOf(dataSet, attrId("r"))
     expect(typeof rValues[0]).toBe("number")
     expect(new Set(rValues).size).toBe(1)
@@ -398,6 +398,29 @@ describe("hierarchy formula recalculation", () => {
     // the parent collection is unaffected by inserting a collection below it
     dataSet.moveAttributeToNewCollection(attrId("w"), childId)
     expect(dataSet.collections.length).toBe(3)
+    expect(valueMap(dataSet, attrId("r"))).toEqual(rBefore)
+  })
+
+  it("random() keeps its values when a structure change follows a value edit that moved an item between cases", () => {
+    const items: ITestItem[] = [
+      { __id__: "i1", g: "A", v: 1 }, { __id__: "i2", g: "B", v: 2 }, { __id__: "i3", g: "B", v: 3 }
+    ]
+    const { dataSet, attrId } = setup([
+      { name: "g" }, { name: "v" }, { name: "r", formula: { display: "random()" } },
+      { name: "z", formula: { display: "v * 2" } }
+    ], items)
+    dataSet.moveAttributeToNewCollection(attrId("g"))
+    const parentId = dataSet.collections[0].id
+    dataSet.moveAttribute(attrId("r"), { collection: parentId })
+    const caseIdsBefore = [...dataSet.collections[0].caseIds]
+    // i2 joins case A, and neither case's ID or position changes
+    dataSet.setCaseValues([{ __id__: "i2", [attrId("g")]: "A" }])
+    dataSet.validateCases()
+    expect(dataSet.collections[0].caseIds).toEqual(caseIdsBefore)
+    const rBefore = valueMap(dataSet, attrId("r"))
+
+    // moving an unrelated formula changes no parent case
+    dataSet.moveAttribute(attrId("z"), { collection: parentId })
     expect(valueMap(dataSet, attrId("r"))).toEqual(rBefore)
   })
 
