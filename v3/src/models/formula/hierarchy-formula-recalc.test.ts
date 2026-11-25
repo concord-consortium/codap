@@ -200,6 +200,23 @@ describe("hierarchy formula recalculation", () => {
     expectOracle(formulaManager, dataSet, attrId("lag"))
   })
 
+  // expectOracle makes the assertion
+  // eslint-disable-next-line jest/expect-expect
+  it("a dependent registered before a mutual prev() cycle is recalculated after the cycle", () => {
+    const items: ITestItem[] = [
+      { __id__: "i1", group: "A", v: 1 }, { __id__: "i2", group: "A", v: 2 },
+      { __id__: "i3", group: "A", v: 3 }, { __id__: "i4", group: "B", v: 4 }
+    ]
+    const { formulaManager, dataSet, attrId } = setup([
+      { name: "group" }, { name: "d", formula: { display: "s + caseIndex" } },
+      { name: "s", formula: { display: "caseIndex + prev(r, 0)" } },
+      { name: "r", formula: { display: "prev(s, 0)" } }, { name: "v" }
+    ], items)
+
+    dataSet.moveAttributeToNewCollection(attrId("group"))
+    expectOracle(formulaManager, dataSet, attrId("d"))
+  })
+
   it("random() in a regrouped collection: merged case shares one value, untouched case keeps its value", () => {
     const items: ITestItem[] = [
       { __id__: "i1", g1: "A", g2: "p", v: 1 }, { __id__: "i2", g1: "A", g2: "p", v: 2 },

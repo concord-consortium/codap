@@ -167,6 +167,16 @@ describe("FormulaManager", () => {
       })
     })
 
+    describe("when a formula without an output attribute recalculates", () => {
+      it("doesn't build the attribute dependents index", () => {
+        const { manager, dataSet } = getManagerWithFakeAdapter()
+        const indexSpy = jest.spyOn(manager, "getAttributeDependentsIndex")
+        const attr = dataSet.attrFromName("foo")
+        dataSet.setCaseValues([{ __id__: "1", [attr?.id || ""]: 3 }])
+        expect(indexSpy).not.toHaveBeenCalled()
+      })
+    })
+
     describe("when one of the formula symbols is renamed", () => {
       it("updates formula display expression", () => {
         const { formula, dataSet } = getManagerWithFakeAdapter()

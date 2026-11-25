@@ -247,13 +247,14 @@ export class FormulaManager implements IFormulaManager {
 
   // Returns the initialized formulas that depend directly on the given formula's output attribute, excluding
   // formulas that compute the same attribute. Pass an index from getAttributeDependentsIndex() to reuse it.
-  getDirectDownstreamFormulaIds(formulaId: string, index = this.getAttributeDependentsIndex()): string[] {
+  getDirectDownstreamFormulaIds(formulaId: string, index?: Map<string, Set<string>>): string[] {
     const sourceMetadata = this.extraMetadata.get(formulaId)
     const sourceDataSetId = sourceMetadata?.dataSetId
     const sourceAttributeId = sourceMetadata?.attributeId
+    // Formulas without an output attribute (e.g. filter formulas) have no dependents, so skip building the index.
     if (!sourceDataSetId || !sourceAttributeId) return []
 
-    const dependents = index.get(`${sourceDataSetId}:${sourceAttributeId}`)
+    const dependents = (index ?? this.getAttributeDependentsIndex()).get(`${sourceDataSetId}:${sourceAttributeId}`)
     return Array.from(dependents ?? []).filter(otherFormulaId => {
       const extraMetadata = this.extraMetadata.get(otherFormulaId)
       return otherFormulaId !== formulaId &&
@@ -309,20 +310,40 @@ export class FormulaManager implements IFormulaManager {
       downstream.forEach(downId => inDegree.set(downId, (inDegree.get(downId) ?? 0) + 1))
     })
     const sorted: string[] = []
+    const sortedSet = new Set<string>()
     const ready = Array.from(closure.keys()).filter(id => inDegree.get(id) === 0)
-    for (let i = 0; i < ready.length; ++i) {
-      const id = ready[i]
+    const release = (id: string) => {
       sorted.push(id)
+      sortedSet.add(id)
       edges.get(id)?.forEach(downId => {
         const degree = (inDegree.get(downId) ?? 0) - 1
         inDegree.set(downId, degree)
         if (degree === 0) ready.push(downId)
       })
     }
-    // Any formulas left are cycle members and their dependents; recalculate them in insertion order.
-    if (sorted.length < closure.size) {
-      const sortedSet = new Set(sorted)
-      closure.forEach((_, id) => { if (!sortedSet.has(id)) sorted.push(id) })
+    // Whether the unsorted part of the graph leads from the given formula back to itself.
+    const isInCycle = (startId: string) => {
+      const visited = new Set<string>()
+      const stack = [...(edges.get(startId) ?? [])]
+      while (stack.length > 0) {
+        const id = stack.pop()!
+        if (id === startId) return true
+        if (visited.has(id) || sortedSet.has(id)) continue
+        visited.add(id)
+        stack.push(...(edges.get(id) ?? []))
+      }
+      return false
+    }
+    for (let i = 0; sorted.length < closure.size; ++i) {
+      if (i < ready.length) {
+        if (!sortedSet.has(ready[i])) release(ready[i])
+        continue
+      }
+      // Only mutual prev() references are left blocked. Break the cycle at its first-registered member,
+      // so the formulas that depend on the cycle still run after it.
+      const cycleMemberId = Array.from(closure.keys()).find(id => !sortedSet.has(id) && isInCycle(id))
+      // a blocked formula always has a cycle upstream of it, so this fallback is only a safeguard
+      ready.push(cycleMemberId ?? Array.from(closure.keys()).find(id => !sortedSet.has(id))!)
     }
 
     // Recalculate each formula once, without the per-formula downstream cascade.
