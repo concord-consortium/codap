@@ -375,6 +375,26 @@ describe("Slider ComponentHandler", () => {
       expect(sliderModel.globalValue.value).toBe(3)
       expect(sliderModel.axis.max).toBe(50)
     }
+
+    // a refused update changes nothing, the generic properties sent with it included, and sends no notification
+    const broadcastSpy = jest.spyOn(documentContent, "broadcastMessage")
+    const refusals: [Record<string, unknown>, string][] = [
+      [{ multipleOf: "abc" }, "multipleOf must be a number."],
+      [{ value: "abc" }, "global values must be numbers"],
+      [{ scaleType: "bogus" }, "Unsupported scaleType bogus"],
+      [{ animationDirection: 9 }, "Unsupported animationDirection 9"]
+    ]
+    for (const [values, error] of refusals) {
+      broadcastSpy.mockClear()
+      const before = getSnapshot(tile)
+      const globalValue = sliderModel.globalValue.value
+      const refused = handler.update!({ component: tile }, { title: "Renamed", cannotClose: true, ...values })
+      expect(refused).toEqual({ success: false, values: { error } })
+      expect(getSnapshot(tile)).toEqual(before)
+      expect(sliderModel.globalValue.value).toBe(globalValue)
+      expect(broadcastSpy).not.toHaveBeenCalled()
+    }
+    broadcastSpy.mockRestore()
   })
 
   test("update slider with a global value", () => {

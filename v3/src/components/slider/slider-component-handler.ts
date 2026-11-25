@@ -99,6 +99,13 @@ function validateInput(values: DIValues | undefined, sliderModel?: ISliderModel)
   return { validatedValues: snapshot }
 }
 
+// checked before anything changes, as update global does
+function validateValue(value: V2Slider["value"]) {
+  const _value = value != null ? toGlobalValue(value) : undefined
+  if (value != null && _value == null) return { error: errorResult(t("V3.DI.Error.globalIllegalValue")) }
+  return { value: _value }
+}
+
 export const sliderComponentHandler: DIComponentHandler = {
   create({ values }) {
     const {
@@ -166,6 +173,12 @@ export const sliderComponentHandler: DIComponentHandler = {
     }
   },
 
+  // run before the generic properties are applied, so a refused update changes nothing
+  validateUpdate(content, values) {
+    if (!isSliderModel(content)) return
+    return validateInput(values, content).error ?? validateValue((values as V2Slider).value).error
+  },
+
   update(content, values) {
     if (!isSliderModel(content)) return { success: false }
 
@@ -181,9 +194,8 @@ export const sliderComponentHandler: DIComponentHandler = {
     if (error) {
       return error
     }
-    // checked before anything changes, as update global does
-    const _value = value != null ? toGlobalValue(value) : undefined
-    if (value != null && _value == null) return errorResult(t("V3.DI.Error.globalIllegalValue"))
+    const { error: valueError, value: _value } = validateValue(value)
+    if (valueError) return valueError
 
     const {
       scaleType,
