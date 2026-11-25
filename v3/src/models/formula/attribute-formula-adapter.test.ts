@@ -103,7 +103,6 @@ describe("AttributeFormulaAdapter", () => {
       dataSet.moveAttributeToNewCollection(gId)
       const parentCollection = dataSet.collections[0]
       dataSet.moveAttribute(ciAttr.id, { collection: parentCollection.id })
-      ciAttr.formula!.setCanonicalExpression("caseIndex")
       const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
       formulaManager.addDataSet(dataSet)
       formulaManager.addAdapters([adapter])

@@ -19,7 +19,7 @@ import {
   getFormulaDependencies, hasAggregateFunction, isOrderSensitiveFormula
 } from "./utils/formula-dependency-utils"
 import {
-  getAffectedFormulas, getHierarchySnapshot, getHierarchyStructureKey, IAffectedFormula, IHierarchyFormulaInfo
+  getAffectedFormulas, getDataSetHierarchyStructureKey, getHierarchySnapshot, IAffectedFormula, IHierarchyFormulaInfo
 } from "./utils/hierarchy-change-utils"
 import { formulaError, isRandomFunctionPresent } from "./utils/misc"
 import { getCanonicalNameMap, getDisplayNameMap } from "./utils/name-mapping-utils"
@@ -100,14 +100,10 @@ export class FormulaManager implements IFormulaManager {
   // previous value, so the result doesn't depend on which reaction validates the cases first.
   observeHierarchyChanges(dataSet: IDataSet) {
     let lastSnapshot = getHierarchySnapshot(dataSet)
-    let lastStructureKey = getHierarchyStructureKey(lastSnapshot)
+    let lastStructureKey = getDataSetHierarchyStructureKey(dataSet)
     return reaction(
       () => ({
-        structure: getHierarchyStructureKey(dataSet.collections.map(collection => ({
-          id: collection.id,
-          attrIds: collection.attributes.filter(attr => !!attr).map(attr => attr.id),
-          caseIds: []
-        }))),
+        structure: getDataSetHierarchyStructureKey(dataSet),
         // observing the hashes does not force validation
         hashes: dataSet.collections.map(collection => collection.caseIdsOrderedHash)
       }),
@@ -117,13 +113,19 @@ export class FormulaManager implements IFormulaManager {
           lastSnapshot = getHierarchySnapshot(dataSet)
           return
         }
+        lastStructureKey = structure
+        const formulaInfos = this.getHierarchyFormulaInfos(dataSet.id)
+        if (formulaInfos.length === 0) {
+          // Without formulas there is nothing to recalculate, so the cases can regroup whenever they're next used.
+          lastSnapshot = getHierarchySnapshot(dataSet)
+          return
+        }
         // Undo/redo can change the structure without invalidating the cases, so regroup explicitly.
         dataSet.invalidateCases()
         dataSet.validateCases()
         const after = getHierarchySnapshot(dataSet)
-        const affected = getAffectedFormulas(lastSnapshot, after, this.getHierarchyFormulaInfos(dataSet.id))
+        const affected = getAffectedFormulas(lastSnapshot, after, formulaInfos)
         lastSnapshot = after
-        lastStructureKey = getHierarchyStructureKey(after)
         this.recalculateFormulasInOrder(affected)
       },
       { equals: comparer.structural, name: "FormulaManager.observeHierarchyChanges.reaction" }
@@ -260,7 +262,7 @@ export class FormulaManager implements IFormulaManager {
   }
 
   // Recalculates the affected formulas and everything downstream of them, each exactly once and in
-  // dependency order. Formulas added only because they are downstream recalculate all cases.
+  // dependency order. Formulas that are downstream of another formula in the closure recalculate all cases.
   recalculateFormulasInOrder(affected: IAffectedFormula[]) {
     // Build the closure of the affected formulas and their transitive downstream formulas.
     const closure = new Map<string, IAffectedFormula>()
@@ -270,9 +272,13 @@ export class FormulaManager implements IFormulaManager {
     const queue = Array.from(closure.keys())
     for (let i = 0; i < queue.length; ++i) {
       this.getDirectDownstreamFormulaIds(queue[i]).forEach(downstreamId => {
-        if (!closure.has(downstreamId)) {
+        const existing = closure.get(downstreamId)
+        if (!existing) {
           closure.set(downstreamId, { formulaId: downstreamId, cases: "ALL_CASES", forceWrite: false })
           queue.push(downstreamId)
+        } else if (existing.cases !== "ALL_CASES") {
+          // a directly affected formula downstream of another recalculated formula needs all of its cases
+          closure.set(downstreamId, { ...existing, cases: "ALL_CASES" })
         }
       })
     }
@@ -297,7 +303,7 @@ export class FormulaManager implements IFormulaManager {
         if (degree === 0) ready.push(downId)
       })
     }
-    // Any formulas left are in a cycle; recalculate them in insertion order.
+    // Any formulas left are cycle members and their dependents; recalculate them in insertion order.
     if (sorted.length < closure.size) {
       const sortedSet = new Set(sorted)
       closure.forEach((_, id) => { if (!sortedSet.has(id)) sorted.push(id) })
@@ -305,6 +311,7 @@ export class FormulaManager implements IFormulaManager {
 
     // Recalculate each formula once, without the per-formula downstream cascade.
     sorted.forEach(formulaId => {
+      // a formula already being recalculated further up the call stack will finish with current values
       if (this.recalculatingFormulas.has(formulaId)) return
       const formulaMetadata = this.formulaMetadata.get(formulaId)
       if (!formulaMetadata?.isInitialized) return

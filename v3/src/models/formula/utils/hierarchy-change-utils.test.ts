@@ -105,6 +105,41 @@ describe("getAffectedFormulas", () => {
     })
   })
 
+  describe("rule 2: a collection is disturbed when the grouping above it changes", () => {
+    const C = { id: "C", attrIds: ["f", "v"], caseIds: ["c1", "c2", "c3", "c4"] }
+    const orderSensitive = formula({ orderSensitive: true })
+    const allCasesForced = [{ formulaId: "F", cases: "ALL_CASES", forceWrite: true }]
+    it("parent cases merged while the child's cases are unchanged", () => {
+      const before = [{ id: "P", attrIds: ["g"], caseIds: ["p1", "p2", "p3"] }, C]
+      const after = [{ id: "P", attrIds: ["g"], caseIds: ["p4", "p3"] }, C]
+      expect(getAffectedFormulas(before, after, [orderSensitive])).toEqual(allCasesForced)
+      expect(getAffectedFormulas(before, after, [formula()])).toEqual([])
+    })
+    it("grandparent changed while the parent and child cases are unchanged", () => {
+      const P = { id: "P", attrIds: ["h"], caseIds: ["p1", "p2"] }
+      const before = [{ id: "G", attrIds: ["g"], caseIds: ["g1", "g2"] }, P, C]
+      const after = [{ id: "G", attrIds: ["g"], caseIds: ["g3"] }, P, C]
+      expect(getAffectedFormulas(before, after, [orderSensitive])).toEqual(allCasesForced)
+    })
+    it("a collection added above", () => {
+      const after = [{ id: "P", attrIds: ["g"], caseIds: ["p1", "p2"] }, C]
+      expect(getAffectedFormulas([C], after, [orderSensitive])).toEqual(allCasesForced)
+      expect(getAffectedFormulas([C], after, [formula()])).toEqual([])
+    })
+    it("a collection removed above", () => {
+      const before = [{ id: "P", attrIds: ["g"], caseIds: ["p1", "p2"] }, C]
+      expect(getAffectedFormulas(before, [C], [orderSensitive])).toEqual(allCasesForced)
+      expect(getAffectedFormulas(before, [C], [formula()])).toEqual([])
+    })
+    it("not disturbed when nothing above changed", () => {
+      const P = { id: "P", attrIds: ["g"], caseIds: ["p1", "p2"] }
+      const C2 = { id: "C2", attrIds: ["x"], caseIds: ["d1", "d2"] }
+      const before = [P, C, C2]
+      const after = [P, C, { ...C2, caseIds: ["d1", "d2", "d3"] }]
+      expect(getAffectedFormulas(before, after, [orderSensitive])).toEqual([])
+    })
+  })
+
   it("unaffected: random() in an unchanged collection", () => {
     const before: HierarchySnapshot = [
       { id: "P", attrIds: ["a", "b"], caseIds: ["p1"] }, { id: "C", attrIds: ["f"], caseIds: ["c1", "c2"] }]
@@ -130,5 +165,11 @@ describe("getHierarchyStructureKey", () => {
     const c: HierarchySnapshot = [{ id: "P", attrIds: ["x", "y"], caseIds: ["p1"] }]
     expect(getHierarchyStructureKey(a)).toBe(getHierarchyStructureKey(b))
     expect(getHierarchyStructureKey(a)).not.toBe(getHierarchyStructureKey(c))
+  })
+
+  it("ignores the order of attributes within a collection", () => {
+    const a: HierarchySnapshot = [{ id: "P", attrIds: ["x", "y"], caseIds: [] }]
+    const b: HierarchySnapshot = [{ id: "P", attrIds: ["y", "x"], caseIds: [] }]
+    expect(getHierarchyStructureKey(a)).toBe(getHierarchyStructureKey(b))
   })
 })

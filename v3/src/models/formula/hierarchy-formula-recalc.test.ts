@@ -1,4 +1,4 @@
-import { recordPatches } from "mobx-state-tree"
+import { applyPatch, recordPatches } from "mobx-state-tree"
 import { IAttributeSnapshot } from "../data/attribute"
 import { IDataSet } from "../data/data-set"
 import { createDataSet } from "../data/data-set-conversion"
@@ -92,7 +92,7 @@ describe("hierarchy formula recalculation", () => {
     runReportedCase(true)
   })
 
-  it("undo of a move leaves x unchanged and xbar correct", () => {
+  it("undo and redo of a move leave x unchanged and xbar correct", () => {
     const { dataSet, attrId, childId } = setupReportedCase()
     const xValues = valuesOf(dataSet, attrId("x"))
     const recorder = recordPatches(dataSet)
@@ -103,6 +103,12 @@ describe("hierarchy formula recalculation", () => {
 
     recorder.undo()
     expect(dataSet.collections[0].attributes.map(attr => attr?.id)).toContain(attrId("xbar"))
+    expect(valuesOf(dataSet, attrId("x"))).toEqual(xValues)
+    expectXbarCorrect(dataSet, attrId)
+
+    // redo
+    applyPatch(dataSet, recorder.patches)
+    expect(dataSet.collections[1].attributes.map(attr => attr?.id)).toContain(attrId("xbar"))
     expect(valuesOf(dataSet, attrId("x"))).toEqual(xValues)
     expectXbarCorrect(dataSet, attrId)
   })
@@ -153,24 +159,28 @@ describe("hierarchy formula recalculation", () => {
   })
 
   describe("count() and its dependent", () => {
-    const items: ITestItem[] = [
-      { __id__: "i1", group: "A", h: "u", v: 1 }, { __id__: "i2", group: "A", h: "u", v: 2 },
-      { __id__: "i3", group: "A", h: "t", v: 3 },
-      { __id__: "i4", group: "B", h: "u", v: 4 }, { __id__: "i5", group: "B", h: "t", v: 5 },
-      { __id__: "i6", group: "B", h: "t", v: 6 }
-    ]
-    const env = setup([
-      { name: "group" }, { name: "h" }, { name: "v" },
-      { name: "n", formula: { display: "count()" } }, { name: "m", formula: { display: "n * 10" } }
-    ], items)
-    const { dataSet, adapter, attrId } = env
-    dataSet.moveAttributeToNewCollection(attrId("group"))
-    const parentId = dataSet.collections[0].id
-    const childId = dataSet.collections[1].id
-    dataSet.moveAttribute(attrId("n"), { collection: parentId })
-    dataSet.moveAttribute(attrId("m"), { collection: parentId })
+    const setupCount = () => {
+      const items: ITestItem[] = [
+        { __id__: "i1", group: "A", h: "u", v: 1 }, { __id__: "i2", group: "A", h: "u", v: 2 },
+        { __id__: "i3", group: "A", h: "t", v: 3 },
+        { __id__: "i4", group: "B", h: "u", v: 4 }, { __id__: "i5", group: "B", h: "t", v: 5 },
+        { __id__: "i6", group: "B", h: "t", v: 6 }
+      ]
+      const env = setup([
+        { name: "group" }, { name: "h" }, { name: "v" },
+        { name: "n", formula: { display: "count()" } }, { name: "m", formula: { display: "n * 10" } }
+      ], items)
+      const { dataSet, attrId } = env
+      dataSet.moveAttributeToNewCollection(attrId("group"))
+      const parentId = dataSet.collections[0].id
+      const childId = dataSet.collections[1].id
+      dataSet.moveAttribute(attrId("n"), { collection: parentId })
+      dataSet.moveAttribute(attrId("m"), { collection: parentId })
+      return { ...env, parentId, childId }
+    }
 
     it("recalculates count() and its dependent when a collection is inserted", () => {
+      const { dataSet, adapter, attrId, childId } = setupCount()
       expect(valuesOf(dataSet, attrId("n"))).toEqual([3, 3, 3, 3, 3, 3])
       expect(valuesOf(dataSet, attrId("m"))).toEqual([30, 30, 30, 30, 30, 30])
       const mFormulaId = formulaIdOf(dataSet, attrId("m"))
@@ -185,6 +195,9 @@ describe("hierarchy formula recalculation", () => {
     })
 
     it("recalculates count() when the middle collection is removed", () => {
+      const { dataSet, attrId, childId } = setupCount()
+      dataSet.moveAttributeToNewCollection(attrId("h"), childId)
+      expect(dataSet.collections.length).toBe(3)
       dataSet.moveAttribute(attrId("h"), { collection: childId })
       expect(dataSet.collections.length).toBe(2)
       expect(valuesOf(dataSet, attrId("n"))).toEqual([3, 3, 3, 3, 3, 3])
@@ -203,6 +216,127 @@ describe("hierarchy formula recalculation", () => {
     expect(valuesOf(dataSet, attrId("ci"))).toEqual([1, 2, 3, 4])
     dataSet.moveAttributeToNewCollection(attrId("group"))
     expectOracle(formulaManager, dataSet, attrId("ci"))
+  })
+
+  it("widens a directly affected formula's case list when it is also downstream of a recalculated formula", () => {
+    const items: ITestItem[] = [
+      { __id__: "i1", group: "A", h: "u", k: 1 }, { __id__: "i2", group: "A", h: "u", k: 2 },
+      { __id__: "i3", group: "A", h: "t", k: 3 }, { __id__: "i4", group: "B", h: "u", k: 4 },
+      { __id__: "i5", group: "B", h: "t", k: 5 }, { __id__: "i6", group: "B", h: "t", k: 5 }
+    ]
+    const { dataSet, attrId } = setup([
+      { name: "group" }, { name: "h" }, { name: "k" }, { name: "v" },
+      { name: "n", formula: { display: "count()" } }, { name: "d", formula: { display: "n * 10" } }
+    ], items)
+    // P (group, n = count()), M (h, d = n * 10), C (k, v)
+    dataSet.moveAttributeToNewCollection(attrId("group"))
+    const parentId = dataSet.collections[0].id
+    const middle = dataSet.moveAttributeToNewCollection(attrId("h"), dataSet.collections[1].id)!
+    dataSet.moveAttribute(attrId("n"), { collection: parentId })
+    dataSet.moveAttribute(attrId("d"), { collection: middle.id })
+    expect(valuesOf(dataSet, attrId("n"))).toEqual([2, 2, 2, 2, 2, 2])
+    expect(valuesOf(dataSet, attrId("d"))).toEqual([20, 20, 20, 20, 20, 20])
+
+    // splits one of M's cases (A/u), which adds a case to M and changes count() in P
+    dataSet.moveAttribute(attrId("k"), { collection: middle.id })
+    expect(dataSet.collections[1].caseIds.length).toBe(5)
+    expect(valuesOf(dataSet, attrId("n"))).toEqual([3, 3, 3, 2, 2, 2])
+    expect(valuesOf(dataSet, attrId("d"))).toEqual([30, 30, 30, 20, 20, 20])
+  })
+
+  describe("child formulas when only the grouping above changes", () => {
+    // sorted by g1 then g2, so the child's cases keep their order when parents are added or removed
+    const sortedItems: ITestItem[] = [
+      { __id__: "i1", g1: "A", g2: "p", v: 1 }, { __id__: "i2", g1: "A", g2: "p", v: 2 },
+      { __id__: "i3", g1: "A", g2: "s", v: 3 }, { __id__: "i4", g1: "B", g2: "q", v: 4 }
+    ]
+    const setupSorted = () => setup([
+      { name: "g1" }, { name: "g2" }, { name: "v" },
+      { name: "ci", formula: { display: "caseIndex" } },
+      { name: "pv", formula: { display: "prev(v, 0)" } },
+      { name: "mu", formula: { display: "mean(v)" } }
+    ], sortedItems)
+    const expectAllCorrect = (formulaManager: FormulaManager, dataSet: IDataSet, attrId: (n: string) => string) => {
+      ["ci", "pv", "mu"].forEach(name => expectOracle(formulaManager, dataSet, attrId(name)))
+    }
+
+    it("a parent collection is added", () => {
+      const { formulaManager, dataSet, attrId } = setupSorted()
+      expect(valuesOf(dataSet, attrId("ci"))).toEqual([1, 2, 3, 4])
+      dataSet.moveAttributeToNewCollection(attrId("g1"))
+      expect(valuesOf(dataSet, attrId("ci"))).toEqual([1, 2, 3, 1])
+      expect(valuesOf(dataSet, attrId("pv"))).toEqual([0, 1, 2, 0])
+      expect(valuesOf(dataSet, attrId("mu"))).toEqual([2, 2, 2, 4])
+      expectAllCorrect(formulaManager, dataSet, attrId)
+    })
+
+    it("the parent collection is removed", () => {
+      const { formulaManager, dataSet, attrId } = setupSorted()
+      dataSet.moveAttributeToNewCollection(attrId("g1"))
+      const childId = dataSet.collections[1].id
+      dataSet.moveAttribute(attrId("g1"), { collection: childId })
+      expect(dataSet.collections.length).toBe(1)
+      expect(valuesOf(dataSet, attrId("ci"))).toEqual([1, 2, 3, 4])
+      expect(valuesOf(dataSet, attrId("pv"))).toEqual([0, 1, 2, 3])
+      expect(valuesOf(dataSet, attrId("mu"))).toEqual([2.5, 2.5, 2.5, 2.5])
+      expectAllCorrect(formulaManager, dataSet, attrId)
+    })
+
+    it("parent cases are split and merged", () => {
+      const { formulaManager, dataSet, attrId } = setupSorted()
+      dataSet.moveAttributeToNewCollection(attrId("g1"))
+      const parentId = dataSet.collections[0].id
+      const childId = dataSet.collections[1].id
+      dataSet.moveAttribute(attrId("g2"), { collection: parentId })
+      expect(dataSet.collections[0].caseIds.length).toBe(3)
+      expect(valuesOf(dataSet, attrId("ci"))).toEqual([1, 2, 1, 1])
+      expectAllCorrect(formulaManager, dataSet, attrId)
+      dataSet.moveAttribute(attrId("g2"), { collection: childId })
+      expect(dataSet.collections[0].caseIds.length).toBe(2)
+      expect(valuesOf(dataSet, attrId("ci"))).toEqual([1, 2, 3, 1])
+      expectAllCorrect(formulaManager, dataSet, attrId)
+    })
+  })
+
+  describe("reaction cost", () => {
+    it("does not force a regroup for a data set without formulas", () => {
+      const countInvalidations = (ds: IDataSet) => {
+        const spy = jest.spyOn(ds, "invalidateCases")
+        ds.moveAttributeToNewCollection(ds.attrIDFromName("group")!)
+        ds.validateCases()
+        const count = spy.mock.calls.length
+        spy.mockRestore()
+        return count
+      }
+      const attributes = [{ name: "group" }, { name: "v" }]
+      // the same move in a data set the formula manager doesn't observe
+      const unobserved = createDataSet({ attributes })
+      unobserved.addCases(groupItems.map(({ __id__ }) => ({ __id__ })))
+      const { dataSet } = setup(attributes, groupItems)
+      expect(countInvalidations(dataSet)).toBe(countInvalidations(unobserved))
+    })
+
+    it("does not recalculate when attributes are reordered within a collection", () => {
+      const { formulaManager, dataSet, attrId } = setupReportedCase()
+      const spy = jest.spyOn(formulaManager, "recalculateFormulasInOrder")
+      const parentAttrIds = dataSet.collections[0].attributes.map(attr => attr!.id)
+      expect(parentAttrIds).toEqual([attrId("group"), attrId("xbar")])
+      dataSet.moveAttribute(attrId("xbar"), { before: attrId("group") })
+      expect(dataSet.collections[0].attributes.map(attr => attr!.id)).toEqual([attrId("xbar"), attrId("group")])
+      dataSet.validateCases()
+      expect(spy).not.toHaveBeenCalled()
+      spy.mockRestore()
+    })
+
+    it("stops observing a data set once it is removed", () => {
+      const { formulaManager, dataSet, attrId, childId } = setupReportedCase()
+      formulaManager.removeDataSet(dataSet.id)
+      const spy = jest.spyOn(formulaManager, "getHierarchyFormulaInfos")
+      dataSet.moveAttribute(attrId("xbar"), { collection: childId })
+      dataSet.validateCases()
+      expect(spy).not.toHaveBeenCalled()
+      spy.mockRestore()
+    })
   })
 
   it("move in an empty data set does not throw", () => {
