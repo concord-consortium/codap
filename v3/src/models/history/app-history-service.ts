@@ -4,6 +4,7 @@ import { IApplyModelChangeOptions, IHistoryService, INotify, IWithoutUndoOptions
 import { ILogFunctionEnv } from "../../lib/log-message"
 import { DEBUG_UNDO } from "../../lib/debug"
 import { ICoreNotification, ICoreNotifyFunctionEnv } from "../../data-interactive/notification-core-types"
+import { sendNotice } from "../../data-interactive/notification-batch"
 import { getNotificationRequesterTileId } from "../../data-interactive/notification-requester"
 import { isDataContextChangeNotice } from "../../data-interactive/notification-utils"
 import { isAnsweringUndoRedo } from "../../data-interactive/undo-redo-answer"
@@ -83,7 +84,7 @@ export class AppHistoryService implements IHistoryService {
         // handled (see notification-requester.ts)
         const _excludeTileId = excludeTileId ??
           (isDataContextChangeNotice(message.resource) ? getNotificationRequesterTileId() : undefined)
-        this.tileEnv.notify(message, callback ?? (() => null), notifyTileId, _excludeTileId)
+        sendNotice(this.tileEnv.notify, message, callback ?? (() => null), notifyTileId, _excludeTileId)
       }
     }
   }
@@ -99,7 +100,9 @@ export class AppHistoryService implements IHistoryService {
   // the undo or redo, so nobody is left out.
   sendUndoRedoNotices(historyEntryId: string | undefined, operation: "undo" | "redo") {
     const notices = historyEntryId ? this.entryNotices.get(historyEntryId)?.[operation] : undefined
-    notices?.forEach(({ message, callback }) => this.tileEnv?.notify?.(message, callback ?? (() => null)))
+    // held with the document notice that precedes them, while a batch is open (see notification-batch.ts)
+    const notify = this.tileEnv?.notify
+    if (notify) notices?.forEach(({ message, callback }) => sendNotice(notify, message, callback ?? (() => null)))
   }
 
   withoutUndo(actionCall: IActionContext, options?: IWithoutUndoOptions) {

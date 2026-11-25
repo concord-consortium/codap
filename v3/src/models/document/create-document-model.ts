@@ -1,5 +1,6 @@
 import { comparer, reaction } from "mobx"
 import { addDisposer, onAction } from "mobx-state-tree"
+import { sendNotice } from "../../data-interactive/notification-batch"
 import { Logger } from "../../lib/logger"
 import { createFormulaAdapters } from "../formula/formula-adapter-registry"
 import { FormulaManager } from "../formula/formula-manager"
@@ -78,7 +79,8 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
   historyService.setDependencies(fullEnvironment)
 
   // clearRedo on each new entry and when a change that can't be undone clears the redo list, clearUndo and
-  // clearRedo when the history is erased, and undo or redo on document, as in V2 (undo_history.js)
+  // clearRedo when the history is erased, and undo or redo on document, as in V2 (undo_history.js). They go out
+  // after the notices of the change being undone or redone, which may still be held (see notification-batch.ts).
   // a plugin answering undoAction or redoAction in the previous document has nothing to answer in this one
   endUndoRedoAnswer()
   document.treeManagerAPI?.undoManager.setHistoryListener((change, entryId) => {
@@ -89,33 +91,35 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
       historyService.pruneUndoRedoNotices(new Set(undoManager?.liveHistoryEntryIds ?? []))
     }
     const { canUndo, canRedo } = document
+    const broadcast = (message: { action: string, resource: string, values: Record<string, unknown> }) =>
+      fullEnvironment.notify && sendNotice(fullEnvironment.notify, message as any, () => {})
     if (change === "add" || change === "clearRedo") {
-      document.content?.broadcastMessage({
+      broadcast({
         action: "notify",
         resource: "undoChangeNotice",
         values: { operation: "clearRedo", canUndo, canRedo }
-      }, () => {})
+      })
     } else if (change === "clearUndo") {
-      document.content?.broadcastMessage({
+      broadcast({
         action: "notify",
         resource: "undoChangeNotice",
         values: { operation: "clearUndo", canUndo, canRedo }
-      }, () => {})
+      })
     } else if (change === "undo") {
-      document.content?.broadcastMessage({
+      broadcast({
         action: "notify",
         resource: "document",
         values: { operation: "undo", canUndo, canRedo }
-      }, () => {})
+      })
       // then the change's own notice, e.g. deleting the component an undone create made. V2 sent only the
       // change's notice when it had one (undo_history.js:160-169); the document notice still goes out here.
       historyService.sendUndoRedoNotices(entryId, "undo")
     } else {
-      document.content?.broadcastMessage({
+      broadcast({
         action: "notify",
         resource: "document",
         values: { operation: "redo", canUndo, canRedo }
-      }, () => {})
+      })
       historyService.sendUndoRedoNotices(entryId, "redo")
     }
   })

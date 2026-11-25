@@ -52,16 +52,18 @@ describe("data context change notices and the requesting plugin", () => {
       { tile: pluginTile })
     expect(result.success).toBe(true)
 
-    // one createCases per collection, then createItems, each with values an array of { operation, result }, as in V2
+    // one notice, as in V2, whose values array holds a createCases per collection, then createItems
     const calls = dataContextNoticeCalls()
-    expect(calls.map(([message]) => message.values[0].operation))
+    expect(calls.length).toBe(1)
+    const [[message, , , excludeTileId]] = calls
+    expect(excludeTileId).toBe(pluginTile.id)
+    expect(message.values.map(({ operation }: any) => operation))
       .toEqual(["createCases", "createCases", "createCases", "createItems"])
-    calls.forEach(([message, , , excludeTileId]) => {
-      expect(excludeTileId).toBe(pluginTile.id)
-      expect(message.values).toEqual([{
-        operation: message.values[0].operation,
+    message.values.forEach((value: any) => {
+      expect(value).toEqual({
+        operation: value.operation,
         result: expect.objectContaining({ success: true, caseIDs: expect.any(Array), itemIDs: expect.any(Array) })
-      }])
+      })
     })
   })
 
@@ -118,14 +120,14 @@ describe("data context change notices and the requesting plugin", () => {
 
     expect(responses.length).toBe(3)
     const calls = dataContextNoticeCalls()
-    // one createCases per collection for the batch, then one createItems
-    expect(calls.map(([message]) => message.values[0].operation))
+    // one notice for the batch, holding a createCases per collection, then one createItems
+    expect(calls.length).toBe(1)
+    const [[message, , , excludeTileId]] = calls
+    expect(excludeTileId).toBe(requesterId)
+    expect(message.values.map(({ operation }: any) => operation))
       .toEqual(["createCases", "createCases", "createCases", "createItems"])
-    calls.forEach(([message, , , excludeTileId]) => {
-      expect(excludeTileId).toBe(requesterId)
-      expect(message.values).toEqual([
-        { operation: message.values[0].operation, result: expect.objectContaining({ success: true }) }
-      ])
+    message.values.forEach((value: any) => {
+      expect(value).toEqual({ operation: value.operation, result: expect.objectContaining({ success: true }) })
     })
   })
 })

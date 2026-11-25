@@ -300,11 +300,11 @@ use `caseByID` to change a case.
 
 ## Notifications
 
-`create` notifies the plugins listening to the data context with `createCases` on
-`dataContextChangeNotice[<context>]`, one notification for each collection in which cases were
-created, then `createItems`, with the ids of the cases the request created and, alongside each,
-the item it was built from. `update` sends `updateCases` for the items' cases in the last
-collection (for a case id, that case), `createCases` if the change regroups cases, then
+`create` notifies the plugins listening to the data context with one notification on
+`dataContextChangeNotice[<context>]`, whose `values` holds a `createCases` for each collection in
+which cases were created, then `createItems`, with the ids of the cases the request created and,
+alongside each, the item it was built from. `update` sends `updateCases` for the items' cases in
+the last collection (for a case id, that case), `createCases` if the change regroups cases, then
 `updateItems`, with the items' ids. v2 sent no `createCases` for a regroup; its `updateCases`
 result listed the cases created and deleted instead. An update that names no known attribute
 sends nothing; v2 changed nothing but still sent `updateCases` and `updateItems`. `delete` sends
