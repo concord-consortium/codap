@@ -17,9 +17,10 @@ jest.mock("../../../utilities/translation/translate", () => ({
 
 // Mock ColorSetting to render a simple swatch button that exposes closeTrigger
 jest.mock("../../common/color-setting", () => ({
-  ColorSetting: ({ propertyLabel, closeTrigger, onColorChange, swatchBackgroundColor }: any) => (
+  ColorSetting: ({ propertyLabel, closeTrigger, disabled, onColorChange, swatchBackgroundColor }: any) => (
     <button data-testid={`color-swatch-${propertyLabel}`}
       data-close-trigger={closeTrigger ?? ""}
+      disabled={disabled}
       onClick={() => onColorChange("#123456")}
       style={{ backgroundColor: swatchBackgroundColor }}>
       {propertyLabel}
@@ -1142,4 +1143,137 @@ describe("point shape controls", () => {
     })
   })
 
+})
+
+describe("disabled legend controls", () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  afterEach(() => {
+    act(() => featureFlagManager.setServerConfig({}))
+  })
+
+  // The row a control sits in carries the disabled look (dimmed, no pointer events).
+  // eslint-disable-next-line testing-library/no-node-access
+  const rowOf = (element: HTMLElement) => element.closest(".palette-row")
+
+  const expectDisabledRow = (element: HTMLElement) => {
+    expect(rowOf(element)).toHaveClass("disabled")
+    expect(rowOf(element)).toHaveAttribute("aria-disabled", "true")
+  }
+
+  it("disables and dims the single color and shape row when there is no legend", () => {
+    featureFlagManager.setServerConfig({ pointShapes: "on" })
+    const config = createMockDataConfig()
+    render(<LegendColorControls dataConfiguration={config as any}
+      displayItemDescription={createMockDescription() as any} disabled={true} />)
+
+    const swatch = screen.getByTestId("color-swatch-DG.Inspector.color")
+    expect(swatch).toBeDisabled()
+    expect(within(screen.getByTestId("point-shape-select")).getByRole("button")).toBeDisabled()
+    expectDisabledRow(swatch)
+  })
+
+  it("disables and dims every category row with a categorical legend", () => {
+    featureFlagManager.setServerConfig({ pointShapes: "on" })
+    const config = createMockDataConfig({
+      attributeType: jest.fn(() => "categorical"),
+      categoryArrayForAttrRole: jest.fn(() => ["cat-a", "cat-b"])
+    })
+    render(<LegendColorControls dataConfiguration={config as any}
+      displayItemDescription={createMockDescription() as any} disabled={true} />)
+
+    for (const category of ["cat-a", "cat-b"]) {
+      const swatch = screen.getByTestId(`color-swatch-${category}`)
+      expect(swatch).toBeDisabled()
+      expectDisabledRow(swatch)
+    }
+    for (const shapeSelect of screen.getAllByTestId("point-shape-select")) {
+      expect(within(shapeSelect).getByRole("button")).toBeDisabled()
+    }
+  })
+
+  it("disables and dims the shape, color, and lock controls with a numeric legend", () => {
+    featureFlagManager.setServerConfig({ pointShapes: "on" })
+    const config = createMockDataConfig({ attributeType: jest.fn(() => "numeric") })
+    render(<LegendColorControls dataConfiguration={config as any}
+      displayItemDescription={createMockDescription() as any} disabled={true} />)
+
+    const shapeButton = within(screen.getByTestId("point-shape-select")).getByRole("button")
+    expect(shapeButton).toBeDisabled()
+    expectDisabledRow(shapeButton)
+
+    const lowSwatch = screen.getByTestId("color-swatch-DG.Inspector.legendColorLow")
+    const highSwatch = screen.getByTestId("color-swatch-DG.Inspector.legendColorHigh")
+    expect(lowSwatch).toBeDisabled()
+    expect(highSwatch).toBeDisabled()
+    expectDisabledRow(lowSwatch)
+
+    expect(screen.getByRole("checkbox", { name: "DG.Inspector.lockLegendQuantiles" })).toBeDisabled()
+  })
+
+  it("disables the lock checkbox with a date legend", () => {
+    const config = createMockDataConfig({ attributeType: jest.fn(() => "date") })
+    render(<LegendColorControls dataConfiguration={config as any}
+      displayItemDescription={createMockDescription() as any} disabled={true} />)
+
+    expect(screen.getByTestId("color-swatch-DG.Inspector.color")).toBeDisabled()
+    expect(screen.getByRole("checkbox", { name: "DG.Inspector.lockLegendQuantiles" })).toBeDisabled()
+  })
+
+  it("leaves the rows enabled and undimmed when not disabled", () => {
+    const config = createMockDataConfig({
+      attributeType: jest.fn(() => "categorical"),
+      categoryArrayForAttrRole: jest.fn(() => ["cat-a"])
+    })
+    render(<LegendColorControls dataConfiguration={config as any}
+      displayItemDescription={createMockDescription() as any} />)
+
+    const swatch = screen.getByTestId("color-swatch-cat-a")
+    expect(swatch).toBeEnabled()
+    expect(rowOf(swatch)).not.toHaveClass("disabled")
+    expect(rowOf(swatch)).not.toHaveAttribute("aria-disabled")
+  })
+
+  it("disables and dims the bins select", () => {
+    render(<LegendBinsSelect dataConfiguration={createMockDataConfig() as any} disabled={true} />)
+
+    const button = screen.getByRole("button", { name: /V3.Inspector.graph.legendBins/i })
+    expect(button).toBeDisabled()
+    // eslint-disable-next-line testing-library/no-node-access
+    const row = button.closest(".legend-bins-row")
+    expect(row).toHaveClass("disabled")
+    expect(row).toHaveAttribute("aria-disabled", "true")
+  })
+
+  it("disables and dims the bin count input", () => {
+    const config = createMockDataConfig({
+      numericValuesForAttrRole: jest.fn(() => [0, 10, 20, 30, 40, 50]),
+      legendBinCount: 5
+    })
+    render(<LegendBinCountInput dataConfiguration={config as any} disabled={true} />)
+
+    const input = screen.getByTestId("legend-bin-count-input")
+    expect(input).toBeDisabled()
+    // eslint-disable-next-line testing-library/no-node-access
+    expect(input.closest(".legend-bin-count-field")).toHaveClass("disabled")
+  })
+
+  it("disables and dims the range inputs", () => {
+    render(<LegendRangeInputs dataConfiguration={createMockDataConfig() as any} disabled={true} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toBeDisabled()
+    expect(screen.getByTestId("legend-range-max-input")).toBeDisabled()
+    const group = screen.getByRole("group", { name: "V3.Inspector.graph.legendRange" })
+    expect(group).toHaveClass("disabled")
+    expect(group).toHaveAttribute("aria-disabled", "true")
+  })
+
+  it("keeps showing the live range in the disabled range inputs, unlike locking", () => {
+    // Disabling only blocks edits; it must not switch the inputs to the locked legend's range.
+    const config = createMockDataConfig({ legendDisplayRange: { min: 10, max: 40 } })
+    render(<LegendRangeInputs dataConfiguration={config as any} disabled={true} />)
+
+    expect(screen.getByTestId("legend-range-min-input")).toHaveValue("0")
+    expect(screen.getByTestId("legend-range-max-input")).toHaveValue("40")
+  })
 })

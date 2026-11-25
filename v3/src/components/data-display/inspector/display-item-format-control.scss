@@ -20,6 +20,10 @@
     outline: 2px solid vars.$focus-outline-color;
     outline-offset: 2px;
   }
+
+  &[data-disabled] {
+    cursor: default;
+  }
 }
 
 // A 24px box holding a glyph, which is pinned to its edges rather than laid out, so nothing about

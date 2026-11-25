@@ -10,8 +10,8 @@ jest.mock("../../../utilities/translation/translate", () => ({
 
 // Mock ColorSetting to render a simple swatch button
 jest.mock("../../common/color-setting", () => ({
-  ColorSetting: ({ propertyLabel, onColorChange }: any) => (
-    <button data-testid={`color-swatch-${propertyLabel}`}
+  ColorSetting: ({ propertyLabel, onColorChange, disabled }: any) => (
+    <button data-testid={`color-swatch-${propertyLabel}`} disabled={disabled}
       onClick={() => onColorChange("#123456")}>
       {propertyLabel}
     </button>
@@ -20,16 +20,22 @@ jest.mock("../../common/color-setting", () => ({
 
 // Mock sub-components to isolate DisplayItemFormatControl
 jest.mock("./point-size-slider", () => ({
-  PointSizeSlider: ({ pointDisplayType }: any) => (
-    <div data-testid="point-size-slider" data-display-type={pointDisplayType}>PointSizeSlider</div>
+  PointSizeSlider: ({ pointDisplayType, disabled }: any) => (
+    <div data-testid="point-size-slider" data-display-type={pointDisplayType} data-disabled={!!disabled}>
+      PointSizeSlider
+    </div>
   )
 }))
 
 jest.mock("./legend-color-controls", () => ({
-  LegendColorControls: () => <div data-testid="legend-color-controls">LegendColorControls</div>,
-  LegendBinsSelect: () => <div data-testid="legend-bins-select">LegendBinsSelect</div>,
-  LegendBinCountInput: () => <div data-testid="legend-bin-count-input">LegendBinCountInput</div>,
-  LegendRangeInputs: () => <div data-testid="legend-range-inputs">LegendRangeInputs</div>
+  LegendColorControls: ({ disabled }: any) =>
+    <div data-testid="legend-color-controls" data-disabled={!!disabled}>LegendColorControls</div>,
+  LegendBinsSelect: ({ disabled }: any) =>
+    <div data-testid="legend-bins-select" data-disabled={!!disabled}>LegendBinsSelect</div>,
+  LegendBinCountInput: ({ disabled }: any) =>
+    <div data-testid="legend-bin-count-input" data-disabled={!!disabled}>LegendBinCountInput</div>,
+  LegendRangeInputs: ({ disabled }: any) =>
+    <div data-testid="legend-range-inputs" data-disabled={!!disabled}>LegendRangeInputs</div>
 }))
 
 jest.mock("./plot-background-controls", () => ({
@@ -59,6 +65,16 @@ const createMockDescription = (overrides?: Record<string, unknown>) => ({
 const createMockDataConfig = (overrides?: Record<string, unknown>) => ({
   attributeID: jest.fn(() => ""),
   attributeType: jest.fn(() => undefined),
+  ...overrides
+})
+
+const createMockMapPointLayer = (overrides?: Record<string, unknown>) => ({
+  id: "layer-1",
+  displayType: "points",
+  pointsAreVisible: true,
+  setDisplayType: jest.fn(),
+  setPointsAreVisible: jest.fn(),
+  applyModelChange: jest.fn((fn: () => void) => fn()),
   ...overrides
 })
 
@@ -294,6 +310,144 @@ describe("DisplayItemFormatControl", () => {
       )
 
       expect(screen.queryByTestId("point-type-points-radio-button")).not.toBeInTheDocument()
+    })
+  })
+
+  describe("points visibility toggle", () => {
+    const kPointsToggleTestId = "map-layers-checkbox-points-layer-1"
+
+    it("shows the Points checkbox for a map point layer", () => {
+      render(
+        <DisplayItemFormatControl
+          dataConfiguration={createMockDataConfig() as any}
+          displayItemDescription={createMockDescription() as any}
+          mapPointLayerModel={createMockMapPointLayer() as any}
+        />
+      )
+
+      const checkbox = screen.getByTestId(kPointsToggleTestId)
+      expect(checkbox).toHaveTextContent("DG.Inspector.mapPoints")
+      expect(checkbox).toHaveAttribute("data-selected", "true")
+    })
+
+    it("omits the Points checkbox when there is no map point layer", () => {
+      render(
+        <DisplayItemFormatControl
+          dataConfiguration={createMockDataConfig() as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      expect(screen.queryByTestId(kPointsToggleTestId)).not.toBeInTheDocument()
+      expect(screen.queryByRole("checkbox", { name: "DG.Inspector.mapPoints" })).not.toBeInTheDocument()
+    })
+
+    it("hides the layer's points when the Points checkbox is unchecked", async () => {
+      const user = userEvent.setup()
+      const layer = createMockMapPointLayer()
+      render(
+        <DisplayItemFormatControl
+          dataConfiguration={createMockDataConfig() as any}
+          displayItemDescription={createMockDescription() as any}
+          mapPointLayerModel={layer as any}
+        />
+      )
+
+      await user.click(screen.getByRole("checkbox", { name: "DG.Inspector.mapPoints" }))
+      expect(layer.applyModelChange).toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({
+        undoStringKey: "DG.Undo.map.hidePoints",
+        redoStringKey: "DG.Redo.map.hidePoints"
+      }))
+      expect(layer.setPointsAreVisible).toHaveBeenCalledWith(false)
+    })
+
+    it("shows the layer's points when the Points checkbox is checked", async () => {
+      const user = userEvent.setup()
+      const layer = createMockMapPointLayer({ pointsAreVisible: false })
+      render(
+        <DisplayItemFormatControl
+          dataConfiguration={createMockDataConfig() as any}
+          displayItemDescription={createMockDescription() as any}
+          mapPointLayerModel={layer as any}
+        />
+      )
+
+      await user.click(screen.getByRole("checkbox", { name: "DG.Inspector.mapPoints" }))
+      expect(layer.setPointsAreVisible).toHaveBeenCalledWith(true)
+    })
+  })
+
+  describe("disabling options when points are hidden", () => {
+    beforeEach(() => {
+      featureFlagManager.setServerConfig({ legendBinCount: "on", legendRange: "on" })
+    })
+
+    const renderWithLayer = (pointsAreVisible: boolean) => render(
+      <DisplayItemFormatControl
+        dataConfiguration={createMockDataConfig({
+          attributeID: jest.fn(() => "legend-attr-1"),
+          attributeType: jest.fn(() => "numeric")
+        }) as any}
+        displayItemDescription={createMockDescription() as any}
+        mapPointLayerModel={createMockMapPointLayer({ pointsAreVisible }) as any}
+      />
+    )
+
+    it("disables every option except the Points checkbox when the layer's points are hidden", () => {
+      renderWithLayer(false)
+
+      // The Points checkbox stays live, or there would be no way to show the points again.
+      expect(screen.getByRole("checkbox", { name: "DG.Inspector.mapPoints" })).toBeEnabled()
+
+      expect(screen.getByRole("radio", { name: "V3.map.inspector.displayAsPoints" })).toBeDisabled()
+      expect(screen.getByRole("radio", { name: "V3.map.inspector.displayAsHeatmap" })).toBeDisabled()
+      expect(screen.getByTestId("point-size-slider")).toHaveAttribute("data-disabled", "true")
+      expect(screen.getByTestId("legend-color-controls")).toHaveAttribute("data-disabled", "true")
+      expect(screen.getByTestId("legend-bins-select")).toHaveAttribute("data-disabled", "true")
+      expect(screen.getByTestId("legend-bin-count-input")).toHaveAttribute("data-disabled", "true")
+      expect(screen.getByTestId("legend-range-inputs")).toHaveAttribute("data-disabled", "true")
+      expect(screen.getByTestId("color-swatch-DG.Inspector.stroke")).toBeDisabled()
+      expect(screen.getByRole("checkbox", { name: "DG.Inspector.strokeSameAsFill" })).toBeDisabled()
+    })
+
+    it("shows the stroke section as disabled when the layer's points are hidden", () => {
+      renderWithLayer(false)
+
+      const swatch = screen.getByTestId("color-swatch-DG.Inspector.stroke")
+      // eslint-disable-next-line testing-library/no-node-access
+      const strokeSection = swatch.closest(".stroke-section")
+      expect(strokeSection).toHaveClass("disabled")
+      expect(strokeSection).toHaveAttribute("aria-disabled", "true")
+    })
+
+    it("leaves every option enabled when the layer's points are visible", () => {
+      renderWithLayer(true)
+
+      expect(screen.getByRole("radio", { name: "V3.map.inspector.displayAsPoints" })).toBeEnabled()
+      expect(screen.getByTestId("point-size-slider")).toHaveAttribute("data-disabled", "false")
+      expect(screen.getByTestId("legend-color-controls")).toHaveAttribute("data-disabled", "false")
+      expect(screen.getByTestId("legend-bins-select")).toHaveAttribute("data-disabled", "false")
+      expect(screen.getByTestId("legend-bin-count-input")).toHaveAttribute("data-disabled", "false")
+      expect(screen.getByTestId("legend-range-inputs")).toHaveAttribute("data-disabled", "false")
+      expect(screen.getByTestId("color-swatch-DG.Inspector.stroke")).toBeEnabled()
+      expect(screen.getByRole("checkbox", { name: "DG.Inspector.strokeSameAsFill" })).toBeEnabled()
+      // eslint-disable-next-line testing-library/no-node-access
+      expect(screen.getByTestId("color-swatch-DG.Inspector.stroke").closest(".stroke-section"))
+        .not.toHaveClass("disabled")
+    })
+
+    it("never disables options for a display without a map point layer (e.g. a graph)", () => {
+      render(
+        <DisplayItemFormatControl
+          dataConfiguration={createMockDataConfig({ attributeType: jest.fn(() => "numeric") }) as any}
+          displayItemDescription={createMockDescription() as any}
+        />
+      )
+
+      expect(screen.getByTestId("point-size-slider")).toHaveAttribute("data-disabled", "false")
+      expect(screen.getByTestId("legend-color-controls")).toHaveAttribute("data-disabled", "false")
+      expect(screen.getByTestId("color-swatch-DG.Inspector.stroke")).toBeEnabled()
+      expect(screen.getByRole("checkbox", { name: "DG.Inspector.strokeSameAsFill" })).toBeEnabled()
     })
   })
 
