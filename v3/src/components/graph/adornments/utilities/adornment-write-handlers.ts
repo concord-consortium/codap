@@ -23,10 +23,11 @@ export const adornmentWriteHandlers = (
   { adornmentType, get, validate, applyValues }: IAdornmentWriteConfig
 ): Pick<DIAdornmentHandler, "create" | "update"> => ({
   create({ graphContent, values }) {
-    if (!isCompatibleWithPlotType(adornmentType, graphContent.plotType)) return adornmentNotSupportedByPlotTypeResult
+    // values are checked first, as for the types that don't use these handlers
     const settings = valuesObject(values)
     const error = settings && validate?.(settings)
     if (error) return error
+    if (!isCompatibleWithPlotType(adornmentType, graphContent.plotType)) return adornmentNotSupportedByPlotTypeResult
 
     const adornmentsStore = graphContent.adornmentsStore as IAdornmentsBaseStore
     const existingAdornment = adornmentsStore.findAdornmentOfType<IAdornmentModel>(adornmentType)
