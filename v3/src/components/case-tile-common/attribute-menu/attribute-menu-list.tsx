@@ -11,6 +11,7 @@ import {
 import { IAttributeChangeResult } from "../../../models/data/data-set-types"
 import { sortItemsWithCustomUndoRedo } from "../../../models/data/data-set-undo"
 import { getTileModel } from "../../../models/tiles/tile-model"
+import { isFeatureEnabled } from "../../../models/feature-flags/feature-flag-manager"
 import { uiState } from "../../../models/ui-state"
 import {
   allowAttributeDeletion, preventCollectionReorg, preventTopLevelReorg
@@ -20,6 +21,8 @@ import { resizeColumnNotification } from "../../case-table/case-table-notificati
 import { kCellPadding } from "../../case-table/case-table-types"
 import { useCaseTableModel } from "../../case-table/use-case-table-model"
 import { findLongestContentWidth } from "../attribute-format-utils"
+import { CombineDateTimeModal } from "./combine-date-time-modal"
+import { getAvailableCombineDateTimePartners } from "./combine-date-time-utils"
 import { IMenuItem } from "../std-menu-list"
 import { EditAttributePropertiesModal } from "./edit-attribute-properties-modal"
 
@@ -39,6 +42,7 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
   const metadata = useDataSetMetadata()
   const tableModel = useCaseTableModel()
   const { isOpen, onClose, onOpen } = useDisclosure()
+  const combineDateTime = useDisclosure()
 
   const handleMenuItemFocus = useMenuItemScrollIntoView()
 
@@ -55,6 +59,16 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
 
   const handleEditPropertiesClose = () => {
     onClose()
+    onModalOpen(false)
+  }
+
+  const handleCombineDateTimeOpen = () => {
+    combineDateTime.onOpen()
+    onModalOpen(true)
+  }
+
+  const handleCombineDateTimeClose = () => {
+    combineDateTime.onClose()
     onModalOpen(false)
   }
 
@@ -159,6 +173,13 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
         })
       }
     },
+    // gated by a feature flag: when it's off, the item is left out rather than shown disabled
+    ...(isFeatureEnabled("combineDateTime") ? [{
+      itemKey: "V3.CaseTable.headerMenuItems.combineDateTime",
+      dataTestId: "attribute-menu-combine-date-time",
+      isEnabled: () => !!data && getAvailableCombineDateTimePartners(data, metadata, attributeId).length > 0,
+      handleClick: handleCombineDateTimeOpen
+    }] : []),
     {
       itemKey: "DG.TableController.headerMenuItems.sortAscending",
       dataTestId: "attribute-menu-sort-asc",
@@ -232,6 +253,29 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
     }
   ]
 
+  return (
+    <>
+      <MenuList ref={ref} data-testid={`attribute-header-menu-${attrTestIdSuffix}`}
+          onKeyDown={handleMenuKeyDown} onFocus={handleMenuItemFocus}>
+        <AttributeMenuItems menuItems={menuItems} />
+      </MenuList>
+      <EditAttributePropertiesModal attributeId={attributeId} finalFocusRef={finalFocusRef}
+        isOpen={isOpen} onClose={handleEditPropertiesClose} />
+      {combineDateTime.isOpen &&
+        <CombineDateTimeModal attributeId={attributeId} finalFocusRef={finalFocusRef}
+          isOpen={combineDateTime.isOpen} onClose={handleCombineDateTimeClose} />
+      }
+    </>
+  )
+})
+
+AttributeMenuListComponent.displayName = "AttributeMenuList"
+
+/*
+ * Renders the items inside the MenuList, so that the header's lazy Menu only evaluates whether each item is
+ * enabled (and observes what that depends on) while the menu is open.
+ */
+const AttributeMenuItems = observer(function AttributeMenuItems({ menuItems }: { menuItems: IMenuItem[] }) {
   function isItemEnabled(item: IMenuItem) {
     if (!item.handleClick) return false
     if (!item.isEnabled) return true
@@ -240,21 +284,14 @@ const AttributeMenuListComponent = forwardRef<HTMLDivElement, IProps>(
 
   return (
     <>
-      <MenuList ref={ref} data-testid={`attribute-header-menu-${attrTestIdSuffix}`}
-          onKeyDown={handleMenuKeyDown} onFocus={handleMenuItemFocus}>
-        {menuItems.map(item => (
-          <MenuItem key={item.itemKey} isDisabled={!isItemEnabled(item)} onClick={() => item.handleClick?.(item)}
-              data-testid={item.dataTestId}>
-            {`${t(item.itemKey)}${item.handleClick ? "" : " 🚧"}`}
-          </MenuItem>
-        ))}
-      </MenuList>
-      <EditAttributePropertiesModal attributeId={attributeId} finalFocusRef={finalFocusRef}
-        isOpen={isOpen} onClose={handleEditPropertiesClose} />
+      {menuItems.map(item => (
+        <MenuItem key={item.itemKey} isDisabled={!isItemEnabled(item)} onClick={() => item.handleClick?.(item)}
+            data-testid={item.dataTestId}>
+          {`${t(item.itemKey)}${item.handleClick ? "" : " 🚧"}`}
+        </MenuItem>
+      ))}
     </>
   )
 })
-
-AttributeMenuListComponent.displayName = "AttributeMenuList"
 
 export const AttributeMenuList = observer(AttributeMenuListComponent)

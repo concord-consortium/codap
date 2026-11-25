@@ -1,5 +1,6 @@
 import { ComponentElements as c } from "./component-elements"
 import { FormulaHelper as fh } from "../helpers/formula-helper"
+import { MenuHelper as mh } from "../helpers/menu-helper"
 
 type TestAttributes = Array<{ name: string, move: string }>
 type TestValues = Record<string, string[]>
@@ -137,20 +138,11 @@ export const TableTileElements = {
       .filter(isAttributeNamed(name))
   },
   openAttributeMenu(name: string, collectionIndex = 1) {
-    this.getAttribute(name, collectionIndex).click({force: true})
-    // Menu items can be found and clicked while the menu is still hidden, so wait for this
-    // attribute's menu to become visible. A menu that opens but never appears then fails here
-    // rather than at some later step.
-    this.getAttribute(name, collectionIndex)
-      .should("have.attr", "aria-expanded", "true")
-      .invoke("attr", "aria-controls")
-      .then(menuId => {
-        cy.get(`[id='${menuId}']`).should("have.attr", "style").and("contain", "visibility: visible")
-      })
+    mh.openMenu(() => this.getAttribute(name, collectionIndex), {force: true})
   },
   closeAttributeMenu() {
-    // On CI the menu occasionally closes on its own before the test closes it, for reasons not
-    // yet understood, so close it only if it's still open, then make sure it's closed.
+    // Choosing a menu item or clicking elsewhere (e.g. Undo) has often closed the menu already,
+    // so close it only if it's still open, then make sure it's closed.
     const kVisibleMenuList = "[data-testid^='attribute-header-menu-'][style*='visibility: visible']"
     cy.get("body").then($body => {
       // aria-expanded updates immediately, whereas the menu list stays visible while it animates closed

@@ -1809,7 +1809,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   setItemOrder(itemIds: string[]) {
     if (itemIds.length !== self._itemIds.length) return
     if (itemIds.every((itemId, index) => itemId === self._itemIds[index])) return
-    // current positions come from _itemIds itself, since itemInfoMap can be stale (e.g. after a sort)
+    // current positions come from _itemIds itself, since itemInfoMap can be stale until the cases are validated
     const currentIndex = new Map(self._itemIds.map((itemId, index) => [itemId, index]))
     const origIndices = itemIds.map(itemId => currentIndex.get(itemId)!)
     self.attributes.forEach(attr => attr.orderValues(origIndices))
@@ -1819,7 +1819,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       const itemInfo = self.itemInfoMap.get(itemId)
       if (itemInfo) itemInfo.index = index
     })
-  },
+  }
+}))
+.actions(self => ({
   sortByAttribute(attributeId: string, direction: "ascending" | "descending" = "ascending") {
     self.validateCases()
 
@@ -1831,14 +1833,15 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     }
 
     const finalItemIds = Array.from(self._itemIds)
-    const itemIdToIndexMap: Record<string, { beforeIndex: number, afterIndex: number }> = {}
-    self._itemIds.forEach((itemId, beforeIndex) => itemIdToIndexMap[itemId] = { beforeIndex, afterIndex: -1 })
-
-    const collection = self.getCollectionForAttribute(attributeId)
-    const parentCollection = collection?.parent
+    const parentCollection = self.getCollectionForAttribute(attributeId)?.parent
 
     // if there's a parent collection, items are sorted within their parent cases
     if (parentCollection) {
+      // an item in no case group (e.g. under a parent whose items are all set aside) keeps its place
+      const itemIdToIndexMap: Record<string, { beforeIndex: number, afterIndex: number }> = {}
+      self._itemIds.forEach((itemId, beforeIndex) => {
+        itemIdToIndexMap[itemId] = { beforeIndex, afterIndex: beforeIndex }
+      })
       parentCollection.caseGroups.forEach(group => {
         // combine all the child item ids for this parent case
         const origGroupItemIds = [...group.childItemIds, ...group.hiddenChildItemIds]
@@ -1854,33 +1857,20 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           const origItemIdAtIndex = origGroupItemIds[index]
           itemIdToIndexMap[itemId].afterIndex = itemIdToIndexMap[origItemIdAtIndex].beforeIndex
         })
-        // sort the items into their appropriate sorted locations
-        finalItemIds.sort((aItemId, bItemId) => {
-          return itemIdToIndexMap[aItemId].afterIndex - itemIdToIndexMap[bItemId].afterIndex
-        })
+      })
+      // sort the items into their appropriate sorted locations
+      finalItemIds.sort((aItemId, bItemId) => {
+        return itemIdToIndexMap[aItemId].afterIndex - itemIdToIndexMap[bItemId].afterIndex
       })
     }
 
     // if no parent collection, items can be sorted globally
     else {
       finalItemIds.sort(compareFn)
-      finalItemIds.forEach((itemId, index) => itemIdToIndexMap[itemId].afterIndex = index)
     }
 
-    // if no changes then nothing to do
-    if (finalItemIds.every((itemId, index) => itemId === self._itemIds[index])) return
-
-    // apply the index mapping to each attribute's value arrays
-    const origIndices = finalItemIds.map(itemId => itemIdToIndexMap[itemId].beforeIndex)
-    self.attributes.forEach(attr => attr.orderValues(origIndices))
-
-    // update the _itemIds array
-    self._itemIds.replace(finalItemIds)
-
-    return itemIdToIndexMap
-  }
-}))
-.actions(self => ({
+    self.setItemOrder(finalItemIds)
+  },
   // Moves the given items, in their current order, before or after another item, or to the end. The order
   // includes set-aside and filtered-out items.
   moveItems(itemIds: string[], options?: IMoveItemsOptions) {

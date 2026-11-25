@@ -68,9 +68,6 @@ context("Map UI", () => {
     map.getHideShowButton().then($element => {
       c.checkReactAriaToolTip($element, c.tooltips.mapHideShowButton)
     })
-    map.getDisplayValuesButton().then($element => {
-      c.checkReactAriaToolTip($element, c.tooltips.mapDisplayValuesButton)
-    })
     map.getDisplayConfigButton().then($element => {
       c.checkReactAriaToolTip($element, c.tooltips.mapDisplayConfigButton)
     })
@@ -171,6 +168,7 @@ context("Map UI", () => {
     map.getHideUnselectedCases().should("not.have.attr", "aria-disabled")
     map.getShowAllCases().should("have.attr", "aria-disabled", "true")
   })
+
   it("checks heatmap", () => {
     cfm.openLocalDoc(filename1)
     c.getIconFromToolShelf("map").click()
@@ -197,14 +195,12 @@ context("Map UI", () => {
     map.getHeatmapCanvas().should("exist")
 
     // Hidden when points are hidden
-    map.getDisplayValuesButton().click()
-    map.getInspectorPalette().contains("Points").click()
+    cy.get("[data-testid^=map-layers-checkbox-points-]").click()
     map.getHeatmapCanvas().should("not.exist")
-    map.getInspectorPalette().contains("Points").click()
+    cy.get("[data-testid^=map-layers-checkbox-points-]").click()
     map.getHeatmapCanvas().should("exist")
 
     // Hidden when points are toggled
-    map.getDisplayConfigButton().click()
     map.getHeatmapBullet("points").should("exist")
     map.getHeatmapBullet("points").click()
     map.getHeatmapCanvas().should("not.exist")
@@ -216,6 +212,7 @@ context("Map UI", () => {
     mlh.removeAttributeFromLegend("Length")
     map.getHeatmapCanvas().should("not.exist")
   })
+
   it("checks map pins", () => {
     c.getIconFromToolShelf("table").click()
     toolbar.getNewCaseTable().click()
@@ -281,15 +278,14 @@ context("Map UI", () => {
     map.getMapPin().should("have.class", "selected-pin")
     table.getSelectedRows().should("have.length", 1)
 
-    cy.log("Can hide pins using the ruler menu")
-    map.getDisplayValuesButton().click()
-    map.getInspectorPalette().contains("Pins").click()
+    cy.log("Can hide pins using the Pins checkbox in the layers menu")
+    map.getDisplayConfigButton().click()
+    cy.get("[data-testid^=map-layers-checkbox-pins-]").click()
     map.getMapPins().should("not.exist")
-    map.getInspectorPalette().contains("Pins").click()
+    cy.get("[data-testid^=map-layers-checkbox-pins-]").click()
     map.getMapPin().should("exist")
 
-    cy.log("Can hide pins using the layers menu")
-    map.getDisplayConfigButton().click()
+    cy.log("Can hide pins using the layer checkbox in the layers menu")
     map.getInspectorPalette().contains(/cases/i).click()
     map.getMapPins().should("not.exist")
     map.getInspectorPalette().contains(/cases/i).click()
@@ -457,14 +453,46 @@ context("Map UI", () => {
     cy.wait(2000)  // Wait for map renderer to initialize
     cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 0)
     // Verify map is selected by checking for map-specific inspector button
-    map.getDisplayValuesButton().should("exist").click()
-    cy.get("[data-testid^=map-values-lines-checkbox]").should("be.visible")
-    cy.get("[data-testid^=map-values-lines-checkbox]").click()
+    map.getDisplayConfigButton().should("exist").click()
+    cy.get("[data-testid^=map-layers-checkbox-lines-]").should("be.visible")
+    cy.get("[data-testid^=map-layers-checkbox-lines-]").click()
     cy.wait(2000)
     cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 1)
-    cy.get("[data-testid^=map-values-lines-checkbox]").click()
+    cy.get("[data-testid^=map-layers-checkbox-lines-]").click()
     cy.wait(2000)
     cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 0)
+  })
+
+  it("shows and hides points and the grid from the Layers palette", () => {
+    cfm.openLocalDoc(filename1)
+    c.getIconFromToolShelf("map").click()
+    c.selectTile("map", 0)
+
+    const pointRenderer = (tileId: string) => cy.window().its("rendererArrayMap").its(tileId).its(0)
+    const pointsAreVisible = (tileId: string) => pointRenderer(tileId).its("isVisible")
+
+    mch.getMapTileId().then(tileId => {
+      // `its` retries until the renderer exists and has its points, so no fixed wait is needed
+      pointRenderer(tileId).its("pointsCount").should("be.greaterThan", 0)
+      map.getDisplayConfigButton().click()
+
+      cy.log("Points checkbox hides and shows the points")
+      pointsAreVisible(tileId).should("eq", true)
+      cy.get("[data-testid^=map-layers-checkbox-points-]").click()
+      pointsAreVisible(tileId).should("eq", false)
+      // the point formatting options are disabled while the points are hidden
+      cy.get("[data-testid=stroke-same-as-fill-checkbox]").should("have.attr", "data-disabled")
+      cy.get("[data-testid^=map-layers-checkbox-points-]").click()
+      pointsAreVisible(tileId).should("eq", true)
+      cy.get("[data-testid=stroke-same-as-fill-checkbox]").should("not.have.attr", "data-disabled")
+    })
+
+    cy.log("Grid checkbox shows and hides the grid")
+    map.getMapTile().find(".leaflet-rectangle").should("not.exist")
+    cy.get("[data-testid^=map-layers-checkbox-grid-]").click()
+    map.getMapTile().find(".leaflet-rectangle").should("have.length.greaterThan", 0)
+    cy.get("[data-testid^=map-layers-checkbox-grid-]").click()
+    map.getMapTile().find(".leaflet-rectangle").should("not.exist")
   })
 })
 

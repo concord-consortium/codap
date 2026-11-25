@@ -274,7 +274,7 @@ a known bug. Until it is fixed, a plugin that needs to know the resulting cases 
 again, for example with `caseSearch` or `allCases`.
 
 **The text `true` and `false` reads back as a boolean.** An item created with `"Endangered": true`
-returns `true` from `get`, as in v2. CODAP stores every value as a number or text, so it cannot
+returns `true` from `get`, as in v2. CODAP keeps every value as text, so it cannot
 tell that boolean from the text `true` typed into a table, imported from a file, or set by a
 checkbox: `get` returns those as booleans too, where v2 returned the text. Only the lowercase words
 are converted; `TRUE` stays text. This is a deliberate difference.

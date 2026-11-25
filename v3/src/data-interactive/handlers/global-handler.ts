@@ -65,7 +65,9 @@ export const diGlobalHandler: DIHandler = {
     if (_value == null) return illegalValueResult
 
     document.applyModelChange(
-      () => global.setValue(_value)
+      () => global.setValue(_value),
+      // a value that doesn't change leaves what can be redone
+      { keepRedo: global.value === _value && !global.isUpdatingDynamically }
     )
     return { success: true }
   }

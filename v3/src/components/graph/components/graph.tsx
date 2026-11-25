@@ -42,7 +42,7 @@ import {useGraphContentModelContext} from "../hooks/use-graph-content-model-cont
 import {GraphDataConfigurationContext} from "../hooks/use-graph-data-configuration-context"
 import {useGraphLayoutContext} from "../hooks/use-graph-layout-context"
 import {useGraphModel} from "../hooks/use-graph-model"
-import { graphAttributeChangeNotification } from "../graph-notifications"
+import { graphAttributeChangeNotification, treatAsAttributeNotification } from "../graph-notifications"
 import {GraphController} from "../models/graph-controller"
 import { attrChangeNotificationValues, IAttrChangeValues } from "../models/graph-notification-utils"
 import { BarChart } from "../plots/bar-chart/bar-chart"
@@ -325,7 +325,7 @@ export const Graph = observer(function Graph({
       isCategoricalAttributeType(treatAs) && isAxisPlace(place) &&
         setNumberOfCategoriesLimit(graphModel.dataConfiguration, place, layout)
       const role = graphPlaceToAttrRole[place]
-      graphModel.dataConfiguration.setAttributeType(role, treatAs)
+      graphModel.dataConfiguration.setAttributeTypeOfAttribute(role, _attrId, treatAs)
       // The Y2 axis (rightNumeric) is only meaningful when both x and y are numeric.
       // If retyping x or y to a non-numeric kind via "Treat as Categorical" has collapsed
       // the configuration off scatter, the existing rightNumeric attribute is orphaned,
@@ -341,6 +341,7 @@ export const Graph = observer(function Graph({
       }
       graphController?.handleAttributeAssignment()
     }, {
+      notify: () => treatAsAttributeNotification(getTileModel(graphModel), place, _attrId, treatAs),
       undoStringKey: "V3.Undo.attributeTreatAs",
       redoStringKey: "V3.Redo.attributeTreatAs",
       log: logStringifiedObjectMessage(

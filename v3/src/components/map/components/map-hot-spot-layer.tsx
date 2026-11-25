@@ -2,11 +2,11 @@ import { useEffect, useRef } from "react"
 import { observer } from "mobx-react-lite"
 import { Map as LeafletMap } from "leaflet"
 import { useMap } from "react-leaflet"
-import { useDebouncedCallback } from "use-debounce"
 import { isFeatureEnabled } from "../../../models/feature-flags/feature-flag-manager"
 import { mstReaction } from "../../../utilities/mst-reaction"
 import { IMapPointLayerModel } from "../models/map-point-layer-model"
 import { HotSpotCanvasLayer } from "../utilities/hot-spot-canvas-layer"
+import { getHotSpotRampInterpolator } from "../utilities/hot-spot-color-ramps"
 import { buildColorLUT, renderHotSpotSurface } from "../utilities/hot-spot-utils"
 import { createLatLongProjector } from "../utilities/map-utils"
 
@@ -41,8 +41,6 @@ export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayer
   const show = isFeatureEnabled("mapHotSpot") && isVisible && hotSpotModel.isVisible
   const opacity = hotSpotModel.displayOpacity
   const layerRef = useRef<HotSpotCanvasLayer>()
-  // Coalesce bursts of changes (e.g. while dragging a point) into one redraw
-  const redraw = useDebouncedCallback(() => layerRef.current?.redraw(), 10)
 
   useEffect(() => {
     if (!show) return
@@ -53,32 +51,37 @@ export const MapHotSpotLayer = observer(function MapHotSpotLayer({ mapPointLayer
 
     // Observing the surface keeps MobX's cached copy alive while the hot spots are shown.
     // Install this before the first draw so that draw reads the cached surface.
+    // (MobX doesn't use the scheduler for the first run, which only starts observing,
+    // so the surface is still cached before the first draw.)
     const disposeReaction = mstReaction(
-      () => [hotSpotModel.hotSpotSurface, hotSpotModel.lowColor, hotSpotModel.highColor],
-      () => redraw(),
-      { name: "MapHotSpotLayer.redraw" },
+      () => [
+        hotSpotModel.hotSpotSurface, hotSpotModel.colorRamp, hotSpotModel.lowColor, hotSpotModel.highColor,
+        hotSpotModel.displayColorBins
+      ],
+      () => layer.redraw(),
+      // Coalesce bursts of changes so that the surface is recomputed and redrawn at most once per frame
+      { name: "MapHotSpotLayer.redraw", scheduler: run => requestAnimationFrame(run) },
       hotSpotModel
     )
 
     layer.setDrawFunction((context, region) => {
-      const surface = hotSpotModel.hotSpotSurface
-      if (!surface) return
+      const { colorRamp, displayColorBins, highColor, lowColor, hotSpotSurface } = hotSpotModel
+      if (!hotSpotSurface) return
 
       const imageData = context.createImageData(region.cols, region.rows)
       const zoomScale = leafletMap.getZoomScale(leafletMap.getZoom(), 0)
-      const lut = buildColorLUT(hotSpotModel.lowColor, hotSpotModel.highColor)
-      renderHotSpotSurface(surface, createLatLongProjector(leafletMap), zoomScale, region, lut, imageData.data)
+      const lut = buildColorLUT(getHotSpotRampInterpolator(colorRamp, lowColor, highColor), displayColorBins)
+      renderHotSpotSurface(hotSpotSurface, createLatLongProjector(leafletMap), zoomScale, region, lut, imageData.data)
       context.putImageData(imageData, 0, 0)
     })
     layer.addTo(leafletMap)
 
     return () => {
       disposeReaction()
-      redraw.cancel()
       layer.remove()
       layerRef.current = undefined
     }
-  }, [hotSpotModel, leafletMap, mapPointLayerModel, redraw, show])
+  }, [hotSpotModel, leafletMap, mapPointLayerModel, show])
 
   // Declared after the effect above so it runs after the layer is created when show turns on
   useEffect(() => {

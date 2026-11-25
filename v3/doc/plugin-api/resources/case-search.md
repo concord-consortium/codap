@@ -155,7 +155,7 @@ attribute of the collection and every child case.
 ## Known limitations
 
 **The text `true` and `false` matches as a boolean.** `Endangered==true` finds the cases a plugin
-created with `"Endangered": true`, as in v2. CODAP stores every value as a number or text, so the
+created with `"Endangered": true`, as in v2. CODAP keeps every value as text, so the
 text `true` typed into a table, imported from a file, or set by a checkbox matches too, where v2
 compared it as text and did not match. This is a deliberate difference. As in v2,
 `Endangered==false` also finds the cases with no value or `0`. Unlike v2, `Endangered==1` finds the
