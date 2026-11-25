@@ -654,6 +654,42 @@ describe("hierarchy formula recalculation", () => {
       expect(countInvalidations(dataSet)).toBe(countInvalidations(unobserved))
     })
 
+    it("does not hash item membership for a data set without formulas when items are appended", () => {
+      const countCaseGroupReads = (ds: IDataSet) => {
+        ds.moveAttributeToNewCollection(ds.attrIDFromName("group")!)
+        ds.validateCases()
+        const spy = jest.spyOn(ds.collections[0], "getCaseGroup")
+        ds.addCases([{ __id__: "i7", [ds.attrIDFromName("group")!]: "A" }])
+        ds.validateCases()
+        const count = spy.mock.calls.length
+        spy.mockRestore()
+        return count
+      }
+      const attributes = [{ name: "group" }, { name: "v" }]
+      // the same append in a data set the formula manager doesn't observe
+      const unobserved = createDataSet({ attributes })
+      const groupId = unobserved.attrIDFromName("group")!
+      unobserved.addCases(groupItems.map(({ __id__, group }) => ({ __id__, [groupId]: group })))
+      const { dataSet } = setup(attributes, groupItems)
+      expect(countCaseGroupReads(dataSet)).toBe(countCaseGroupReads(unobserved))
+    })
+
+    it("recalculates every formula on a structure change when they were added since the cases last regrouped", () => {
+      const items = groupItems.map((item, i) => ({ ...item, v: i, w: item.group === "A" ? 1 : 2 }))
+      const { formulaManager, dataSet, attrId } = setup([{ name: "group" }, { name: "v" }, { name: "w" }], items)
+      dataSet.moveAttributeToNewCollection(attrId("group"))
+      dataSet.validateCases()
+      // a formula in the child collection doesn't regroup the cases
+      dataSet.addAttribute({ name: "f", formula: { display: "v * 2" } }, { collection: dataSet.collections[1].id })
+      const spy = jest.spyOn(formulaManager, "recalculateFormulasInOrder")
+      dataSet.moveAttribute(attrId("w"), { collection: dataSet.collections[0].id })
+      const batches = spy.mock.calls.map(([affected]) => affected)
+      spy.mockRestore()
+      const fFormulaId = formulaIdOf(dataSet, attrId("f"))
+      expect(batches).toEqual([[{ formulaId: fFormulaId, cases: "ALL_CASES", forceWrite: true }]])
+      expectOracle(formulaManager, dataSet, attrId("f"))
+    })
+
     it("does not run a batch for collections built in the action that added the data set", () => {
       const formulaManager = new FormulaManager()
       formulaManager.addAdapters([new AttributeFormulaAdapter(formulaManager.getAdapterApi())])

@@ -102,10 +102,11 @@ export class FormulaManager implements IFormulaManager {
   // added, removed or moved between collections. Changes are always measured against the stored snapshot rather
   // than the reaction's previous value, so the result doesn't depend on which reaction validates the cases first.
   observeHierarchyChanges(dataSet: IDataSet) {
-    // Initialized when the reaction first runs, which is deferred to the end of the action that added the data
-    // set, so collections built later in that action aren't treated as a change.
-    let lastSnapshot: HierarchySnapshot | undefined
+    // Set when the reaction first runs, which is deferred to the end of the action that added the data set, so
+    // collections built later in that action aren't treated as a change.
     let lastStructureKey: string | undefined
+    // Kept only while the data set has attribute formulas, since computing it hashes every item.
+    let lastSnapshot: HierarchySnapshot | undefined
     return reaction(
       () => ({
         structure: getDataSetHierarchyStructureKey(dataSet),
@@ -113,27 +114,31 @@ export class FormulaManager implements IFormulaManager {
         groupings: dataSet.collections.map(collection => collection.groupingChangeVersion)
       }),
       ({ structure }) => {
-        if (!lastSnapshot || structure === lastStructureKey) {
+        const structureChanged = lastStructureKey != null && structure !== lastStructureKey
+        lastStructureKey = structure
+        if (!this.hasHierarchyFormulas(dataSet.id)) {
+          // Nothing to recalculate, and the cases can regroup whenever they're next used.
+          lastSnapshot = undefined
+          return
+        }
+        if (!structureChanged) {
           // Either the first run or the structure is unchanged (cases were added, removed, hidden, reordered or
           // regrouped by value edits). Only the snapshot is updated; this reaction doesn't recalculate formulas
           // for these changes.
           lastSnapshot = getHierarchySnapshot(dataSet)
-          lastStructureKey = structure
           return
         }
-        lastStructureKey = structure
         const formulaInfos = this.getHierarchyFormulaInfos(dataSet.id)
-        if (formulaInfos.length === 0) {
-          // Without formulas there is nothing to recalculate, so the cases can regroup whenever they're next used.
-          lastSnapshot = getHierarchySnapshot(dataSet)
-          return
-        }
         // Undo/redo can change the structure before the data set's own reaction relinks the collections and
         // invalidates the cases, so relink and regroup explicitly.
         dataSet.syncCollectionLinks()
         dataSet.validateCases()
         const after = getHierarchySnapshot(dataSet)
-        const affected = getAffectedFormulas(lastSnapshot, after, formulaInfos)
+        // Without a snapshot from before the change (the formulas were added since the cases last regrouped),
+        // every formula is recalculated.
+        const affected: IAffectedFormula[] = lastSnapshot
+          ? getAffectedFormulas(lastSnapshot, after, formulaInfos)
+          : formulaInfos.map(({ formulaId }) => ({ formulaId, cases: "ALL_CASES", forceWrite: true }))
         lastSnapshot = after
         this.recalculateFormulasInOrder(affected)
       },
@@ -141,16 +146,28 @@ export class FormulaManager implements IFormulaManager {
     )
   }
 
+  // Whether the formula is an initialized attribute formula of the given data set with a canonical expression.
+  isHierarchyFormula(formulaId: string, dataSetId: string) {
+    const metadata = this.formulaMetadata.get(formulaId)
+    const extraMetadata = this.extraMetadata.get(formulaId)
+    return !!metadata?.isInitialized && !!extraMetadata?.attributeId && extraMetadata.dataSetId === dataSetId &&
+      !metadata.formula.empty && !!metadata.formula.canonical
+  }
+
+  // Unlike getHierarchyFormulaInfos, doesn't parse any formulas.
+  hasHierarchyFormulas(dataSetId: string) {
+    return Array.from(this.formulaMetadata.keys()).some(formulaId => this.isHierarchyFormula(formulaId, dataSetId))
+  }
+
   // Returns the initialized attribute formulas of the given data set that have a canonical expression.
   getHierarchyFormulaInfos(dataSetId: string): IHierarchyFormulaInfo[] {
     const infos: IHierarchyFormulaInfo[] = []
-    this.formulaMetadata.forEach(({ formula, isInitialized }, formulaId) => {
-      const extraMetadata = this.extraMetadata.get(formulaId)
-      const attrId = extraMetadata?.attributeId
-      if (!isInitialized || !attrId || extraMetadata.dataSetId !== dataSetId) return
+    this.formulaMetadata.forEach(({ formula }, formulaId) => {
+      if (!this.isHierarchyFormula(formulaId, dataSetId)) return
+      const { attributeId: attrId, defaultArgument } = this.getExtraMetadata(formulaId)
+      if (!attrId) return
       const { canonical } = formula
-      if (formula.empty || !canonical) return
-      const localAttrDeps = getFormulaDependencies(canonical, attrId, extraMetadata.defaultArgument)
+      const localAttrDeps = getFormulaDependencies(canonical, attrId, defaultArgument)
         .flatMap(dep => dep.type === "localAttribute" ? [dep.attrId] : [])
       infos.push({ formulaId, attrId, localAttrDeps, ...getAggregateAndOrderSensitivity(canonical) })
     })
