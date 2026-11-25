@@ -303,7 +303,8 @@ describe("hierarchy formula recalculation", () => {
   })
 
   it("random() in a parent left with only formula attributes shares one value across its single case", () => {
-    // the single case's group key differs from the blank group's, so the merged case gets a new case ID
+    // a blank grouping value and a collection without data attributes produce the same group key,
+    // so the merged case reuses the blank group's case ID
     const items: ITestItem[] = [
       { __id__: "i1", group: "", v: 1 }, { __id__: "i2", group: "A", v: 2 },
       { __id__: "i3", group: "B", v: 3 }, { __id__: "i4", group: "A", v: 4 }
@@ -319,8 +320,7 @@ describe("hierarchy formula recalculation", () => {
     expect(new Set(valuesOf(dataSet, attrId("r"))).size).toBe(3)
 
     dataSet.moveAttribute(attrId("group"), { collection: childId })
-    expect(dataSet.collections[0].caseIds).toHaveLength(1)
-    expect(dataSet.collections[0].caseIds).not.toContain(blankCaseId)
+    expect(dataSet.collections[0].caseIds).toEqual([blankCaseId])
     const rValues = valuesOf(dataSet, attrId("r"))
     expect(typeof rValues[0]).toBe("number")
     expect(new Set(rValues).size).toBe(1)
@@ -422,6 +422,52 @@ describe("hierarchy formula recalculation", () => {
     // moving an unrelated formula changes no parent case
     dataSet.moveAttribute(attrId("z"), { collection: parentId })
     expect(valueMap(dataSet, attrId("r"))).toEqual(rBefore)
+  })
+
+  it("recalculates an aggregate when swapping grouping attributes reuses the parent case IDs", () => {
+    const items: ITestItem[] = [
+      { __id__: "i1", g: "A", h: "A", v: 1 }, { __id__: "i2", g: "B", h: "B", v: 2 },
+      { __id__: "i3", g: "A", h: "B", v: 3 }, { __id__: "i4", g: "B", h: "A", v: 8 }
+    ]
+    const { formulaManager, dataSet, attrId } = setup([
+      { name: "g" }, { name: "h" }, { name: "v" }, { name: "m", formula: { display: "mean(v)" } }
+    ], items)
+    dataSet.moveAttributeToNewCollection(attrId("g"))
+    const parentId = dataSet.collections[0].id
+    const childId = dataSet.collections[1].id
+    dataSet.moveAttribute(attrId("m"), { collection: parentId })
+    const caseIdsByG = [...dataSet.collections[0].caseIds]
+    expect(valueMap(dataSet, attrId("m"))).toEqual({ i1: 2, i2: 5, i3: 2, i4: 5 })
+
+    dataSet.moveAttribute(attrId("g"), { collection: childId })
+    dataSet.moveAttribute(attrId("h"), { collection: parentId })
+    // group keys hold values only, so grouping by h's A and B reuses the case IDs of g's A and B
+    expect(dataSet.collections[0].caseIds).toEqual(caseIdsByG)
+    expect(valueMap(dataSet, attrId("m"))).toEqual({ i1: 4.5, i2: 2.5, i3: 2.5, i4: 4.5 })
+    expectOracle(formulaManager, dataSet, attrId("m"))
+  })
+
+  it("random() shares one value in a merged case whose group key matches another case's old key", () => {
+    // makeGroupKey separates values with tabs, so ("A", "B") and ("A\tB") produce the same key
+    const items: ITestItem[] = [
+      { __id__: "i1", g: "A", h: "B", v: 1 }, { __id__: "i2", g: "A\tB", h: "C", v: 2 },
+      { __id__: "i3", g: "A\tB", h: "D", v: 3 }
+    ]
+    const { dataSet, attrId } = setup(
+      [{ name: "g" }, { name: "h" }, { name: "v" }, { name: "r", formula: { display: "random()" } }], items
+    )
+    dataSet.moveAttributeToNewCollection(attrId("g"))
+    const parentId = dataSet.collections[0].id
+    const childId = dataSet.collections[1].id
+    dataSet.moveAttribute(attrId("h"), { collection: parentId })
+    dataSet.moveAttribute(attrId("r"), { collection: parentId })
+    expect(dataSet.collections[0].caseIds.length).toBe(3)
+
+    dataSet.moveAttribute(attrId("h"), { collection: childId })
+    expect(dataSet.collections[0].caseIds.length).toBe(2)
+    const r = valueMap(dataSet, attrId("r"))
+    expect(typeof r.i2).toBe("number")
+    expect(r.i3).toBe(r.i2)
   })
 
   describe("attributes added and removed", () => {

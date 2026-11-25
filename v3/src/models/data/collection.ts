@@ -1,5 +1,5 @@
 import { comparer, observable, reaction, runInAction } from "mobx"
-import { addDisposer, getType, IAnyStateTreeNode, Instance, isStateTreeNode, SnapshotIn, types } from "mobx-state-tree"
+import { addDisposer, getType, IAnyStateTreeNode, Instance, SnapshotIn, types } from "mobx-state-tree"
 import { kCaseIdPrefix, kCollectionIdPrefix, typeV3Id, v3Id } from "../../utilities/codap-utils"
 import { hashStringSet, hashOrderedStringSet, safeJsonParse } from "../../utilities/js-utils"
 import { isValueNonEmpty } from "../../utilities/math-utils"
@@ -37,38 +37,9 @@ export const defaultItemData: IItemData = {
 
 export const kGroupKeySeparator = "\t"
 export const kGroupKeyDelimiter = "\r"
-// The group key of a parent collection with no grouping (non-formula) attributes, whose items all form one case.
-// It differs from the key of a single blank value, makeGroupKey([""]), which it would otherwise equal. It can't
-// collide with any other key either: other parent keys begin and end with kGroupKeyDelimiter, and child keys are
-// item ids.
-export const kNoGroupingGroupKey = kGroupKeySeparator
-// Before kNoGroupingGroupKey existed, a collection with no grouping attributes used this key, the same as a
-// single blank value. Saved documents may still map it to that collection's case id.
-const kLegacyNoGroupingGroupKey = `${kGroupKeyDelimiter}${kGroupKeyDelimiter}`
 
 export function makeGroupKey(values: string[]) {
-  if (values.length === 0) return kNoGroupingGroupKey
   return `${kGroupKeyDelimiter}${values.join(kGroupKeySeparator)}${kGroupKeyDelimiter}`
-}
-
-// In saved collection snapshots (parent-most first), maps kLegacyNoGroupingGroupKey to kNoGroupingGroupKey for
-// each parent collection that, together with its ancestors, has no grouping attributes. Only the current
-// groupings are saved, so in such a collection the legacy key can only refer to its single case.
-export function migrateLegacyNoGroupingGroupKeys(
-  collections: ICollectionModelSnapshot[], isGroupingAttribute: (attrId: string) => boolean
-) {
-  let hasGroupingAttribute = false
-  return collections.map((collection, index) => {
-    // collections that are already model instances weren't loaded from a saved document
-    if (isStateTreeNode(collection as object)) return collection
-    hasGroupingAttribute ||= !!collection.attributes?.some(attrId => !!attrId && isGroupingAttribute(`${attrId}`))
-    const isParent = index < collections.length - 1
-    if (!isParent || hasGroupingAttribute) return collection
-    if (!collection._groupKeyCaseIds?.some(([groupKey]) => groupKey === kLegacyNoGroupingGroupKey)) return collection
-    const _groupKeyCaseIds = collection._groupKeyCaseIds.map(([groupKey, caseId]): [string, string] =>
-      [groupKey === kLegacyNoGroupingGroupKey ? kNoGroupingGroupKey : groupKey, caseId])
-    return { ...collection, _groupKeyCaseIds }
-  })
 }
 
 // functions for pre-processing legacy group keys in snapshots
@@ -608,6 +579,10 @@ export const CollectionModel = V2Model
       get caseIdsOrderedHash() {
         _groupingChangeVersion.get()
         return _caseIdsOrderedHash
+      },
+      // Changes each time the cases are regrouped, even when the case ids and their order don't.
+      get groupingChangeVersion() {
+        return _groupingChangeVersion.get()
       },
       completeCaseGroups(parentCases: Maybe<CaseInfo[]>) {
         const newCaseIds = _pendingNewCaseIds

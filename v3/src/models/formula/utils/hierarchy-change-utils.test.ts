@@ -1,9 +1,24 @@
+import { hashStringSet } from "../../../utilities/js-utils"
 import {
-  getAffectedFormulas, getHierarchyStructureKey, HierarchySnapshot, IHierarchyFormulaInfo
+  getAffectedFormulas, getHierarchyStructureKey, hashItemSet, HierarchySnapshot, IHierarchyFormulaInfo
 } from "./hierarchy-change-utils"
 
 const formula = (overrides: Partial<IHierarchyFormulaInfo> = {}): IHierarchyFormulaInfo =>
   ({ formulaId: "F", attrId: "f", localAttrDeps: [], hasAggregate: false, orderSensitive: false, ...overrides })
+
+describe("hashItemSet", () => {
+  it("is order-invariant", () => {
+    expect(hashItemSet(["a", "b", "c"])).toBe(hashItemSet(["c", "a", "b"]))
+  })
+  it("distinguishes sets whose plain XOR hashes cancel out", () => {
+    const small = ["i1"]
+    const large = ["i1", "i2", "i3", "i4", "i5"]
+    // the XOR of the hashes of i2-i5 is zero, so a plain XOR of item hashes can't tell these apart
+    expect(hashStringSet(small)).toBe(hashStringSet(large))
+    expect(hashItemSet(small)).not.toBe(hashItemSet(large))
+    expect(hashItemSet(["i2", "i3"])).not.toBe(hashItemSet(["i4", "i5"]))
+  })
+})
 
 describe("getAffectedFormulas", () => {
   it("rule 1: moved formula attribute -> ALL_CASES, forceWrite", () => {
@@ -160,6 +175,30 @@ describe("getAffectedFormulas", () => {
       const before = [P, C, C2]
       const after = [P, C, { ...C2, caseIds: ["d1", "d2", "d3"] }]
       expect(getAffectedFormulas(before, after, [orderSensitive])).toEqual([])
+    })
+  })
+
+  describe("a retained case whose items changed", () => {
+    it("counts as a new case and disturbs its collection", () => {
+      const before = [{ id: "P", attrIds: ["f"], caseIds: ["p1", "p2"], caseItemHashes: ["h1", "h2"] }]
+      const after = [{ id: "P", attrIds: ["f"], caseIds: ["p1", "p2"], caseItemHashes: ["h1", "h3"] }]
+      expect(getAffectedFormulas(before, after, [formula()]))
+        .toEqual([{ formulaId: "F", cases: ["p2"], forceWrite: true }])
+      expect(getAffectedFormulas(before, after, [formula({ orderSensitive: true })]))
+        .toEqual([{ formulaId: "F", cases: "ALL_CASES", forceWrite: true }])
+    })
+    it("changes the grouping above the collections below it", () => {
+      const C = { id: "C", attrIds: ["f"], caseIds: ["c1", "c2"] }
+      const before = [{ id: "P", attrIds: ["g"], caseIds: ["p1"], caseItemHashes: ["h1"] }, C]
+      const after = [{ id: "P", attrIds: ["g"], caseIds: ["p1"], caseItemHashes: ["h2"] }, C]
+      expect(getAffectedFormulas(before, after, [formula({ orderSensitive: true })]))
+        .toEqual([{ formulaId: "F", cases: "ALL_CASES", forceWrite: true }])
+    })
+    it("is not compared when either snapshot lacks item hashes", () => {
+      const before = [{ id: "P", attrIds: ["f"], caseIds: ["p1"], caseItemHashes: ["h1"] }]
+      const after = [{ id: "P", attrIds: ["f"], caseIds: ["p1"] }]
+      expect(getAffectedFormulas(before, after, [formula({ orderSensitive: true })])).toEqual([])
+      expect(getAffectedFormulas(after, before, [formula({ orderSensitive: true })])).toEqual([])
     })
   })
 

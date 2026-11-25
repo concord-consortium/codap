@@ -109,8 +109,8 @@ export class FormulaManager implements IFormulaManager {
     return reaction(
       () => ({
         structure: getDataSetHierarchyStructureKey(dataSet),
-        // observing the hashes does not force validation
-        hashes: dataSet.collections.map(collection => collection.caseIdsOrderedHash)
+        // changes after every regroup, so the stored snapshot stays current; observing it does not force validation
+        groupings: dataSet.collections.map(collection => collection.groupingChangeVersion)
       }),
       ({ structure }) => {
         if (!lastSnapshot || structure === lastStructureKey) {

@@ -2,8 +2,7 @@ import { reaction } from "mobx"
 import { destroy, getSnapshot, isAlive, types } from "mobx-state-tree"
 import { Attribute, IAttribute } from "./attribute"
 import {
-  CollectionModel, ICollectionModel, IItemData, defaultItemData, isCollectionModel, kNoGroupingGroupKey, makeGroupKey,
-  migrateLegacyNoGroupingGroupKeys, syncCollectionLinks
+  CollectionModel, ICollectionModel, IItemData, defaultItemData, isCollectionModel, makeGroupKey, syncCollectionLinks
 } from "./collection"
 
 const Tree = types.model("Tree", {
@@ -434,32 +433,6 @@ describe("CollectionModel", () => {
     expect(c1.groupKeyCaseIds.get(makeGroupKey(["b", "a"]))).toBe("case4")
     expect(c1.groupKeyCaseIds.get(makeGroupKey(["c"]))).toBe("case5")
     expect(c1.groupKeyCaseIds.get(makeGroupKey(["c", "d"]))).toBe("case6")
-  })
-
-  it("gives a collection with no grouping attributes a key distinct from a single blank value", () => {
-    expect(makeGroupKey([])).toBe(kNoGroupingGroupKey)
-    expect(makeGroupKey([])).not.toBe(makeGroupKey([""]))
-    expect(makeGroupKey([""])).toBe("\r\r")
-  })
-
-  it("migrates the legacy no-grouping key only for parent collections without grouping attributes", () => {
-    const legacyKey = "\r\r"
-    const isGroupingAttribute = (attrId: string) => attrId.startsWith("data")
-    const collections = migrateLegacyNoGroupingGroupKeys([
-      { name: "formulasOnly", attributes: ["formula1"], _groupKeyCaseIds: [[legacyKey, "case0"]] },
-      { name: "grouped", attributes: ["data1"], _groupKeyCaseIds: [[legacyKey, "case1"]] },
-      { name: "belowGrouped", attributes: ["formula2"], _groupKeyCaseIds: [[legacyKey, "case2"]] },
-      { name: "child", attributes: ["formula3"], _groupKeyCaseIds: [[legacyKey, "case3"]] }
-    ], isGroupingAttribute)
-    expect(collections.map(c => c._groupKeyCaseIds)).toEqual([
-      [[kNoGroupingGroupKey, "case0"]],
-      // a blank value in a grouping attribute
-      [[legacyKey, "case1"]],
-      // grouped by the data attribute above it
-      [[legacyKey, "case2"]],
-      // the child-most collection's keys are item ids
-      [[legacyKey, "case3"]]
-    ])
   })
 
   it("prepareSnapshot only serializes group key mappings for cases that still exist", () => {

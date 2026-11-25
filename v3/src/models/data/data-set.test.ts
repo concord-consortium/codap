@@ -6,7 +6,6 @@ import { onAnyAction } from "../../utilities/mst-utils"
 import { IAttribute } from "./attribute"
 import { DataSet, fromCanonical, IDataSet, isFilterFormulaDataSet, nullItemData, toCanonical } from "./data-set"
 import { isCaseValueChangeAction } from "./data-set-actions"
-import { makeGroupKey } from "./collection"
 import { createDataSet } from "./data-set-conversion"
 import { ICaseID } from "./data-set-types"
 
@@ -1594,35 +1593,4 @@ test("setItemOrder moves values correctly when item lookups are stale", () => {
   // a list that doesn't name every item is ignored
   data.setItemOrder(["i1", "i2"])
   expect(data.itemIds).toEqual(["i3", "i1", "i2"])
-})
-
-test("a saved collection with no grouping attributes keeps its case id when loaded from the legacy group key", () => {
-  const data = createDataSet({ attributes: [{ name: "g" }, { name: "f", formula: { display: "1" } }, { name: "v" }] })
-  const [gId, fId] = ["g", "f"].map(name => data.attrIDFromName(name)!)
-  data.addCases([{ __id__: "i1", [gId]: "A" }, { __id__: "i2", [gId]: "B" }])
-  data.moveAttributeToNewCollection(gId)
-  data.moveAttribute(fId, { collection: data.collections[0].id })
-  data.moveAttribute(gId, { collection: data.collections[1].id })
-  data.validateCases()
-  const savedCaseId = data.collections[0].caseIds[0]
-  expect(data.collections[0].caseIds).toHaveLength(1)
-
-  // documents saved before the no-grouping key existed used the key of a single blank value
-  data.prepareSnapshot()
-  const snapshot = getSnapshot(data)
-  data.completeSnapshot()
-  const [parentSnap, ...otherSnaps] = snapshot.collections
-  expect(parentSnap._groupKeyCaseIds).toEqual([[makeGroupKey([]), savedCaseId]])
-  const legacySnapshot = {
-    ...snapshot,
-    collections: [{ ...parentSnap, _groupKeyCaseIds: [["\r\r", savedCaseId] as [string, string]] }, ...otherSnaps]
-  }
-  const loaded = DataSet.create(legacySnapshot)
-  loaded.validateCases()
-  expect(loaded.collections[0].caseIds).toEqual([savedCaseId])
-  // a blank value in a grouping attribute added later doesn't inherit that case id
-  loaded.moveAttribute(gId, { collection: loaded.collections[0].id })
-  loaded.setCaseValues([{ __id__: "i1", [gId]: "" }])
-  loaded.validateCases()
-  expect(loaded.collections[0].caseIds).not.toContain(savedCaseId)
 })
