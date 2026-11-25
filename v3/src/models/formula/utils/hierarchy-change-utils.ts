@@ -35,15 +35,16 @@ export function getHierarchyStructureKey(snapshot: HierarchySnapshot) {
   return JSON.stringify(snapshot.map(({ id, attrIds }) => [id, attrIds]))
 }
 
+// A collection is changed if it gained or lost cases, or if any retained case changed position.
+// Only when cases were appended after all existing ones (no removals, no shifts) can the work be
+// limited to the new cases; any other change affects position-dependent results of retained cases.
 function getCollectionChange(beforeCollection: ICollectionSnapshot | undefined, afterCollection: ICollectionSnapshot) {
-  if (!beforeCollection) return { newCaseIds: afterCollection.caseIds, reordered: false }
-  const beforeIds = new Set(beforeCollection.caseIds)
-  const afterIds = new Set(afterCollection.caseIds)
-  const newCaseIds = afterCollection.caseIds.filter(id => !beforeIds.has(id))
-  const commonBefore = beforeCollection.caseIds.filter(id => afterIds.has(id))
-  const commonAfter = afterCollection.caseIds.filter(id => beforeIds.has(id))
-  const reordered = commonBefore.some((id, i) => id !== commonAfter[i])
-  return { newCaseIds, reordered }
+  const beforeIds = beforeCollection?.caseIds ?? []
+  const afterIds = afterCollection.caseIds
+  const appendOnly = beforeIds.length <= afterIds.length && beforeIds.every((id, i) => afterIds[i] === id)
+  const newCaseIds = appendOnly ? afterIds.slice(beforeIds.length) : []
+  const changed = !appendOnly || newCaseIds.length > 0
+  return { changed, appendOnly, newCaseIds }
 }
 
 export function getAffectedFormulas(
@@ -58,7 +59,7 @@ export function getAffectedFormulas(
   const changes = new Map(after.map(c => [c.id, getCollectionChange(beforeCollections.get(c.id), c)]))
   const isChanged = (collectionId?: string) => {
     const change = collectionId ? changes.get(collectionId) : undefined
-    return !!change && (change.newCaseIds.length > 0 || change.reordered)
+    return !!change?.changed
   }
   const isMoved = (attrId: string) => {
     const beforeId = beforeAttrCollection.get(attrId)
@@ -84,8 +85,8 @@ export function getAffectedFormulas(
     const ownChange = changes.get(ownCollectionId)
     if (ownChange && isChanged(ownCollectionId)) {
       forceWrite = true
-      if (ownChange.reordered) allCases = true
-      else newCaseIds = ownChange.newCaseIds
+      if (ownChange.appendOnly) newCaseIds = ownChange.newCaseIds
+      else allCases = true
     }
     // 3. a dependency moved or lives in a changed collection
     if (localAttrDeps.some(depId => isMoved(depId) || isChanged(afterAttrCollection.get(depId)))) {

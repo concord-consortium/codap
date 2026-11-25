@@ -15,11 +15,36 @@ describe("getAffectedFormulas", () => {
       .toEqual([{ formulaId: "F", cases: "ALL_CASES", forceWrite: true }])
   })
 
-  it("rule 2: new cases only -> those case IDs, forceWrite", () => {
-    const before: HierarchySnapshot = [{ id: "P", attrIds: ["f"], caseIds: ["p1", "p2", "p3"] }]
-    const after: HierarchySnapshot = [{ id: "P", attrIds: ["f"], caseIds: ["p1", "p4"] }]
+  it("rule 2: cases only appended -> those case IDs, forceWrite", () => {
+    const before: HierarchySnapshot = [{ id: "P", attrIds: ["f"], caseIds: ["p1", "p2"] }]
+    const after: HierarchySnapshot = [{ id: "P", attrIds: ["f"], caseIds: ["p1", "p2", "p4"] }]
     expect(getAffectedFormulas(before, after, [formula()]))
       .toEqual([{ formulaId: "F", cases: ["p4"], forceWrite: true }])
+  })
+
+  it.each([
+    ["new cases plus removals", ["p1", "p2", "p3"], ["p1", "p4"]],
+    ["insertion in the middle", ["p1", "p2"], ["p1", "p3", "p2"]],
+    ["removal ahead of a retained case", ["p1", "p2", "p3"], ["p4", "p3"]],
+    ["removal only at the end", ["p1", "p2", "p3"], ["p1", "p2"]]
+  ])("rule 2: %s -> ALL_CASES, forceWrite", (_name, beforeIds, afterIds) => {
+    const before: HierarchySnapshot = [{ id: "P", attrIds: ["f"], caseIds: beforeIds }]
+    const after: HierarchySnapshot = [{ id: "P", attrIds: ["f"], caseIds: afterIds }]
+    expect(getAffectedFormulas(before, after, [formula()]))
+      .toEqual([{ formulaId: "F", cases: "ALL_CASES", forceWrite: true }])
+  })
+
+  it("rules 3 and 4: a collection that only lost cases counts as changed", () => {
+    const P = { id: "P", attrIds: ["f"], caseIds: ["p1"] }
+    const beforeC = { id: "C", attrIds: ["g"], caseIds: ["c1", "c2"] }
+    const afterC = { id: "C", attrIds: ["g"], caseIds: ["c1"] }
+    // rule 4: aggregate in P, C below lost a case
+    expect(getAffectedFormulas([P, beforeC], [P, afterC], [formula({ hasAggregate: true })]))
+      .toEqual([{ formulaId: "F", cases: "ALL_CASES", forceWrite: false }])
+    // rule 3: F depends on g, which is in C
+    const Q = { id: "Q", attrIds: ["f"], caseIds: ["q1"] }
+    expect(getAffectedFormulas([Q, beforeC], [Q, afterC], [formula({ localAttrDeps: ["g"] })]))
+      .toEqual([{ formulaId: "F", cases: "ALL_CASES", forceWrite: false }])
   })
 
   it("rule 2: reordered cases -> ALL_CASES", () => {
