@@ -15,14 +15,17 @@ import {
   observeBoundaries, observeGlobalValues, observeLocalAttributes, observeLookupDependencies, observeSymbolNameChanges
 } from "./formula-observers"
 import { canonicalToDisplay, displayToCanonical, preprocessDisplayFormula } from "./utils/canonicalization-utils"
+import { getAggregateAndOrderSensitivity, getFormulaDependencies } from "./utils/formula-dependency-utils"
 import {
-  getFormulaDependencies, hasAggregateFunction, isOrderSensitiveFormula
-} from "./utils/formula-dependency-utils"
-import {
-  getAffectedFormulas, getDataSetHierarchyStructureKey, getHierarchySnapshot, IAffectedFormula, IHierarchyFormulaInfo
+  getAffectedFormulas, getDataSetHierarchyStructureKey, getHierarchySnapshot, HierarchySnapshot, IAffectedFormula,
+  IHierarchyFormulaInfo
 } from "./utils/hierarchy-change-utils"
 import { formulaError, isRandomFunctionPresent } from "./utils/misc"
 import { getCanonicalNameMap, getDisplayNameMap } from "./utils/name-mapping-utils"
+
+// Maps `${dataSetId}:${attrId}` to the formulas that depend on that attribute. Each formula maps to true unless
+// it references the attribute only inside prev().
+type AttributeDependentsIndex = Map<string, Map<string, boolean>>
 
 export class FormulaManager implements IFormulaManager {
   formulaMetadata = new Map<string, IFormulaMetadata>()
@@ -95,12 +98,14 @@ export class FormulaManager implements IFormulaManager {
     this.dataSets.delete(dataSetId)
   }
 
-  // Recalculates only the attribute formulas affected when collections are added or removed or attributes move
-  // between collections. Changes are always measured against the stored snapshot rather than the reaction's
-  // previous value, so the result doesn't depend on which reaction validates the cases first.
+  // Recalculates only the attribute formulas affected when collections are added or removed or attributes are
+  // added, removed or moved between collections. Changes are always measured against the stored snapshot rather
+  // than the reaction's previous value, so the result doesn't depend on which reaction validates the cases first.
   observeHierarchyChanges(dataSet: IDataSet) {
-    let lastSnapshot = getHierarchySnapshot(dataSet)
-    let lastStructureKey = getDataSetHierarchyStructureKey(dataSet)
+    // Initialized when the reaction first runs, which is deferred to the end of the action that added the data
+    // set, so collections built later in that action aren't treated as a change.
+    let lastSnapshot: HierarchySnapshot | undefined
+    let lastStructureKey: string | undefined
     return reaction(
       () => ({
         structure: getDataSetHierarchyStructureKey(dataSet),
@@ -108,9 +113,12 @@ export class FormulaManager implements IFormulaManager {
         hashes: dataSet.collections.map(collection => collection.caseIdsOrderedHash)
       }),
       ({ structure }) => {
-        if (structure === lastStructureKey) {
-          // Cases regrouped because values changed, which the formulas' own observers handle.
+        if (!lastSnapshot || structure === lastStructureKey) {
+          // Either the first run or the structure is unchanged (cases were added, removed, hidden, reordered or
+          // regrouped by value edits). Only the snapshot is updated; this reaction doesn't recalculate formulas
+          // for these changes.
           lastSnapshot = getHierarchySnapshot(dataSet)
+          lastStructureKey = structure
           return
         }
         lastStructureKey = structure
@@ -120,15 +128,16 @@ export class FormulaManager implements IFormulaManager {
           lastSnapshot = getHierarchySnapshot(dataSet)
           return
         }
-        // Undo/redo can change the structure without invalidating the cases, so regroup explicitly.
-        dataSet.invalidateCases()
+        // Undo/redo can change the structure before the data set's own reaction relinks the collections and
+        // invalidates the cases, so relink and regroup explicitly.
+        dataSet.syncCollectionLinks()
         dataSet.validateCases()
         const after = getHierarchySnapshot(dataSet)
         const affected = getAffectedFormulas(lastSnapshot, after, formulaInfos)
         lastSnapshot = after
         this.recalculateFormulasInOrder(affected)
       },
-      { equals: comparer.structural, name: "FormulaManager.observeHierarchyChanges.reaction" }
+      { equals: comparer.structural, fireImmediately: true, name: "FormulaManager.observeHierarchyChanges.reaction" }
     )
   }
 
@@ -143,13 +152,7 @@ export class FormulaManager implements IFormulaManager {
       if (formula.empty || !canonical) return
       const localAttrDeps = getFormulaDependencies(canonical, attrId, extraMetadata.defaultArgument)
         .flatMap(dep => dep.type === "localAttribute" ? [dep.attrId] : [])
-      infos.push({
-        formulaId,
-        attrId,
-        localAttrDeps,
-        hasAggregate: hasAggregateFunction(canonical),
-        orderSensitive: isOrderSensitiveFormula(canonical)
-      })
+      infos.push({ formulaId, attrId, localAttrDeps, ...getAggregateAndOrderSensitivity(canonical) })
     })
     return infos
   }
@@ -217,16 +220,16 @@ export class FormulaManager implements IFormulaManager {
   }
 
   // Maps each attribute (keyed by data set and attribute ID) to the initialized formulas that depend on it,
-  // either as a local attribute dependency (same dataset) or a lookup dependency (cross-dataset).
+  // either as a local attribute dependency (same data set) or a lookup dependency (another data set).
   // Each formula's dependencies are parsed once.
-  getAttributeDependentsIndex() {
-    const index = new Map<string, Set<string>>()
-    const addDependent = (dataSetId: string, attrId: string | undefined, formulaId: string) => {
+  getAttributeDependentsIndex(): AttributeDependentsIndex {
+    const index: AttributeDependentsIndex = new Map()
+    const addDependent = (dataSetId: string, attrId: string | undefined, formulaId: string, isDirect: boolean) => {
       if (!attrId) return
       const key = `${dataSetId}:${attrId}`
       let dependents = index.get(key)
-      if (!dependents) index.set(key, dependents = new Set<string>())
-      dependents.add(formulaId)
+      if (!dependents) index.set(key, dependents = new Map())
+      dependents.set(formulaId, isDirect || !!dependents.get(formulaId))
     }
     this.formulaMetadata.forEach((metadata, formulaId) => {
       const extraMetadata = this.extraMetadata.get(formulaId)
@@ -235,10 +238,10 @@ export class FormulaManager implements IFormulaManager {
       const { attributeId, dataSetId, defaultArgument } = extraMetadata
       getFormulaDependencies(formula.canonical, attributeId, defaultArgument).forEach(dep => {
         if (dep.type === "localAttribute") {
-          addDependent(dataSetId, dep.attrId, formulaId)
+          addDependent(dataSetId, dep.attrId, formulaId, !dep.selfReferenceAllowed)
         } else if (dep.type === "lookup") {
-          addDependent(dep.dataSetId, dep.attrId, formulaId)
-          addDependent(dep.dataSetId, dep.otherAttrId, formulaId)
+          addDependent(dep.dataSetId, dep.attrId, formulaId, true)
+          addDependent(dep.dataSetId, dep.otherAttrId, formulaId, true)
         }
       })
     })
@@ -247,7 +250,10 @@ export class FormulaManager implements IFormulaManager {
 
   // Returns the initialized formulas that depend directly on the given formula's output attribute, excluding
   // formulas that compute the same attribute. Pass an index from getAttributeDependentsIndex() to reuse it.
-  getDirectDownstreamFormulaIds(formulaId: string, index?: Map<string, Set<string>>): string[] {
+  // With `excludePrevOnly`, formulas that reference the attribute only inside prev() are excluded.
+  getDirectDownstreamFormulaIds(
+    formulaId: string, index?: AttributeDependentsIndex, options?: { excludePrevOnly?: boolean }
+  ): string[] {
     const sourceMetadata = this.extraMetadata.get(formulaId)
     const sourceDataSetId = sourceMetadata?.dataSetId
     const sourceAttributeId = sourceMetadata?.attributeId
@@ -255,10 +261,12 @@ export class FormulaManager implements IFormulaManager {
     if (!sourceDataSetId || !sourceAttributeId) return []
 
     const dependents = (index ?? this.getAttributeDependentsIndex()).get(`${sourceDataSetId}:${sourceAttributeId}`)
-    return Array.from(dependents ?? []).filter(otherFormulaId => {
+    return Array.from(dependents ?? []).flatMap(([otherFormulaId, isDirect]) => {
+      if (options?.excludePrevOnly && !isDirect) return []
       const extraMetadata = this.extraMetadata.get(otherFormulaId)
-      return otherFormulaId !== formulaId &&
-        !(extraMetadata?.dataSetId === sourceDataSetId && extraMetadata?.attributeId === sourceAttributeId)
+      const isSameAttribute = extraMetadata?.dataSetId === sourceDataSetId &&
+        extraMetadata?.attributeId === sourceAttributeId
+      return isSameAttribute ? [] : [otherFormulaId]
     })
   }
 
@@ -270,8 +278,8 @@ export class FormulaManager implements IFormulaManager {
     })
   }
 
-  // Recalculates the affected formulas and everything downstream of them, each exactly once and in
-  // dependency order. Formulas that are downstream of another formula in the closure recalculate all cases.
+  // Recalculates the affected formulas and everything downstream of them, each at most once and in
+  // dependency order.
   recalculateFormulasInOrder(affected: IAffectedFormula[]) {
     // Build the closure of the affected formulas and their transitive downstream formulas.
     const index = this.getAttributeDependentsIndex()
@@ -300,12 +308,15 @@ export class FormulaManager implements IFormulaManager {
     }
 
     // Sort in dependency order. Edges through prev() count too: a prev() dependent reads its source's new
-    // values, so it must run after the source. Only mutual prev() references form cycles, so group the
-    // formulas into strongly connected components (Tarjan's algorithm), order the components by their
-    // dependencies, and run the members of each cycle in registration order.
+    // values, so it must run after the source. Cycle detection ignores references inside prev(), so every
+    // cycle includes at least one prev() edge. Group the formulas into strongly connected components
+    // (Tarjan's algorithm), order the components by their dependencies, and order the members of each cycle
+    // by their other edges, which can't form a cycle, and then by registration order. No single order gives
+    // consistent results for mutual prev() references, so those depend on registration order.
     const registrationOrder = Array.from(this.formulaMetadata.keys()).filter(id => closure.has(id))
     const registrationIndex = new Map(registrationOrder.map((id, i) => [id, i]))
-    const edges = new Map(registrationOrder.map(id => [id, getDownstreamIds(id).filter(downId => closure.has(downId))]))
+    // the closure includes every downstream formula, so these edges stay within it
+    const edges = new Map(registrationOrder.map(id => [id, getDownstreamIds(id)]))
     const visitIndex = new Map<string, number>()
     const lowLink = new Map<string, number>()
     const stack: string[] = []
@@ -337,8 +348,31 @@ export class FormulaManager implements IFormulaManager {
       }
     }
     registrationOrder.forEach(id => { if (!visitIndex.has(id)) visit(id) })
-    const sorted = componentsDownstreamFirst.reverse().flatMap(component =>
-      component.sort((a, b) => registrationIndex.get(a)! - registrationIndex.get(b)!))
+    const orderComponent = (component: string[]) => {
+      const members = component.sort((a, b) => registrationIndex.get(a)! - registrationIndex.get(b)!)
+      if (members.length < 2) return members
+      const memberSet = new Set(members)
+      const directEdges = new Map(members.map(id => {
+        const downIds = this.getDirectDownstreamFormulaIds(id, index, { excludePrevOnly: true })
+        return [id, downIds.filter(downId => memberSet.has(downId))]
+      }))
+      const sourceCounts = new Map(members.map(id => [id, 0]))
+      directEdges.forEach(downIds => {
+        downIds.forEach(downId => sourceCounts.set(downId, sourceCounts.get(downId)! + 1))
+      })
+      const ordered: string[] = []
+      const remaining = new Set(members)
+      while (remaining.size > 0) {
+        // the first-registered member whose direct sources have all run (the fallback is only defensive)
+        const next = members.find(id => remaining.has(id) && sourceCounts.get(id) === 0) ??
+          members.find(id => remaining.has(id))!
+        remaining.delete(next)
+        ordered.push(next)
+        directEdges.get(next)!.forEach(downId => sourceCounts.set(downId, sourceCounts.get(downId)! - 1))
+      }
+      return ordered
+    }
+    const sorted = componentsDownstreamFirst.reverse().flatMap(orderComponent)
 
     // Recalculate each formula once, without the per-formula downstream cascade.
     sorted.forEach(formulaId => {

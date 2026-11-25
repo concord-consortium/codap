@@ -63,8 +63,15 @@ Attribute formulas can have dependency cycles, so the FormulaAdapters have a met
 The dependencies identified by getFormulaDependencies are monitored for changes using an observer system. For example when there is a local attribute dependency the dataset is monitored for any new items added to the dataset. It is also monitored for any calls to setCaseValues and checks if any of the dependent attributes' values are being changed.
 
 Some formula adapters need to observe additional features to know when the formula should be recomputed. This is handled by the `setupFormulaObservers` method.
-- the AttributeFormulaAdapter uses this to watch for changes to the collection hierarchy which is used by some formula methods.
 - the FilterFormulaAdapter uses this to monitor the filter formula text itself.
+
+Changes to the collection hierarchy are handled by the FormulaManager rather than by individual formulas. `FormulaManager.observeHierarchyChanges` runs one reaction per data set, which responds when collections are added or removed or attributes are added, removed or moved between collections. It regroups the cases and compares each collection's cases with a snapshot taken before the change. `getAffectedFormulas` (in `utils/hierarchy-change-utils.ts`) then decides which attribute formulas to recalculate, and for which cases:
+1. a formula whose attribute moved recalculates all cases.
+2. a formula in a collection whose cases changed recalculates the new cases, or all cases if it is order-sensitive (it uses `caseIndex` or an aggregate or semi-aggregate function) and the existing cases were removed, reordered or regrouped.
+3. a formula with a dependency that moved or lives in another, changed collection recalculates all cases.
+4. a formula with an aggregate function recalculates all cases when a collection below its own changed or was added.
+
+`recalculateFormulasInOrder` adds the formulas downstream of those, sorts them in dependency order and recalculates each one once, writing every item of a case when the case's items might hold differing values.
 
 Recomputation is performed by the adapter's `recalculateFormula` method, which updates the relevant cases in the dataset.
 

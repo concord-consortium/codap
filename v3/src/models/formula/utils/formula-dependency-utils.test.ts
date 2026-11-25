@@ -1,4 +1,4 @@
-import { getSelfReferenceDirection, hasAggregateFunction, isOrderSensitiveFormula } from "./formula-dependency-utils"
+import { getAggregateAndOrderSensitivity, getSelfReferenceDirection } from "./formula-dependency-utils"
 import { CASE_INDEX_FAKE_ATTR_ID, localAttrIdToCanonical } from "./name-mapping-utils"
 
 describe("getSelfReferenceDirection", () => {
@@ -45,30 +45,23 @@ describe("getSelfReferenceDirection", () => {
   })
 })
 
-describe("hasAggregateFunction", () => {
+describe("getAggregateAndOrderSensitivity", () => {
   const x = localAttrIdToCanonical("x")
-  it("returns true for aggregate and semi-aggregate functions", () => {
-    expect(hasAggregateFunction(`mean(${x})`)).toBe(true)
-    expect(hasAggregateFunction("count()")).toBe(true)
-    expect(hasAggregateFunction(`prev(${x}, 0)`)).toBe(true)
+  const caseIndex = localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID)
+  const aggregate = { hasAggregate: true, orderSensitive: true }
+  it("flags aggregate and semi-aggregate functions as aggregates and order-sensitive", () => {
+    expect(getAggregateAndOrderSensitivity(`mean(${x})`)).toEqual(aggregate)
+    expect(getAggregateAndOrderSensitivity("count()")).toEqual(aggregate)
+    expect(getAggregateAndOrderSensitivity(`prev(${x}, 0)`)).toEqual(aggregate)
   })
-  it("returns false otherwise", () => {
-    expect(hasAggregateFunction("random()")).toBe(false)
-    expect(hasAggregateFunction(`${x} + 1`)).toBe(false)
-    expect(hasAggregateFunction(localAttrIdToCanonical("caseIndex"))).toBe(false)
+  it("flags caseIndex as order-sensitive but not an aggregate", () => {
+    const caseIndexOnly = { hasAggregate: false, orderSensitive: true }
+    expect(getAggregateAndOrderSensitivity(caseIndex)).toEqual(caseIndexOnly)
+    expect(getAggregateAndOrderSensitivity(`${caseIndex} * 2`)).toEqual(caseIndexOnly)
   })
-})
-
-describe("isOrderSensitiveFormula", () => {
-  const x = localAttrIdToCanonical("x")
-  it("returns true for caseIndex and aggregate or semi-aggregate functions", () => {
-    expect(isOrderSensitiveFormula(localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID))).toBe(true)
-    expect(isOrderSensitiveFormula(`${localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID)} * 2`)).toBe(true)
-    expect(isOrderSensitiveFormula(`prev(${x}, 0)`)).toBe(true)
-    expect(isOrderSensitiveFormula("count()")).toBe(true)
-  })
-  it("returns false otherwise", () => {
-    expect(isOrderSensitiveFormula("random()")).toBe(false)
-    expect(isOrderSensitiveFormula(`${x} + 1`)).toBe(false)
+  it("flags neither otherwise", () => {
+    const neither = { hasAggregate: false, orderSensitive: false }
+    expect(getAggregateAndOrderSensitivity("random()")).toEqual(neither)
+    expect(getAggregateAndOrderSensitivity(`${x} + 1`)).toEqual(neither)
   })
 })

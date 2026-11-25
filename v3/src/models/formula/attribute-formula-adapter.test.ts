@@ -85,8 +85,9 @@ describe("AttributeFormulaAdapter", () => {
     })
   })
 
-  describe("recalculateFormula with forceWrite", () => {
-    const getMergedEnv = () => {
+  describe("recalculateFormula and stale item values", () => {
+    // a parent case whose items hold differing stored values
+    const getStaleParentCaseEnv = () => {
       const formulaManager = new FormulaManager()
       const dataSet = createDataSet({
         attributes: [{ name: "g" }, { name: "v" }, { name: "ci", formula: { display: "caseIndex" } }]
@@ -117,11 +118,17 @@ describe("AttributeFormulaAdapter", () => {
       return { adapter, dataSet, ciAttr, context, extraMetadata }
     }
 
-    it("writes all items of a merged case when forceWrite is set", () => {
-      const { adapter, ciAttr, context, extraMetadata } = getMergedEnv()
+    it("writes every item of a parent case when forceWrite is set", () => {
+      const { adapter, ciAttr, context, extraMetadata } = getStaleParentCaseEnv()
       adapter.recalculateFormula(context, extraMetadata, "ALL_CASES", { forceWrite: true })
       expect([0, 1, 2].map(i => ciAttr.numValue(i))).toEqual([1, 1, 1])
       expect([3, 4].map(i => ciAttr.numValue(i))).toEqual([2, 2])
+    })
+
+    it("skips results that match the case's first item when forceWrite isn't set", () => {
+      const { adapter, ciAttr, context, extraMetadata } = getStaleParentCaseEnv()
+      adapter.recalculateFormula(context, extraMetadata, "ALL_CASES")
+      expect([0, 1, 2, 3, 4].map(i => ciAttr.numValue(i))).toEqual([1, 99, 98, 2, 97])
     })
   })
 

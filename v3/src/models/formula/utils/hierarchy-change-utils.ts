@@ -1,6 +1,15 @@
 import type { IDataSet } from "../../data/data-set"
+import { hashStringSet } from "../../../utilities/js-utils"
 
-export interface ICollectionSnapshot { id: string, attrIds: string[], caseIds: string[] }
+export interface ICollectionSnapshot {
+  id: string
+  attrIds: string[]
+  caseIds: string[]
+  // An order-invariant hash of each case's visible items, parallel to caseIds. A case ID comes from its grouping
+  // values, so it can be reused for a different set of items. Omitted for the child-most collection, whose case
+  // IDs each stand for a single item.
+  caseItemHashes?: number[]
+}
 // parent-most collection first
 export type HierarchySnapshot = ICollectionSnapshot[]
 
@@ -11,7 +20,7 @@ export interface IHierarchyFormulaInfo {
   // attribute IDs the formula depends on locally
   localAttrDeps: string[]
   hasAggregate: boolean
-  // true if the formula uses caseIndex or an aggregate/semi-aggregate function
+  // see getAggregateAndOrderSensitivity
   orderSensitive: boolean
 }
 
@@ -19,7 +28,7 @@ export interface IAffectedFormula {
   formulaId: string
   // case IDs when only new cases need recalculating
   cases: "ALL_CASES" | string[]
-  // true when results must be written even if they match the first item's stored value
+  // see IRecalculateOptions
   forceWrite: boolean
 }
 
@@ -29,13 +38,15 @@ function getCollectionAttrIds(collection: IDataSet["collections"][number]) {
   return collection.attributes.filter(attr => !!attr).map(attr => attr.id)
 }
 
-// Reads the collections' caseIds as they currently are, without triggering validation.
+// Reads the collections' cases as they currently are, without triggering validation.
 export function getHierarchySnapshot(dataSet: IDataSet): HierarchySnapshot {
-  return dataSet.collections.map(collection => ({
-    id: collection.id,
-    attrIds: getCollectionAttrIds(collection),
-    caseIds: Array.from(collection.caseIds)
-  }))
+  return dataSet.collections.map(collection => {
+    const caseIds = Array.from(collection.caseIds)
+    const caseItemHashes = collection.child
+      ? caseIds.map(caseId => hashStringSet(collection.getCaseGroup(caseId)?.childItemIds ?? []))
+      : undefined
+    return { id: collection.id, attrIds: getCollectionAttrIds(collection), caseIds, caseItemHashes }
+  })
 }
 
 // Captures collection and attribute membership only, so it is unaffected by case changes or by the order of
@@ -52,18 +63,29 @@ export function getDataSetHierarchyStructureKey(dataSet: IDataSet) {
   })))
 }
 
-// A collection is changed if it gained or lost cases, if any retained case changed position, or if the grouping
-// above it changed (`aboveChanged`), since case positions are counted within each parent case.
-// `disturbed` means cases were removed, retained cases shifted, or the grouping above changed, which matters
-// only to formulas whose results depend on case position or on the other cases in the collection.
+// Returns the IDs of the cases in both snapshots whose items differ, when both snapshots record them.
+function getRegroupedCaseIds(beforeCollection: ICollectionSnapshot, afterCollection: ICollectionSnapshot) {
+  const { caseItemHashes: beforeHashes } = beforeCollection
+  const { caseIds: afterIds, caseItemHashes: afterHashes } = afterCollection
+  if (!beforeHashes || !afterHashes) return []
+  const beforeHashMap = new Map(beforeCollection.caseIds.map((id, i) => [id, beforeHashes[i]]))
+  return afterIds.filter((id, i) => beforeHashMap.has(id) && beforeHashMap.get(id) !== afterHashes[i])
+}
+
+// A collection is changed if it has new cases (including retained case IDs whose items changed), if it lost cases,
+// if any retained case changed position, or if the grouping above it changed (`aboveChanged`), since case
+// positions are counted within each parent case.
+// `disturbed` means the collection changed other than by appending new cases, which matters only to order-sensitive
+// formulas. A collection that didn't exist before isn't disturbed by changes above it: all of its cases are new.
 function getCollectionChange(
   beforeCollection: ICollectionSnapshot | undefined, afterCollection: ICollectionSnapshot, aboveChanged: boolean
 ) {
   const beforeIds = beforeCollection?.caseIds ?? []
   const afterIds = afterCollection.caseIds
   const beforeSet = new Set(beforeIds)
-  const newCaseIds = afterIds.filter(id => !beforeSet.has(id))
-  const appendOnly = beforeIds.length <= afterIds.length && beforeIds.every((id, i) => afterIds[i] === id)
+  const regroupedIds = new Set(beforeCollection ? getRegroupedCaseIds(beforeCollection, afterCollection) : [])
+  const newCaseIds = afterIds.filter(id => !beforeSet.has(id) || regroupedIds.has(id))
+  const appendOnly = regroupedIds.size === 0 && beforeIds.every((id, i) => afterIds[i] === id)
   const disturbed = !appendOnly || (aboveChanged && !!beforeCollection)
   return { changed: disturbed || newCaseIds.length > 0, disturbed, newCaseIds }
 }
@@ -137,8 +159,7 @@ export function getAffectedFormulas(
       }
     }
     // 3. a dependency moved or lives in another, changed collection. An unmoved dependency in the formula's
-    // own collection keeps its value for each item, so rule 2 covers that collection's new cases, and a
-    // dependency that is itself a recalculated formula widens this formula through the downstream closure.
+    // own collection keeps its value for each item, so rule 2 covers that collection's new cases.
     const isChangedElsewhere = (depId: string) => {
       const depCollectionId = afterAttrCollection.get(depId)
       return depCollectionId !== ownCollectionId && isChanged(depCollectionId)
@@ -146,14 +167,12 @@ export function getAffectedFormulas(
     if (localAttrDeps.some(depId => isMoved(depId) || isChangedElsewhere(depId))) {
       allCases = true
     }
-    // 4. aggregate with a collection changed, added or removed below its own
+    // 4. aggregate with a collection changed or added below its own. Removing a collection below changes the
+    // collection that was below it. If the formula's own collection becomes the child-most one instead, a case
+    // keeps its ID only if it had a single item, so the aggregates over it are unchanged.
     if (hasAggregate) {
       const ownIndex = after.findIndex(c => c.id === ownCollectionId)
-      const changedBelow = after.slice(ownIndex + 1).some(c => isChanged(c.id))
-      const beforeOwnIndex = before.findIndex(c => c.id === ownCollectionId)
-      const removedBelow = beforeOwnIndex >= 0 &&
-        before.slice(beforeOwnIndex + 1).some(c => !changes.has(c.id))
-      if (changedBelow || removedBelow) allCases = true
+      if (after.slice(ownIndex + 1).some(c => isChanged(c.id))) allCases = true
     }
 
     if (allCases) result.push({ formulaId, cases: "ALL_CASES", forceWrite })

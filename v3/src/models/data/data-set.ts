@@ -728,8 +728,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     }
     else {
       if (attribute.hasFormula) {
-        // Formula attributes are excluded from case grouping. The values are cleared because the moved formula
-        // is evaluated in its new collection, where it is fully recalculated.
+        // Formula attributes are excluded from case grouping, so clearing doesn't affect it. Clearing ensures that
+        // values computed for the old collection aren't left behind: an initialized formula is recalculated in its
+        // new collection, but a formula with an error isn't, so its cells are left blank.
         attribute.clearValues()
       }
       if (srcCollection.getAttribute(attributeID) && srcCollection.attributes.length === 1) {

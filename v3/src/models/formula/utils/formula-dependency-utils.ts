@@ -162,25 +162,21 @@ export const getSelfReferenceDirection = (
   return "none"
 }
 
-// Returns true if the formula calls any aggregate or semi-aggregate function.
-export const hasAggregateFunction = (formulaCanonical: string) => {
-  let found = false
-  parse(formulaCanonical).traverse(node => {
+// Analyzes the formula with a single parse. A formula is order-sensitive if it uses caseIndex or calls an aggregate
+// or semi-aggregate function (e.g. mean(), count(), prev()), since its results then depend on case positions or on
+// which cases are grouped together.
+export const getAggregateAndOrderSensitivity = (formulaCanonical: string) => {
+  const caseIndexCanonical = localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID)
+  let hasAggregate = false
+  let usesCaseIndex = false
+  parse(formulaCanonical).traverse((node, path, parent) => {
     if (isFunctionNode(node)) {
       const fn = typedFnRegistry[node.fn.name]
-      if (fn?.isAggregate || fn?.isSemiAggregate) found = true
+      if (fn?.isAggregate || fn?.isSemiAggregate) hasAggregate = true
+    }
+    else if (isNonFunctionSymbolNode(node, parent) && node.name === caseIndexCanonical) {
+      usesCaseIndex = true
     }
   })
-  return found
-}
-
-// True if the formula's results depend on case position or on the other cases in its collection.
-export const isOrderSensitiveFormula = (formulaCanonical: string) => {
-  if (hasAggregateFunction(formulaCanonical)) return true
-  const caseIndexCanonical = localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID)
-  let found = false
-  parse(formulaCanonical).traverse((node, path, parent) => {
-    if (isNonFunctionSymbolNode(node, parent) && node.name === caseIndexCanonical) found = true
-  })
-  return found
+  return { hasAggregate, orderSensitive: hasAggregate || usesCaseIndex }
 }

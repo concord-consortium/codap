@@ -169,10 +169,12 @@ describe("FormulaManager", () => {
 
     describe("when a formula without an output attribute recalculates", () => {
       it("doesn't build the attribute dependents index", () => {
-        const { manager, dataSet } = getManagerWithFakeAdapter()
+        const { manager, adapter, dataSet } = getManagerWithFakeAdapter()
+        adapter.recalculateFormula.mockClear()
         const indexSpy = jest.spyOn(manager, "getAttributeDependentsIndex")
         const attr = dataSet.attrFromName("foo")
         dataSet.setCaseValues([{ __id__: "1", [attr?.id || ""]: 3 }])
+        expect(adapter.recalculateFormula).toHaveBeenCalled()
         expect(indexSpy).not.toHaveBeenCalled()
       })
     })
@@ -360,11 +362,11 @@ describe("FormulaManager", () => {
       spy.mockRestore()
       const [dIndex, sunnyIndex, rainyIndex] =
         ["d", "sunny", "rainy"].map(name => order.indexOf(formulaIdOf(dataSet, name)))
-      // each formula runs once; the cycle is broken at its first-registered member, and d follows its source
+      // each formula runs once; the cycle is broken at its first-registered member, and d follows the cycle
       expect(order).toHaveLength(3)
       expect(sunnyIndex).toBe(0)
       expect(rainyIndex).toBeGreaterThan(sunnyIndex)
-      expect(dIndex).toBeGreaterThan(sunnyIndex)
+      expect(dIndex).toBeGreaterThan(rainyIndex)
     })
 
     it("runs cycle members in registration order even when only the later member is requested", () => {
@@ -524,6 +526,64 @@ describe("FormulaManager", () => {
 
       expect(recalculated).toEqual([formulaIdOf(dataSetA, "v"), formulaIdOf(dataSetB, "w")])
       expect(dataSetB.getNumeric("b1", wId)).toBe(2)
+    })
+  })
+
+  describe("getAttributeDependentsIndex and getHierarchyFormulaInfos", () => {
+    const setupTwoDataSets = () => {
+      const formulaManager = new FormulaManager()
+      const dataSetA = createDataSet({
+        name: "A",
+        attributes: [
+          { name: "k" }, { name: "val" },
+          { name: "p", formula: { display: "prev(val, 0)" } },
+          { name: "q", formula: { display: "prev(val, 0) + val" } },
+          { name: "bad", formula: { display: "val +* 1" } }
+        ]
+      }, { formulaManager })
+      dataSetA.addCases([{ __id__: "a1" }])
+      const dataSetB = createDataSet({
+        name: "B",
+        attributes: [{ name: "w", formula: { display: `lookupByKey("A", "val", "k", 3)` } }]
+      }, { formulaManager })
+      dataSetB.addCases([{ __id__: "b1" }])
+      formulaManager.addDataSet(dataSetA)
+      formulaManager.addDataSet(dataSetB)
+      formulaManager.addAdapters([new AttributeFormulaAdapter(formulaManager.getAdapterApi())])
+      const formulaIdOf = (dataSet: IDataSet, name: string) => dataSet.attrFromName(name)!.formula!.id
+      return { formulaManager, dataSetA, dataSetB, formulaIdOf }
+    }
+
+    it("indexes initialized formulas by dependency, flagging prev()-only references", () => {
+      const { formulaManager, dataSetA, dataSetB, formulaIdOf } = setupTwoDataSets()
+      const index = formulaManager.getAttributeDependentsIndex()
+      const dependentsOf = (name: string) =>
+        Object.fromEntries(index.get(`${dataSetA.id}:${dataSetA.attrIDFromName(name)}`) ?? [])
+      // the uninitialized formula (bad) is left out
+      expect(dependentsOf("val")).toEqual({
+        [formulaIdOf(dataSetA, "p")]: false,
+        [formulaIdOf(dataSetA, "q")]: true,
+        [formulaIdOf(dataSetB, "w")]: true
+      })
+      // lookupByKey()'s key attribute
+      expect(dependentsOf("k")).toEqual({ [formulaIdOf(dataSetB, "w")]: true })
+    })
+
+    it("can exclude formulas that reference an attribute only inside prev()", () => {
+      const { formulaManager, dataSetA, formulaIdOf } = setupTwoDataSets()
+      dataSetA.attrFromName("val")!.setDisplayExpression("1")
+      const valFormulaId = formulaIdOf(dataSetA, "val")
+      expect(formulaManager.getDirectDownstreamFormulaIds(valFormulaId)).toContain(formulaIdOf(dataSetA, "p"))
+      expect(formulaManager.getDirectDownstreamFormulaIds(valFormulaId, undefined, { excludePrevOnly: true }))
+        .not.toContain(formulaIdOf(dataSetA, "p"))
+    })
+
+    it("returns the initialized formulas of the given data set only", () => {
+      const { formulaManager, dataSetA, dataSetB, formulaIdOf } = setupTwoDataSets()
+      expect(formulaManager.getHierarchyFormulaInfos(dataSetA.id).map(info => info.formulaId))
+        .toEqual([formulaIdOf(dataSetA, "p"), formulaIdOf(dataSetA, "q")])
+      expect(formulaManager.getHierarchyFormulaInfos(dataSetB.id).map(info => info.formulaId))
+        .toEqual([formulaIdOf(dataSetB, "w")])
     })
   })
 
