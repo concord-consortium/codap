@@ -721,9 +721,9 @@ context("Map hot spots", () => {
   it("adds and removes the hot spot canvas", () => {
     c.selectTile("map", 0)
     map.getDisplayConfigButton().click()
-    cy.get("[data-testid=map-layers-checkbox-hot-spot]").first().click()
+    map.getHotSpotCheckbox().click()
     map.getMapTile().find(".codap-hot-spot-canvas").should("exist")
-    cy.get("[data-testid=map-layers-checkbox-hot-spot]").first().click()
+    map.getHotSpotCheckbox().click()
     map.getMapTile().find(".codap-hot-spot-canvas").should("not.exist")
   })
 })
