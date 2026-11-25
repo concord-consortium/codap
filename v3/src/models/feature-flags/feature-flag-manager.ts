@@ -1,7 +1,11 @@
 import { action, makeObservable, observable } from "mobx"
 import { urlParams } from "../../utilities/url-params"
 import { FeatureFlagConfig, FeatureFlagDirective } from "./feature-flag-config"
-import { flagsForOwner, isFeatureFlagOwner, isPilotFlagName, PilotFlagName } from "./feature-flag-registry"
+import {
+  EnableableFlagName, flagsForOwner, isFeatureFlagOwner, isPartnerFlagName, isPilotFlagName, PilotFlagName,
+  ValuePartnerFlagName
+} from "./feature-flag-registry"
+import { PartnerFlagValue, PartnerFlagValues, validatePartnerFlags } from "./partner-flag-values"
 
 export class FeatureFlagManager {
   @observable.shallow
@@ -9,6 +13,9 @@ export class FeatureFlagManager {
 
   @observable.shallow
   private documentFlags = new Set<PilotFlagName>()
+
+  @observable.ref
+  private partnerFlags: PartnerFlagValues = {}
 
   constructor() {
     makeObservable(this)
@@ -77,6 +84,16 @@ export class FeatureFlagManager {
   }
 
   /*
+   * Applies a partner config's `flags`, replacing any applied before. Values are
+   * validated here, so an invalid one never reaches a reader. CODAP applies its
+   * partner config once, before it renders; see docs/feature-flags.md.
+   */
+  @action
+  setPartnerFlags(flags: unknown) {
+    this.partnerFlags = validatePartnerFlags(flags)
+  }
+
+  /*
    * The flags a saved document should record as grants: those this session
    * enabled by url, and only those. Flags that are on because the server config
    * says so are excluded — they are on for everybody anyway, and writing them
@@ -92,24 +109,36 @@ export class FeatureFlagManager {
     return flags
   }
 
-  isFeatureEnabled(name: PilotFlagName): boolean {
+  isFeatureEnabled(name: EnableableFlagName): boolean {
+    if (isPartnerFlagName(name)) return this.partnerFlags[name] === true
     if (this.serverFlags.get(name) === "off") return false
     const urlValue = this.urlFlags.get(name)
     if (urlValue !== undefined) return urlValue
     if (this.serverFlags.get(name) === "on") return true
     return this.documentFlags.has(name)
   }
+
+  getFeatureValue<N extends ValuePartnerFlagName>(name: N): PartnerFlagValue<N> | undefined {
+    return this.partnerFlags[name]
+  }
 }
 
 export const featureFlagManager = new FeatureFlagManager()
 
 /*
- * The way gated code asks whether a feature is on. Read this during render, never
- * at module scope: gated features register unconditionally and gate only their
- * affordances, so that a document containing artifacts of a feature still opens
- * when the flag is off, and so that a late-arriving server directive takes effect
- * without a reload. See docs/feature-flags.md.
+ * The way gated code asks whether a pilot feature, or an on or off partner flag,
+ * is on. Never read it at module scope. Read a pilot flag during render: gated
+ * features register unconditionally and gate only their affordances, so that a
+ * document containing artifacts of a feature still opens when the flag is off,
+ * and so that a late-arriving server directive takes effect without a reload. A
+ * partner flag is fixed when CODAP starts, so it may also be read once at setup.
+ * See docs/feature-flags.md.
  */
-export function isFeatureEnabled(name: PilotFlagName): boolean {
+export function isFeatureEnabled(name: EnableableFlagName): boolean {
   return featureFlagManager.isFeatureEnabled(name)
+}
+
+// The way code reads a partner flag that holds a value; see isFeatureEnabled() for on or off flags.
+export function getFeatureValue<N extends ValuePartnerFlagName>(name: N): PartnerFlagValue<N> | undefined {
+  return featureFlagManager.getFeatureValue(name)
 }
