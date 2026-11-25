@@ -100,7 +100,9 @@ export class AppHistoryService implements IHistoryService {
   // the undo or redo, so nobody is left out.
   sendUndoRedoNotices(historyEntryId: string | undefined, operation: "undo" | "redo") {
     const notices = historyEntryId ? this.entryNotices.get(historyEntryId)?.[operation] : undefined
-    notices?.forEach(({ message, callback }) => this.tileEnv?.notify?.(message, callback ?? (() => null)))
+    // held with the document notice that precedes them, while a batch is open (see notification-batch.ts)
+    const notify = this.tileEnv?.notify
+    if (notify) notices?.forEach(({ message, callback }) => sendNotice(notify, message, callback ?? (() => null)))
   }
 
   withoutUndo(actionCall: IActionContext, options?: IWithoutUndoOptions) {

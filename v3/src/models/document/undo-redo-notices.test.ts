@@ -447,6 +447,29 @@ describe("undo and redo notices", () => {
       ])
     })
 
+    it("keeps that order when a plugin's request undoes or redoes, while its notices are held", async () => {
+      const result = await processAction({ action: "create", resource: "component", values: { type: "text" } })
+      expect(result.success).toBe(true)
+      await historySettled()
+      const id = (result.values as DIComponentInfo).id!
+      broadcastSpy.mockClear()
+
+      const buttonPress = (operation: string) =>
+        processAction({ action: "notify", resource: "undoChangeNotice", values: { operation } })
+      expect((await buttonPress("undoButtonPress")).success).toBe(true)
+      await historySettled()
+      expect(componentNotices()).toEqual([
+        ["document", "undo"], ["component", { operation: "delete", id, type: "text" }]
+      ])
+      broadcastSpy.mockClear()
+
+      expect((await buttonPress("redoButtonPress")).success).toBe(true)
+      await historySettled()
+      expect(componentNotices()).toEqual([
+        ["document", "redo"], ["component", { operation: "create", id, type: "text" }]
+      ])
+    })
+
     it("sends create on undoing a deletion and delete on redoing it", async () => {
       const result = await processAction({ action: "create", resource: "component", values: { type: "text" } })
       await historySettled()
