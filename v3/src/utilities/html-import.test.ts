@@ -1,11 +1,13 @@
 import { initiateImportFromHTML } from "./html-import"
 
 const mockInsertTileSnapshotInDefaultRow = jest.fn()
+const mockApplyModelChange = jest.fn((actionFn: () => void, options?: unknown) => actionFn())
 
 jest.mock("../models/app-state", () => ({
   appState: {
     document: {
       content: {
+        applyModelChange: (actionFn: () => void, options?: unknown) => mockApplyModelChange(actionFn, options),
         insertTileSnapshotInDefaultRow: (...args: any[]) => mockInsertTileSnapshotInDefaultRow(...args)
       }
     }
@@ -19,6 +21,7 @@ jest.mock("../constants", () => ({
 describe("initiateImportFromHTML", () => {
   beforeEach(() => {
     mockInsertTileSnapshotInDefaultRow.mockClear()
+    mockApplyModelChange.mockClear()
   })
 
   it("creates a hidden WebView tile with the correct state", () => {
@@ -41,6 +44,8 @@ describe("initiateImportFromHTML", () => {
       targetDatasetName: undefined
     })
     expect(options.isHidden).toBe(true)
+    // without undo strings, so opening the Importer isn't an undoable step
+    expect(mockApplyModelChange).toHaveBeenCalledWith(expect.any(Function), undefined)
   })
 
   it("passes targetDatasetName when data is provided", () => {

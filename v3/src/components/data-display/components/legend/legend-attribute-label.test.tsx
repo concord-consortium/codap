@@ -32,6 +32,7 @@ describe("LegendAttributeLabel", () => {
     assignedLegendAttributeID: "ATTR7",
     dataset: { attrFromID: () => ({ name: "Habitat" }) },
     setAttribute: jest.fn(),
+    setAttributeType: jest.fn(),
     applyModelChange
   } as any
   const tileSelection = { isTileSelected: () => false, selectTile: jest.fn(), addFocusIgnoreFn: () => () => undefined }
@@ -66,6 +67,19 @@ describe("LegendAttributeLabel", () => {
     const { notify } = applyModelChange.mock.calls[0][1]
     expect(notify().message.values).toEqual({
       operation: "attributeChange", attributeId: 7, attributeName: "Remove Legend: Habitat", axisOrientation: "none",
+      id: 1, type: "DG.GraphView"
+    })
+  })
+
+  it("sends V2's attributeChange named by the \"Treat as\" menu item, for the menu's attribute", () => {
+    const { onTreatAttributeAs } = renderLabel()
+    // an id other than assignedLegendAttributeID, so the notice must take the menu's id
+    act(() => onTreatAttributeAs("legend", "ATTR8", "categorical"))
+    expect(dataConfiguration.setAttributeType).toHaveBeenCalledWith("legend", "categorical")
+    expect(applyModelChange).toHaveBeenCalledTimes(1)
+    const { notify } = applyModelChange.mock.calls[0][1]
+    expect(notify().message.values).toEqual({
+      operation: "attributeChange", attributeId: 8, attributeName: "Treat as Categorical", axisOrientation: "none",
       id: 1, type: "DG.GraphView"
     })
   })

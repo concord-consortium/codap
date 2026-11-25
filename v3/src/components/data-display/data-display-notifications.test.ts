@@ -3,6 +3,7 @@ import {
   changeLegendRangeNotification, changePointColorAndAlphaNotification, changePointColorNotification,
   changePointShapeNotification, changePointSizeNotification, changeStrokeColorAndAlphaNotification,
   legendMenuAttributeChangeNotification,
+  legendTreatAsNotification,
   swapCategoriesNotification,
   toggleStrokeSameAsFillNotification
 } from "./data-display-notifications"
@@ -271,5 +272,18 @@ describe("legendMenuAttributeChangeNotification", () => {
       operation: "attributeChange", attributeId: 7, attributeName: "Remove Legend: Habitat", axisOrientation: "none",
       id: "GRAPH1", type: "DG.GraphView", diType: "graph"
     })
+  })
+})
+
+describe("legendTreatAsNotification", () => {
+  it("sends V2's attributeChange named by the \"Treat as\" menu item, for maps too", () => {
+    const map = { id: "MAP1", content: { type: "Map" } } as any
+    expect(legendTreatAsNotification(map, "ATTR7", "categorical")?.message.values).toEqual({
+      operation: "attributeChange", attributeId: 7, attributeName: "Treat as Categorical", axisOrientation: "none",
+      id: "MAP1", type: "DG.GraphView", diType: "map"
+    })
+    const graph = { id: "GRAPH1", content: { type: "Graph" } } as any
+    expect(legendTreatAsNotification(graph, "ATTR7", "numeric")?.message.values)
+      .toMatchObject({ attributeName: "Treat as Numeric", type: "DG.GraphView", diType: "graph" })
   })
 })

@@ -27,3 +27,12 @@ jobs:
           aws s3 cp
           s3://${{ env.BUCKET }}/${{ env.PREFIX }}/version/${{ github.event.inputs.version }}/${{ env.SRC_FILE }}
           s3://${{ env.BUCKET }}/${{ env.PREFIX }}/${{ env.DEST_FILE }}
+  rollbar:
+    needs: release
+    permissions:
+      contents: read
+    uses: ./.github/workflows/rollbar-deploy-v3.yml
+    with:
+      version: ${{ github.event.inputs.version }}
+      environment: ai4vs
+    secrets: inherit

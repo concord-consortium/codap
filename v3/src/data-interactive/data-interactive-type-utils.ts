@@ -108,7 +108,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
 export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2Attribute {
   const metadata = dataContext && getMetadataFromDataSet(dataContext)
-  const { cid, name, type, title, description, id, effectivePrecision } = attribute
+  const { cid, name, userType, title, description, id, effectivePrecision } = attribute
   const v2Id = toV2Id(id)
   const _defaultRange = metadata?.getAttributeDefaultRange(attribute.id)
   const defaultRange = _defaultRange ? { defaultMin: _defaultRange[0], defaultMax: _defaultRange[1] } : undefined
@@ -133,7 +133,8 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
 
   return {
     name,
-    type,
+    // as in V2, a type CODAP inferred from the values is reported as null
+    type: userType ?? null,
     title,
     cid,
     description,
@@ -209,11 +210,20 @@ export function convertCollectionToV2(collection: ICollectionModel, options?: CC
 export interface IConvertDataSetToV2Options {
   exportCases?: boolean
   gameContextMetadataMap?: GameContextMetadataMap
+  // leave out the set-aside items, e.g. to add them as a plugin reads them (getV2SetAsideItems)
+  omitSetAsideItems?: boolean
+}
+
+// The items currently set aside, with each one's values as `getValues` reads them
+export function getV2SetAsideItems<T>(dataSet: IDataSet, getValues: (itemId: string) => T) {
+  return dataSet._itemIds
+    .filter(itemId => dataSet.isItemSetAside(itemId))
+    .map(itemId => ({ id: toV2ItemId(itemId), values: getValues(itemId) }))
 }
 
 export function convertDataSetToV2(dataSet: IDataSet, options?: IConvertDataSetToV2Options): ICodapV2DataContextV3 {
   const { name, _title, id } = dataSet
-  const { exportCases = false, gameContextMetadataMap } = options || {}
+  const { exportCases = false, gameContextMetadataMap, omitSetAsideItems = false } = options || {}
   const v3Metadata = getMetadataFromDataSet(dataSet)
   const { description, source, importDate, isAttrConfigChanged, isAttrConfigProtected } = v3Metadata || {}
   const v2Id = toV2Id(id)
@@ -275,9 +285,9 @@ export function convertDataSetToV2(dataSet: IDataSet, options?: IConvertDataSetT
     ...v2Metadata,
     flexibleGroupingChangeFlag: isAttrConfigChanged,
     preventReorg: isAttrConfigProtected,
-    setAsideItems: dataSet._itemIds
-                    .filter(itemId => dataSet.isItemSetAside(itemId))
-                    .map(itemId => ({ id: toV2ItemId(itemId), values: dataSet.getItem(itemId, itemOptions) ?? {} })),
+    ...(!omitSetAsideItems && {
+      setAsideItems: getV2SetAsideItems(dataSet, itemId => dataSet.getItem(itemId, itemOptions) ?? {})
+    }),
     contextStorage: {
       _links_: { selectedCases },
       ...(gameContextMetadata ?? {})

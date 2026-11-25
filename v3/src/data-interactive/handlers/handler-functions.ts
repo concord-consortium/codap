@@ -36,6 +36,8 @@ export function deleteCaseBy(resources: DIResources, aCase?: ICase) {
     if (setAsideItemIds.length) dataContext.showHiddenCasesAndItems(setAsideItemIds)
     dataContext.removeCases(itemIds)
   }, {
+    // as in V2, deleting cases keeps the undo history (data_context.js:520, :575)
+    keepRedo: true,
     notify: deleteCasesNotification(dataContext, getGroupedCases(dataContext, [aCase.__id__]))
   })
 
@@ -62,6 +64,8 @@ export function deleteItem(resources: DIResources, item?: ICase | string[]) {
   dataContext.applyModelChange(() => {
     dataContext.removeCases(itemIds)
   }, {
+    // as in V2, deleting items keeps the undo history (data_context.js:540, :575)
+    keepRedo: true,
     notify: deleteItemsNotifications(dataContext, itemIds)
   })
 
@@ -181,6 +185,9 @@ export function updateCaseBy(
   dataContext.applyModelChange(() => {
     dataContext.setCaseValues([{ ...updatedAttributes, __id__: aCase.__id__ }])
   }, {
+    // as in V2, updating items keeps the undo history (data_context.js:532, :575); updating cases
+    // clears it, so it clears what could be redone, unless it sets no value (unlike V2, :514-516)
+    keepRedo: !!itemReturnStyle || !hasUpdates,
     // as the case table does, report the changed case and any cases the change created by regrouping
     notify: () => {
       if (!hasUpdates) return
@@ -216,35 +223,38 @@ export function updateCasesBy(resources: DIResources, values?: DIValues, itemRet
   const changedItemIds = new Set<string>()
   dataContext.validateCases()
   const priorCaseIds = new Set(dataContext.caseInfoMap.keys())
-  dataContext.applyModelChange(() => {
-    cases.forEach(aCase => {
-      const { id } = aCase
-      const v3CaseId = id ? toV3CaseId(id) : undefined
-      // as in V2, update case looks up only cases; the item resources also accept item ids
-      const v3ItemId = id && itemReturnStyle ? toV3ItemId(id) : undefined
-      const dcCase = v3CaseId ? dataContext.caseInfoMap.get(v3CaseId) : undefined
-      const dcItem = v3ItemId ? dataContext.getItem(v3ItemId) : undefined
-      const v3Id = dcCase ? v3CaseId : v3ItemId
-      // as in V2, update case lists every case it finds, even one sent with no values
-      if (id && v3Id && (dcItem || dcCase) && (aCase.values || !itemReturnStyle)) {
-        caseIDs.push(id)
-        if (aCase.values) {
-          const { caseValues: updatedAttributes, unknownNames } =
-            resolveAttrNames(aCase.values, dataContext, itemReturnStyle ? undefined : collection)
-          updatedCases.push({ ...updatedAttributes, __id__: v3Id })
-          if (unknownNames.length > 0) unknownAttributeName = true
-          if (Object.keys(updatedAttributes).length > 0) {
-            changedIds.add(v3Id)
-            // a case id (which `update item` also accepts) stands for the items setCaseValues changes:
-            // its visible ones, not those set aside
-            const itemIds = dcCase ? dcCase.childItemIds : [v3Id]
-            itemIds.forEach(itemId => changedItemIds.add(itemId))
-          }
+  cases.forEach(aCase => {
+    const { id } = aCase
+    const v3CaseId = id ? toV3CaseId(id) : undefined
+    // as in V2, update case looks up only cases; the item resources also accept item ids
+    const v3ItemId = id && itemReturnStyle ? toV3ItemId(id) : undefined
+    const dcCase = v3CaseId ? dataContext.caseInfoMap.get(v3CaseId) : undefined
+    const dcItem = v3ItemId ? dataContext.getItem(v3ItemId) : undefined
+    const v3Id = dcCase ? v3CaseId : v3ItemId
+    // as in V2, update case lists every case it finds, even one sent with no values
+    if (id && v3Id && (dcItem || dcCase) && (aCase.values || !itemReturnStyle)) {
+      caseIDs.push(id)
+      if (aCase.values) {
+        const { caseValues: updatedAttributes, unknownNames } =
+          resolveAttrNames(aCase.values, dataContext, itemReturnStyle ? undefined : collection)
+        updatedCases.push({ ...updatedAttributes, __id__: v3Id })
+        if (unknownNames.length > 0) unknownAttributeName = true
+        if (Object.keys(updatedAttributes).length > 0) {
+          changedIds.add(v3Id)
+          // a case id (which `update item` also accepts) stands for the items setCaseValues changes:
+          // its visible ones, not those set aside
+          const itemIds = dcCase ? dcCase.childItemIds : [v3Id]
+          itemIds.forEach(itemId => changedItemIds.add(itemId))
         }
       }
-    })
+    }
+  })
+  dataContext.applyModelChange(() => {
     dataContext.setCaseValues(updatedCases)
   }, {
+    // as in V2, updating items keeps the undo history (data_context.js:532, :575); updating cases
+    // clears it, so it clears what could be redone, unless it sets no value (unlike V2, :514-516)
+    keepRedo: !!itemReturnStyle || changedIds.size === 0,
     // as the case table does, report the changed cases and any cases the change created by regrouping;
     // as in V2, an item update follows its case notices with `updateItems`
     notify: () => {

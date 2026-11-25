@@ -1,9 +1,11 @@
+import { AttributeType } from "../../models/data/attribute-types"
 import { ITileModel } from "../../models/tiles/tile-model"
 import { updateTileNotification } from "../../models/tiles/tile-notifications"
 import { GraphPlace } from "../axis-graph-shared"
 import { legendMenuAttributeChangeNotification } from "../data-display/data-display-notifications"
+import { treatAsLabel } from "../data-display/treat-as-label"
 import { kGraphTileType } from "./graph-defs"
-import { IAttrChangeValues } from "./models/graph-notification-utils"
+import { attrChangeNotificationValues, IAttrChangeValues } from "./models/graph-notification-utils"
 
 // V2 emits { action:'notify', resource:'component', values:{ operation:'change background color',
 // type:'DG.GraphView' } } from apps/dg/components/graph/graph_controller.js (createSetColorAndAlphaCommand,
@@ -242,4 +244,13 @@ export function graphAttributeChangeNotification(
     if (place === "legend") return legendAttributeChangeNotification(graphTile, values)
   }
   return updateTileNotification("attributeChange", values ?? {}, graphTile)
+}
+
+// An axis menu's "Treat as" item. Called once the type has changed, so `plotType` is the resulting one.
+export function treatAsAttributeNotification(
+  graphTile: ITileModel | undefined, place: GraphPlace, attrId: string, treatAs: AttributeType
+) {
+  const attrName = treatAsLabel(treatAs)
+  const values = attrChangeNotificationValues(place, attrId, attrName, "", graphTile)
+  return graphAttributeChangeNotification(graphTile, place, values, { attrId, attrName, fromMenu: true })
 }

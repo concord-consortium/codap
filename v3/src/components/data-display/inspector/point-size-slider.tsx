@@ -7,12 +7,13 @@ import { PointDisplayType } from "../data-display-types"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
 
 interface IPointSizeSliderProps {
+  disabled?: boolean
   displayItemDescription: IDisplayItemDescriptionModel
   pointDisplayType?: PointDisplayType
 }
 
 export const PointSizeSlider = observer(function PointSizeSlider(
-  { displayItemDescription, pointDisplayType }: IPointSizeSliderProps
+  { displayItemDescription, disabled, pointDisplayType }: IPointSizeSliderProps
 ) {
   const { tile } = useTileModelContext()
   return (
@@ -33,7 +34,7 @@ export const PointSizeSlider = observer(function PointSizeSlider(
           }
         )
       }}
-      isDisabled={pointDisplayType === "bars"}
+      isDisabled={disabled || pointDisplayType === "bars"}
       data-testid="point-size-slider"
     >
       <div className="palette-row slider-row">

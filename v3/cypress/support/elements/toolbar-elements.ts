@@ -1,4 +1,5 @@
 import { CfmElements as cfm } from "./cfm"
+import { MenuHelper as mh } from "../helpers/menu-helper"
 
 export const ToolbarElements = {
   confirmToolbarPosition(position: "Top" | "Left" = "Top") {
@@ -23,6 +24,10 @@ export const ToolbarElements = {
   },
   getToolShelfIcon(component: string) {
     return this.getToolShelfSelector(component)
+  },
+  // For tool shelf buttons with a menu, such as Tables
+  openToolShelfMenu(component: string) {
+    mh.openMenu(() => this.getToolShelfIcon(component))
   },
   getPluginGroup() {
     return cy.get(`.plugin-group-menu-item`)

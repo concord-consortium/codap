@@ -173,6 +173,45 @@ const formatSpecs = [
   { strict: false, regex: dateVar4, groupMap: dateVar4GroupMap }
 ]
 
+// format groups and the date units they specify, finest first
+const kGroupUnits = [
+  ["subsec", "millisecond"], ["sec", "second"], ["min", "minute"], ["hour", "hour"],
+  ["day", "day"], ["month", "month"], ["year", "year"]
+] as const
+// month/year, e.g. "5/2024", which only parseDateV3 handles
+const kMonthYearRegex = /^(\d{1,2})\/(\d{4})$/
+const kInferredUnits = ["year", "month", "day", "hour", "minute", "second", "millisecond"] as const
+type InferredDateUnit = typeof kInferredUnits[number]
+
+// returns the finest unit specified by a date string, e.g. "month" for "5/2024"
+function getDateStringUnit(value: string): InferredDateUnit | undefined {
+  // CODAP's own ISO format always includes every part, so it says nothing about the intended precision
+  if (isStdISODateString(value) || !parseDate(value, true)) return
+  for (const { regex, groupMap } of formatSpecs) {
+    const match = value.match(regex)
+    if (match) {
+      const map: Partial<Record<string, number>> = groupMap
+      return kGroupUnits.find(([group]) => map[group] != null && match[map[group]] != null)?.[1]
+    }
+  }
+  if (kMonthYearRegex.test(value)) return "month"
+}
+
+/**
+ * Returns the finest unit specified by any of the values, e.g. "day" for ["5/2024", "5/1/2024"].
+ * Values whose parts can't be identified, such as "NA" or CODAP's own ISO date strings, are skipped.
+ * Returns undefined if no value has identifiable parts.
+ */
+export function inferDatePrecision(values: readonly string[]): InferredDateUnit | undefined {
+  let finest = -1
+  for (const value of values) {
+    const unit = getDateStringUnit(value)
+    if (!unit) continue
+    finest = Math.max(finest, kInferredUnits.indexOf(unit))
+  }
+  return finest >= 0 ? kInferredUnits[finest] : undefined
+}
+
 // dividing line between 20xx and 19xx years: [0, 50) -> 20xx, [50, 99] -> 19xx
 const CUTOFF_YEAR = 50
 
@@ -198,6 +237,38 @@ export function fixHour(hr: string, amPm?: string) {
     }
   }
   return newHr
+}
+
+export interface ITimeOfDay {
+  hours: number
+  minutes: number
+  seconds: number
+}
+
+// h:mm, h:mm:ss, h:mm:ss.SSS, each optionally followed by am/pm, e.g. "13:45", "1:45 PM", "09:05:30"
+// the separator before am/pm may also be a no-break space (U+00A0) or narrow no-break space (U+202F),
+// which some sources (e.g. text copied from formatted dates) use
+const timeOfDayRE = /^(\d\d?):(\d\d)(?::(\d\d)(?:[.,]\d+)?)?(?:[ \u00A0\u202F]?(am|pm))?$/i
+
+/**
+ * Parses a string containing only a time of day (no date).
+ * Returns undefined for anything else, including full date/time strings and out-of-range values.
+ */
+export function parseTimeOfDay(value: unknown): ITimeOfDay | undefined {
+  if (typeof value !== "string") return
+  const match = value.trim().match(timeOfDayRE)
+  if (!match) return
+  const [, hourStr, minStr, secStr, amPm] = match
+  const rawHours = Number(hourStr)
+  const minutes = Number(minStr)
+  const seconds = Number(secStr ?? "0")
+  const isHourValid = amPm ? rawHours >= 1 && rawHours <= 12 : rawHours <= 23
+  if (!isHourValid || minutes > 59 || seconds > 59) return
+  return { hours: fixHour(hourStr, amPm), minutes, seconds }
+}
+
+export function isTimeOfDayString(value: unknown) {
+  return parseTimeOfDay(value) != null
 }
 
 export function fixMonth(m: string) {
@@ -295,8 +366,7 @@ export function parseDateV3(value: any) {
   if (isValueEmpty(value)) return null
 
   // Check for "month/year" format
-  const monthYearRegex = /^(\d{1,2})\/(\d{4})$/
-  const match = value.match(monthYearRegex)
+  const match = value.match(kMonthYearRegex)
   if (match) {
     const month = Number(match[1])
     const year = Number(match[2])

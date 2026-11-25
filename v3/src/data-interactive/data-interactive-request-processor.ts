@@ -10,6 +10,7 @@ import { getDIHandler } from "./data-interactive-handler"
 import {
   DIAction, DIHandlerFnResult, DIRequest, DIRequestCallback, DIRequestResponse
 } from "./data-interactive-types"
+import { IDefaultDataContextLink } from "./default-data-context-link"
 import { createItemsInSegments } from "./handlers/item-handler"
 import { errorResult } from "./handlers/di-results"
 import { withNoticeBatch } from "./notification-batch"
@@ -22,6 +23,10 @@ import "./register-handlers"
 export interface ProcessActionOptions {
   tile?: ITileModel
   cfm?: CloudFileManager
+  // who made the request when it comes from no tile, e.g. the host page (kHostPageId)
+  requesterId?: string
+  // the host page's default data context, for requests from no tile
+  hostPageDataContextLink?: IDefaultDataContextLink
 }
 
 /**
@@ -32,7 +37,7 @@ export async function processAction(
   action: DIAction,
   options: ProcessActionOptions = {}
 ): Promise<DIHandlerFnResult> {
-  const { tile, cfm } = options
+  const { tile, cfm, requesterId, hostPageDataContextLink } = options
 
   if (!action) return errorResult(t("V3.DI.Error.noAction"))
 
@@ -44,14 +49,14 @@ export async function processAction(
   }
 
   const resourceSelector = parseResourceSelector(action.resource)
-  const resources = resolveResources(resourceSelector, action.action, tile, cfm)
+  const resources = resolveResources(resourceSelector, action.action, tile, cfm, hostPageDataContextLink)
   const type = resourceSelector.type ?? ""
   const a = action.action
   const func = getDIHandler(type)?.[a]
   if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", { vars: [a, type] }))
 
   // batches the notices of the changes the handler makes before it first waits (see notification-batch.ts)
-  const actionResult = await withNotificationRequester(tile?.id,
+  const actionResult = await withNotificationRequester(tile?.id ?? requesterId,
                                                        () => withNoticeBatch(() => func(resources, action.values)))
   return actionResult ?? errorResult(t("V3.DI.Error.undefinedResponse"))
 }
@@ -204,7 +209,8 @@ export function setupRequestQueueProcessor(
     const { resource, members, segments } = unit
 
     const { dataContext } = resolveResources(
-      parseResourceSelector(resource), "create", processOptions.tile, processOptions.cfm)
+      parseResourceSelector(resource), "create", processOptions.tile, processOptions.cfm,
+      processOptions.hostPageDataContextLink)
 
     // When the dataContext can't be resolved, the batched create never runs and nothing is
     // mutated, so it's safe to process the members individually for exact per-request semantics
@@ -227,7 +233,7 @@ export function setupRequestQueueProcessor(
     onProcessingStart?.()
     let results: DIHandlerFnResult[] | undefined
     try {
-      results = withNotificationRequester(processOptions.tile?.id,
+      results = withNotificationRequester(processOptions.tile?.id ?? processOptions.requesterId,
         () => createItemsInSegments(dataContext, segments))
     } catch (error) {
       console.warn(`${name} exception in coalesced create`, error)

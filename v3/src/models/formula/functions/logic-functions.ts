@@ -1,4 +1,5 @@
-import { colord, Colord } from "colord"
+import { Colord } from "colord"
+import { isStrictColorString } from "../../../utilities/color-utils"
 import { isDateString } from "../../../utilities/date-parser"
 import { isDate } from "../../../utilities/date-utils"
 import { hasOwnProperty } from "../../../utilities/js-utils"
@@ -34,9 +35,8 @@ export const logicFunctions: Record<string, IFormulaMathjsFunction> = {
   isColor: {
     numOfRequiredArguments: 1,
     evaluate: (arg: FValue) => {
-      return (arg instanceof Colord || typeof arg === "string")
-              ? colord(arg).isValid()
-              : false
+      if (arg instanceof Colord) return arg.isValid()
+      return typeof arg === "string" && isStrictColorString(arg)
     }
   },
 

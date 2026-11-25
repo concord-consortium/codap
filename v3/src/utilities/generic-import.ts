@@ -15,15 +15,23 @@ export function getWebViewSnapshotState({file, url, contentType}: IGenericImport
   return { contentType, name: "Importer", datasetName, file, url, showCaseTable, googleApiKey }
 }
 
-export function initiateGenericImport(options: IGenericImportArgs) {
+// Opens the Importer plugin with the given state. As in V2, opening it isn't an undoable step.
+export function insertImporterTile(state: IWebViewSnapshot["state"]) {
+  const content = appState.document.content
   const webViewModelSnap: IWebViewSnapshot = {
     type: kWebViewTileType,
     subType: "plugin",
     url: getImporterPluginUrl(),
-    state: getWebViewSnapshotState(options)
+    state
   }
-  appState.document.content?.insertTileSnapshotInDefaultRow({
-    _title: "Importer",
-    content: webViewModelSnap
-  }, kImporterPluginInsertOptions)
+  content?.applyModelChange(() => {
+    content.insertTileSnapshotInDefaultRow({
+      _title: "Importer",
+      content: webViewModelSnap
+    }, kImporterPluginInsertOptions)
+  })
+}
+
+export function initiateGenericImport(options: IGenericImportArgs) {
+  insertImporterTile(getWebViewSnapshotState(options))
 }

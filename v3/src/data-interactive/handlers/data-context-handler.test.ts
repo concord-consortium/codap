@@ -148,8 +148,9 @@ describe("DataInteractive DataContextHandler", () => {
     const interactiveFrame = createDefaultTileOfType(kWebViewTileType)!
     appState.document.content?.insertTileInDefaultRow(interactiveFrame)
     const webView = interactiveFrame.content as IWebViewModel
+    // resolveResources passes the plugin's web view as where its default is kept
     const create = (name: string, isDefaultDataContext?: boolean) =>
-      handler.create?.({ interactiveFrame, isDefaultDataContext }, { name })
+      handler.create?.({ interactiveFrame, isDefaultDataContext, defaultDataContextLink: webView }, { name })
 
     // `create dataContext[name]` doesn't change the link
     expect(create("named")?.success).toBe(true)

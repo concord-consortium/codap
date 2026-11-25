@@ -8,7 +8,9 @@ import { cellKeyToString } from "../../utilities/cell-key-utils"
 import { getAdornmentContentInfo, isCompatibleWithPlotType } from "../adornment-content-info"
 import { IAdornmentModel } from "../adornment-models"
 import { IAdornmentsBaseStore } from "../store/adornments-base-store"
-import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../utilities/adornment-handler-utils"
+import {
+  AdornmentData, adornmentMismatchResult, booleanValuesError, cellKeyToCategories
+} from "../utilities/adornment-handler-utils"
 import { ILSRLAdornmentModel, isLSRLAdornment } from "./lsrl-adornment-model"
 import { kLSRLType } from "./lsrl-adornment-types"
 
@@ -31,6 +33,8 @@ const setAdornmentProperties = (adornment: ILSRLAdornmentModel, values: DIAdornm
 }
 
 export const lsrlAdornmentHandler: DIAdornmentHandler = {
+  validate: values => booleanValuesError(values, ["showConfidenceBands", "showR", "showRSquared"]),
+
   create(args) {
     const { graphContent, values } = args
 

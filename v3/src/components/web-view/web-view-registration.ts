@@ -101,11 +101,17 @@ const exportFn: V2TileExportFn = ({ tile, row, gameContextMetadataMap }) => {
   if (webViewContent?.isPlugin) {
     const { allowEmptyAttributeDeletion, preventAttributeDeletion, preventBringToFront,
             preventDataContextReorg, preventTopLevelReorg, state } = webViewContent
-    const _links_ = webViewContent.dataContextId
-      ? { _links_: { context: guidLink("DG.DataContextRecord", toV2Id(webViewContent.dataContextId)) } }
+    const { dataContextId, v2GameContextId } = webViewContent
+    const _links_ = dataContextId
+      ? { _links_: { context: guidLink("DG.DataContextRecord", toV2Id(dataContextId)) } }
       : undefined
-    if (gameContextMetadataMap && webViewContent.hasV2GameContext && webViewContent.dataContextId) {
-      gameContextMetadataMap[webViewContent.dataContextId] = {
+    // when the plugin's default has moved away from the game context, the link no longer names it, so v3 saves
+    // its id, letting the game context keep the game's metadata through later saves
+    const v3 = v2GameContextId && v2GameContextId !== dataContextId
+      ? { v3: { gameContextId: toV2Id(v2GameContextId) } }
+      : undefined
+    if (gameContextMetadataMap && v2GameContextId) {
+      gameContextMetadataMap[v2GameContextId] = {
         gameName: tile.name || undefined,
         gameUrl: url || undefined,
         gameState: state ?? undefined
@@ -123,7 +129,8 @@ const exportFn: V2TileExportFn = ({ tile, row, gameContextMetadataMap }) => {
         preventBringToFront,
         ...(preventDataContextReorg ? { preventDataContextReorg } : {}),
         ...(preventTopLevelReorg ? { preventTopLevelReorg } : {}),
-        ..._links_
+        ..._links_,
+        ...v3
       }
     }
     return v2GameView
@@ -217,15 +224,17 @@ function importGameView(args: V2TileImportArgs) {
   // parse the v2 content
   const { componentStorage: {
     _links_, currentGameUrl, currentGameName, allowEmptyAttributeDeletion, preventAttributeDeletion,
-    preventBringToFront, preventDataContextReorg, preventTopLevelReorg, savedGameState
+    preventBringToFront, preventDataContextReorg, preventTopLevelReorg, savedGameState, v3
   } } = v2Component
   const linkedDataContextId = _links_?.context?.id
-  const linkedDataContext = linkedDataContextId ? v2Document.getV2DataContext(linkedDataContextId) : undefined
-  const linkedGameContext = isCodapV2GameContext(linkedDataContext) ? linkedDataContext : undefined
+  // v3 saves the game context's id when the link names another data context (see exportFn)
+  const gameContextId = v3?.gameContextId ?? linkedDataContextId
+  const gameDataContext = gameContextId ? v2Document.getV2DataContext(gameContextId) : undefined
+  const gameContext = isCodapV2GameContext(gameDataContext) ? gameDataContext : undefined
 
-  const gameName = currentGameName ?? linkedGameContext?.contextStorage?.gameName ?? undefined
-  const gameUrl = currentGameUrl ?? linkedGameContext?.contextStorage?.gameUrl ?? undefined
-  const gameState = savedGameState ?? linkedGameContext?.contextStorage?.gameState ?? undefined
+  const gameName = currentGameName ?? gameContext?.contextStorage?.gameName ?? undefined
+  const gameUrl = currentGameUrl ?? gameContext?.contextStorage?.gameUrl ?? undefined
+  const gameState = savedGameState ?? gameContext?.contextStorage?.gameState ?? undefined
 
   // create webView model
   // Note: a renamed GameView has the componentStorage.currentGameName set to the value
@@ -239,7 +248,7 @@ function importGameView(args: V2TileImportArgs) {
     preventBringToFront,
     preventDataContextReorg,
     preventTopLevelReorg,
-    hasV2GameContext: linkedGameContext ? true : undefined
+    v2GameContextId: gameContext && gameContextId ? toV3DataSetId(gameContextId) : undefined
   })
 }
 registerV2TileImporter("DG.GameView", importGameView)
