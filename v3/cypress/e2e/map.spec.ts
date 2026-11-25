@@ -718,25 +718,12 @@ context("Map hot spots", () => {
     cy.visit(`${Cypress.config("index")}${queryParams}`)
   })
 
-  it.only("adds and removes the hot spot canvas", () => {
-    // The palette renders at top: 0, then moves into place once a ResizeObserver reports its height.
-    // Cypress sees that move as animation, so wait until the checkbox stays in one place before clicking.
-    const getStableHotSpotCheckbox = () => {
-      let lastTop: number | undefined
-      return cy.get("[data-testid=map-layers-checkbox-hot-spot]").first().should($el => {
-        const { top } = $el[0].getBoundingClientRect()
-        const isStable = top === lastTop
-        lastTop = top
-        expect(isStable, "hot spot checkbox position is stable").to.equal(true)
-      })
-    }
-
+  it("adds and removes the hot spot canvas", () => {
     c.selectTile("map", 0)
     map.getDisplayConfigButton().click()
-    getStableHotSpotCheckbox().click()
+    map.getHotSpotCheckbox().click()
     map.getMapTile().find(".codap-hot-spot-canvas").should("exist")
-    // cy.get("[data-testid=map-layers-checkbox-hot-spot]").first().click()
-    getStableHotSpotCheckbox().click()
+    map.getHotSpotCheckbox().click()
     map.getMapTile().find(".codap-hot-spot-canvas").should("not.exist")
   })
 })
