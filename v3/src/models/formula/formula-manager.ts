@@ -303,7 +303,7 @@ export class FormulaManager implements IFormulaManager {
     // values, so it must run after the source. Only mutual prev() references form cycles, so group the
     // formulas into strongly connected components (Tarjan's algorithm), order the components by their
     // dependencies, and run the members of each cycle in registration order.
-    const registrationOrder = Array.from(closure.keys())
+    const registrationOrder = Array.from(this.formulaMetadata.keys()).filter(id => closure.has(id))
     const registrationIndex = new Map(registrationOrder.map((id, i) => [id, i]))
     const edges = new Map(registrationOrder.map(id => [id, getDownstreamIds(id).filter(downId => closure.has(downId))]))
     const visitIndex = new Map<string, number>()

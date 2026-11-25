@@ -367,6 +367,28 @@ describe("FormulaManager", () => {
       expect(dIndex).toBeGreaterThan(sunnyIndex)
     })
 
+    it("runs cycle members in registration order even when only the later member is requested", () => {
+      const formulaManager = new FormulaManager()
+      const dataSet = createDataSet({
+        attributes: [
+          { name: "sunny", formula: { display: "prev(rainy, 0)" } },
+          { name: "rainy", formula: { display: "prev(sunny, 1)" } }
+        ]
+      }, { formulaManager })
+      dataSet.addCases([{ __id__: "c1" }, { __id__: "c2" }])
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
+
+      const spy = jest.spyOn(adapter, "recalculateFormula")
+      formulaManager.recalculateFormulasInOrder([
+        { formulaId: formulaIdOf(dataSet, "rainy"), cases: "ALL_CASES", forceWrite: false }
+      ])
+      const order = spy.mock.calls.map(([ctx]) => ctx.formula.id)
+      spy.mockRestore()
+      expect(order).toEqual(["sunny", "rainy"].map(name => formulaIdOf(dataSet, name)))
+    })
+
     it("recalculates a diamond once each in dependency order", () => {
       const formulaManager = new FormulaManager()
       const dataSet = createDataSet({
