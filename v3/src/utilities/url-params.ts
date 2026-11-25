@@ -85,8 +85,10 @@ export interface UrlParams {
   errorTester?: string | null
   /*
    * Enables or disables in-development features for this session only; the setting
-   * lives in the URL and nowhere else. Names are matched against the feature-flag
-   * registry (src/models/feature-flags/) and ignored if unrecognized.
+   * lives in the URL and nowhere else. Pilot flag names, and owner names that stand
+   * for every pilot flag a project owns, are matched against the feature-flag
+   * registry (src/models/feature-flags/); partner flag names and unrecognized names
+   * are ignored.
    * value: comma-separated flag names, each optionally prefixed with "-" to disable,
    *   e.g. "residualPlot,-someOtherFeature". The parameter may also be repeated,
    *   e.g. "?features=residualPlot&features=-someOtherFeature", in which case
