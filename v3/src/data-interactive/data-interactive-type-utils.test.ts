@@ -125,7 +125,7 @@ describe("DataInteractiveTypeUtils", () => {
             name: "Parent",
             title: "Parent",
             renameable: true,
-            type: "categorical"
+            type: null
           }],
           cases: [
             { guid: p1Id, id: p1Id, values: { Parent: "p1" } },
@@ -149,7 +149,7 @@ describe("DataInteractiveTypeUtils", () => {
             name: "Child",
             title: "Child",
             renameable: true,
-            type: "categorical"
+            type: null
           }],
           cases: [
             { guid: c1Id, id: c1Id, parent: p1Id, values: { Child: "c1" } },

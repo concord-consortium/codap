@@ -1,9 +1,10 @@
 import { isEqual, isEqualWith } from "lodash"
 import { autorun, reaction } from "mobx"
-import { applyAction, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
+import { applyAction, applyPatch, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
 import { uniqueName } from "../../utilities/js-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
-import { DataSet, fromCanonical, isFilterFormulaDataSet, nullItemData, toCanonical } from "./data-set"
+import { IAttribute } from "./attribute"
+import { DataSet, fromCanonical, IDataSet, isFilterFormulaDataSet, nullItemData, toCanonical } from "./data-set"
 import { isCaseValueChangeAction } from "./data-set-actions"
 import { createDataSet } from "./data-set-conversion"
 import { ICaseID } from "./data-set-types"
@@ -682,12 +683,19 @@ test("moveItems keeps the items' order, and places them after an item", () => {
   expect(letterValues()).toEqual(["a", "c", "e", "b", "d"])
 })
 
-test("moveItems moves values correctly right after a sort, before the cases are validated", () => {
+// sorts [i3, i1, i2] to [i1, i2, i3] the way a direct patch of _itemIds would, leaving item lookups stale
+function sortLeavingLookupsStale(data: IDataSet, attr: IAttribute) {
+  applyPatch(data, { op: "replace", path: "/_itemIds", value: ["i1", "i2", "i3"] })
+  attr.orderValues([1, 2, 0])
+  expect(data.getItemIndex("i1")).toBe(1)
+}
+
+test("moveItems moves values correctly when item lookups are stale", () => {
   const data = DataSet.create({ name: "data" })
   const value = data.addAttribute({ id: "Value", name: "Value" })
   data.addCases([3, 1, 2].map(v => ({ __id__: `i${v}`, [value.id]: v })))
   data.validateCases()
-  data.sortByAttribute(value.id)
+  sortLeavingLookupsStale(data, value)
   data.moveItems(["i3"], { before: "i1" })
   data.validateCases()
   expect(data.itemIds).toEqual(["i3", "i1", "i2"])
@@ -732,6 +740,17 @@ test("moveItems moves the right items when some items are set aside", () => {
   expect(letterValues()).toEqual(["d", "f", "a", "b", "e", "c"])
 })
 
+test("sortByAttribute keeps item lookups right before the cases are validated", () => {
+  const data = DataSet.create({ name: "data" })
+  const value = data.addAttribute({ id: "Value", name: "Value" })
+  data.addCases([3, 1, 2].map(v => ({ __id__: `i${v}`, [value.id]: v })))
+  data.validateCases()
+  data.sortByAttribute(value.id, "descending")
+  // as an itemSearch in the same request array reads them
+  expect(["i1", "i2", "i3"].map(id => data.getItemIndex(id))).toEqual([2, 1, 0])
+  expect(["i1", "i2", "i3"].map(id => data.getNumeric(id, value.id))).toEqual([1, 2, 3])
+})
+
 test("sortByAttribute with a flat DataSet", () => {
   const data = DataSet.create({ name: "data" })
   const a = data.addAttribute({ id: "AttrA", name: "A" })
@@ -758,6 +777,50 @@ test("sortByAttribute with a flat DataSet", () => {
   expect(a.values).toEqual(["A3", "A1", "A2", "1", "-1"])
   expect(b.values).toEqual(["5", "3", "0", "B1", "B0"])
   data.completeSnapshot()
+})
+
+test("sortByAttribute leaves items under a parent case whose items are all hidden in place", () => {
+  const data = DataSet.create({
+    name: "data",
+    collections: [{ id: "Parent", name: "Parents" }, { id: "Child", name: "Children" }]
+  })
+  const p = data.addAttribute({ id: "ParentAttr", name: "parentAttr" }, { collection: "Parent" })
+  const c = data.addAttribute({ id: "ChildAttr", name: "childAttr" }, { collection: "Child" })
+  expect(data.getCollectionForAttribute(p.id)?.id).toBe("Parent")
+  data.addCases([
+    { __id__: "ITEM0", [p.id]: "A", [c.id]: "5" },
+    { __id__: "ITEM1", [p.id]: "B", [c.id]: "2" },
+    { __id__: "ITEM2", [p.id]: "A", [c.id]: "3" },
+    { __id__: "ITEM3", [p.id]: "B", [c.id]: "4" },
+    { __id__: "ITEM4", [p.id]: "A", [c.id]: "1" }
+  ])
+  // every item of the parent case B is set aside, so B has no case to sort within
+  data.hideCasesOrItems(["ITEM1", "ITEM3"])
+  data.validateCases()
+  data.sortByAttribute(c.id)
+  // the order includes the set-aside items
+  expect(Array.from(data._itemIds)).toEqual(["ITEM4", "ITEM1", "ITEM2", "ITEM3", "ITEM0"])
+  expect(data._itemIds.map(id => data.getStrValue(id, c.id))).toEqual(["1", "2", "3", "4", "5"])
+})
+
+test("sortByAttribute leaves an all-hidden parent case's items in place among interleaved parents", () => {
+  const data = DataSet.create({
+    name: "data",
+    collections: [{ id: "Parent", name: "Parents" }, { id: "Child", name: "Children" }]
+  })
+  const p = data.addAttribute({ id: "ParentAttr", name: "parentAttr" }, { collection: "Parent" })
+  const c = data.addAttribute({ id: "ChildAttr", name: "childAttr" }, { collection: "Child" })
+  expect(data.getCollectionForAttribute(p.id)?.id).toBe("Parent")
+  const parents = ["A", "B", "C", "A", "B", "C", "A"]
+  const children = ["5", "9", "3", "1", "8", "2", "4"]
+  data.addCases(parents.map((parent, i) => ({ __id__: `I${i}`, [p.id]: parent, [c.id]: children[i] })))
+  data.hideCasesOrItems(["I1", "I4"])
+  data.validateCases()
+  data.sortByAttribute(c.id)
+  // A's and C's items are sorted within the places they had; B's stay where they were
+  expect(Array.from(data._itemIds)).toEqual(["I3", "I1", "I5", "I6", "I4", "I2", "I0"])
+  expect(data._itemIds.map(id => data.getStrValue(id, p.id))).toEqual(parents)
+  expect(data._itemIds.map(id => data.getStrValue(id, c.id))).toEqual(["1", "9", "2", "4", "8", "3", "5"])
 })
 
 test("sortByAttribute with a hierarchical DataSet", () => {
@@ -1517,12 +1580,12 @@ test("addCases inserts after a case whose last item is the first item", () => {
   expect(data.itemIds).toEqual(["i0", "iX", "i1"])
 })
 
-test("setItemOrder moves values correctly right after a sort, before the cases are validated", () => {
+test("setItemOrder moves values correctly when item lookups are stale", () => {
   const data = DataSet.create({ name: "data" })
   const value = data.addAttribute({ id: "Value", name: "Value" })
   data.addCases([3, 1, 2].map(v => ({ __id__: `i${v}`, [value.id]: v })))
   data.validateCases()
-  data.sortByAttribute(value.id)
+  sortLeavingLookupsStale(data, value)
   data.setItemOrder(["i3", "i1", "i2"])
   data.validateCases()
   expect(data.itemIds).toEqual(["i3", "i1", "i2"])

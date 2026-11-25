@@ -1,12 +1,63 @@
 import { Map as LeafletMap, Point, Projection } from "leaflet"
 import { greatCircleDistance } from "../../../utilities/geo-utils"
+import { getHotSpotRampInterpolator } from "./hot-spot-color-ramps"
 import {
-  bandwidthToWorldUnits, buildColorLUT, colorizeDensityGrid, computeDefaultBandwidth, computeDensityGrid,
-  computeHotSpotSurface, computeMaxDensity, hotSpotFade, IDensityGridRegion, IKernel, kColorLUTSize, kernelWeight,
-  kFallbackBandwidthMeters, kHotSpotFadeFloor, kHotSpotFadeFull, kMaxMercatorLatitude, kWebMercatorRadiusMeters,
-  kWorldSize, latLongToWorldPoint, projectHotSpotKernels, renderHotSpotSurface, wrapWorldDelta
+  bandwidthToResolution, bandwidthToWorldUnits, buildColorLUT, colorBinsToSliderValue, colorizeDensityGrid,
+  computeApproximateMaxDensity, computeDefaultBandwidth, computeDensityGrid, computeHotSpotSurface, computeMaxDensity,
+  getEffectiveColorBins, hotSpotFade, IDensityGridRegion, IKernel, isHotSpotColorBins, kColorLUTSize,
+  kContinuousColorBins, kContinuousSliderValue, kDefaultBandwidthDivisor, kernelWeight, kFallbackBandwidthMeters,
+  kHotSpotFadeFloor, kHotSpotFadeFull, kMaxColorBins, kMaxMercatorLatitude, kMinColorBins, kResolutionRangeFactor,
+  kWebMercatorRadiusMeters, kWorldSize, latLongToWorldPoint, projectHotSpotKernels, renderHotSpotSurface,
+  resolutionLimit, resolutionToBandwidth, sliderValueToColorBins, wrapWorldDelta
 } from "./hot-spot-utils"
 import { createLatLongProjector } from "./map-utils"
+
+describe("resolution slider scale", () => {
+  it("puts the default bandwidth at 0 and the ends of the range at ±1", () => {
+    expect(bandwidthToResolution(5000, 5000)).toBeCloseTo(0)
+    expect(bandwidthToResolution(5000 / kResolutionRangeFactor, 5000)).toBeCloseTo(1)
+    expect(bandwidthToResolution(5000 * kResolutionRangeFactor, 5000)).toBeCloseTo(-1)
+  })
+
+  it("converts resolutions back to bandwidths on a log scale", () => {
+    expect(resolutionToBandwidth(0, 5000)).toBeCloseTo(5000)
+    expect(resolutionToBandwidth(1, 5000)).toBeCloseTo(5000 / kResolutionRangeFactor)
+    expect(resolutionToBandwidth(-1, 5000)).toBeCloseTo(5000 * kResolutionRangeFactor)
+    // halfway to the end of the range is the geometric mean
+    expect(resolutionToBandwidth(0.5, 5000)).toBeCloseTo(5000 / Math.sqrt(kResolutionRangeFactor))
+    expect(bandwidthToResolution(resolutionToBandwidth(0.37, 5000), 5000)).toBeCloseTo(0.37)
+  })
+
+  it("spans from a little below ArcGIS's default bandwidth to about a tenth of it, default in the center", () => {
+    const arcGISBandwidth = 5000
+    const defaultBandwidth = arcGISBandwidth / kDefaultBandwidthDivisor
+    const atResolution = (resolution: number) => resolutionToBandwidth(resolution, defaultBandwidth) / arcGISBandwidth
+    expect(atResolution(-1)).toBeCloseTo(10 ** -0.07)
+    expect(atResolution(0)).toBeCloseTo(10 ** -0.52)
+    expect(atResolution(1)).toBeCloseTo(10 ** -0.97)
+    // even the widest setting is narrower than ArcGIS's default
+    expect(atResolution(-1)).toBeLessThan(1)
+  })
+
+  it("widens the limit to include resolutions outside the usual range", () => {
+    expect(resolutionLimit(0, 0.01)).toBe(1)
+    expect(resolutionLimit(-0.8, 0.01)).toBe(1)
+    expect(resolutionLimit(1.234, 0.01)).toBeCloseTo(1.24)
+    expect(resolutionLimit(-2.5, 0.01)).toBeCloseTo(2.5)
+  })
+
+  it("ignores floating-point noise in the resolution", () => {
+    expect(resolutionLimit(1.0000000000000002, 0.01)).toBe(1)
+    expect(resolutionLimit(-1.0000000000000002, 0.01)).toBe(1)
+    expect(resolutionLimit(1.2300000000000002, 0.01)).toBeCloseTo(1.23)
+    // converting the ends of the range back to resolutions adds noise for this default
+    const defaultBandwidth = 3333.3
+    for (const end of [-1, 1]) {
+      const resolution = bandwidthToResolution(resolutionToBandwidth(end, defaultBandwidth), defaultBandwidth)
+      expect(resolutionLimit(resolution, 0.01)).toBe(1)
+    }
+  })
+})
 
 describe("hot spot constants", () => {
   it("match Leaflet's Web Mercator projection", () => {
@@ -57,7 +108,8 @@ describe("computeDefaultBandwidth", () => {
   it("uses the standard distance when it is smaller than the median term", () => {
     // mean center (0, 0); distances [d, 0, d]; SD = √(2/3)·d < √(1/ln 2)·d
     const latLongs = [{ lat: 0, long: -1 }, { lat: 0, long: 0 }, { lat: 0, long: 1 }]
-    expect(computeDefaultBandwidth(latLongs)).toBeCloseTo(0.9 * Math.sqrt(2 / 3) * oneDegree * 3 ** -0.2, 3)
+    expect(computeDefaultBandwidth(latLongs))
+      .toBeCloseTo(0.9 * Math.sqrt(2 / 3) * oneDegree * 3 ** -0.2 / kDefaultBandwidthDivisor, 3)
   })
 
   it("uses the median term when it is smaller than the standard distance", () => {
@@ -66,7 +118,8 @@ describe("computeDefaultBandwidth", () => {
       { lat: 0, long: 0 }, { lat: 0, long: 0.1 }, { lat: 0, long: -0.1 }, { lat: 0, long: 5 }, { lat: 0, long: -5 }
     ]
     const median = greatCircleDistance(0, 0, 0, 0.1)
-    expect(computeDefaultBandwidth(latLongs)).toBeCloseTo(0.9 * Math.sqrt(1 / Math.LN2) * median * 5 ** -0.2, 3)
+    expect(computeDefaultBandwidth(latLongs))
+      .toBeCloseTo(0.9 * Math.sqrt(1 / Math.LN2) * median * 5 ** -0.2 / kDefaultBandwidthDivisor, 3)
   })
 
   it("uses the standard distance when more than half the points are at the mean center", () => {
@@ -74,7 +127,8 @@ describe("computeDefaultBandwidth", () => {
     const latLongs = [
       { lat: 0, long: 0 }, { lat: 0, long: 0 }, { lat: 0, long: 0 }, { lat: 0, long: 1 }, { lat: 0, long: -1 }
     ]
-    expect(computeDefaultBandwidth(latLongs)).toBeCloseTo(0.9 * Math.sqrt(2 / 5) * oneDegree * 5 ** -0.2, 3)
+    expect(computeDefaultBandwidth(latLongs))
+      .toBeCloseTo(0.9 * Math.sqrt(2 / 5) * oneDegree * 5 ** -0.2 / kDefaultBandwidthDivisor, 3)
   })
 
   it("falls back when there is no spread", () => {
@@ -167,11 +221,40 @@ describe("computeMaxDensity", () => {
   })
 })
 
+describe("computeApproximateMaxDensity", () => {
+  it("returns 0 for no points and 1 for one point", () => {
+    expect(computeApproximateMaxDensity([])).toBe(0)
+    expect(computeApproximateMaxDensity([{ x: 100, y: 100, h: 1 }])).toBe(1)
+  })
+
+  it("evaluates only at the points, so it misses a maximum between them", () => {
+    // f = 1 + e⁻² ≈ 1.135 at each point, but 2e^(−½) ≈ 1.213 at the midpoint
+    const kernels = [{ x: 100, y: 100, h: 1 }, { x: 102, y: 100, h: 1 }]
+    expect(computeApproximateMaxDensity(kernels)).toBeCloseTo(1 + Math.exp(-2))
+    expect(computeApproximateMaxDensity(kernels)).toBeLessThan(computeMaxDensity(kernels))
+  })
+
+  it("measures points across the antimeridian as neighbors", () => {
+    // 1 world unit apart across the wrap, not 255
+    const kernels = [{ x: 255.5, y: 100, h: 1 }, { x: 0.5, y: 100, h: 1 }]
+    expect(computeApproximateMaxDensity(kernels)).toBeCloseTo(1 + Math.exp(-0.5))
+  })
+
+  it("is a lower bound on computeMaxDensity", () => {
+    const kernels = [[100, 100], [101.2, 100.5], [100.4, 101.6], [103, 102], [99, 103.1], [102.2, 99.1], [105, 100]]
+      .map(([x, y], i) => ({ x, y, h: i % 2 ? 1.5 : 1 }))
+    const maxAtPoints = Math.max(...kernels.map(p =>
+      kernels.reduce((sum, k) => sum + kernelWeight(k.x - p.x, k.y - p.y, k.h), 0)))
+    expect(computeApproximateMaxDensity(kernels)).toBeCloseTo(maxAtPoints)
+    expect(computeApproximateMaxDensity(kernels)).toBeLessThanOrEqual(computeMaxDensity(kernels))
+  })
+})
+
 describe("computeHotSpotSurface", () => {
   const latLongs = [{ lat: 40, long: -100 }, { lat: 41, long: -101 }, { lat: 39, long: -99 }]
 
   it("is undefined without points", () => {
-    expect(computeHotSpotSurface([])).toBeUndefined()
+    expect(computeHotSpotSurface([], 20000)).toBeUndefined()
   })
 
   it("projects each point to world coordinates with its own bandwidth", () => {
@@ -186,9 +269,9 @@ describe("computeHotSpotSurface", () => {
     expect(surface.maxDensity).toBe(computeMaxDensity(surface.points))
   })
 
-  it("computes a default bandwidth when none is given or it isn't positive", () => {
-    expect(computeHotSpotSurface(latLongs)!.bandwidthMeters).toBe(computeDefaultBandwidth(latLongs))
-    expect(computeHotSpotSurface(latLongs, 0)!.bandwidthMeters).toBe(computeDefaultBandwidth(latLongs))
+  it("approximates the maximum density when optimizing", () => {
+    const surface = computeHotSpotSurface(latLongs, 200000, true)!
+    expect(surface.maxDensity).toBe(computeApproximateMaxDensity(surface.points))
   })
 })
 
@@ -306,21 +389,94 @@ describe("hotSpotFade", () => {
   })
 })
 
+describe("color bin limits", () => {
+  it("allows 2 through 10 bins, with continuous one slider step past the maximum", () => {
+    expect(kMinColorBins).toBe(2)
+    expect(kMaxColorBins).toBe(10)
+    expect(kContinuousSliderValue).toBe(11)
+    expect(kContinuousColorBins).toBe("continuous")
+  })
+
+  it("recognizes valid stored values", () => {
+    expect(isHotSpotColorBins("continuous")).toBe(true)
+    expect(isHotSpotColorBins(5)).toBe(true)
+    // out of range but finite: valid to store, limited when used
+    expect(isHotSpotColorBins(15)).toBe(true)
+    expect(isHotSpotColorBins(0)).toBe(true)
+    expect(isHotSpotColorBins("many")).toBe(false)
+    expect(isHotSpotColorBins("5")).toBe(false)
+    expect(isHotSpotColorBins(NaN)).toBe(false)
+    expect(isHotSpotColorBins(Infinity)).toBe(false)
+    expect(isHotSpotColorBins(null)).toBe(false)
+    expect(isHotSpotColorBins(undefined)).toBe(false)
+  })
+
+  it("keeps continuous and in-range counts", () => {
+    expect(getEffectiveColorBins("continuous")).toBe("continuous")
+    expect(getEffectiveColorBins(2)).toBe(2)
+    expect(getEffectiveColorBins(7)).toBe(7)
+    expect(getEffectiveColorBins(10)).toBe(10)
+  })
+
+  it("treats counts below the minimum as the minimum and above the maximum as the maximum", () => {
+    expect(getEffectiveColorBins(1)).toBe(2)
+    expect(getEffectiveColorBins(0)).toBe(2)
+    expect(getEffectiveColorBins(-3)).toBe(2)
+    expect(getEffectiveColorBins(-Infinity)).toBe(2)
+    expect(getEffectiveColorBins(11)).toBe(10)
+    expect(getEffectiveColorBins(100)).toBe(10)
+    expect(getEffectiveColorBins(Infinity)).toBe(10)
+  })
+
+  it("rounds non-integer counts", () => {
+    expect(getEffectiveColorBins(2.4)).toBe(2)
+    expect(getEffectiveColorBins(2.6)).toBe(3)
+    expect(getEffectiveColorBins(1.2)).toBe(2)
+    expect(getEffectiveColorBins(10.4)).toBe(10)
+  })
+
+  it("treats NaN as continuous", () => {
+    expect(getEffectiveColorBins(NaN)).toBe("continuous")
+  })
+
+  it("converts between color bins and slider values", () => {
+    expect(colorBinsToSliderValue("continuous")).toBe(11)
+    expect(colorBinsToSliderValue(2)).toBe(2)
+    expect(colorBinsToSliderValue(10)).toBe(10)
+    // out-of-range counts sit at the nearest numeric end, never at the continuous position
+    expect(colorBinsToSliderValue(15)).toBe(10)
+    expect(colorBinsToSliderValue(0)).toBe(2)
+    expect(colorBinsToSliderValue(3.6)).toBe(4)
+
+    expect(sliderValueToColorBins(11)).toBe("continuous")
+    expect(sliderValueToColorBins(10)).toBe(10)
+    expect(sliderValueToColorBins(2)).toBe(2)
+  })
+})
+
 describe("buildColorLUT", () => {
   const rgbaAt = (lut: Uint8ClampedArray, i: number) => Array.from(lut.slice(i * 4, i * 4 + 4))
   // the first LUT index at or above the full cutoff
   const fullIndex = Math.ceil(kHotSpotFadeFull * (kColorLUTSize - 1))
 
   it("runs from the low color to the high color", () => {
-    const lut = buildColorLUT("#000000", "#ffffff")
+    const lut = buildColorLUT(getHotSpotRampInterpolator("monochrome", "", ""))
     expect(lut.length).toBe(kColorLUTSize * 4)
     expect(rgbaAt(lut, 0)).toEqual([0, 0, 0, 0])
     expect(rgbaAt(lut, 128)).toEqual([128, 128, 128, 255])
     expect(rgbaAt(lut, 255)).toEqual([255, 255, 255, 255])
   })
 
+  it("samples a named ramp from end to end", () => {
+    const lut = buildColorLUT(getHotSpotRampInterpolator("heat", "", ""))
+    // #000004, fully faded
+    expect(rgbaAt(lut, 0)).toEqual([0, 0, 4, 0])
+    // #fcffa4
+    expect(rgbaAt(lut, 255)).toEqual([252, 255, 164, 255])
+  })
+
   it("fades low densities to transparent", () => {
-    const lut = buildColorLUT("#000000", "#ffffff")
+    const lut = buildColorLUT(getHotSpotRampInterpolator("monochrome", "", ""))
     const alphaAt = (i: number) => lut[i * 4 + 3]
     const floorIndex = Math.floor(kHotSpotFadeFloor * (kColorLUTSize - 1))
     for (let i = 0; i <= floorIndex; i++) {
@@ -336,19 +492,86 @@ describe("buildColorLUT", () => {
   })
 
   it("multiplies the gradient's alpha by the fade", () => {
-    const lut = buildColorLUT("#ff000000", "#ff0000ff")
-    expect(rgbaAt(lut, 0)).toEqual([255, 0, 0, 0])
-    expect(rgbaAt(lut, 255)).toEqual([255, 0, 0, 255])
+    const lut = buildColorLUT(getHotSpotRampInterpolator("custom", "#00000000", "#000000ff"))
+    expect(rgbaAt(lut, 0)).toEqual([0, 0, 0, 0])
+    expect(rgbaAt(lut, 255)).toEqual([0, 0, 0, 255])
     // above the full cutoff, only the gradient's alpha applies
     expect(lut[fullIndex * 4 + 3]).toBe(Math.round(fullIndex))
     // within the fade, both apply
     const midIndex = 30
     expect(lut[midIndex * 4 + 3]).toBe(Math.round(midIndex * hotSpotFade(midIndex / (kColorLUTSize - 1))))
   })
+
+  describe("with color bins", () => {
+    const monochrome = getHotSpotRampInterpolator("monochrome", "", "")
+    // Returns the distinct colors of the entries from first to last
+    const colorsIn = (lut: Uint8ClampedArray, first: number, last: number) => {
+      const colors = new Map<string, number[]>()
+      for (let i = first; i <= last; i++) {
+        const rgba = rgbaAt(lut, i)
+        colors.set(rgba.join(), rgba)
+      }
+      return Array.from(colors.values())
+    }
+
+    it("is unchanged when continuous", () => {
+      expect(buildColorLUT(monochrome, "continuous")).toEqual(buildColorLUT(monochrome))
+    })
+
+    it("draws 2 bins as the transparent low color, then the middle of the ramp and the high color", () => {
+      const lut = buildColorLUT(monochrome, 2)
+      // Entries 85 and 170 are exactly on the bin edges (1/3 and 2/3), so floating point decides their bin
+      expect(colorsIn(lut, 0, 84)).toEqual([[0, 0, 0, 0]])
+      expect(colorsIn(lut, 86, 169)).toEqual([[128, 128, 128, 255]])
+      expect(colorsIn(lut, 171, 255)).toEqual([[255, 255, 255, 255]])
+    })
+
+    it("draws 3 bins after the transparent bin, at 1/3, 2/3 and 1 along the ramp, each faded at its position", () => {
+      const lut = buildColorLUT(monochrome, 3)
+      // the bin edges are at entries 63.75, 127.5 and 191.25
+      expect(colorsIn(lut, 0, 63)).toEqual([[0, 0, 0, 0]])
+      // 1/3 is just below kHotSpotFadeFull, so this bin is not quite opaque
+      const partialAlpha = Math.round(hotSpotFade(1 / 3) * 255)
+      expect(partialAlpha).toBeLessThan(255)
+      expect(colorsIn(lut, 64, 127)).toEqual([[85, 85, 85, partialAlpha]])
+      expect(colorsIn(lut, 128, 191)).toEqual([[170, 170, 170, 255]])
+      expect(colorsIn(lut, 192, 255)).toEqual([[255, 255, 255, 255]])
+    })
+
+    it("uses the ramp's own end colors", () => {
+      const lut = buildColorLUT(getHotSpotRampInterpolator("heat", "", ""), 5)
+      // #000004, fully faded
+      expect(rgbaAt(lut, 0)).toEqual([0, 0, 4, 0])
+      // #fcffa4
+      expect(rgbaAt(lut, 255)).toEqual([252, 255, 164, 255])
+    })
+
+    it("has exactly as many distinct visible colors as bins, plus the transparent bin", () => {
+      for (let bins = kMinColorBins; bins <= kMaxColorBins; bins++) {
+        const colors = colorsIn(buildColorLUT(monochrome, bins), 0, kColorLUTSize - 1)
+        expect(colors).toHaveLength(bins + 1)
+        expect(colors.filter(([, , , alpha]) => alpha > 0)).toHaveLength(bins)
+      }
+    })
+
+    it("treats counts below 2 as 2 and counts above 10 as 10", () => {
+      const twoBins = buildColorLUT(monochrome, 2)
+      expect(buildColorLUT(monochrome, 1)).toEqual(twoBins)
+      expect(buildColorLUT(monochrome, 0)).toEqual(twoBins)
+      expect(buildColorLUT(monochrome, -3)).toEqual(twoBins)
+      const tenBins = buildColorLUT(monochrome, 10)
+      expect(buildColorLUT(monochrome, 11)).toEqual(tenBins)
+      expect(buildColorLUT(monochrome, 100)).toEqual(tenBins)
+    })
+
+    it("rounds a non-integer count", () => {
+      expect(buildColorLUT(monochrome, 2.6)).toEqual(buildColorLUT(monochrome, 3))
+    })
+  })
 })
 
 describe("colorizeDensityGrid", () => {
-  const lut = buildColorLUT("#000000", "#ffffff")
+  const lut = buildColorLUT(getHotSpotRampInterpolator("monochrome", "", ""))
 
   it("maps 0 to the transparent low color, the maximum to the high color, and clamps above it", () => {
     const out = new Uint8ClampedArray(4 * 4)
@@ -402,7 +625,7 @@ describe("rendering a surface", () => {
     const region = { originX: -40, originY: -30, cols: 240, rows: 180, cellSize: 2 }
     const out = new Uint8ClampedArray(region.cols * region.rows * 4)
     renderHotSpotSurface(surface, createLatLongProjector(map), zoomScale(map), region,
-      buildColorLUT("#000000", "#ffffff"), out)
+      buildColorLUT(getHotSpotRampInterpolator("monochrome", "", "")), out)
     // far corner: no density, so transparent
     expect(Array.from(out.slice(0, 4))).toEqual([0, 0, 0, 0])
     // some cell near the points is bright
@@ -415,7 +638,7 @@ describe("rendering a surface", () => {
     const bandwidth = 2 * Math.PI * kWebMercatorRadiusMeters / kWorldSize
     const east = { lat: 0, long: 179.296875 }
     const seamSurface = computeHotSpotSurface([east, { lat: 0, long: -179.296875 }], bandwidth)!
-    const lut = buildColorLUT("#000000", "#ffffff")
+    const lut = buildColorLUT(getHotSpotRampInterpolator("monochrome", "", ""))
     // centered on 0°, the points project to opposite sides of the map; centered on 180°, next to each other
     const brightnesses = [0, 180].map(centerLong => {
       const map = createMap([0, centerLong], 1)

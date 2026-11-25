@@ -213,7 +213,7 @@ sort or an earlier move the same array can pair entries with different items. Re
 `get` first if the pairing matters.
 
 **The text `true` and `false` matches as a boolean.** `Endangered==true` finds the items a plugin
-created with `"Endangered": true`, as in v2. CODAP stores every value as a number or text, so the
+created with `"Endangered": true`, as in v2. CODAP keeps every value as text, so the
 text `true` typed into a table, imported from a file, or set by a checkbox matches too, where v2
 compared it as text and did not match. This is a deliberate difference. As in v2,
 `Endangered==false` also finds the items with an empty value or `0`, `Endangered==1` finds the

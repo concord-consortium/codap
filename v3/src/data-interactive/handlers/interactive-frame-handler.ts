@@ -137,6 +137,10 @@ export const diInteractiveFrameHandler: DIHandler = {
       }
       if (version) webViewContent?.setVersion(version)
       if (handlesLocaleChange != null) webViewContent?.setHandlesLocaleChange(handlesLocaleChange)
+    }, {
+      // as in V2, whose update interactiveFrame didn't touch the undo history
+      // (data_interactive_phone_handler.js:525-561)
+      keepRedo: true
     })
     return { success: true }
   }

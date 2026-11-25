@@ -1,12 +1,17 @@
 import { when } from "mobx"
 import { Instance } from "mobx-state-tree"
+import { isAnsweringUndoRedo, startUndoRedoAnswer } from "../../data-interactive/undo-redo-answer"
 import { createCodapDocument } from "../codap/create-codap-document"
 import { createDataSet } from "../data/data-set-conversion"
 import { AttributeFormulaAdapter } from "../formula/attribute-formula-adapter"
 import { FormulaManager } from "../formula/formula-manager"
+import { AppHistoryService } from "../history/app-history-service"
+import { getHistoryService } from "../history/history-service"
 import { TreeManager } from "../history/tree-manager"
 import { kSharedDataSetType, SharedDataSet } from "../shared/shared-data-set"
 import { getFormulaManager, getSharedModelManager } from "../tiles/tile-environment"
+import { TileModel } from "../tiles/tile-model"
+import { TestTileContent } from "../../test/test-tile-content"
 
 // register the attribute formula adapter so createFormulaAdapters() installs it
 // (in the app this happens via app.tsx)
@@ -115,5 +120,27 @@ describe("createDocumentModel formula manager dataset sync (CODAP-1348)", () => 
       { undoStringKey: "Undo edit value", redoStringKey: "Redo edit value" }
     )
     expect(restored.dataSet.getNumeric("c1", "doubleId")).toBe(14)
+  })
+})
+
+describe("createDocumentModel undo and redo notices", () => {
+  it("ends any plugin's undo or redo answer from the previous document", () => {
+    startUndoRedoAnswer("plugin")
+    createCodapDocument()
+    expect(isAnsweringUndoRedo("plugin")).toBe(false)
+  })
+
+  it("forgets the notices kept for entries no longer in the history", async () => {
+    const document = createCodapDocument()
+    const treeManager = document.treeManagerAPI as Instance<typeof TreeManager>
+    const historyService = getHistoryService(document) as AppHistoryService
+    const pruneSpy = jest.spyOn(historyService, "pruneUndoRedoNotices")
+    document.treeMonitor!.enableMonitoring()
+    document.addTile(TileModel.create({ content: TestTileContent.create() }))
+    await when(() => treeManager.activeHistoryEntries.length === 0, { timeout: 1000 })
+    const entryId = treeManager.undoStore.undoEntry?.id
+    expect(entryId).toBeDefined()
+    expect(pruneSpy).toHaveBeenCalledWith(new Set([entryId]))
+    document.treeMonitor!.disableMonitoring()
   })
 })

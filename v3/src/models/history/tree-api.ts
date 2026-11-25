@@ -66,9 +66,13 @@ export interface TreeAPI {
    * @param patchesToApply an array of JSON patches to be applied to the tree.
    * The patches should be applied in order starting from the first in the
    * array.
+   *
+   * @returns a promise for the patches that revert the changes the tree
+   * made, in the order they should be applied. If applying the patches
+   * fails, the tree should leave its state unchanged and reject.
    */
   applyPatchesFromManager(historyEntryId: string, exchangeId: string,
-    patchesToApply: readonly IJsonPatch[]): Promise<void>
+    patchesToApply: readonly IJsonPatch[]): Promise<IJsonPatch[]>
 
   /**
    * This is called after the manager has applied all of the patches. Before

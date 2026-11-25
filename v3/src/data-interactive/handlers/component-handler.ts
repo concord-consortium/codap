@@ -1,11 +1,12 @@
 import { isCaseTableModel } from "../../components/case-table/case-table-model"
 import {
-  closeCaseTableNotification, openCaseTableNotification, resizeColumnsNotification
+  closeCaseTableNotification, openCaseTableNotification, reopenCaseTableNotification, resizeColumnsNotification
 } from "../../components/case-table/case-table-notifications"
 import { resizeAllColumns } from "../../components/case-table/case-table-utils"
 import { isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { isMapContentModel } from "../../components/map/models/map-content-model"
 import { getCreateTileHistoryOptions } from "../../components/tool-shelf/tool-shelf-utilities"
+import { isWebViewModel } from "../../components/web-view/web-view-model"
 import { logMessageWithReplacement } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { INewTileOptions } from "../../models/codap/create-tile"
@@ -16,7 +17,7 @@ import { ITileContentModel, ITileContentSnapshotWithType } from "../../models/ti
 import { getTileContentInfo } from "../../models/tiles/tile-content-info"
 import { ITileModel } from "../../models/tiles/tile-model"
 import {
-  createTileNotification, deleteTileNotification, updateTileNotification
+  componentShowHideNotification, createTileNotification, deleteTileNotification, updateTileNotification
 } from "../../models/tiles/tile-notifications"
 import { uiState } from "../../models/ui-state"
 import { toV2Id } from "../../utilities/codap-utils"
@@ -49,6 +50,9 @@ export interface DIComponentHandler {
   create: (args: ICreateArgs) => ICreateResult | DIErrorResult,
   get: (content: ITileContentModel) => Maybe<Record<string, any>>
   update?: (content: ITileContentModel, values: DIValues) => DIHandlerFnResult
+  // Checks an update before any of it, the component's generic properties included, is applied; an error
+  // refuses the whole request
+  validateUpdate?: (content: ITileContentModel, values: DIValues) => Maybe<DIErrorResult>
 }
 
 // registry of tile component handlers -- key is v2 tile type
@@ -93,7 +97,7 @@ export const diComponentHandler: DIHandler = {
       const y = isPositionObject ? position.top : undefined
       let tile: Maybe<ITileModel>
       // As the toolbar does, including the calculator's hide when one is showing, which V2 labeled a hide
-      const { undoStringKey, redoStringKey, log } =
+      const { showHide, undoStringKey, redoStringKey, log } =
         getCreateTileHistoryOptions(kComponentTypeV2ToV3Map[type], document.content)
       const undoStrings = kCreateUndoStrings[type]
       const undoOptions = kShelfUndoTypes.has(type)
@@ -128,6 +132,12 @@ export const diComponentHandler: DIHandler = {
         // openCaseTableNotification no-ops for non-case-table tiles, so it's safe to call
         // unconditionally here (V2-plugin compat for the case-table create path, CODAP-1353).
         notify: [() => createTileNotification(tile), () => openCaseTableNotification(tile)],
+        // undoing removes the component, or hides or shows the calculator again, as the toolbar does;
+        // redoing repeats the original
+        undoNotify: () => showHide
+                            ? componentShowHideNotification(tile, showHide === "show" ? "hide" : "show")
+                            : deleteTileNotification(tile),
+        redoNotify: () => showHide ? componentShowHideNotification(tile, showHide) : createTileNotification(tile),
         ...undoOptions,
         log,
         // Don't echo the create back to the requesting plugin — Story Builder otherwise treats
@@ -144,15 +154,24 @@ export const diComponentHandler: DIHandler = {
     const { component } = resources
     if (!component) return componentNotFoundResult
 
+    // The Importer closes itself once it has imported the data. Opening it isn't an undoable step,
+    // so closing it isn't either; otherwise Undo would reopen it.
+    const isImporterClosingItself = resources.interactiveFrame?.id === component.id &&
+      isWebViewModel(component.content) && component.content.isImporter
     const { document } = appState
     document.applyModelChange(() => {
       document.content?.deleteOrHideTile(component.id)
     }, {
       notify: closeCaseTableNotification(component) ?? deleteTileNotification(component),
+      // undoing brings the component back; redoing closes it again
+      undoNotify: reopenCaseTableNotification(component) ?? createTileNotification(component),
+      redoNotify: closeCaseTableNotification(component) ?? deleteTileNotification(component),
       // as in V2, closing a component is undoable and logged, as it is from its close box
       log: logMessageWithReplacement("Close component: %@", {tileType: component.content.type}, "component"),
-      undoStringKey: "DG.Undo.component.close",
-      redoStringKey: "DG.Redo.component.close",
+      ...(isImporterClosingItself ? {} : {
+        undoStringKey: "DG.Undo.component.close",
+        redoStringKey: "DG.Redo.component.close"
+      }),
       excludeTileId: resources.interactiveFrame?.id
     })
 
@@ -215,7 +234,10 @@ export const diComponentHandler: DIHandler = {
             log: { message: "Rescale axes from data", args: {}, category: "plot" }
           })
         } else if (isMapContentModel(content)) {
-          content.rescale()
+          // as the inspector's rescale button does, and as in V2, where fitting the map's bounds was an
+          // undoable map.fitBounds that sent `change map coordinates` (map_controller.js:893-895,
+          // map_view.js:532-575). The map records the entry once leaflet has finished moving.
+          content.rescale("DG.Undo.map.fitBounds", "DG.Redo.map.fitBounds")
         } else if (isCaseTableModel(content)) {
           // V2's resize-all path (case_table_controller.js:1136) is undoable and emits
           // `resize columns`. Mirror that here so plugin-initiated rescales are also
@@ -250,6 +272,13 @@ export const diComponentHandler: DIHandler = {
     const { content } = component
 
     if (!values) return valuesRequiredResult
+
+    const v2Type = getTileContentInfo(content.type)?.getV2Type?.(content) ?? kComponentTypeV3ToV2Map[content.type]
+    const handler = diComponentHandlers.get(v2Type)
+    if (typeof values === "object" && !Array.isArray(values)) {
+      const error = handler?.validateUpdate?.(content, values)
+      if (error) return error
+    }
 
     // We don't want to notify if the request to update is coming from the component itself. Doing so causes
     // Story Builder to mark the selected moment as changed.
@@ -303,8 +332,6 @@ export const diComponentHandler: DIHandler = {
       }
 
       // Handle updating type specific features
-      const v2Type = getTileContentInfo(content.type)?.getV2Type?.(content) ?? kComponentTypeV3ToV2Map[content.type]
-      const handler = diComponentHandlers.get(v2Type)
       if (handler) {
         result = handler.update?.(content, values) ?? { success: true }
       }

@@ -288,6 +288,10 @@ async function replaceDocument(v2DocumentJson: ICodapV2DocumentJson) {
   document.applyModelChange(() => {
     applySnapshot(document, v3Snapshot)
     document.content?.afterApplySnapshot()
+  }, {
+    // the history is erased once the update ends, undo side first, as in V2; the replacement doesn't clear
+    // the redo list on its own
+    keepRedo: true
   })
 }
 

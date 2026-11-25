@@ -18,7 +18,7 @@ import {
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
 import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileModel } from "../../models/tiles/tile-model"
-import { createTileNotification } from "../../models/tiles/tile-notifications"
+import { createTileNotification, deleteTileNotification } from "../../models/tiles/tile-notifications"
 import { persistentState } from "../../models/persistent-state"
 import { uniqueName } from "../../utilities/js-utils"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
@@ -26,7 +26,9 @@ import { createOrShowTableOrCardForDataset, createTableOrCardForDataset } from "
 import { CodapModal } from "../codap-modal"
 import { ToolShelfButtonTag } from "../tool-shelf/tool-shelf-button"
 import { kCaseTableTileType } from "./case-table-defs"
-import { openCaseTableNotification } from "./case-table-notifications"
+import {
+  closeCaseTableNotification, openCaseTableNotification, reopenCaseTableNotification
+} from "./case-table-notifications"
 
 import AlertIcon from "../../assets/icons/icon-alert.svg"
 import TableIcon from "../../assets/icons/icon-table.svg"
@@ -49,13 +51,22 @@ export function openTableOrCardForDatasetWithNotifications(dataset: ISharedDataS
   // Capture existing tiles so we can tell whether opening created a new tile or re-showed
   // an existing one, and only fire `create` for a brand-new tile.
   const priorTileIds = new Set(content.tileMap.keys())
+  const priorHiddenTileIds = new Set(Array.from(priorTileIds).filter(tileId => content.isTileHidden(tileId)))
+  const isNewTile = () => !!tile && !priorTileIds.has(tile.id)
+  // a closed case table shown again is closed by undo and reopened by redo, as its close button's undo and redo do
+  const isReshownTile = () => !!tile && priorHiddenTileIds.has(tile.id) && !content.isTileHidden(tile.id)
   document.applyModelChange(() => {
     tile = createOrShowTableOrCardForDataset(dataset)
   }, {
     notify: [
-      () => (tile && !priorTileIds.has(tile.id) ? createTileNotification(tile) : undefined),
+      () => (isNewTile() ? createTileNotification(tile) : undefined),
       () => openCaseTableNotification(tile)
     ],
+    // undoing removes a table this made, as V2's caseTable.open did (app_controller.js:122-123)
+    undoNotify: () => isNewTile() ? deleteTileNotification(tile)
+      : isReshownTile() ? closeCaseTableNotification(tile) : undefined,
+    redoNotify: () => isNewTile() ? createTileNotification(tile)
+      : isReshownTile() ? reopenCaseTableNotification(tile) : undefined,
     undoStringKey: "DG.Undo.caseTable.open",
     redoStringKey: "DG.Redo.caseTable.open",
     log: "Create caseTable component"
@@ -120,6 +131,8 @@ const CaseTableToolShelfMenuList = observer(
         () => createTileNotification(tile),
         () => openCaseTableNotification(tile)
       ],
+      undoNotify: () => deleteTileNotification(tile),
+      redoNotify: () => createTileNotification(tile),
       undoStringKey: "V3.Undo.caseTable.create",
       redoStringKey: "V3.Redo.caseTable.create",
       log: {message: "Create New Empty DataSet", args: {}, category: "document"}

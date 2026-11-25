@@ -250,6 +250,9 @@ export function addSetAsideCases(data: IDataSet, caseOrItemIds: string[], undoab
     }, {
       notify:
         [selectCasesNotification(data, true), deleteCasesNotification(data, getGroupedCases(data, caseOrItemIds))],
+      // a plugin's set-aside keeps what could be redone, as V2's (a deleteCases that didn't dirty the document,
+      // data_interactive_phone_handler.js:823-828, data_context.js:520)
+      keepRedo: !undoable,
       undoStringKey: undoable ? "V3.Undo.hideShowMenu.setAsideCases" : undefined,
       redoStringKey: undoable ? "V3.Redo.hideShowMenu.setAsideCases" : undefined
     })
@@ -279,6 +282,8 @@ export function restoreSetAsideCases(data?: IDataSet, caseOrItemIds?: string[], 
       data.setSelectedCases(setAsideCaseOrItemIds)
     }, {
       notify: notifications.concat(selectCasesNotification(data)),
+      // a plugin's restore keeps what could be redone, as V2's didn't dirty the document (data_context.js:3037-3051)
+      keepRedo: !undoable,
       undoStringKey: undoable ? "V3.Undo.hideShowMenu.restoreSetAsideCases" : undefined,
       redoStringKey: undoable ? "V3.Redo.hideShowMenu.restoreSetAsideCases" : undefined,
       log: "Restore set aside cases"
@@ -314,7 +319,9 @@ export function replaceSetAsideCases(data: IDataSet, caseOrItemIds: string[]) {
       data.hideCasesOrItems(caseOrItemIds)
       data.setSelectedCases(restoredItemIds)
     }, {
-      notify: notifications.concat(selectCasesNotification(data, true))
+      notify: notifications.concat(selectCasesNotification(data, true)),
+      // only plugins replace the set-aside cases; as V2's set-aside and restore, it keeps what could be redone
+      keepRedo: true
     })
   }
 }

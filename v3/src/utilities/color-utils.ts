@@ -46,6 +46,16 @@ namesPlugin(Colord, parsers)
 // Extract the parsing function that the plugin installed into the parser arrays.
 const parseColorName = parsers.string[0][0]
 
+/**
+ * Returns true if the string is a color in a strict (non-name) format, e.g. hex, rgb() or hsl().
+ * Other libraries (e.g. pixi.js) may register the names plugin with colord's global parsers,
+ * so the format must be checked rather than relying on colord to reject names.
+ */
+export function isStrictColorString(str: string) {
+  const format = getColorFormat(str)
+  return !!format && format !== "name"
+}
+
 export interface ParseColorOptions {
   colorNames?: boolean
   alpha?: number
@@ -62,7 +72,7 @@ export function parseColor(str: string, options?: ParseColorOptions) {
   // if it's a valid color name, return it
   if (options?.colorNames && parseColorName(str)) return str.toLowerCase()
   // if it's a valid color string, return its hex equivalent
-  return getColorFormat(str) ? colord(str).toHex() : ""
+  return isStrictColorString(str) ? colord(str).toHex() : ""
 }
 
 /**
@@ -80,7 +90,7 @@ export function parseColorToHex(str: string, options?: ParseColorOptions) {
     }
 
     // If not a named color, attempt to parse as a regular color string
-    if (!parsed && getColorFormat(str)) {
+    if (!parsed && isStrictColorString(str)) {
       parsed = colord(str).toRgb()
     }
 
@@ -147,28 +157,6 @@ export function interpolateRgba(color1: string, color2: string, t: number): Rgba
   }
 }
 
-export type ColorFormat = "hex" | "rgba"
-
-function formatRgba(rgba: RgbaColor, format?: ColorFormat) {
-  return format === "rgba" ? rgba : colord(rgba).toHex()
-}
-function formatColorString(hex: string, format?: ColorFormat) {
-  return format === "rgba" ? colord(hex).toRgb() : hex
-}
-
-export function interpolateColors(
-  color1: string, color2: string, percentage: number, options?: { format?: "hex" }
-): string
-export function interpolateColors(
-  color1: string, color2: string, percentage: number, options: { format: "rgba" }
-): RgbaColor
-export function interpolateColors(
-  color1: string, color2: string, percentage: number, options?: { format?: ColorFormat }
-) {
-  const rgba = interpolateRgba(color1, color2, percentage)
-  return formatRgba(rgba, options?.format)
-}
-
 // Create a very light, low-saturation version of a base color. The defaults are used for default color ranges.
 export function lowColorFromBase(baseColor: string, lightness = 0.92, satScale = 0.5) {
   const c = colord(baseColor)
@@ -187,23 +175,13 @@ export function lowColorFromBase(baseColor: string, lightness = 0.92, satScale =
   return hex.toLowerCase() === "#ffffff" ? "#f7f9fb" : hex
 }
 
-// Returns `count` colors evenly interpolated between color1 and color2 (endpoints included), as hex strings
-// (the default) or, with { format: "rgba" }, as unrounded RGBA objects.
-export function getChoroplethColors(
-  color1: string, color2: string, count?: number, options?: { format?: "hex" }
-): string[]
-export function getChoroplethColors(
-  color1: string, color2: string, count: Maybe<number>, options: { format: "rgba" }
-): RgbaColor[]
-export function getChoroplethColors(
-  color1: string, color2: string, count = 5, options?: { format?: ColorFormat }
-) {
-  const format = options?.format
-  if (count <= 1) return [formatColorString(color1, format)]
+// Returns `count` hex colors evenly interpolated between color1 and color2 (endpoints included).
+export function getChoroplethColors(color1: string, color2: string, count = 5) {
+  if (count <= 1) return [color1]
 
   return Array.from({ length: count }, (_, i) =>
-    i === 0 ? formatColorString(color1, format)
-      : i === count - 1 ? formatColorString(color2, format)
-      : formatRgba(interpolateRgba(color1, color2, i / (count - 1)), format)
+    i === 0 ? color1
+      : i === count - 1 ? color2
+      : colord(interpolateRgba(color1, color2, i / (count - 1))).toHex()
   )
 }

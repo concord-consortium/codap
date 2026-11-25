@@ -53,7 +53,8 @@ every connected plugin. The exceptions:
 
 **Your own changes.** A plugin is not sent component or `dataContextChangeNotice[<context>]`
 notifications about changes it requested itself, so it never has to recognize and ignore its own
-work. Changes the user makes are sent to every plugin.
+work. Changes the user makes are sent to every plugin. The changes a request makes after it waits
+are an exception; see [Known limitations](#known-limitations).
 
 v2 followed this rule only for data changes that recorded which plugin asked for them. `update`
 on `attribute`, the `createCases` sent when items are created, the `moveCases` sent when items are
@@ -90,7 +91,12 @@ one notification:
 }
 ```
 
-Each notification currently reports one change; see [Known limitations](#known-limitations).
+As in v2, the changes made together arrive in one notification per data context: the changes from
+one of a plugin's requests, or from one change made in CODAP, such as an edit in a case table that
+regroups cases. They are listed in the order they were made, and a change made as part of
+another, such as the `createCases` behind a `createItems`, comes first. A request's notification
+is sent before the plugin that sent it gets its reply. Changes made separately arrive in separate
+notifications, with the exceptions listed under [Known limitations](#known-limitations).
 
 **Some notifications have no `operation`.** A `logMessageNotice` carries the log event itself, and
 the value notice on `global[<name>]` carries only the new value:
@@ -176,13 +182,26 @@ for it.
 | Operation | Fires when | `values` also carries |
 |---|---|---|
 | `create` | a component is created. The calculator usually sends `show` instead; see below | — |
-| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed, and a case table is when it is closed from its title bar or deleted with `delete` on `component` (in the mosaic layout, `delete` removes it). For the case table, `type` is `DG.TableView` and `title` is its data context's title, as in v2. v2 also sent `create` when that close was undone; v3 does not, see [Known limitations](#known-limitations). Closing a case card sends nothing | `name`, `title` |
+| `delete` | a component is closed or deleted. **Also sent when a component is only hidden**, as the guide is when it is closed, and a case table is when it is closed from its title bar or deleted with `delete` on `component` (in the mosaic layout, `delete` removes it). For the case table, `type` is `DG.TableView` and `title` is its data context's title, as in v2. Closing a case card sends nothing | `name`, `title` |
 | `titleChange` | a component is renamed. Sent on `component[<id>]` rather than `component` | `from`, `to` |
 | `hide`, `show` | the calculator is closed, or toggled from the tool shelf | — |
 | `move`, `resize` | a component is moved or resized | — |
 | `update` | a component's properties are changed through the API. Echoes the values from the request | _not readable from the code_ |
 | `toggle minimize component` | a component is minimized or restored | — |
 <!-- END GENERATED: notifications-component-lifecycle -->
+
+**Undoing or redoing a component change sends its notice.** Undoing a component's creation sends
+`delete`, undoing its close or its `delete` sends `create`, and undoing the calculator being shown
+or hidden sends the opposite; redoing sends the original notice again. Undoing a case table's close
+sends `create` with the same `type` (`DG.TableView`) and `title` as the close; undoing a case card's
+close from its title bar sends nothing, as the close does. These follow the
+`undo` or `redo` notice on [`document`](#document-state--document), which CODAP always sends. v2
+sent the component notice in place of the document's when undoing a component's creation or the
+calculator being shown or hidden. When undoing a close, it sent only the document's, except for a
+case table closed from its close box, which v2 hid rather than closed, so it sent `create` and then
+the document's. On redo it always sent the document's, after sending `delete` again when redoing a
+close, except for a case card closed from its close box. Creating a component from the Plugins
+menu, or a web page from its URL, sends no `create`, so undoing it sends nothing either.
 
 ### Graph
 
@@ -238,6 +257,11 @@ the user's language:
 | Right categorical axis, once the graph is split | `right` | `Remove Vertical Layout by <name>` |
 | Legend, from its menu | `none` | `Remove Legend: <name>` |
 
+When the change is a **Treat as** item in an axis's or the legend's menu, `attributeName` is that
+item's title, `Treat as Categorical` or `Treat as Numeric`, in the user's language, as in v2.
+`Treat as Date`, for an attribute that holds dates, is new in v3, and so is the item on the right
+numeric axis, whose menu had none in v2.
+
 ### Axis
 
 <!-- BEGIN GENERATED: notifications-component-axis -->
@@ -261,14 +285,14 @@ the user's language:
 |---|---|---|
 | `change base map` | the base map changes | `to` |
 | `change grid size` | the user releases the grid-size slider. It does not fire during the drag | `from`, `to` |
-| `change map coordinates` | the map settles after the user pans or zooms it, or rescales it from the inspector | `center`, `zoom` |
+| `change map coordinates` | the map settles after the user pans or zooms it, rescales it from the inspector, or a plugin sends `autoScale` | `center`, `zoom` |
 | `hide selected cases`, `hide unselected cases`, `show all cases` | case visibility changes on a map | `hide selected cases`: `numberHidden`; `hide unselected cases`: `numberHidden`; `show all cases`: — |
 <!-- END GENERATED: notifications-component-map -->
 
 Dropping an attribute on a map or its legend sends `legendAttributeChange`, as on a graph (see
-[Graph](#graph)), with `type` `DG.MapModel`, as in v2. Changing or removing the legend attribute
-from the legend's menu sends `attributeChange` with `axisOrientation` `none`, as on a graph. Its
-`type` is `DG.GraphView`, as v2 sent it for maps too.
+[Graph](#graph)), with `type` `DG.MapModel`, as in v2. Changing or removing the legend attribute,
+or choosing a **Treat as** item, from the legend's menu sends `attributeChange` with
+`axisOrientation` `none`, as on a graph. Its `type` is `DG.GraphView`, as v2 sent it for maps too.
 
 ### Case table and case card
 
@@ -313,7 +337,7 @@ Shared by graphs and maps.
 | `change legend bins type` | a numeric legend switches between linear and quantile binning | `binningType` |
 | `change legend range` | a numeric legend's min or max is edited | `max`, `min` |
 | `swap categories` | the user finishes dragging a category label to reorder it | `place` |
-| `attributeChange` | on a graph, an attribute is placed on, replaced on, or removed from an axis, by dropping it or from an axis label's menu, including when an attribute dropped on the plot area of a graph with no attributes goes to the x axis. On a graph or a map, the legend attribute is changed or removed from the legend's menu. See [Graph](#graph) for `axisOrientation` | `attributeId`, `attributeName`, `axisOrientation`, … |
+| `attributeChange` | on a graph, an attribute is placed on, replaced on, or removed from an axis, by dropping it or from an axis label's menu, including when an attribute dropped on the plot area of a graph with no attributes goes to the x axis. On a graph or a map, the legend attribute is changed or removed from the legend's menu. An axis's or the legend's **Treat as** item sends it too. See [Graph](#graph) for `axisOrientation` | `attributeId`, `attributeName`, `axisOrientation`, … |
 <!-- END GENERATED: notifications-component-data-display -->
 
 A legend whose attribute holds colors uses those colors directly, so it has no color control and
@@ -342,14 +366,23 @@ Sent while a user drags an attribute, so a plugin can offer a drop target or rea
 |---|---|---|
 | `undoAction` | the user undoes an action your plugin reported as undoable | — |
 | `redoAction` | the user redoes an action your plugin reported as undoable | — |
-| `clearRedo` | an action is added to the history, even when there was nothing to redo. Sent to every plugin and the host page. Undoing or redoing sends `undo` or `redo` on `document` instead | `canRedo`, `canUndo` |
+| `clearRedo` | an action is added to the history, even when there was nothing to redo; or a change that can't be undone, such as most plugin requests, erases what could be redone (see below for those that don't). A burst of such changes sends one. Sent to every plugin and the host page. Undoing or redoing sends `undo` or `redo` on `document` instead | `canRedo`, `canUndo` |
 | `clearUndo` | the undo history is erased, after an `update document` just before `updateDocumentEnded`. Sent to every plugin and the host page, followed by `clearRedo` | `canRedo`, `canUndo` |
 <!-- END GENERATED: notifications-undo -->
 
-v2 sent `clearUndo`, with `clearRedo`, when the undo history was erased, which happened whenever
-a change could not be undone and after an `update document`. CODAP erases it after an
-`update document`, just before `updateDocumentEnded`, as v2 did. It keeps the history after a
-change that cannot be undone, so it does not send `clearUndo` for that. v2 sent both to plugins
+v2 sent `clearUndo`, with `clearRedo`, when the undo history was erased, which happened after most
+changes that could not be undone and after an `update document`. CODAP erases it after an `update
+document`, just before `updateDocumentEnded`, as v2 did. It keeps the undo history after a change
+that cannot be undone, so it does not send `clearUndo` for that. Such a change does erase what could
+be redone, and CODAP sends `clearRedo` when there was something to erase; v2 sent it for every such
+change. As in v2, a plugin's requests to update, move or delete items, to create or delete cases, to
+set cases aside or restore them, or to update its `interactiveFrame` don't erase it; creating items
+does. Nor do `update` on a `global` to its current value, an update to cases that sets no attribute
+that exists, or a plugin's requests while it answers `undoAction` or `redoAction` for an action it
+reported, so the user can still redo that action. Unlike v2, `create` and `update` on `global` and
+`update` on `component` erase it: v2 left its history alone for them, except for a map's `center`
+or `zoom`, which could record an undoable map change. See the
+[undo guide](guides/undo-and-redo.md#what-the-history-holds). v2 sent both notices to plugins
 only; CODAP also sends them to the host page when it is embedded in one.
 
 **`undoAction` and `redoAction` answer your own reports.** CODAP cannot undo a change inside your
@@ -369,7 +402,7 @@ CODAP adds an entry to its undo history. When the user undoes or redoes that ent
 | Operation | Fires when | `values` carries |
 |---|---|---|
 | `newDocumentState` | CODAP has assembled the document, in reply to a `get document` | `state` |
-| `undo`, `redo` | the user, or a plugin's `undoButtonPress` or `redoButtonPress`, undoes or redoes anything. Sent to every plugin, not only subscribers. v2 sent them only for changes that had no notification of their own; CODAP has no such changes yet, so it always sends them. `canUndo` and `canRedo` are new in v3 | `canRedo`, `canUndo` |
+| `undo`, `redo` | the user, or a plugin's `undoButtonPress` or `redoButtonPress`, undoes or redoes anything. Sent to every plugin, not only subscribers. When the change has a notification of its own, such as a component's `create` or `delete`, that follows; when undoing a component's creation or the calculator's show or hide, v2 sent only the change's own (see [Lifecycle](#lifecycle)). `canUndo` and `canRedo` are new in v3 | `canRedo`, `canUndo` |
 <!-- END GENERATED: notifications-document -->
 
 `newDocumentState` is opt-in: only plugins whose `subscribeToDocuments` is `true` receive it, and
@@ -410,11 +443,15 @@ name alongside the old one and go through [deprecation](conventions.md#deprecate
 
 ## Known limitations
 
-**Data changes arrive one at a time.** v2 collected the changes made together and sent one
-`dataContextChangeNotice[<context>]` whose `values` array holds all of them. CODAP sends one
-notification per change, each with a `values` array of one. A plugin that iterates over `values`
-sees the same changes, but across several notifications rather than one. This is a known bug; the
-intended behavior is v2's.
+**Notifications don't mark request boundaries exactly.** Each request in an array gets its own
+notification for each data context, where v2 sent one for the whole message. Either way, a plugin
+that iterates over `values` sees the same changes in the same order. A request that waits partway
+through, for a download say, sends the changes it makes after the wait separately, and to every
+plugin, itself included. Create requests on `item` that a plugin sends in quick succession may be
+[applied together](guides/request-processing.md#sending-many-cases), and then other plugins get
+one notification for several of them, with one `createCases` for each collection that got new
+cases and one `createItems`, covering them all. Read the ids these carry rather than counting
+notifications or changes.
 
 **Formula recalculation rarely sends `dependentCases`.** v2 sent `dependentCases` for formula
 attributes whose values had to be recalculated:
@@ -433,14 +470,8 @@ undone. v3 sends no notification when that move is undone. This is a known bug; 
 behavior is v2's.
 
 **Some map moves send no `change map coordinates`.** v3 does not notify plugins when a plugin sets
-a map's center or zoom with `update component`, when a plugin rescales it with `notify component`
-and `request: "autoScale"`, or when the map rescales itself because its layers changed. v2 sent it
-when a plugin set the center or zoom. This is a known bug.
-
-**Undo and redo send no component notifications.** v2 sent one for many component changes: undoing
-the creation of a component sent `delete`, undoing the calculator being shown or hidden sent the
-opposite, and undoing or redoing a case table close sent `create` or `delete`. v3 sends no
-component notification on undo or redo. This is a known bug.
+a map's center or zoom with `update component`, or when the map rescales itself because its
+layers changed. v2 sent it when a plugin set the center or zoom. This is a known bug.
 
 **`delete` on `component` hides a case table rather than deleting it.** v2 deleted the table, as it
 did any component a plugin deleted (`close-component.js`), and undoing that brought it back. v3
@@ -452,11 +483,6 @@ the `Create <X> component` events among them. A plugin that registered a `logMes
 matches on `formatStr` sees different strings from the ones v2 emitted, and adornment toggles in
 particular collapsed to a generic `Added <x>` / `Removed <x>` where v2 named each adornment. This
 is a known bug; the intended behavior is that the tokens match v2's.
-
-**"Treat as Categorical" and "Treat as Numeric" send no notification.** v2 sent `attributeChange`
-for every attribute-menu item, so choosing either one on an axis or a legend sent `attributeChange`
-with `attributeName` `Treat as Categorical` or `Treat as Numeric`. v3 sends nothing. This is a known
-bug.
 
 **The drop that first splits a graph sends `attributeChange` with `top` or `right`.** v2 showed
 the top and right axes only once the graph was split, so that drop landed on another target: near

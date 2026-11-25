@@ -20,7 +20,7 @@ import { IDataDisplayLayerModel } from "../../data-display/models/data-display-l
 import {kMapModelName, kMapTileType} from "../map-defs"
 import { changeMapCoordinatesNotification } from "../map-notifications"
 import {ILatLngSnapshot, LatLngModel} from "../map-model-types"
-import {BaseMapKey, BaseMapKeys, kMapBoundsExtensionFactor} from "../map-types"
+import {BaseMapKey, BaseMapKeys, kMapBoundsExtensionFactor, logStringifiedMapMessage} from "../map-types"
 import { DataSetMapAttributes } from "../utilities/data-set-map-attributes"
 import {
   collectPolygonVertexLngs, computeBoundsFromCoordinates, expandLatLngBounds, wrapBoundsToCanonicalCenter
@@ -264,10 +264,16 @@ export const MapContentModel = DataDisplayContentModel
       const bounds = self.latLongBounds
       if (bounds) {
         const expanded = wrapBoundsToCanonicalCenter(expandLatLngBounds(bounds, kMapBoundsExtensionFactor))
+        const isUndoable = !!undoStringKey && !!redoStringKey
         self.leafletMapState.adjustMapView({
           fitBounds: expanded,
-          animate: !!undoStringKey && !!redoStringKey,
-          undoStringKey, redoStringKey
+          animate: isUndoable,
+          undoStringKey, redoStringKey,
+          // logged as V2 logged its map.fitBounds (map_view.js:565)
+          log: isUndoable
+            ? () => logStringifiedMapMessage("mapEvent: fitBounds at %@",
+                                            { center: self.leafletMapState.center, zoom: self.leafletMapState.zoom })
+            : undefined
         })
       }
     },

@@ -239,7 +239,8 @@ describe("moving a case with notify caseByID", () => {
 
   const kSeeds = 400
   it(`keeps every promise for ${kSeeds} random hierarchies and moves`, () => {
-    let moved = 0, inPlace = 0, refused = 0, checkedRefusals = 0
+    let moved = 0, inPlace = 0, refused = 0
+    // let checkedRefusals = 0
     for (let seed = 1; seed <= kSeeds; ++seed) {
       const rand = random(seed)
       const levels = 1 + Math.floor(rand.next() * 4)
@@ -293,7 +294,7 @@ describe("moving a case with notify caseByID", () => {
         .toEqual({ context, possible: false })
       if (!isMoved) {
         ++refused
-        if (canCheck) ++checkedRefusals
+        // if (canCheck) ++checkedRefusals
         continue
       }
       if (isInPlace) ++inPlace
@@ -312,8 +313,8 @@ describe("moving a case with notify caseByID", () => {
       expect({ context, items: withoutAncestors(caseItemOrders(dataSet)) })
         .toEqual({ context, items: withoutAncestors(caseItemsBefore) })
     }
-    console.log(`case-move property test: ${moved} moved, ${inPlace} already in place, ` +
-                `${refused} refused (${checkedRefusals} proven impossible by trying every order)`)
+    // console.log(`case-move property test: ${moved} moved, ${inPlace} already in place, ` +
+    //            `${refused} refused (${checkedRefusals} proven impossible by trying every order)`)
     // each kind of outcome is exercised, and few moves are refused
     expect(moved).toBeGreaterThan(kSeeds / 2)
     expect(inPlace).toBeGreaterThan(0)
@@ -353,7 +354,7 @@ describe("moving a case with notify caseByID", () => {
       expect({ seed, unchanged: isRefused && Array.from(dataSet._itemIds).join() === itemIdsBefore.join() })
         .toEqual({ seed, unchanged: isRefused })
     }
-    console.log(`case-move refusals: ${refused} refused, each proven impossible by trying every order`)
+    // console.log(`case-move refusals: ${refused} refused, each proven impossible by trying every order`)
     expect(refused).toBeGreaterThan(0)
   })
 
@@ -366,7 +367,7 @@ describe("moving a case with notify caseByID", () => {
     const start = performance.now()
     const result = moveByValues(dataSet, "A0/B1", "last")
     const elapsed = performance.now() - start
-    console.log(`case-move timing: refusing a move among 2,004 items took ${Math.round(elapsed)} ms`)
+    // console.log(`case-move timing: refusing a move among 2,004 items took ${Math.round(elapsed)} ms`)
     expect(result?.success).toBe(false)
     // trying every place took seconds here; trying only sibling boundaries takes tens of milliseconds
     expect(elapsed).toBeLessThan(3000)
@@ -377,9 +378,9 @@ describe("moving a case with notify caseByID", () => {
       values: [`P${i % 50}`, `${i % 7}`, `${i}`], setAside: i % 13 === 0, filteredOut: i % 17 === 0
     }))
     const dataSet = createDataSet(3, testItems)
-    const start = performance.now()
+    // const start = performance.now()
     expect(moveByValues(dataSet, "P49/6", "first")?.success).toBe(true)
     expect(moveByValues(dataSet, "P3", "last")?.success).toBe(true)
-    console.log(`case-move timing: two moves among 5,000 items took ${Math.round(performance.now() - start)} ms`)
+    // console.log(`case-move timing: two moves among 5,000 items took ${Math.round(performance.now() - start)} ms`)
   })
 })

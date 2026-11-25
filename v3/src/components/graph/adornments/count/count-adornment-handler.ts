@@ -10,8 +10,10 @@ import { percentString } from "../../utilities/graph-utils"
 import { IAdornmentModel } from "../adornment-models"
 import { getAdornmentContentInfo } from "../adornment-content-info"
 import { IAdornmentsBaseStore } from "../store/adornments-base-store"
-import { AdornmentData, adornmentMismatchResult, cellKeyToCategories } from "../utilities/adornment-handler-utils"
-import { ICountAdornmentModel, isCountAdornment } from "./count-adornment-model"
+import {
+  AdornmentData, adornmentMismatchResult, cellKeyToCategories, optionValuesError
+} from "../utilities/adornment-handler-utils"
+import { ICountAdornmentModel, isCountAdornment, PercentTypes } from "./count-adornment-model"
 import { kCountType, kPercentType } from "./count-adornment-types"
 
 const isPercentSupported = (graphContent: IGraphContentModel) => {
@@ -23,6 +25,8 @@ const isPercentSupported = (graphContent: IGraphContentModel) => {
 }
 
 export const countAdornmentHandler: DIAdornmentHandler = {
+  validate: values => optionValuesError(values, ["percentType"], PercentTypes),
+
   create(args) {
     const { graphContent, values } = args
     const adornmentsStore = graphContent.adornmentsStore as IAdornmentsBaseStore

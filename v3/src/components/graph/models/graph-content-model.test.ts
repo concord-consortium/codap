@@ -3,6 +3,7 @@ import { applySnapshot, getSnapshot, Instance } from "mobx-state-tree"
 import { diComponentHandler } from "../../../data-interactive/handlers/component-handler"
 import { DIComponentInfo } from "../../../data-interactive/data-interactive-types"
 import { appState } from "../../../models/app-state"
+import { DataSet } from "../../../models/data/data-set"
 import { TreeManager } from "../../../models/history/tree-manager"
 import { setupTestDataset, testCases } from "../../../test/dataset-test-utils"
 import { toV3Id } from "../../../utilities/codap-utils"
@@ -543,4 +544,18 @@ describe("GraphContentModel", () => {
     })
   })
 
+  describe("caseTipText with date attributes", () => {
+    it("formats date values with the attribute's precision the way the case table does", () => {
+      const dataset = DataSet.create({ name: "dates" })
+      dataset.addAttribute({ id: "aDay", name: "day", userType: "date", precision: "day" })
+      dataset.addAttribute({ id: "aMonth", name: "month", userType: "date", precision: "month" })
+      // "5/2024" only parses in loose mode, so day precision shows whether it was parsed
+      dataset.addAttribute({ id: "aLoose", name: "loose", userType: "date", precision: "day" })
+      dataset.addAttribute({ id: "aBad", name: "bad", userType: "date", precision: "day" })
+      dataset.addCases([{ __id__: "c1", aDay: "2024-05-01", aMonth: "5/2024", aLoose: "5/2024", aBad: "abc" }])
+      const graphModel = GraphContentModel.create({})
+      expect(graphModel.caseTipText(["aDay", "aMonth", "aLoose", "aBad"], "c1", dataset))
+        .toBe("day: 5/1/2024<br>month: 5/2024<br>loose: 5/1/2024<br>bad: abc")
+    })
+  })
 })
