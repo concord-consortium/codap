@@ -16,6 +16,7 @@ import {
 } from "./formula-observers"
 import { canonicalToDisplay, displayToCanonical, preprocessDisplayFormula } from "./utils/canonicalization-utils"
 import { getFormulaDependencies } from "./utils/formula-dependency-utils"
+import type { IAffectedFormula } from "./utils/hierarchy-change-utils"
 import { formulaError, isRandomFunctionPresent } from "./utils/misc"
 import { getCanonicalNameMap, getDisplayNameMap } from "./utils/name-mapping-utils"
 
@@ -141,21 +142,25 @@ export class FormulaManager implements IFormulaManager {
       // After evaluating, recalculate any downstream formulas that depend on this formula's
       // output attribute. This replaces the reactive onAnyAction cascade for formula-to-formula
       // dependencies, using the static dependency graph instead of MST action dispatch.
-      const { attributeId, dataSetId } = extraMetadata
-      if (attributeId) {
-        this.recalculateDownstreamFormulas(dataSetId, attributeId)
-      }
+      this.recalculateDownstreamFormulas(formulaId)
     } finally {
       this.recalculatingFormulas.delete(formulaId)
     }
   }
 
-  // Find and recalculate all formulas that depend on the given attribute, either as a local
-  // attribute dependency (same dataset) or a lookup dependency (cross-dataset).
-  recalculateDownstreamFormulas(sourceDataSetId: string, sourceAttributeId: string) {
-    this.formulaMetadata.forEach((metadata, formulaId) => {
-      if (!metadata.isInitialized) return
-      const extraMetadata = this.extraMetadata.get(formulaId)
+  // Returns the initialized formulas that depend directly on the given formula's output attribute, either
+  // as a local attribute dependency (same dataset) or a lookup dependency (cross-dataset). When `forOrdering`
+  // is true, edges that exist only inside prev() (selfReferenceAllowed) are ignored, as cycle detection does.
+  getDirectDownstreamFormulaIds(formulaId: string, forOrdering = false): string[] {
+    const sourceMetadata = this.extraMetadata.get(formulaId)
+    const sourceDataSetId = sourceMetadata?.dataSetId
+    const sourceAttributeId = sourceMetadata?.attributeId
+    if (!sourceDataSetId || !sourceAttributeId) return []
+
+    const result: string[] = []
+    this.formulaMetadata.forEach((metadata, otherFormulaId) => {
+      if (otherFormulaId === formulaId || !metadata.isInitialized) return
+      const extraMetadata = this.extraMetadata.get(otherFormulaId)
       if (!extraMetadata) return
       // Skip if this formula computes the same attribute (avoid self-triggering)
       if (extraMetadata.dataSetId === sourceDataSetId && extraMetadata.attributeId === sourceAttributeId) return
@@ -168,17 +173,84 @@ export class FormulaManager implements IFormulaManager {
 
       const isDependent = dependencies.some(dep => {
         if (dep.type === "localAttribute" && extraMetadata.dataSetId === sourceDataSetId) {
-          return dep.attrId === sourceAttributeId
+          return dep.attrId === sourceAttributeId && !(forOrdering && dep.selfReferenceAllowed)
         }
         if (dep.type === "lookup" && dep.dataSetId === sourceDataSetId) {
           return dep.attrId === sourceAttributeId || dep.otherAttrId === sourceAttributeId
         }
         return false
       })
+      if (isDependent) result.push(otherFormulaId)
+    })
+    return result
+  }
 
-      if (isDependent) {
-        // Recalculate this downstream formula (which will recursively handle its own downstream)
-        this.recalculateFormula(formulaId, "ALL_CASES")
+  // Recalculate all formulas that depend on the given formula's output attribute.
+  recalculateDownstreamFormulas(formulaId: string) {
+    this.getDirectDownstreamFormulaIds(formulaId).forEach(downstreamId => {
+      // Recalculate this downstream formula (which will recursively handle its own downstream)
+      this.recalculateFormula(downstreamId, "ALL_CASES")
+    })
+  }
+
+  // Recalculates the affected formulas and everything downstream of them, each exactly once and in
+  // dependency order. Formulas added only because they are downstream recalculate all cases.
+  recalculateFormulasInOrder(affected: IAffectedFormula[]) {
+    // Build the closure of the affected formulas and their transitive downstream formulas.
+    const closure = new Map<string, IAffectedFormula>()
+    affected.forEach(entry => {
+      if (!closure.has(entry.formulaId)) closure.set(entry.formulaId, entry)
+    })
+    const queue = Array.from(closure.keys())
+    for (let i = 0; i < queue.length; ++i) {
+      this.getDirectDownstreamFormulaIds(queue[i]).forEach(downstreamId => {
+        if (!closure.has(downstreamId)) {
+          closure.set(downstreamId, { formulaId: downstreamId, cases: "ALL_CASES", forceWrite: false })
+          queue.push(downstreamId)
+        }
+      })
+    }
+
+    // Sort topologically (Kahn's algorithm), ignoring prev()-only edges.
+    const edges = new Map<string, string[]>()
+    const inDegree = new Map<string, number>()
+    closure.forEach((_, id) => inDegree.set(id, 0))
+    closure.forEach((_, id) => {
+      const downstream = this.getDirectDownstreamFormulaIds(id, true).filter(downId => closure.has(downId))
+      edges.set(id, downstream)
+      downstream.forEach(downId => inDegree.set(downId, (inDegree.get(downId) ?? 0) + 1))
+    })
+    const sorted: string[] = []
+    const ready = Array.from(closure.keys()).filter(id => inDegree.get(id) === 0)
+    for (let i = 0; i < ready.length; ++i) {
+      const id = ready[i]
+      sorted.push(id)
+      edges.get(id)?.forEach(downId => {
+        const degree = (inDegree.get(downId) ?? 0) - 1
+        inDegree.set(downId, degree)
+        if (degree === 0) ready.push(downId)
+      })
+    }
+    // Any formulas left are in a cycle; recalculate them in insertion order.
+    if (sorted.length < closure.size) {
+      const sortedSet = new Set(sorted)
+      closure.forEach((_, id) => { if (!sortedSet.has(id)) sorted.push(id) })
+    }
+
+    // Recalculate each formula once, without the per-formula downstream cascade.
+    sorted.forEach(formulaId => {
+      if (this.recalculatingFormulas.has(formulaId)) return
+      const formulaMetadata = this.formulaMetadata.get(formulaId)
+      if (!formulaMetadata?.isInitialized) return
+      const { cases, forceWrite } = closure.get(formulaId)!
+      const formulaContext = this.getFormulaContext(formulaId)
+      const extraMetadata = this.getExtraMetadata(formulaId)
+      const casesToRecalculate = cases === "ALL_CASES" ? cases : cases.map(__id__ => ({ __id__ }))
+      this.recalculatingFormulas.add(formulaId)
+      try {
+        formulaContext.adapter.recalculateFormula(formulaContext, extraMetadata, casesToRecalculate, { forceWrite })
+      } finally {
+        this.recalculatingFormulas.delete(formulaId)
       }
     })
   }

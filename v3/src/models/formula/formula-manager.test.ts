@@ -324,6 +324,147 @@ describe("FormulaManager", () => {
     })
   })
 
+  describe("recalculateFormulasInOrder", () => {
+    const formulaIdOf = (dataSet: IDataSet, name: string) => dataSet.attrFromName(name)!.formula!.id
+
+    it("recalculates a diamond once each in dependency order", () => {
+      const formulaManager = new FormulaManager()
+      const dataSet = createDataSet({
+        attributes: [
+          { name: "a" },
+          { name: "b", formula: { display: "a + 1" } },
+          { name: "c", formula: { display: "a * 2" } },
+          { name: "d", formula: { display: "b + c" } }
+        ]
+      }, { formulaManager })
+      dataSet.addCases([{ __id__: "c1" }])
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
+
+      const aId = dataSet.attrFromName("a")!.id
+      const dId = dataSet.attrFromName("d")!.id
+      dataSet.setCaseValues([{ __id__: "c1", [aId]: 3 }])
+      // make d's stored value stale so that only the batch can fix it
+      dataSet.setCaseValues([{ __id__: "c1", [dId]: 0 }])
+
+      const spy = jest.spyOn(adapter, "recalculateFormula")
+      formulaManager.recalculateFormulasInOrder([
+        { formulaId: formulaIdOf(dataSet, "b"), cases: "ALL_CASES", forceWrite: false },
+        { formulaId: formulaIdOf(dataSet, "c"), cases: "ALL_CASES", forceWrite: false }
+      ])
+      const order = spy.mock.calls.map(([ctx]) => ctx.formula.id)
+      spy.mockRestore()
+
+      const bFormulaId = formulaIdOf(dataSet, "b")
+      const cFormulaId = formulaIdOf(dataSet, "c")
+      const dFormulaId = formulaIdOf(dataSet, "d")
+      expect(order.filter(id => id === dFormulaId).length).toBe(1)
+      expect(order.filter(id => id === bFormulaId).length).toBe(1)
+      expect(order.filter(id => id === cFormulaId).length).toBe(1)
+      expect(order.indexOf(dFormulaId)).toBeGreaterThan(order.indexOf(bFormulaId))
+      expect(order.indexOf(dFormulaId)).toBeGreaterThan(order.indexOf(cFormulaId))
+      // b = 4, c = 6
+      expect(dataSet.getNumeric("c1", dId)).toBe(10)
+    })
+
+    it("passes case scope and forceWrite through to the adapter", () => {
+      const formulaManager = new FormulaManager()
+      const dataSet = createDataSet({
+        attributes: [
+          { name: "a" },
+          { name: "b", formula: { display: "a + 1" } },
+          { name: "c", formula: { display: "b + 1" } }
+        ]
+      }, { formulaManager })
+      dataSet.addCases([{ __id__: "c1" }, { __id__: "c2" }])
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
+
+      const bFormulaId = formulaIdOf(dataSet, "b")
+      const cFormulaId = formulaIdOf(dataSet, "c")
+      const spy = jest.spyOn(adapter, "recalculateFormula")
+      formulaManager.recalculateFormulasInOrder([{ formulaId: bFormulaId, cases: ["c2"], forceWrite: true }])
+      const calls = spy.mock.calls.map(([ctx, , cases, options]) => ({ id: ctx.formula.id, cases, options }))
+      spy.mockRestore()
+
+      expect(calls).toEqual([
+        { id: bFormulaId, cases: [{ __id__: "c2" }], options: { forceWrite: true } },
+        // added only as a downstream formula
+        { id: cFormulaId, cases: "ALL_CASES", options: { forceWrite: false } }
+      ])
+    })
+
+    it("skips uninitialized formulas", () => {
+      const formulaManager = new FormulaManager()
+      const dataSet = createDataSet({
+        attributes: [
+          { name: "a" },
+          { name: "bad", formula: { display: "a +* 1" } },
+          { name: "b", formula: { display: "a + 1" } }
+        ]
+      }, { formulaManager })
+      dataSet.addCases([{ __id__: "c1" }])
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
+
+      const aId = dataSet.attrFromName("a")!.id
+      const bId = dataSet.attrFromName("b")!.id
+      dataSet.setCaseValues([{ __id__: "c1", [aId]: 3 }])
+      dataSet.setCaseValues([{ __id__: "c1", [bId]: 0 }])
+
+      const badFormulaId = formulaIdOf(dataSet, "bad")
+      expect(formulaManager.getFormulaMetadata(badFormulaId).isInitialized).toBe(false)
+      const spy = jest.spyOn(adapter, "recalculateFormula")
+      expect(() => formulaManager.recalculateFormulasInOrder([
+        { formulaId: badFormulaId, cases: "ALL_CASES", forceWrite: false },
+        { formulaId: formulaIdOf(dataSet, "b"), cases: "ALL_CASES", forceWrite: false }
+      ])).not.toThrow()
+      const recalculated = spy.mock.calls.map(([ctx]) => ctx.formula.id)
+      spy.mockRestore()
+
+      expect(recalculated).toEqual([formulaIdOf(dataSet, "b")])
+      expect(dataSet.getNumeric("c1", bId)).toBe(4)
+    })
+
+    it("includes lookup dependents in other data sets", () => {
+      const formulaManager = new FormulaManager()
+      const dataSetA = createDataSet({
+        name: "A",
+        attributes: [{ name: "v", formula: { display: "1" } }]
+      }, { formulaManager })
+      dataSetA.addCases([{ __id__: "a1" }])
+      const dataSetB = createDataSet({
+        name: "B",
+        attributes: [{ name: "w", formula: { display: `lookupByIndex("A", "v", 1)` } }]
+      }, { formulaManager })
+      dataSetB.addCases([{ __id__: "b1" }])
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSetA)
+      formulaManager.addDataSet(dataSetB)
+      formulaManager.addAdapters([adapter])
+
+      const wId = dataSetB.attrFromName("w")!.id
+      expect(dataSetB.getNumeric("b1", wId)).toBe(1)
+
+      dataSetA.attrFromName("v")!.setDisplayExpression("2")
+      // make w's stored value stale so that only the batch can fix it
+      dataSetB.setCaseValues([{ __id__: "b1", [wId]: 0 }])
+
+      const spy = jest.spyOn(adapter, "recalculateFormula")
+      formulaManager.recalculateFormulasInOrder([
+        { formulaId: formulaIdOf(dataSetA, "v"), cases: "ALL_CASES", forceWrite: false }
+      ])
+      const recalculated = spy.mock.calls.map(([ctx]) => ctx.formula.id)
+      spy.mockRestore()
+
+      expect(recalculated).toEqual([formulaIdOf(dataSetA, "v"), formulaIdOf(dataSetB, "w")])
+      expect(dataSetB.getNumeric("b1", wId)).toBe(2)
+    })
+  })
+
   describe("getAdapterApi", () => {
     it("should return functional adapter api", () => {
       const { manager, adapter, formula, dataSet } = getManagerWithFakeAdapter()
