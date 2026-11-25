@@ -6,10 +6,9 @@ import { isFormulaAttr, isValidFormulaAttr } from "../data/attribute"
 import { CaseInfo, ICase, IGroupedCase, symParent } from "../data/data-set-types"
 import { IFormula } from "./formula"
 import { registerFormulaAdapter } from "./formula-adapter-registry"
-import { IFormulaContext, IFormulaExtraMetadata, CaseList, IRecalculateOptions } from "./formula-manager-types"
+import { IFormulaContext, IFormulaExtraMetadata, IRecalculateOptions } from "./formula-manager-types"
 import { IFormulaAdapterApi, FormulaManagerAdapter } from "./formula-manager-adapter"
 import { FormulaMathJsScope, NO_PARENT_KEY } from "./formula-mathjs-scope"
-import { observeDatasetHierarchyChanges } from "./formula-observers"
 import { FValue, ILocalAttributeDependency, ILookupDependency } from "./formula-types"
 import { UNDEF_RESULT } from "./functions/function-utils"
 import { math } from "./functions/math"
@@ -270,13 +269,6 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
       __id__: c.__id__,
       [attributeId]: errorMsg
     })), [attributeId])
-  }
-
-  setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IAttrFormulaExtraMetadata) {
-    const { dataSet } = formulaContext
-    return observeDatasetHierarchyChanges(dataSet, (casesToRecalculate?: CaseList) => {
-      this.recalculateFormula(formulaContext, extraMetadata, casesToRecalculate)
-    })
   }
 
   getFormulaError(formulaContext: IFormulaContext, extraMetadata: IAttrFormulaExtraMetadata) {

@@ -15,8 +15,12 @@ import {
   observeBoundaries, observeGlobalValues, observeLocalAttributes, observeLookupDependencies, observeSymbolNameChanges
 } from "./formula-observers"
 import { canonicalToDisplay, displayToCanonical, preprocessDisplayFormula } from "./utils/canonicalization-utils"
-import { getFormulaDependencies } from "./utils/formula-dependency-utils"
-import type { IAffectedFormula } from "./utils/hierarchy-change-utils"
+import {
+  getFormulaDependencies, hasAggregateFunction, isOrderSensitiveFormula
+} from "./utils/formula-dependency-utils"
+import {
+  getAffectedFormulas, getHierarchySnapshot, getHierarchyStructureKey, IAffectedFormula, IHierarchyFormulaInfo
+} from "./utils/hierarchy-change-utils"
 import { formulaError, isRandomFunctionPresent } from "./utils/misc"
 import { getCanonicalNameMap, getDisplayNameMap } from "./utils/name-mapping-utils"
 
@@ -25,6 +29,8 @@ export class FormulaManager implements IFormulaManager {
   extraMetadata = new Map<string, IFormulaExtraMetadata>()
 
   @observable.shallow dataSets = new Map<string, IDataSet>()
+  // disposers for the per-data-set hierarchy change reactions
+  hierarchyDisposers = new Map<string, () => void>()
 
   boundaryManager?: BoundaryManager
   globalValueManager?: IGlobalValueManager
@@ -69,6 +75,7 @@ export class FormulaManager implements IFormulaManager {
     // redundant disposer, so treat a repeat registration as a no-op.
     if (this.dataSets.has(dataSet.id)) return
     this.dataSets.set(dataSet.id, dataSet)
+    this.hierarchyDisposers.set(dataSet.id, this.observeHierarchyChanges(dataSet))
     // remove the DataSet if it is destroyed
     addDisposer(dataSet, () => this.removeDataSet(dataSet.id))
   }
@@ -83,7 +90,66 @@ export class FormulaManager implements IFormulaManager {
     })
     formulasToUnregister.forEach(formulaId => this.unregisterFormula(formulaId))
 
+    this.hierarchyDisposers.get(dataSetId)?.()
+    this.hierarchyDisposers.delete(dataSetId)
     this.dataSets.delete(dataSetId)
+  }
+
+  // Recalculates only the attribute formulas affected when collections are added or removed or attributes move
+  // between collections. Changes are always measured against the stored snapshot rather than the reaction's
+  // previous value, so the result doesn't depend on which reaction validates the cases first.
+  observeHierarchyChanges(dataSet: IDataSet) {
+    let lastSnapshot = getHierarchySnapshot(dataSet)
+    let lastStructureKey = getHierarchyStructureKey(lastSnapshot)
+    return reaction(
+      () => ({
+        structure: getHierarchyStructureKey(dataSet.collections.map(collection => ({
+          id: collection.id,
+          attrIds: collection.attributes.filter(attr => !!attr).map(attr => attr.id),
+          caseIds: []
+        }))),
+        // observing the hashes does not force validation
+        hashes: dataSet.collections.map(collection => collection.caseIdsOrderedHash)
+      }),
+      ({ structure }) => {
+        if (structure === lastStructureKey) {
+          // Cases regrouped because values changed, which the formulas' own observers handle.
+          lastSnapshot = getHierarchySnapshot(dataSet)
+          return
+        }
+        // Undo/redo can change the structure without invalidating the cases, so regroup explicitly.
+        dataSet.invalidateCases()
+        dataSet.validateCases()
+        const after = getHierarchySnapshot(dataSet)
+        const affected = getAffectedFormulas(lastSnapshot, after, this.getHierarchyFormulaInfos(dataSet.id))
+        lastSnapshot = after
+        lastStructureKey = getHierarchyStructureKey(after)
+        this.recalculateFormulasInOrder(affected)
+      },
+      { equals: comparer.structural, name: "FormulaManager.observeHierarchyChanges.reaction" }
+    )
+  }
+
+  // Returns the initialized attribute formulas of the given data set that have a canonical expression.
+  getHierarchyFormulaInfos(dataSetId: string): IHierarchyFormulaInfo[] {
+    const infos: IHierarchyFormulaInfo[] = []
+    this.formulaMetadata.forEach(({ formula, isInitialized }, formulaId) => {
+      const extraMetadata = this.extraMetadata.get(formulaId)
+      const attrId = extraMetadata?.attributeId
+      if (!isInitialized || !attrId || extraMetadata.dataSetId !== dataSetId) return
+      const { canonical } = formula
+      if (formula.empty || !canonical) return
+      const localAttrDeps = getFormulaDependencies(canonical, attrId, extraMetadata.defaultArgument)
+        .flatMap(dep => dep.type === "localAttribute" ? [dep.attrId] : [])
+      infos.push({
+        formulaId,
+        attrId,
+        localAttrDeps,
+        hasAggregate: hasAggregateFunction(canonical),
+        orderSensitive: isOrderSensitiveFormula(canonical)
+      })
+    })
+    return infos
   }
 
   addGlobalValueManager(globalValueManager: IGlobalValueManager) {

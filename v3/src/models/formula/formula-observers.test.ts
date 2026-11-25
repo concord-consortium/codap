@@ -4,10 +4,10 @@ import {
   ILocalAttributeDependency, ILookupDependency
 } from "./formula-types"
 import {
-  getLocalAttrCasesToRecalculate, getLookupCasesToRecalculate, isAttrDefined, observeDatasetHierarchyChanges,
+  getLocalAttrCasesToRecalculate, getLookupCasesToRecalculate, isAttrDefined,
   observeGlobalValues, observeLocalAttributes, observeLookupDependencies, observeSymbolNameChanges
 } from "./formula-observers"
-import { DataSet, IDataSet } from "../data/data-set"
+import { DataSet } from "../data/data-set"
 import { GlobalValueManager } from "../global/global-value-manager"
 import { GlobalValue } from "../global/global-value"
 
@@ -319,32 +319,5 @@ describe("observeSymbolNameChanges", () => {
     dataSet.removeAttribute("attr2_id")
     expect(nameUpdateCallback).toHaveBeenCalledTimes(2)
 
-  })
-})
-
-describe("observeDatasetHierarchyChanges", () => {
-  const attributesByCollection = (dataSet: IDataSet) => {
-    const attrs: string[][] = []
-    dataSet.collections.forEach(collection => {
-      attrs.push(collection.attributes.map(attr => attr!.id))
-    })
-    return attrs
-  }
-  it("should call recalculateCallback with ALL_CASES when attribute is moved between collections", () => {
-    const dataSet = DataSet.create({ id: "ds1" })
-    dataSet.addAttribute({ id: "aId", name: "a" })
-    dataSet.addAttribute({ id: "bId", name: "b" })
-    dataSet.addAttribute({ id: "cId", name: "c" })
-
-    const hierarchyChangedCallback = jest.fn()
-    const dispose = observeDatasetHierarchyChanges(dataSet, hierarchyChangedCallback)
-    dataSet.moveAttributeToNewCollection("aId")
-    expect(attributesByCollection(dataSet)).toEqual([["aId"], ["bId", "cId"]])
-    expect(hierarchyChangedCallback).toHaveBeenCalledTimes(1)
-
-    dispose()
-    dataSet.moveAttributeToNewCollection("bId")
-    expect(attributesByCollection(dataSet)).toEqual([["aId"], ["bId"], ["cId"]])
-    expect(hierarchyChangedCallback).toHaveBeenCalledTimes(1)
   })
 })

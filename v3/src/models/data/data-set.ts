@@ -728,9 +728,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     }
     else {
       if (attribute.hasFormula) {
-        // If the attribute has a formula, we need to reset all the calculated values to blank values so that they
-        // are not taken into account while calculating case grouping. After the grouping is done, the formula will
-        // be re-evaluated, and the values will be updated to the correct values again.
+        // Formula attributes are excluded from case grouping. The values are cleared because the moved formula
+        // is evaluated in its new collection, where it is fully recalculated.
         attribute.clearValues()
       }
       if (srcCollection.getAttribute(attributeID) && srcCollection.attributes.length === 1) {
