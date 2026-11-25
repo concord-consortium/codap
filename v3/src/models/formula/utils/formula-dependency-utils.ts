@@ -2,7 +2,7 @@ import { parse, isFunctionNode } from "mathjs/number"
 import type { MathNode } from "mathjs"
 import { IFormulaDependency, ILocalAttributeDependency, isLocalAttributeDependency } from "../formula-types"
 import { typedFnRegistry } from "../functions/math"
-import { basicCanonicalNameToDependency, localAttrIdToCanonical } from "./name-mapping-utils"
+import { basicCanonicalNameToDependency, CASE_INDEX_FAKE_ATTR_ID, localAttrIdToCanonical } from "./name-mapping-utils"
 import { isNonFunctionSymbolNode } from "./mathjs-utils"
 
 export const ifSelfReference = (dependency?: IFormulaDependency, formulaAttributeId?: string) =>
@@ -170,6 +170,17 @@ export const hasAggregateFunction = (formulaCanonical: string) => {
       const fn = typedFnRegistry[node.fn.name]
       if (fn?.isAggregate || fn?.isSemiAggregate) found = true
     }
+  })
+  return found
+}
+
+// True if the formula's results depend on case position or on the other cases in its collection.
+export const isOrderSensitiveFormula = (formulaCanonical: string) => {
+  if (hasAggregateFunction(formulaCanonical)) return true
+  const caseIndexCanonical = localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID)
+  let found = false
+  parse(formulaCanonical).traverse((node, path, parent) => {
+    if (isNonFunctionSymbolNode(node, parent) && node.name === caseIndexCanonical) found = true
   })
   return found
 }

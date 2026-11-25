@@ -11,6 +11,8 @@ export interface IHierarchyFormulaInfo {
   // attribute IDs the formula depends on locally
   localAttrDeps: string[]
   hasAggregate: boolean
+  // true if the formula uses caseIndex or an aggregate/semi-aggregate function
+  orderSensitive: boolean
 }
 
 export interface IAffectedFormula {
@@ -36,15 +38,16 @@ export function getHierarchyStructureKey(snapshot: HierarchySnapshot) {
 }
 
 // A collection is changed if it gained or lost cases, or if any retained case changed position.
-// Only when cases were appended after all existing ones (no removals, no shifts) can the work be
-// limited to the new cases; any other change affects position-dependent results of retained cases.
+// `disturbed` means cases were removed or retained cases shifted, which matters only to formulas whose
+// results depend on case position or on the other cases in the collection.
 function getCollectionChange(beforeCollection: ICollectionSnapshot | undefined, afterCollection: ICollectionSnapshot) {
   const beforeIds = beforeCollection?.caseIds ?? []
   const afterIds = afterCollection.caseIds
+  const beforeSet = new Set(beforeIds)
+  const newCaseIds = afterIds.filter(id => !beforeSet.has(id))
   const appendOnly = beforeIds.length <= afterIds.length && beforeIds.every((id, i) => afterIds[i] === id)
-  const newCaseIds = appendOnly ? afterIds.slice(beforeIds.length) : []
-  const changed = !appendOnly || newCaseIds.length > 0
-  return { changed, appendOnly, newCaseIds }
+  const disturbed = !appendOnly
+  return { changed: disturbed || newCaseIds.length > 0, disturbed, newCaseIds }
 }
 
 export function getAffectedFormulas(
@@ -68,7 +71,7 @@ export function getAffectedFormulas(
   }
 
   const result: IAffectedFormula[] = []
-  formulas.forEach(({ formulaId, attrId, localAttrDeps, hasAggregate }) => {
+  formulas.forEach(({ formulaId, attrId, localAttrDeps, hasAggregate, orderSensitive }) => {
     const ownCollectionId = afterAttrCollection.get(attrId)
     if (!ownCollectionId) return
 
@@ -83,10 +86,14 @@ export function getAffectedFormulas(
     }
     // 2. the formula's collection changed
     const ownChange = changes.get(ownCollectionId)
-    if (ownChange && isChanged(ownCollectionId)) {
-      forceWrite = true
-      if (ownChange.appendOnly) newCaseIds = ownChange.newCaseIds
-      else allCases = true
+    if (ownChange?.changed) {
+      if (orderSensitive && ownChange.disturbed) {
+        allCases = true
+        forceWrite = true
+      } else if (ownChange.newCaseIds.length > 0) {
+        newCaseIds = ownChange.newCaseIds
+        forceWrite = true
+      }
     }
     // 3. a dependency moved or lives in a changed collection
     if (localAttrDeps.some(depId => isMoved(depId) || isChanged(afterAttrCollection.get(depId)))) {

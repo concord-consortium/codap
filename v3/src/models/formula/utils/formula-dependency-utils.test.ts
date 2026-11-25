@@ -1,5 +1,5 @@
-import { getSelfReferenceDirection, hasAggregateFunction } from "./formula-dependency-utils"
-import { localAttrIdToCanonical } from "./name-mapping-utils"
+import { getSelfReferenceDirection, hasAggregateFunction, isOrderSensitiveFormula } from "./formula-dependency-utils"
+import { CASE_INDEX_FAKE_ATTR_ID, localAttrIdToCanonical } from "./name-mapping-utils"
 
 describe("getSelfReferenceDirection", () => {
   const selfId = "self_attr_id"
@@ -56,5 +56,19 @@ describe("hasAggregateFunction", () => {
     expect(hasAggregateFunction("random()")).toBe(false)
     expect(hasAggregateFunction(`${x} + 1`)).toBe(false)
     expect(hasAggregateFunction(localAttrIdToCanonical("caseIndex"))).toBe(false)
+  })
+})
+
+describe("isOrderSensitiveFormula", () => {
+  const x = localAttrIdToCanonical("x")
+  it("returns true for caseIndex and aggregate or semi-aggregate functions", () => {
+    expect(isOrderSensitiveFormula(localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID))).toBe(true)
+    expect(isOrderSensitiveFormula(`${localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID)} * 2`)).toBe(true)
+    expect(isOrderSensitiveFormula(`prev(${x}, 0)`)).toBe(true)
+    expect(isOrderSensitiveFormula("count()")).toBe(true)
+  })
+  it("returns false otherwise", () => {
+    expect(isOrderSensitiveFormula("random()")).toBe(false)
+    expect(isOrderSensitiveFormula(`${x} + 1`)).toBe(false)
   })
 })

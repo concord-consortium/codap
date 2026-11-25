@@ -3,7 +3,7 @@ import {
 } from "./hierarchy-change-utils"
 
 const formula = (overrides: Partial<IHierarchyFormulaInfo> = {}): IHierarchyFormulaInfo =>
-  ({ formulaId: "F", attrId: "f", localAttrDeps: [], hasAggregate: false, ...overrides })
+  ({ formulaId: "F", attrId: "f", localAttrDeps: [], hasAggregate: false, orderSensitive: false, ...overrides })
 
 describe("getAffectedFormulas", () => {
   it("rule 1: moved formula attribute -> ALL_CASES, forceWrite", () => {
@@ -27,11 +27,24 @@ describe("getAffectedFormulas", () => {
     ["insertion in the middle", ["p1", "p2"], ["p1", "p3", "p2"]],
     ["removal ahead of a retained case", ["p1", "p2", "p3"], ["p4", "p3"]],
     ["removal only at the end", ["p1", "p2", "p3"], ["p1", "p2"]]
-  ])("rule 2: %s -> ALL_CASES, forceWrite", (_name, beforeIds, afterIds) => {
+  ])("rule 2: %s -> ALL_CASES for an order-sensitive formula", (_name, beforeIds, afterIds) => {
     const before: HierarchySnapshot = [{ id: "P", attrIds: ["f"], caseIds: beforeIds }]
     const after: HierarchySnapshot = [{ id: "P", attrIds: ["f"], caseIds: afterIds }]
-    expect(getAffectedFormulas(before, after, [formula()]))
+    expect(getAffectedFormulas(before, after, [formula({ orderSensitive: true })]))
       .toEqual([{ formulaId: "F", cases: "ALL_CASES", forceWrite: true }])
+  })
+
+  it("rule 2: shifted retained cases -> only new cases for a formula that is not order-sensitive", () => {
+    const before: HierarchySnapshot = [{ id: "P", attrIds: ["f"], caseIds: ["p1", "p2", "p3"] }]
+    const after: HierarchySnapshot = [{ id: "P", attrIds: ["f"], caseIds: ["p4", "p3"] }]
+    expect(getAffectedFormulas(before, after, [formula()]))
+      .toEqual([{ formulaId: "F", cases: ["p4"], forceWrite: true }])
+  })
+
+  it("rule 2: removal only -> not affected for a formula that is not order-sensitive", () => {
+    const before: HierarchySnapshot = [{ id: "P", attrIds: ["f"], caseIds: ["p1", "p2", "p3"] }]
+    const after: HierarchySnapshot = [{ id: "P", attrIds: ["f"], caseIds: ["p1", "p2"] }]
+    expect(getAffectedFormulas(before, after, [formula()])).toEqual([])
   })
 
   it("rules 3 and 4: a collection that only lost cases counts as changed", () => {
@@ -47,10 +60,10 @@ describe("getAffectedFormulas", () => {
       .toEqual([{ formulaId: "F", cases: "ALL_CASES", forceWrite: false }])
   })
 
-  it("rule 2: reordered cases -> ALL_CASES", () => {
+  it("rule 2: reordered cases -> ALL_CASES for an order-sensitive formula", () => {
     const before: HierarchySnapshot = [{ id: "C", attrIds: ["f"], caseIds: ["a", "b"] }]
     const after: HierarchySnapshot = [{ id: "C", attrIds: ["f"], caseIds: ["b", "a"] }]
-    expect(getAffectedFormulas(before, after, [formula()]))
+    expect(getAffectedFormulas(before, after, [formula({ orderSensitive: true })]))
       .toEqual([{ formulaId: "F", cases: "ALL_CASES", forceWrite: true }])
   })
 
