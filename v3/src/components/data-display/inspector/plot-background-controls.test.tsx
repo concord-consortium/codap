@@ -7,9 +7,9 @@ jest.mock("../../../utilities/translation/translate", () => ({
   t: (key: string) => key
 }))
 
-// Mock PointColorSetting to render a simple swatch button
-jest.mock("./point-color-setting", () => ({
-  PointColorSetting: ({ propertyLabel, swatchBackgroundColor }: any) => (
+// Mock ColorSetting to render a simple swatch button
+jest.mock("../../common/color-setting", () => ({
+  ColorSetting: ({ propertyLabel, swatchBackgroundColor }: any) => (
     <button data-testid={`color-swatch-${propertyLabel}`}
       style={{ backgroundColor: swatchBackgroundColor }}>
       {propertyLabel}

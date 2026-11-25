@@ -1,4 +1,4 @@
-import { ScaleBand, drag, pointer, select } from "d3"
+import { ScaleBand, select } from "d3"
 import { observer } from "mobx-react-lite"
 import { useCallback, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
@@ -12,13 +12,14 @@ import { useBinnedPlotResponders } from "../../hooks/use-binned-plot-responders"
 import { useDotPlot } from "../../hooks/use-dot-plot"
 import { usePlotResponders } from "../../hooks/use-plot"
 import { isBinnedPlotModel } from "./histogram-model"
+import {
+  createBinBoundaryDrag, getNearBinBoundaryIndex as getNearBinBoundaryIndexForEvent
+} from "./histogram-utils"
 import { SubPlotCells } from "../../models/sub-plot-cells"
 import { setPointCoordinates } from "../../utilities/graph-utils"
 import { renderBarCovers } from "../bar-utils"
 import { kEmptyBinDetails } from "../binned-dot-plot/bin-details"
 import { computeBinPlacements } from "../dot-plot/dot-plot-utils"
-
-const kEdgeThreshold = 6 // pixels from bar edge to trigger resize cursor/drag
 
 export const Histogram = observer(function Histogram({ abovePointsGroupRef, renderer }: IPlotProps) {
   const { dataset, dataConfig, graphModel, isAnimating, layout, getPrimaryScreenCoord, getSecondaryScreenCoord,
@@ -36,30 +37,15 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
     binnedPlot, dataConfig, graphModel, layout, primaryAxisScale, primaryIsBottom, primaryPlace
   })
 
-  /**
-   * Given a mouse event on a bar cover, determine if the mouse is near a draggable bin boundary edge.
-   * Returns the bin boundary index (for use with binDetails.getBinEdge) or -1 if not near an edge.
-   */
-  const getNearBinBoundaryIndex = useCallback((event: MouseEvent) => {
+  const getNearBinBoundaryIndex = useCallback((event: MouseEvent | TouchEvent) => {
     if (!binnedPlot || !barCoversRef.current) return -1
-    const { binWidth, minBinEdge, totalNumberOfBins } = binnedPlot.binDetails()
-    if (binWidth === undefined) return -1
-    const [mx, my] = pointer(event, barCoversRef.current)
-    const mousePos = primaryIsBottom ? mx : my
-    const numRepetitions = dataConfig?.numRepetitionsForPlace(primaryPlace) ?? 1
-    const primaryLength = layout.getAxisLength(primaryPlace)
-    const bandWidth = primaryLength / numRepetitions
-    for (let repetition = 0; repetition < numRepetitions; repetition++) {
-      for (let binNumber = 1; binNumber < totalNumberOfBins; binNumber++) {
-        const boundaryPos = repetition * bandWidth +
-          primaryAxisScale(minBinEdge + binNumber * binWidth) / numRepetitions
-        if (Math.abs(mousePos - boundaryPos) <= kEdgeThreshold) {
-          // Return the bin index to the left of this boundary (same convention as binned dot plot)
-          return binNumber - 1
-        }
-      }
-    }
-    return -1
+    return getNearBinBoundaryIndexForEvent(event, barCoversRef.current, {
+      binDetails: binnedPlot.binDetails(),
+      primaryIsBottom,
+      numRepetitions: dataConfig?.numRepetitionsForPlace(primaryPlace) ?? 1,
+      primaryLength: layout.getAxisLength(primaryPlace),
+      primaryAxisScale
+    })
   }, [binnedPlot, dataConfig, layout, primaryAxisScale, primaryIsBottom, primaryPlace])
 
   const addHistogramBinDragHandlers = useCallback(() => {
@@ -84,17 +70,16 @@ export const Histogram = observer(function Histogram({ abovePointsGroupRef, rend
       })
 
     // Add D3 drag behavior, filtered to only start when near a bin edge
-    barCoverRects.call(
-      drag<SVGRectElement, IBarCover>()
-        .filter((event: MouseEvent) => {
-          const binIdx = getNearBinBoundaryIndex(event)
-          nearBinIndexRef.current = binIdx
-          return binIdx >= 0
-        })
-        .on("start", (e: MouseEvent) => handleDragBinBoundaryStart(e, nearBinIndexRef.current))
-        .on("drag", (e: MouseEvent) => handleDragBinBoundary(e))
-        .on("end", () => handleDragBinBoundaryEndFn.current())
-    )
+    barCoverRects.call(createBinBoundaryDrag({
+      filter: (event) => {
+        const binIdx = getNearBinBoundaryIndex(event)
+        nearBinIndexRef.current = binIdx
+        return binIdx >= 0
+      },
+      start: (event) => handleDragBinBoundaryStart(event, nearBinIndexRef.current),
+      drag: (event) => handleDragBinBoundary(event),
+      end: () => handleDragBinBoundaryEndFn.current()
+    }))
   }, [binnedPlot, getNearBinBoundaryIndex, handleDragBinBoundary, handleDragBinBoundaryStart,
       handleDragBinBoundaryEndFn, primaryIsBottom])
 

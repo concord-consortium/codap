@@ -173,11 +173,13 @@ export function updateCasesNotificationFromIds(data: IDataSet, caseIds?: string[
   return updateCasesNotification(data, cases)
 }
 
-export function deleteCasesNotification(data: IDataSet, cases?: ICase[]) {
+// withCaseIds adds the cases' ids as caseIDs, the field V2's item deletes sent (data_context.js:919-945)
+export function deleteCasesNotification(data: IDataSet, cases?: ICase[], withCaseIds = false) {
   const adapter = getDataSetNotificationAdapter()
   const result = {
     success: true,
-    cases: cases?.map(c => adapter.convertCase(c, data))
+    cases: cases?.map(c => adapter.convertCase(c, data)),
+    ...(withCaseIds && { caseIDs: cases?.map(c => toV2Id(c.__id__)) ?? [] })
   }
   return dataSetNotification("deleteCases", result, data)
 }

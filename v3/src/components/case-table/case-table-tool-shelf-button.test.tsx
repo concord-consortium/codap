@@ -1,4 +1,7 @@
+import { when } from "mobx"
 import { getSnapshot } from "mobx-state-tree"
+import { TreeManagerType } from "../../models/history/tree-manager"
+import { toV2Id } from "../../utilities/codap-utils"
 import { appState } from "../../models/app-state"
 import { setupTestDataset } from "../../test/dataset-test-utils"
 import "../case-card/case-card-registration"
@@ -54,5 +57,60 @@ describe("openTableOrCardForDatasetWithNotifications", () => {
     expect(createCall).toBeUndefined()
 
     broadcastSpy.mockRestore()
+  })
+
+  // undoing the open removes the table it made, and redoing makes it again, as V2's caseTable.open
+  // did (app_controller.js:122-123)
+  describe("undo and redo", () => {
+    const { document } = appState
+    const settled = () => when(
+      () => (document.treeManagerAPI as TreeManagerType).activeHistoryEntries.length === 0, { timeout: 2000 })
+    let broadcastSpy: jest.SpyInstance | undefined
+    beforeEach(() => document.treeMonitor!.enableMonitoring())
+    afterEach(() => {
+      broadcastSpy?.mockRestore()
+      broadcastSpy = undefined
+      document.treeMonitor!.disableMonitoring()
+    })
+    // the component notices broadcast, as [operation, id, type]
+    const componentNotices = () => broadcastSpy!.mock.calls.map(([msg]: any[]) => msg)
+      .filter(msg => msg.resource === "component")
+      .map(msg => [msg.values.operation, msg.values.id, msg.values.type])
+
+    it("sends `delete` on undo and `create` on redo for a table it made", async () => {
+      const sharedDataSet = addDataset("fish1713")
+      const tile = openTableOrCardForDatasetWithNotifications(sharedDataSet)!
+      await settled()
+
+      broadcastSpy = jest.spyOn(content, "broadcastMessage")
+      document.undoLastAction()
+      await settled()
+      expect(componentNotices()).toEqual([["delete", toV2Id(tile.id), "table"]])
+      broadcastSpy.mockClear()
+      document.redoLastAction()
+      await settled()
+      expect(componentNotices()).toEqual([["create", toV2Id(tile.id), "table"]])
+    })
+
+    it("sends `delete` on undo and `create` on redo when it shows a closed table again", async () => {
+      const sharedDataSet = addDataset("frogs1713")
+      const tile = openTableOrCardForDatasetWithNotifications(sharedDataSet)!
+      content.applyModelChange(() => content.toggleNonDestroyableTileVisibility(tile.id))
+      await settled()
+      expect(content.isTileHidden(tile.id)).toBe(true)
+      expect(openTableOrCardForDatasetWithNotifications(sharedDataSet)).toBe(tile)
+      await settled()
+
+      broadcastSpy = jest.spyOn(content, "broadcastMessage")
+      document.undoLastAction()
+      await settled()
+      expect(content.isTileHidden(tile.id)).toBe(true)
+      expect(componentNotices()).toEqual([["delete", toV2Id(tile.id), "DG.TableView"]])
+      broadcastSpy.mockClear()
+      document.redoLastAction()
+      await settled()
+      expect(content.isTileHidden(tile.id)).toBe(false)
+      expect(componentNotices()).toEqual([["create", toV2Id(tile.id), "DG.TableView"]])
+    })
   })
 })

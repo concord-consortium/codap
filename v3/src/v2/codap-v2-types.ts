@@ -127,6 +127,11 @@ export interface ICodapV2GameViewStorage extends ICodapV2BaseComponentStorage {
   }
   // ignore: occurs 62 times in cfm-shared and is always null
   currentGameFormulas?: null
+  // v3 extensions
+  v3?: {
+    // the id of the game's DG.GameContext, when the plugin's default (`_links_.context`) has moved to another one
+    gameContextId?: number
+  }
 }
 
 export interface ICodapV2GuideViewItem {
@@ -554,8 +559,10 @@ export interface ICodapV2MapHotSpotStorage {
   isVisible?: boolean
   bandwidth?: number
   opacity?: number
+  colorRamp?: string
   lowColor?: string
   highColor?: string
+  colorBins?: number | string
 }
 
 export interface ICodapV2MapPointLayerStorageV3Extensions extends ICodapV2MapLayerBaseStorageV3Extensions {

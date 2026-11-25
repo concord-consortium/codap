@@ -1,0 +1,52 @@
+# Records a release in Rollbar's Deploys list, so Rollbar can tell which release introduced an error,
+# mark releases on its graphs, and flag errors that recur after being resolved.
+# Called by the release-v3-*.yml workflows after they copy a build into place.
+name: Rollbar Deploy v3
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        description: The git tag of the released version
+        required: true
+      environment:
+        type: string
+        description: >
+          The Rollbar environment, which must match the one rollbar-settings.js assigns
+          to the released path (e.g. "production" for index.html, "staging" for /staging)
+        required: true
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # The version must be the commit SHA, to match the `code_version` the build reports (see
+      # webpack.config.js). github.sha is the commit the workflow was dispatched from (usually main),
+      # not the release's, so look up the commit the tag points to.
+      - name: Find the release's commit
+        id: release-commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/$VERSION" --jq .sha)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - name: Notify Rollbar
+        id: rollbar
+        uses: rollbar/github-deploy-action@2.1.2
+        with:
+          environment: ${{ inputs.environment }}
+          version: ${{ steps.release-commit.outputs.sha }}
+        env:
+          ROLLBAR_ACCESS_TOKEN: ${{ secrets.ROLLBAR_ACCESS_TOKEN }}
+      # The action passes when Rollbar can't be reached at all (its only check is for a "null" ID)
+      - name: Check that Rollbar recorded the deploy
+        env:
+          DEPLOY_ID: ${{ steps.rollbar.outputs.deploy_id }}
+        run: |
+          if [ -z "$DEPLOY_ID" ]; then
+            echo "::error::Rollbar did not record the deploy (no deploy_id returned)"
+            exit 1
+          fi
+          echo "Rollbar deploy $DEPLOY_ID"

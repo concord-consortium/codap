@@ -132,8 +132,10 @@ describe("FeatureFlagManager", () => {
       setUrlParams("?features=MappingTime")
       const manager = new FeatureFlagManager()
       expect([...manager.urlEnabledFlags].sort())
-        .toEqual(
-          ["legendBinCount", "legendLogarithmic", "legendRange", "mapHotSpot", "selectionSlider", "visibilitySlider"])
+        .toEqual([
+          "combineDateTime", "legendBinCount", "legendLogarithmic", "legendRange", "mapHotSpot",
+          "selectionSlider", "visibilitySlider"
+        ])
     })
 
     it("ignores a token that is neither a flag name nor an owner", () => {

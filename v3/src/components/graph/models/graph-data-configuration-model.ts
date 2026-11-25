@@ -821,11 +821,11 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
       const previousLegend = self.legendAttributeAndType
       // For 'x' and 'y' roles, if the given attribute is already present on the other axis, then
-      // move whatever attribute is assigned to the given role to that axis.
-      if (['x', 'y'].includes(role)) {
+      // move whatever attribute is assigned to the given role to that axis. Removing an attribute moves nothing.
+      if (desc?.attributeID && ['x', 'y'].includes(role)) {
         const otherRole = role === 'x' ? 'y' : 'x',
           otherDesc = self.attributeDescriptionForRole(otherRole)
-        if (otherDesc?.attributeID === desc?.attributeID) {
+        if (otherDesc?.attributeID === desc.attributeID) {
           const currentDesc = self.attributeDescriptionForRole(role) ?? {attributeID: '', type: 'categorical'}
           self._setAttributeDescription(otherRole, currentDesc)
         }
@@ -886,6 +886,12 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     }
   }))
   .actions(self => ({
+    // Retypes the given attribute in the given role. With several attributes on the left axis, each
+    // label's "Treat as" item names its own attribute, which need not be the first.
+    setAttributeTypeOfAttribute(role: GraphAttrRole, attrID: string, type: AttributeType) {
+      const yIndex = role === "y" ? self._yAttributeDescriptions.findIndex(desc => desc.attributeID === attrID) : -1
+      self.setAttributeType(role, type, Math.max(yIndex, 0))
+    },
     replaceYAttribute(desc?: IAttributeDescriptionSnapshot, plotNumber = 0) {
       if (self._yAttributeDescriptions[plotNumber]) self.removeYAttributeAtIndex(plotNumber)
       if (desc) self.addYAttribute(desc, plotNumber)

@@ -113,8 +113,13 @@ cases differently:
 
 ### What `delete` returns
 
-Deleting a case also deletes all of its descendants, as deleting it in a case table does.
-`delete` replies with the deleted case's id:
+Deleting a case also deletes all of its descendants, as deleting it in a case table does. It
+deletes the set-aside items under the case too, so restoring the set-aside cases can't bring it
+back. This is an improvement on v2, which left them, so the deleted case came back on restore. Only
+the case named is affected: deleting a child case leaves the set-aside items of its parent, even
+when the parent disappears from view, and a case table's delete and item deletes leave set-aside
+items alone, as in v2. Items hidden only by a filter formula are not deleted, since a filter is a
+view of the data. `delete` replies with the deleted case's id:
 
 ```json
 { "success": true, "values": [ 53 ] }
@@ -218,7 +223,7 @@ Delete the first diet, and with it every mammal grouped under it:
 ## Known limitations
 
 **The text `true` and `false` reads back as a boolean.** A value a plugin sent as `true` reads back
-as `true` from `get`, as in v2. CODAP stores every value as a number or text, so it cannot tell
+as `true` from `get`, as in v2. CODAP keeps every value as text, so it cannot tell
 that boolean from the text `true` typed into a table, imported from a file, or set by a checkbox:
 those read back as booleans too, where v2 returned the text. Only the lowercase words are
 converted; `TRUE` stays text. This is a deliberate difference.

@@ -240,6 +240,29 @@
           "date(16) returns 1/1/2016"
         ]
       },
+      { "displayName": "dateToEpoch",
+        "description": "Returns the time between January 1, 1970 (UTC) and the given date, in seconds unless another unit is given. A date without a time zone, including one ending in \"Z\", is read in your local time zone; add an offset such as \"+00:00\" for UTC.",
+        "args": [
+          {
+            "name": "date",
+            "type": "string",
+            "description": "The specified date. May be a computed date or a date string. A number, or a string of digits such as \"2023\", is taken to be epoch seconds rather than a year, and is converted to the given unit."
+          },
+          {
+            "name": "unit",
+            "type": "string",
+            "description": "\"s\" (seconds, the default), \"min\" (minutes), \"ms\" (milliseconds), \"us\" or \"μs\" (microseconds), or \"ns\" (nanoseconds).",
+            "optional": true
+          }
+        ],
+        "examples": [
+          "dateToEpoch(\"11/14/2023, 17:13:20\") returns 1700000000 in US Eastern time",
+          "dateToEpoch(\"11/14/2023, 17:13:20\", \"ms\") returns 1700000000000 in US Eastern time",
+          "dateToEpoch(\"2023-11-14T22:13:20+00:00\") returns 1700000000 in any time zone",
+          "dateToEpoch(epochToDate(86400)) returns 86400",
+          "dateToEpoch(2023) returns 2023 because a number is taken as epoch seconds, not the year 2023"
+        ]
+      },
       { "displayName": "dayOfMonth",
         "description": "Returns the day of the month corresponding to the given date.",
         "args": [
@@ -282,6 +305,27 @@
           "dayOfWeekName(date(2017,3,20)) returns Monday"
         ]
       },
+      { "displayName": "epochToDate",
+        "description": "Returns the date corresponding to the given time since January 1, 1970 (UTC), in seconds unless another unit is given. Unlike date(), small numbers are not treated as years. The date is shown in your local time zone.",
+        "args": [
+          {
+            "name": "epochTime",
+            "type": "number",
+            "description": "The time since January 1, 1970 (UTC)."
+          },
+          {
+            "name": "unit",
+            "type": "string",
+            "description": "\"s\" (seconds, the default), \"min\" (minutes), \"ms\" (milliseconds), \"us\" or \"μs\" (microseconds), or \"ns\" (nanoseconds). Many data sources record milliseconds, which are 13-digit numbers for recent dates. Dates keep only whole milliseconds, so values are rounded to the nearest millisecond.",
+            "optional": true
+          }
+        ],
+        "examples": [
+          "epochToDate(1700000000) returns 11/14/2023, 17:13:20 in US Eastern time",
+          "epochToDate(1700000000000, \"ms\") returns 11/14/2023, 17:13:20 in US Eastern time",
+          "epochToDate(0) returns 12/31/1969, 19:00:00 in US Eastern time"
+        ]
+      },
       { "displayName": "hours",
         "description": "Returns the hour (in 24-hour time) corresponding to the given date-time.",
         "args": [
@@ -293,7 +337,8 @@
         ],
         "examples": [
           "hours(\"8-31-2005 8:57 PM\") returns 20 (8 PM on a 24-hour clock)",
-          "hours(date(2017,3,20,7,1,59)) returns 7"
+          "hours(date(2017,3,20,7,1,59)) returns 7",
+          "hours(\"1:45 PM\") returns 13 (a time with no date also works)"
         ]
       },
       { "displayName": "minutes",
@@ -307,7 +352,8 @@
         ],
         "examples": [
           "minutes(\"8-31-2005 8:57 PM\") returns 57",
-          "minutes(date(2017,3,20,7,1,59)) returns 1"
+          "minutes(date(2017,3,20,7,1,59)) returns 1",
+          "minutes(\"13:45\") returns 45 (a time with no date also works)"
         ]
       },
       { "displayName": "month",
@@ -357,7 +403,8 @@
         ],
         "examples": [
           "seconds(\"8-31-2005 3:30:51 PM\") returns 51",
-          "seconds(date(2017,3,20,7,1,59)) returns 59"
+          "seconds(date(2017,3,20,7,1,59)) returns 59",
+          "seconds(\"08:05:30\") returns 30 (a time with no date also works)"
         ]
       },
       { "displayName": "today",

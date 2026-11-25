@@ -1,5 +1,6 @@
 import { getSnapshot } from "mobx-state-tree"
 import { RequestQueue } from "../components/web-view/request-queue"
+import { kHostPageId } from "../lib/embedded-mode/embedded-mode-registry"
 import { appState } from "../models/app-state"
 import { SharedDataSet } from "../models/shared/shared-data-set"
 import { ITileModel } from "../models/tiles/tile-model"
@@ -51,16 +52,18 @@ describe("data context change notices and the requesting plugin", () => {
       { tile: pluginTile })
     expect(result.success).toBe(true)
 
-    // one createCases per collection, then createItems, each with values an array of { operation, result }, as in V2
+    // one notice, as in V2, whose values array holds a createCases per collection, then createItems
     const calls = dataContextNoticeCalls()
-    expect(calls.map(([message]) => message.values[0].operation))
+    expect(calls.length).toBe(1)
+    const [[message, , , excludeTileId]] = calls
+    expect(excludeTileId).toBe(pluginTile.id)
+    expect(message.values.map(({ operation }: any) => operation))
       .toEqual(["createCases", "createCases", "createCases", "createItems"])
-    calls.forEach(([message, , , excludeTileId]) => {
-      expect(excludeTileId).toBe(pluginTile.id)
-      expect(message.values).toEqual([{
-        operation: message.values[0].operation,
+    message.values.forEach((value: any) => {
+      expect(value).toEqual({
+        operation: value.operation,
         result: expect.objectContaining({ success: true, caseIDs: expect.any(Array), itemIDs: expect.any(Array) })
-      }])
+      })
     })
   })
 
@@ -93,15 +96,19 @@ describe("data context change notices and the requesting plugin", () => {
     expect(excludeTileIds).toEqual(["OTHER_TILE", "OTHER_TILE", undefined])
   })
 
-  it("doesn't send a plugin the notices for its own coalesced item creates", async () => {
+  // each creates cases in new groups (a1), so every collection gets a createCases
+  it.each([
+    ["a plugin", { tile: pluginTile }, pluginTile.id, "c"],
+    ["the host page", { requesterId: kHostPageId }, kHostPageId, "d"]
+  ])("doesn't send %s the notices for its own coalesced item creates", async (_requester, options, requesterId, a1) => {
     jest.useFakeTimers()
     const queue = new RequestQueue()
-    const disposer = setupRequestQueueProcessor(queue, { tile: pluginTile })
+    const disposer = setupRequestQueueProcessor(queue, options)
     const responses: unknown[] = []
     try {
       for (let i = 0; i < 3; ++i) {
         queue.push({
-          request: { action: "create", resource: `dataContext[${datasetName}].item`, values: { a1: "c", a3: i } },
+          request: { action: "create", resource: `dataContext[${datasetName}].item`, values: { a1, a3: i } },
           callback: response => responses.push(response)
         })
       }
@@ -113,14 +120,14 @@ describe("data context change notices and the requesting plugin", () => {
 
     expect(responses.length).toBe(3)
     const calls = dataContextNoticeCalls()
-    // one createCases per collection for the batch, then one createItems
-    expect(calls.map(([message]) => message.values[0].operation))
+    // one notice for the batch, holding a createCases per collection, then one createItems
+    expect(calls.length).toBe(1)
+    const [[message, , , excludeTileId]] = calls
+    expect(excludeTileId).toBe(requesterId)
+    expect(message.values.map(({ operation }: any) => operation))
       .toEqual(["createCases", "createCases", "createCases", "createItems"])
-    calls.forEach(([message, , , excludeTileId]) => {
-      expect(excludeTileId).toBe(pluginTile.id)
-      expect(message.values).toEqual([
-        { operation: message.values[0].operation, result: expect.objectContaining({ success: true }) }
-      ])
+    message.values.forEach((value: any) => {
+      expect(value).toEqual({ operation: value.operation, result: expect.objectContaining({ success: true }) })
     })
   })
 })

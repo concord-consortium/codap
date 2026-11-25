@@ -15,7 +15,9 @@ import GuideIcon from "../../assets/icons/icon-guide.svg"
 import { DEBUG_UNDO } from "../../lib/debug"
 import { IDocumentModel } from "../../models/document/document"
 import { ITileModel } from "../../models/tiles/tile-model"
-import { componentShowHideNotification, createTileNotification } from "../../models/tiles/tile-notifications"
+import {
+  componentShowHideNotification, createTileNotification, deleteTileNotification
+} from "../../models/tiles/tile-notifications"
 import { persistentState } from "../../models/persistent-state"
 import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
@@ -147,6 +149,12 @@ export const ToolShelf = observer(function ToolShelf({ document }: IProps) {
       if (tile) tileInfo?.shelf?.afterCreate?.(tile.content)
     }, {
       notify: () => showHide ? componentShowHideNotification(tile, showHide) : createTileNotification(tile),
+      // undoing removes the new component, or hides or shows the singleton again, as in V2
+      // (document_controller.js:1113-1114 and :1644-1666); redoing repeats the original notice
+      undoNotify: () => showHide
+                          ? componentShowHideNotification(tile, showHide === "show" ? "hide" : "show")
+                          : deleteTileNotification(tile),
+      redoNotify: () => showHide ? componentShowHideNotification(tile, showHide) : createTileNotification(tile),
       undoStringKey,
       redoStringKey,
       log

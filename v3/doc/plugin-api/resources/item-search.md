@@ -105,7 +105,7 @@ items decides the order of cases in a case table and of the rows a plugin reads 
 
 | Property | Type | Notes |
 |---|---|---|
-| `itemOrder` | String or Array | required. `"first"` moves the matching items to the start, and `"last"` to the end. An array of numbers gives each matching item its own position, below. v3 treats any other value as `"last"`; v2 did not, so send only these |
+| `itemOrder` | String, Number or Array | required. `"first"` moves the matching items to the start, and `"last"` to the end. An array of numbers gives each matching item its own position, below. Any other single value is a position that every matching item moves to, one after another, as in v2, so the moved items need not keep their order: those that start at or after the position end up reversed. A single `0` is refused like a missing value, as in v2; use `"first"` |
 
 With `"first"` or `"last"`, the matching items keep their order relative to one another. v2 kept
 it for `"last"` but reversed it for `"first"`, so a plugin that must also run there should not
@@ -113,10 +113,17 @@ depend on the order among the items it moves.
 
 With an array, the first matching item moves to the position given by the array's first number,
 the second matching item to the second number, and so on. A position counts the other items,
-starting at `0`. The moves happen one after another, so a later move can shift an item moved
-earlier. A matching item with no number in the array stays where it is. Positions given as text
-are converted to numbers, so `"3"` is `3`. v3 currently counts only the items shown, and treats
-some positions differently from v2; see [Known limitations](#known-limitations).
+starting at `0`, including items that are set aside or hidden by a filter formula. v2 also
+counted set-aside items, and items deleted earlier in the session, which CODAP no longer keeps. The
+moves happen one after another, so a later move can shift an item moved earlier. A matching item
+with no entry in the array, or `null`, stays where it is. As in v2:
+
+- Positions given as text are converted to numbers, so `"3"` is `3`, and other text, such as
+  `"abc"`, is `0`.
+- A fraction is dropped, so `1.5` is `1`.
+- A negative position counts back from the end, so `-1` puts the item just before the last item.
+- A position past the end puts the item at the end.
+- `"first"` and `"last"` in the array put that item at the start or the end.
 
 `notify` replies `{ "success": true }`, including when no item matched.
 
@@ -199,35 +206,28 @@ sendRequest({
 
 ## Known limitations
 
+**Matching items pair with `itemOrder` entries in the current item order.** CODAP lists the items
+that match in the data context's current order, and with an array the first of them takes the
+first entry. v2 listed them in the order they were created, whatever the current order, so after a
+sort or an earlier move the same array can pair entries with different items. Read the items with
+`get` first if the pairing matters.
+
 **The text `true` and `false` matches as a boolean.** `Endangered==true` finds the items a plugin
-created with `"Endangered": true`, as in v2. CODAP stores every value as a number or text, so the
+created with `"Endangered": true`, as in v2. CODAP keeps every value as text, so the
 text `true` typed into a table, imported from a file, or set by a checkbox matches too, where v2
 compared it as text and did not match. This is a deliberate difference. As in v2,
 `Endangered==false` also finds the items with an empty value or `0`, `Endangered==1` finds the
 `true` items, and `Endangered==true` finds the items holding `1`. An item created without the
 attribute matches `Endangered==false` too, where v2 did not match it.
 
-**An `itemOrder` position counts only the items shown.** When `itemOrder` is an array, v3 counts
-positions among the items that are not set aside or hidden by a filter formula. v2 counted
-set-aside items too, so the same number can name a different place. This is a known bug. Until it
-is fixed, use array positions only when no item is set aside or hidden.
-
-**An `itemOrder` position that is not a whole number in range is treated differently from v2.**
-v3 moves an item whose position is a fraction such as `1.5`, is negative, or is past the end to
-the end, and leaves one whose position is text that is not a number, such as `"abc"` or
-`"first"`, where it is. v2 dropped the fraction (`1.5` is `1`), counted a negative position from
-the end, put an item whose position was text that is not a number at the start, and moved one
-whose position was `"first"` to the start. This is a known bug. Until it is fixed, send whole
-numbers from `0` to one less than the number of items.
-
 ## Notifications
 
-`get` sends none. `delete` sends `deleteCases`, then `deleteItems` with the deleted items' ids
-(new in v3), and `notify` sends `moveCases`, on `dataContextChangeNotice[<context>]` to the other
-plugins. `moveCases` is sent only when the order
-changes, and does not list the moved cases, as in v2; read the cases again if you need their new
-order. See
-[the notification catalog](../notifications.md#data-changes--datacontextchangenoticecontext).
+`get` sends none. `delete` sends `deleteCases` for every case it removes, in every collection, with
+their ids in `caseIDs` as in v2, then `deleteItems` with the deleted items' ids (new in v3), and
+`notify` sends `moveCases`, on `dataContextChangeNotice[<context>]` to the other plugins.
+`moveCases` is sent only when the order changes, and does not list the moved cases, as in v2; read
+the cases again if you need their new order. See [the notification
+catalog](../notifications.md#data-changes--datacontextchangenoticecontext).
 
 ## Errors
 
@@ -236,7 +236,7 @@ order. See
 | `DataContext not found` | The selector names a data context that does not exist |
 | `Unable to parse query.` | The search expression is missing or empty, is neither `*` nor a comparison, or names no attribute of the data context |
 | `A values object is required for this request.` | `notify` with no `values` |
-| `<action> <resource>: <field> required` | `notify` whose `values` has no `itemOrder` |
+| `<action> <resource>: <field> required` | `notify` whose `values` has no `itemOrder`, or an `itemOrder` of `0`, `""`, `false`, `null` or `NaN`, as v2's truthiness check refused them |
 
 v2 reported an invalid expression, and a `notify` with no `itemOrder`, with `success: false` and
 no error message. v3 adds the messages. v2 reported a data context that does not exist as an

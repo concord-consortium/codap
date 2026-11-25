@@ -8,6 +8,7 @@ import { diFormulaEngineHandler } from "./formula-engine-handler"
 // Optional filter arguments have been added to several functions
 // The following functions have been moved from "Statistical Functions" to "Bivariate Statistical Functions":
 //   correlation, rSquared, linRegrSlope, linRegrSESlope, linRegrIntercept, linRegrResidual, linRegrPredicted
+// hours(), minutes() and seconds() have an added example of a time-only string, which v3 supports
 import _v2Values from "../../test/di-get-formula-engine-response.json5"
 const v2Values = _v2Values as DIFunctionCategories
 

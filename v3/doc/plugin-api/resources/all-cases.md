@@ -67,6 +67,10 @@ once, at the top.
 
 `delete` takes no `values` and replies `{ "success": true }`.
 
+`delete` removes only the cases shown. Set-aside items, and items a filter formula hides, are kept,
+so a data set cleared before loading fresh data still has them afterward. v2 also kept set-aside
+items.
+
 ## Examples
 
 The examples use a data context `Mammals` with two collections: `Diets`, holding the attribute
@@ -148,7 +152,7 @@ Clear the data context before loading new data:
 ## Known limitations
 
 **The text `true` and `false` reads back as a boolean.** A value a plugin sent as `true` reads back
-as `true` in `get`'s reply, as in v2. CODAP stores every value as a number or text, so it cannot
+as `true` in `get`'s reply, as in v2. CODAP keeps every value as text, so it cannot
 tell that boolean from the text `true` typed into a table, imported from a file, or set by a
 checkbox: those read back as booleans too, where v2 returned the text. Only the lowercase words are
 converted; `TRUE` stays text. This is a deliberate difference.
@@ -157,8 +161,9 @@ converted; `TRUE` stays text. This is a deliberate difference.
 
 This resource takes no `notify` requests.
 
-`delete` notifies other plugins on `dataContextChangeNotice[<context>]` with `deleteCases`, as
-deleting cases in a case table does.
+`delete` notifies other plugins on `dataContextChangeNotice[<context>]` with `deleteCases`, whose
+`cases` list every case removed from view, in every collection, parents first, as in v2. A parent
+that still has set-aside or filtered-out items is listed too, since those items have no cases.
 
 ## Errors
 

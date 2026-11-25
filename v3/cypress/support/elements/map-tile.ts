@@ -15,9 +15,6 @@ export const MapTileElements = {
     // Menu content renders in a React Aria Popover portal outside the inspector panel DOM
     cy.get("[data-testid=inspector-menu-hide-show]").should("be.visible")
   },
-  getDisplayValuesButton() {
-    return c.getInspectorPanel().find("[data-testid=map-display-values-button]")
-  },
   getDisplayConfigButton() {
     return c.getInspectorPanel().find("[data-testid=map-display-config-button]")
   },
@@ -80,6 +77,17 @@ export const MapTileElements = {
   },
   getBaseLayerButton(layer: "oceans" | "topo" | "streets") {
     return cy.get(`[data-testid=map-layers-base-${layer}]`)
+  },
+  getHotSpotCheckbox(index = 0) {
+    // The palette renders at top: 0, then moves into place once a ResizeObserver reports its height.
+    // Cypress sees that move as animation, so wait until the checkbox stays in one place before returning it.
+    let lastTop: number | undefined
+    return cy.get("[data-testid=map-layers-checkbox-hot-spot]").eq(index).should($el => {
+      const { top } = $el[0].getBoundingClientRect()
+      const isStable = top === lastTop
+      lastTop = top
+      expect(isStable, "hot spot checkbox position is stable").to.equal(true)
+    })
   },
   selectHideUnselectedCases() {
     cy.get("[data-testid=inspector-menu-hide-show]").should("be.visible").then(() => {
