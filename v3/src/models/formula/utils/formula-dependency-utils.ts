@@ -161,3 +161,15 @@ export const getSelfReferenceDirection = (
   if (hasPrevSelf) return "forward"
   return "none"
 }
+
+// Returns true if the formula calls any aggregate or semi-aggregate function.
+export const hasAggregateFunction = (formulaCanonical: string) => {
+  let found = false
+  parse(formulaCanonical).traverse(node => {
+    if (isFunctionNode(node)) {
+      const fn = typedFnRegistry[node.fn.name]
+      if (fn?.isAggregate || fn?.isSemiAggregate) found = true
+    }
+  })
+  return found
+}

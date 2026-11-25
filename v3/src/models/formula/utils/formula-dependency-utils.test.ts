@@ -1,4 +1,4 @@
-import { getSelfReferenceDirection } from "./formula-dependency-utils"
+import { getSelfReferenceDirection, hasAggregateFunction } from "./formula-dependency-utils"
 import { localAttrIdToCanonical } from "./name-mapping-utils"
 
 describe("getSelfReferenceDirection", () => {
@@ -42,5 +42,19 @@ describe("getSelfReferenceDirection", () => {
   it("returns 'none' when arguments are missing or attributeId is empty", () => {
     expect(getSelfReferenceDirection("", selfId)).toBe("none")
     expect(getSelfReferenceDirection(`prev(${self}, 0)`, "")).toBe("none")
+  })
+})
+
+describe("hasAggregateFunction", () => {
+  const x = localAttrIdToCanonical("x")
+  it("returns true for aggregate and semi-aggregate functions", () => {
+    expect(hasAggregateFunction(`mean(${x})`)).toBe(true)
+    expect(hasAggregateFunction("count()")).toBe(true)
+    expect(hasAggregateFunction(`prev(${x}, 0)`)).toBe(true)
+  })
+  it("returns false otherwise", () => {
+    expect(hasAggregateFunction("random()")).toBe(false)
+    expect(hasAggregateFunction(`${x} + 1`)).toBe(false)
+    expect(hasAggregateFunction(localAttrIdToCanonical("caseIndex"))).toBe(false)
   })
 })
