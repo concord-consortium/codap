@@ -1,7 +1,7 @@
 import { autorun } from "mobx"
 import { setUrlParams } from "../../utilities/url-params"
 import { FeatureFlagConfig } from "./feature-flag-config"
-import { FeatureFlagManager, getFeatureValue, isFeatureEnabled } from "./feature-flag-manager"
+import { FeatureFlagManager, featureFlagManager, getFeatureValue, isFeatureEnabled } from "./feature-flag-manager"
 
 // a name that is present in the registry; see feature-flag-registry.ts
 const kFlag = "residualPlot"
@@ -306,6 +306,18 @@ describe("FeatureFlagManager", () => {
         getFeatureValue("hideShare")
       }
       expect(typeChecks).toBeInstanceOf(Function)
+    })
+
+    describe("module-level readers", () => {
+      afterEach(() => {
+        featureFlagManager.setPartnerFlags({})
+      })
+
+      it("read the shared manager's partner values", () => {
+        featureFlagManager.setPartnerFlags({ hideShare: true, partnerName: "Example Publisher" })
+        expect(isFeatureEnabled("hideShare")).toBe(true)
+        expect(getFeatureValue("partnerName")).toBe("Example Publisher")
+      })
     })
 
     it("notifies observers when partner values are applied", () => {
