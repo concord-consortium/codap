@@ -85,6 +85,47 @@ describe("AttributeFormulaAdapter", () => {
     })
   })
 
+  describe("recalculateFormula with forceWrite", () => {
+    const getMergedEnv = () => {
+      const formulaManager = new FormulaManager()
+      const dataSet = createDataSet({
+        attributes: [{ name: "g" }, { name: "v" }, { name: "ci", formula: { display: "caseIndex" } }]
+      }, { formulaManager })
+      const gId = dataSet.attrIDFromName("g")!
+      dataSet.addCases([
+        { __id__: "i1", [gId]: "a" },
+        { __id__: "i2", [gId]: "a" },
+        { __id__: "i3", [gId]: "a" },
+        { __id__: "i4", [gId]: "b" },
+        { __id__: "i5", [gId]: "b" }
+      ])
+      const ciAttr = dataSet.attrFromName("ci")!
+      dataSet.moveAttributeToNewCollection(gId)
+      const parentCollection = dataSet.collections[0]
+      dataSet.moveAttribute(ciAttr.id, { collection: parentCollection.id })
+      ciAttr.formula!.setCanonicalExpression("caseIndex")
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
+      const context = { dataSet, formula: ciAttr.formula! }
+      const extraMetadata = { dataSetId: dataSet.id, attributeId: ciAttr.id, boundariesLoaded: false }
+      // The first item of each parent case holds the correct value; the others hold stale values
+      ciAttr.setValue(0, 1)
+      ciAttr.setValue(1, 99)
+      ciAttr.setValue(2, 98)
+      ciAttr.setValue(3, 2)
+      ciAttr.setValue(4, 97)
+      return { adapter, dataSet, ciAttr, context, extraMetadata }
+    }
+
+    it("writes all items of a merged case when forceWrite is set", () => {
+      const { adapter, ciAttr, context, extraMetadata } = getMergedEnv()
+      adapter.recalculateFormula(context, extraMetadata, "ALL_CASES", { forceWrite: true })
+      expect([0, 1, 2].map(i => ciAttr.numValue(i))).toEqual([1, 1, 1])
+      expect([3, 4].map(i => ciAttr.numValue(i))).toEqual([2, 2])
+    })
+  })
+
   describe("setError", () => {
     it("should store error in DataSet case values", () => {
       const { adapter, attribute, dataSet, context, extraMetadata } = getTestEnv()

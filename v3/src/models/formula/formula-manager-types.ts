@@ -27,6 +27,11 @@ export interface IFormulaContext extends Partial<IFormulaMetadata> {
   formula: IFormula
 }
 
+export interface IRecalculateOptions {
+  // write every computed result, even when it matches the stored value of the case's first item
+  forceWrite?: boolean
+}
+
 export interface IFormulaManagerAdapter {
   type: string
   addContentModel: (contentModel: ITileContentModel) => void
@@ -35,7 +40,8 @@ export interface IFormulaManagerAdapter {
   // active tracking and recalculation whenever any of their dependencies change. The adapter might opt not to return
   // formulas that currently shouldn't be recalculated, such as when the formula's adornment is hidden.
   getActiveFormulas: () => ({ formula: IFormula, extraMetadata: any })[]
-  recalculateFormula: (formulaContext: IFormulaContext, extraMetadata: any, casesToRecalculateDesc?: CaseList) => void
+  recalculateFormula: (formulaContext: IFormulaContext, extraMetadata: any, casesToRecalculateDesc?: CaseList,
+    options?: IRecalculateOptions) => void
   getFormulaError: (formulaContext: IFormulaContext, extraMetadata: any) => Maybe<string>
   setFormulaError: (formulaContext: IFormulaContext, extraMetadata: any, errorMsg: string) => void
   setupFormulaObservers?: (formulaContext: IFormulaContext, extraMetadata: any) => () => void
