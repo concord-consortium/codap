@@ -10,6 +10,10 @@ function v3Snapshot(featureFlags?: string[]): ISerializedDocument {
 }
 
 describe("addFeatureFlagGrants", () => {
+  afterEach(() => {
+    setUrlParams("")
+  })
+
   it("records a flag this session enabled via the url", () => {
     const snapshot = v3Snapshot()
     addFeatureFlagGrants(snapshot, [kFlag])
@@ -49,7 +53,6 @@ describe("addFeatureFlagGrants", () => {
     manager.setPartnerFlags({ hideShare: true, partnerName: "Example Publisher" })
     const snapshot = v3Snapshot()
     addFeatureFlagGrants(snapshot, manager.urlEnabledFlags)
-    setUrlParams("")
     expect((snapshot as any).content.featureFlags).toEqual([kFlag])
   })
 })
