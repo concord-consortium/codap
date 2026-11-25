@@ -870,7 +870,7 @@ An entry with both or neither fails to compile. Partner flags never expire.
 | `string`    | text; empty or only spaces counts as not set                  |
 | `url`       | a link starting `https://` that parses and that jQuery can't treat as JSONP |
 | `image`     | `{ "file": "<name>.png", "alt": "<text>" }`: a plain file name (a letter or digit first, then letters, digits, `_` or `-`) ending png, jpg, jpeg, gif or webp, and alt text that isn't blank |
-| `documents` | the cloud-file-manager read-only list: every item has a name that isn't blank, every document a `url` that passes the `url` rule, every folder inline `children` only; at most 10 folder levels deep |
+| `documents` | the cloud-file-manager read-only list: every item has a name that isn't blank, every document a `url` that passes the `url` rule, every folder inline `children` only; at most 10 folder levels deep. An item that fails is dropped on its own, and a list left empty counts as not set |
 
 Only a partner config sets them. The `features` URL parameter, owner tokens, the
 server config and saved documents all ignore partner flag names, and saving a
