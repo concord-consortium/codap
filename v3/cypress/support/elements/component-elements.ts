@@ -21,7 +21,6 @@ export const ComponentElements = {
     mapZoomOutButton: "Zoom out",
     mapResizeButton: "Rescale display to show all the data",
     mapHideShowButton: "Show all cases or hide selected/unselected cases",
-    mapDisplayValuesButton: "Change what is shown along with the points",
     mapDisplayConfigButton: "Change the appearance of the map layers",
     mapCameraButton: "Save the image",
     tableSwitchCaseCard: "Switch to case card view of the data",

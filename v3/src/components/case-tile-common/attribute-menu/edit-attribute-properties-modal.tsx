@@ -3,12 +3,13 @@ import {
   ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Radio, RadioGroup, Textarea, Tooltip
 } from "@chakra-ui/react"
 import { ChevronDownIcon } from "@chakra-ui/icons"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { useDataSet } from "../../../hooks/use-data-set"
 import { logMessageWithReplacement } from "../../../lib/log-message"
 import { attributeTypes } from "../../../models/data/attribute-types"
 import { updateAttributesNotification } from "../../../models/data/data-set-notifications"
-import { DatePrecision, datePrecisions } from "../../../utilities/date-utils"
+import { inferDatePrecision } from "../../../utilities/date-parser"
+import { DatePrecision, datePrecisions, kDatePrecisionNone } from "../../../utilities/date-utils"
 import { uniqueName } from "../../../utilities/js-utils"
 import { t } from "../../../utilities/translation/translate"
 import { CodapModal } from "../../codap-modal"
@@ -39,6 +40,11 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
   const [precision, setPrecision] = useState(attribute?.effectivePrecision)
   const [userType, setUserType] = useState<SelectableAttributeType>("none")
   const [editable, setEditable] = useState<YesNoValue>("yes")
+  // the precision in effect before a date precision was inferred, so it can be restored on switching away from date;
+  // null when nothing was inferred or the user has since chosen a date precision
+  const preInferencePrecision = useRef<{ precision: typeof precision } | null>(null)
+  // true when the latest precision choice was a blank date precision, so later type changes don't infer over it
+  const hasChosenBlankDatePrecision = useRef(false)
 
   useEffect(() => {
     // reset the dialog contents from the attribute on each invocation
@@ -48,6 +54,8 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
     setPrecision(attribute?.effectivePrecision)
     setUserType(attribute?.userType ?? "none")
     setEditable(!metadata?.isEditProtected(attributeId) ? "yes" : "no")
+    preInferencePrecision.current = null
+    hasChosenBlankDatePrecision.current = false
   }, [attribute, attributeId, isOpen, metadata])
 
   const applyChanges = () => {
@@ -84,6 +92,36 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
     closeModal()
   }
 
+  const handleUserTypeChange = (newType: SelectableAttributeType) => {
+    setUserType(newType)
+    if (newType === "date") {
+      // a numeric precision (decimal places) doesn't count as a date precision
+      const hasDatePrecision = typeof precision === "string" && precision !== kDatePrecisionNone
+      // a blank precision counts as chosen only if the user clicked it
+      const isDatePrecisionChosen = hasDatePrecision || hasChosenBlankDatePrecision.current
+      // isInferredYearType reads numValues, which for a numeric attribute extract a leading number
+      // (e.g. 2024 from "2024-05-01"), so also require that every value is a plain number
+      const isEveryValuePlainNumber = attribute?.strValues.every(value => value === "" || isFinite(Number(value)))
+      // plain numbers are only inferred as years
+      const inferredPrecision = isEveryValuePlainNumber
+        ? attribute?.isInferredYearType() ? "year" : undefined
+        : attribute && inferDatePrecision(attribute.strValues)
+      if (!isDatePrecisionChosen && inferredPrecision) {
+        preInferencePrecision.current = { precision }
+        setPrecision(inferredPrecision)
+      }
+    } else if (preInferencePrecision.current) {
+      setPrecision(preInferencePrecision.current.precision)
+      preInferencePrecision.current = null
+    }
+  }
+
+  // any click counts as a choice, including re-clicking the inferred precision (which doesn't fire onChange)
+  const handleDatePrecisionClick = (clicked: DatePrecision) => {
+    preInferencePrecision.current = null
+    hasChosenBlankDatePrecision.current = clicked === kDatePrecisionNone
+  }
+
   const closeModal = () => {
     onClose()
   }
@@ -100,9 +138,11 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
 
   const buttons = [
     {
-      label: t("DG.AttrFormView.cancelBtnTitle"), tooltip: t("DG.AttrFormView.cancelBtnTooltip"), onClick: closeModal
+      label: t("DG.AttrFormView.cancelBtnTitle"), tooltip: t("DG.AttrFormView.cancelBtnTooltip"),
+      onClick: closeModal, testId: "attr-properties-cancel-button"
     },
-    { label: t("DG.AttrFormView.applyBtnTitle"), onClick: applyChanges, default: true }
+    { label: t("DG.AttrFormView.applyBtnTitle"), onClick: applyChanges, default: true,
+      testId: "attr-properties-apply-button" }
   ]
 
   function toDatePrecision(pStr: string) {
@@ -123,15 +163,16 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
     if (userType === "date" || (userType === "none" && attribute?.type === "date")) {
       return (
         <Menu>
-          <MenuButton as={Button} className="attr-menu-select" ml={5} data-testid="attr-precision-select"
+          <MenuButton as={Button} className="attr-menu-select" ml={5} data-testid="attr-precision-select-date"
               rightIcon={<ChevronDownIcon />}>
             {toDatePrecisionStr(precision) || "\u00A0"}
           </MenuButton>
-          <MenuList>
+          <MenuList data-testid="attr-precision-date-menu-list">
             <MenuOptionGroup type="radio" value={toDatePrecisionStr(precision)}
                 onChange={(value) => setPrecision(toDatePrecision(value as string))}>
               {datePrecisions.map(p => (
-                <MenuItemOption key={`precision-${p}`} value={p} data-testid={`attr-precision-option-${p}`}>
+                <MenuItemOption key={`precision-${p}`} value={p} data-testid={`attr-precision-option-${p}`}
+                    onClick={() => handleDatePrecisionClick(p)}>
                   {p}
                 </MenuItemOption>
               ))}
@@ -145,12 +186,15 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
       return (
         <Menu>
           <MenuButton as={Button} className="attr-menu-select" ml={5} isDisabled={isDisabled}
-              data-testid="attr-precision-select" rightIcon={<ChevronDownIcon />}>
+              data-testid="attr-precision-select-numeric" rightIcon={<ChevronDownIcon />}>
             {value || "\u00A0"}
           </MenuButton>
-          <MenuList>
+          <MenuList data-testid="attr-precision-numeric-menu-list">
             <MenuOptionGroup type="radio" value={value}
-                onChange={(val) => setPrecision(toNumPrecision(val as string))}>
+                onChange={(val) => {
+                  hasChosenBlankDatePrecision.current = false
+                  setPrecision(toNumPrecision(val as string))
+                }}>
               <MenuItemOption key="precision-none" value="" data-testid="attr-precision-option-none">
                 {"\u00A0"}
               </MenuItemOption>
@@ -169,6 +213,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
 
   return (
     <CodapModal
+      data-testid="edit-attribute-properties-modal"
       finalFocusRef={finalFocusRef}
       isOpen={isOpen}
       onClose={closeModal}
@@ -176,7 +221,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
       modalHeight={"300px"}
     >
       <ModalHeader h="30" className="codap-modal-header" fontSize="md" data-testid="codap-modal-header">
-        <div className="codap-modal-icon-container">
+        <div className="codap-modal-icon-container" aria-hidden="true">
           <AttributeIcon className="codap-modal-icon" />
         </div>
         <div className="codap-header-title">{t("DG.TableController.attributeEditor.title")}</div>
@@ -203,9 +248,9 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
                   rightIcon={<ChevronDownIcon />}>
                 {t(`DG.CaseTable.attribute.type.${userType}`)}
               </MenuButton>
-              <MenuList>
+              <MenuList data-testid="attr-type-menu-list">
                 <MenuOptionGroup type="radio" value={userType}
-                    onChange={(value) => setUserType(value as SelectableAttributeType)}>
+                    onChange={(value) => handleUserTypeChange(value as SelectableAttributeType)}>
                   {selectableAttributeTypes.map(aType => (
                     <MenuItemOption key={aType} value={aType} data-testid="attr-type-option">
                       {t(`DG.CaseTable.attribute.type.${aType}`)}
@@ -244,7 +289,7 @@ export const EditAttributePropertiesModal = ({ attributeId, finalFocusRef, isOpe
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               data-testid="modal-tooltip">
               <Button key={key} size="xs" variant={`${b.default ? "default" : ""}`} ml="5" onClick={b.onClick}
-                      _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={`${b.label}-button`}>
+                      _hover={{backgroundColor: "#72bfca", color: "white"}} data-testid={b.testId}>
                 {b.label}
               </Button>
             </Tooltip>

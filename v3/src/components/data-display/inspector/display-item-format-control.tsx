@@ -3,8 +3,10 @@ import { observer } from "mobx-react-lite"
 import { ReactNode, useId } from "react"
 import { Radio, RadioGroup } from "react-aria-components"
 import { useTileModelContext } from "../../../hooks/use-tile-model-context"
+import { logStringifiedObjectMessage } from "../../../lib/log-message"
 import { isFeatureEnabled } from "../../../models/feature-flags/feature-flag-manager"
 import { t } from "../../../utilities/translation/translate"
+import { ColorSetting } from "../../common/color-setting"
 import { If } from "../../common/if"
 import { PaletteCheckbox } from "../../palette-checkbox"
 import { IMapPointLayerModel, isMapPointDisplayType } from "../../map/models/map-point-layer-model"
@@ -18,7 +20,6 @@ import {
   LegendBinCountInput, LegendBinsSelect, LegendColorControls, LegendRangeInputs
 } from "./legend-color-controls"
 import { PlotBackgroundControls } from "./plot-background-controls"
-import { PointColorSetting } from "./point-color-setting"
 import { PointSizeSlider } from "./point-size-slider"
 
 import "./display-item-format-control.scss"
@@ -69,6 +70,8 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
   const attrType = dataConfiguration.attributeType("legend")
   const dataPointsTitle = showSectionHeaders ? t("V3.Inspector.section.dataPoints") : undefined
   const graphTitle = showSectionHeaders ? t("V3.Inspector.section.graph") : undefined
+  const optionsDisabled = !!mapPointLayerModel && !mapPointLayerModel.pointsAreVisible
+  const strokeDisabled = optionsDisabled || displayItemDescription.pointStrokeSameAsFill
 
   const handlePointTypeChange = (pointType: string) => {
     if (!isMapPointDisplayType(pointType)) return
@@ -79,6 +82,18 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
         undoStringKey: "V3.Undo.map.inspector.changePointType",
         redoStringKey: "V3.Redo.map.inspector.changePointType",
         log: "Changed point type"
+      }
+    )
+  }
+
+  const handlePointsVisibilityChange = (checked: boolean) => {
+    const op = checked ? "show" : "hide"
+    mapPointLayerModel?.applyModelChange(
+      () => mapPointLayerModel.setPointsAreVisible(checked),
+      {
+        undoStringKey: `DG.Undo.map.${op}Points`,
+        redoStringKey: `DG.Redo.map.${op}Points`,
+        log: logStringifiedObjectMessage("mapAction: %@", {mapAction: `${op}Points`})
       }
     )
   }
@@ -98,8 +113,17 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
   return (
     <div className="palette-form">
       <PaletteSection title={dataPointsTitle}>
+        {mapPointLayerModel &&
+          <PaletteCheckbox data-testid={`map-layers-checkbox-points-${mapPointLayerModel.id}`}
+            isSelected={mapPointLayerModel.pointsAreVisible}
+            onChange={handlePointsVisibilityChange}
+          >
+            {t("DG.Inspector.mapPoints")}
+          </PaletteCheckbox>
+        }
         <If condition={!!(mapPointLayerModel && legendAttrID)}>
           <RadioGroup
+            isDisabled={optionsDisabled}
             value={mapPointLayerModel?.displayType}
             onChange={handlePointTypeChange}
             aria-label={t("V3.map.inspector.displayType")}
@@ -126,6 +150,7 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
         <If condition={!displayItemDescription.isPolygon}>
           <PointSizeSlider
             displayItemDescription={displayItemDescription}
+            disabled={optionsDisabled}
             pointDisplayType={pointDisplayType}
           />
         </If>
@@ -133,32 +158,34 @@ export const DisplayItemFormatControl = observer(function DisplayItemFormatContr
         <LegendColorControls
           dataConfiguration={dataConfiguration}
           displayItemDescription={displayItemDescription}
+          disabled={optionsDisabled}
         />
 
         {/* Not for a legend this display cannot honor: every point is drawn in the missing-value
             color, so binning and range have nothing to act on. */}
         <If condition={attrType === "numeric" && !dataConfiguration.legendAttributeIsInoperable}>
-          <LegendBinsSelect dataConfiguration={dataConfiguration} />
+          <LegendBinsSelect dataConfiguration={dataConfiguration} disabled={optionsDisabled} />
           <If condition={isFeatureEnabled("legendBinCount")}>
-            <LegendBinCountInput dataConfiguration={dataConfiguration} />
+            <LegendBinCountInput dataConfiguration={dataConfiguration} disabled={optionsDisabled} />
           </If>
           <If condition={isFeatureEnabled("legendRange")}>
-            <LegendRangeInputs dataConfiguration={dataConfiguration} />
+            <LegendRangeInputs dataConfiguration={dataConfiguration} disabled={optionsDisabled} />
           </If>
         </If>
 
-        <div className={clsx("stroke-section", { disabled: displayItemDescription.pointStrokeSameAsFill })}
-          aria-disabled={displayItemDescription.pointStrokeSameAsFill || undefined}>
+        <div className={clsx("stroke-section", { disabled: strokeDisabled })}
+          aria-disabled={strokeDisabled || undefined}>
           <div className="palette-row color-picker-row">
             <label className="form-label color-picker">{t("DG.Inspector.stroke")}</label>
-            <PointColorSetting propertyLabel={t("DG.Inspector.stroke")}
-                              disabled={displayItemDescription.pointStrokeSameAsFill}
+            <ColorSetting propertyLabel={t("DG.Inspector.stroke")} testIdSuffix="stroke"
+                              disabled={strokeDisabled}
                               onColorChange={(color) => handlePointStrokeColorChange(color)}
                               swatchBackgroundColor={displayItemDescription.pointStrokeColor}/>
           </div>
         </div>
         <PaletteCheckbox
           data-testid="stroke-same-as-fill-checkbox"
+          isDisabled={optionsDisabled}
           isSelected={displayItemDescription.pointStrokeSameAsFill}
           onChange={(checked) => {
             displayItemDescription.applyModelChange(

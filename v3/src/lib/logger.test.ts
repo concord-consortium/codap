@@ -84,7 +84,8 @@ describe("Logger", () => {
 
     Logger.log(event, args)
 
-    expect(formatAndSendSpy).toHaveBeenCalledWith(expect.any(Number), event, documentTitle, category, args)
+    expect(formatAndSendSpy).toHaveBeenCalledWith(expect.any(Number), event, documentTitle, category, args,
+      undefined)
 
     consoleGroupSpy.mockRestore()
     consoleDebugSpy.mockRestore()
@@ -224,6 +225,78 @@ describe("Logger", () => {
       const logMessage: LogMessage = listener.mock.calls[0][0]
       expect(logMessage.session).toBeDefined()
       expect(logMessage.session).not.toBe("")
+    })
+  })
+
+  describe("Google Analytics", () => {
+    const originalIsLoggingEnabled = Logger.isLoggingEnabled
+    let gtag: jest.Mock
+
+    beforeEach(() => {
+      // enable sending so that the Logger calls the window's gtag (mocked below)
+      Logger.isLoggingEnabled = true
+      gtag = jest.fn()
+      // the Logger checks `gtag instanceof Function`, which a jest mock fails in this environment
+      ;(window as any).gtag = (...args: unknown[]) => gtag(...args)
+      mockXhr.post(/.*/, { status: 201 })
+    })
+    afterEach(() => {
+      Logger.isLoggingEnabled = originalIsLoggingEnabled
+      delete (window as any).gtag
+    })
+
+    it("sends events to Google Analytics by default", () => {
+      Logger.initializeLogger(mockDocument)
+      Logger.log("testEvent")
+      expect(gtag).toHaveBeenCalledTimes(1)
+    })
+
+    it("sends the args named in analyticsArgs as top-level parameters and drops the rest", () => {
+      Logger.initializeLogger(mockDocument)
+      Logger.log("testEvent", { bannerId: "banner-1", url: "https://example.com", other: "x" }, "banner",
+        { analyticsArgs: ["bannerId", "url"] })
+      expect(gtag).toHaveBeenCalledWith("event", "testEvent", {
+        eventCategory: "banner",
+        eventAction: "testEvent",
+        eventLabel: "CODAPV3",
+        bannerId: "banner-1",
+        url: "https://example.com"
+      })
+    })
+
+    it("sends no args to Google Analytics by default, but still sends them to listeners", () => {
+      Logger.initializeLogger(mockDocument)
+      const listener = jest.fn()
+      Logger.registerLogListener(listener)
+
+      Logger.log("WebView initialized", { url: "https://example.com/student-doc" }, "plugin")
+
+      expect(gtag).toHaveBeenCalledWith("event", "WebView initialized",
+        { eventCategory: "plugin", eventAction: "WebView initialized", eventLabel: "CODAPV3" })
+      expect(listener.mock.calls[0][0].parameters).toEqual({ url: "https://example.com/student-doc" })
+    })
+
+    it("respects analyticsArgs for events queued before initialization", () => {
+      Logger.log("testEvent", { bannerId: "banner-1" }, "banner", { analyticsArgs: ["bannerId"] })
+      Logger.initializeLogger(mockDocument)
+      expect(gtag.mock.calls[0][2]).toHaveProperty("bannerId", "banner-1")
+    })
+
+    it("doesn't send excluded events to Google Analytics, but still sends them to listeners", () => {
+      Logger.initializeLogger(mockDocument)
+      const listener = jest.fn()
+      Logger.registerLogListener(listener)
+
+      Logger.log("testEvent", undefined, "general", { excludeAnalytics: true })
+
+      expect(gtag).not.toHaveBeenCalled()
+      expect(listener).toHaveBeenCalledTimes(1)
+    })
+
+    it("respects the option for events queued before initialization", () => {
+      Logger.log("testEvent", undefined, "general", { excludeAnalytics: true })
+      Logger.initializeLogger(mockDocument)
+      expect(gtag).not.toHaveBeenCalled()
     })
   })
 })

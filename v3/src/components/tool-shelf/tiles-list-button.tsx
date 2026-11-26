@@ -199,15 +199,16 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
             label={t("DG.ToolButtonData.tileListMenu.title")}
           />
         </MenuButton>
-        <MenuList className="tool-shelf-menu-list top-menu tiles-list" data-testid="tiles-list-menu"
+        <MenuList className="tool-shelf-menu-list top-menu tiles-list" data-testid="tool-shelf-tiles-menu-list"
             onFocus={handleMenuItemFocus} onKeyDown={handleMenuKeyDown}>
-          {displayItems.map((item) => {
+          {displayItems.map((item, index) => {
             const { tile, tileType, isPlugin, displayTitle, typeLabel, shortcutKey } = item
             const _Icon = getTileComponentIcon(tileType)
             const Icon = isPlugin ? PluginsIcon : _Icon ?? WebViewIcon
             const iconClass = isPlugin ? "Plugin" : _Icon ? tileType : "WebView"
             return (
-              <MenuItem key={tile.id} data-testid="tiles-list-menu-item" className="tool-shelf-menu-item"
+              <MenuItem key={tile.id} data-testid={`tool-shelf-tiles-menu-item-${index}`}
+                  className="tool-shelf-menu-item"
                   onClick={()=>handleMenuSelectTile(tile.id) }
                   onFocus={()=>handleFocus(tile.id)} // Handle focus similar to pointer over
                   onBlur={()=>handleBlur()} // Handle blur similar to pointer leave
@@ -215,7 +216,7 @@ export const TilesListShelfButton = observer(function TilesListShelfButton() {
                 <Icon
                   aria-hidden="true"
                   className={`menu-icon ${iconClass}`}
-                  data-testid="tile-list-menu-icon"
+                  data-testid="tool-shelf-tiles-menu-icon"
                 />
                 <span className="tile-menu-item-label">
                   {displayTitle ? `${displayTitle}, ${typeLabel}` : typeLabel}

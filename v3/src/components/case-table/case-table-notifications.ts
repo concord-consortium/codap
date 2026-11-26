@@ -1,5 +1,8 @@
+import { getTitle } from "../../models/tiles/tile-content-info"
 import { ITileModel } from "../../models/tiles/tile-model"
-import { updateTileNotification } from "../../models/tiles/tile-notifications"
+import {
+  createTileNotification, deleteTileNotification, updateTileNotification
+} from "../../models/tiles/tile-notifications"
 import { kCaseTableTileType } from "./case-table-defs"
 
 // V2 emits { action:'notify', resource:'component', values:{ operation:'open case table',
@@ -56,4 +59,30 @@ export function expandCollapseAllNotification(tile?: ITileModel, to?: "expanded"
 export function joinNotification(destCaseTableTile?: ITileModel) {
   if (destCaseTableTile?.content.type !== kCaseTableTileType) return
   return updateTileNotification("join", {}, destCaseTableTile)
+}
+
+// V2 sends `delete` with the component model's type, 'DG.TableView', rather than the lifecycle name
+// 'table', and the data context's title, when a case table is closed (case_table_controller.js:687-696)
+// or deleted by a plugin (close-component.js:51-61). No-ops for non-case-table tiles.
+export function closeCaseTableNotification(tile?: ITileModel) {
+  if (tile?.content.type !== kCaseTableTileType) return
+  const notification = deleteTileNotification(tile)
+  if (notification) {
+    notification.message.values.type = "DG.TableView"
+    notification.message.values.title = getTitle(tile)
+  }
+  return notification
+}
+
+// When a closed case table is shown again by undoing its close or redoing an undone close, V2 re-ran the
+// toggle, which sent `create` with the same type and title as the close (case_table_controller.js:671-702).
+// No-ops for non-case-table tiles.
+export function reopenCaseTableNotification(tile?: ITileModel) {
+  if (tile?.content.type !== kCaseTableTileType) return
+  const notification = createTileNotification(tile)
+  if (notification) {
+    notification.message.values.type = "DG.TableView"
+    notification.message.values.title = getTitle(tile)
+  }
+  return notification
 }

@@ -1,5 +1,5 @@
 import { clsx } from "clsx"
-import { extent, format, max as d3Max, min as d3Min } from "d3"
+import { extent, format } from "d3"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useId, useRef, useState } from "react"
 import {
@@ -15,9 +15,10 @@ import { missingColor } from "../../../utilities/color-utils"
 import { binBoundaryDecimalPlaces } from "../../../utilities/math-utils"
 import { PointShape } from "../../../utilities/point-shape-utils"
 import { t } from "../../../utilities/translation/translate"
+import { ColorSetting } from "../../common/color-setting"
 import { If } from "../../common/if"
 import { PaletteCheckbox } from "../../palette-checkbox"
-import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
+import { getLegendBoundaries } from "../components/legend/choropleth-legend/choropleth-legend"
 import {
   changeAttributeColorNotification, changeLegendBinCountNotification, changeLegendBinsTypeNotification,
   changeLegendRangeNotification, changePointColorAndAlphaNotification, changePointColorNotification,
@@ -25,16 +26,16 @@ import {
 } from "../data-display-notifications"
 import { IDataConfigurationModel, kDefaultLegendBinCount } from "../models/data-configuration-model"
 import { IDisplayItemDescriptionModel } from "../models/display-item-description-model"
-import { PointColorSetting } from "./point-color-setting"
 import { PointShapeSetting } from "./point-shape-setting"
 
 interface ILegendColorControlsProps {
   dataConfiguration: IDataConfigurationModel
   displayItemDescription: IDisplayItemDescriptionModel
+  disabled?: boolean
 }
 
 export const LegendColorControls = observer(function LegendColorControls(
-  { dataConfiguration, displayItemDescription }: ILegendColorControlsProps
+  { dataConfiguration, displayItemDescription, disabled }: ILegendColorControlsProps
 ) {
   const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
@@ -172,7 +173,8 @@ export const LegendColorControls = observer(function LegendColorControls(
 
   const displayShapeRow = showShape
     ? (
-        <div className="palette-row color-picker-row shape-row">
+        <div className={clsx("palette-row", "color-picker-row", "shape-row", { disabled })}
+          aria-disabled={disabled || undefined}>
           <label className="form-label color-picker">{t("V3.Inspector.points")}</label>
           {/* A gradient has to live in an svg in the same document; this one only carries it. */}
           <If condition={hasFillGradient}>
@@ -187,6 +189,7 @@ export const LegendColorControls = observer(function LegendColorControls(
             </svg>
           </If>
           <PointShapeSetting propertyLabel={t("V3.Inspector.pointShape")}
+                            disabled={disabled}
                             shape={displayItemDescription.pointShape}
                             color={glyphColor}
                             fillGradientId={hasFillGradient ? gradientId : undefined}
@@ -208,6 +211,7 @@ export const LegendColorControls = observer(function LegendColorControls(
       <CategoricalColorControls
         categories={categoriesRef.current}
         dataConfiguration={dataConfiguration}
+        disabled={disabled}
         showShape={showShape}
         // A category with no shape of its own draws the display's, so the control has to show that
         // rather than the bare default, or it would disagree with the plot.
@@ -218,71 +222,86 @@ export const LegendColorControls = observer(function LegendColorControls(
     )
   }
 
+  const lockCheckbox = (
+    <PaletteCheckbox
+      data-testid="lock-legend-quantiles-checkbox"
+      isDisabled={disabled}
+      isSelected={dataConfiguration.legendQuantilesAreLocked}
+      onChange={handleLockQuantilesChange}
+    >
+      {t("DG.Inspector.lockLegendQuantiles")}
+    </PaletteCheckbox>
+  )
+
   if (attrType === "numeric") {
     return (
       <>
         {displayShapeRow}
         <div className="num-color-setting">
-          <div className="palette-row color-picker-row">
+          <div className={clsx("palette-row", "color-picker-row", { disabled })}
+            aria-disabled={disabled || undefined}>
             <label className="form-label color-picker">{t("DG.Inspector.legendColor")}</label>
-            <PointColorSetting
+            <ColorSetting
+              disabled={disabled}
               propertyLabel={t("DG.Inspector.legendColorLow")}
+              testIdSuffix="legend-low"
               onColorChange={(color) => handleLowAttributeColorChange(color)}
               swatchBackgroundColor={colorRange?.low ?? kDefaultLowAttributeColor}
             />
-            <PointColorSetting
+            <ColorSetting
+              disabled={disabled}
               propertyLabel={t("DG.Inspector.legendColorHigh")}
+              testIdSuffix="legend-high"
               onColorChange={(color) => handleHighAttributeColorChange(color)}
               swatchBackgroundColor={colorRange?.high ?? kDefaultHighAttributeColor}
             />
           </div>
         </div>
-        <PaletteCheckbox
-          data-testid="lock-legend-quantiles-checkbox"
-          isSelected={dataConfiguration.legendQuantilesAreLocked}
-          onChange={handleLockQuantilesChange}
-        >
-          {t("DG.Inspector.lockLegendQuantiles")}
-        </PaletteCheckbox>
+        {lockCheckbox}
       </>
     )
   }
 
   if (attrType === "color") return displayShapeRow
 
-  // With no legend attribute there are no categories to list, so the same two controls apply to
-  // every point and sit in a single row.
+  // With no legend attribute (or a date legend) there are no categories to list, so the same two
+  // controls apply to every point and sit in a single row.
   const singleRowLabel = showShape ? t("V3.Inspector.points") : t("DG.Inspector.color")
-  return (
+  const singleRow = (
     // shape-row marks a row carrying both controls, so it aligns them the way the category rows do
-    <div className={clsx("palette-row", "color-picker-row", { "shape-row": showShape })}>
+    <div className={clsx("palette-row", "color-picker-row", { "shape-row": showShape, disabled })}
+      aria-disabled={disabled || undefined}>
       <label className="form-label color-picker">{singleRowLabel}</label>
       <If condition={showShape}>
         <PointShapeSetting propertyLabel={t("V3.Inspector.pointShape")}
                           shape={displayItemDescription.pointShape}
+                          disabled={disabled}
                           color={displayItemDescription.pointColor}
                           onShapeChange={handlePointShapeChange}/>
       </If>
-      <PointColorSetting propertyLabel={t("DG.Inspector.color")}
+      <ColorSetting propertyLabel={t("DG.Inspector.color")} testIdSuffix="point"
                         onColorChange={(color) => handlePointColorChange(color)}
+                        disabled={disabled}
                         swatchBackgroundColor={displayItemDescription.pointColor}/>
     </div>
   )
+  // A date legend has bins, as a numeric one does, so it can be locked too.
+  return attrType === "date" ? <>{singleRow}{lockCheckbox}</> : singleRow
 })
 
 interface ICategoricalColorControlsProps {
   categories?: string[]
   dataConfiguration: IDataConfigurationModel
+  disabled?: boolean
   showShape: boolean
   shapeIfUnset: PointShape
   onCatPointColorChange: (color: string, cat: string) => void
   onCatPointShapeChange: (shape: PointShape, cat: string) => void
 }
 
-const CategoricalColorControls = observer(function CategoricalColorControls(
-  { categories, dataConfiguration, showShape, shapeIfUnset, onCatPointColorChange, onCatPointShapeChange }:
-    ICategoricalColorControlsProps
-) {
+const CategoricalColorControls = observer(function CategoricalColorControls({
+  categories, dataConfiguration, disabled, showShape, shapeIfUnset, onCatPointColorChange, onCatPointShapeChange
+}: ICategoricalColorControlsProps) {
   const [scrollVersion, setScrollVersion] = useState(0)
 
   const handleScroll = () => {
@@ -291,17 +310,21 @@ const CategoricalColorControls = observer(function CategoricalColorControls(
 
   return (
     <div className="cat-color-setting" onScroll={handleScroll}>
-      {categories?.map(category => (
-        <div key={category} className="palette-row color-picker-row cat-color-picker">
+      {categories?.map((category, attrIndex) => (
+        <div key={category} className={clsx("palette-row", "color-picker-row", "cat-color-picker", { disabled })}
+          aria-disabled={disabled || undefined}>
           <label className="form-label color-picker">{category}</label>
           <If condition={showShape}>
             <PointShapeSetting propertyLabel={category}
+              disabled={disabled}
               closeTrigger={scrollVersion}
               shape={dataConfiguration.getLegendShapeForCategory(category, shapeIfUnset)}
               color={dataConfiguration.getLegendColorForCategory(category)}
               onShapeChange={(shape) => onCatPointShapeChange(shape, category)}/>
           </If>
-          <PointColorSetting key={category} propertyLabel={category}
+          <ColorSetting key={category} propertyLabel={category}
+            disabled={disabled}
+            testIdSuffix={attrIndex}
             closeTrigger={scrollVersion}
             onColorChange={(color) => onCatPointColorChange(color, category)}
             swatchBackgroundColor={dataConfiguration.getLegendColorForCategory(category)}/>
@@ -313,10 +336,11 @@ const CategoricalColorControls = observer(function CategoricalColorControls(
 
 interface ILegendBinsSelectProps {
   dataConfiguration: IDataConfigurationModel
+  disabled?: boolean
 }
 
 export const LegendBinsSelect = observer(function LegendBinsSelect(
-  { dataConfiguration }: ILegendBinsSelectProps
+  { dataConfiguration, disabled }: ILegendBinsSelectProps
 ) {
   const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
@@ -325,6 +349,7 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
   // While the quantiles are locked the legend scale is frozen, so this control has no
   // effect; disable it to reflect that.
   const isLocked = !!dataConfiguration.legendQuantilesAreLocked
+  const isDisabled = disabled || isLocked
   const binningTypes = isFeatureEnabled("legendLogarithmic")
     ? AttributeBinningTypes
     : AttributeBinningTypes.filter(type => type !== "logarithmic")
@@ -343,21 +368,21 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
   }
 
   return (
-    <div className={clsx("legend-bins-row", { disabled: isLocked })}>
+    <div className={clsx("legend-bins-row", { disabled: isDisabled })} aria-disabled={isDisabled || undefined}>
       {/* not a <label>: it names no single control; the Select carries its own aria-label */}
       <span className="form-label legend-bins-menu">{t("V3.Inspector.graph.legendBins")}</span>
       <Select
         aria-label={t("V3.Inspector.graph.legendBins")}
         value={binningType}
-        isDisabled={isLocked}
+        isDisabled={isDisabled}
         onChange={handleAttributeBinningTypeChange}
         data-testid="legend-bins-type-select"
       >
-        <Button>
+        <Button data-testid="legend-bins-type-button">
           <SelectValue />
           <span aria-hidden="true" className="select-arrow">▾</span>
         </Button>
-        <Popover>
+        <Popover data-testid="legend-bins-type-popover">
           <ListBox>
             {binningTypes.map(_binningType =>
               <ListBoxItem key={_binningType} id={_binningType}>
@@ -373,10 +398,11 @@ export const LegendBinsSelect = observer(function LegendBinsSelect(
 
 interface ILegendBinCountInputProps {
   dataConfiguration: IDataConfigurationModel
+  disabled?: boolean
 }
 
 export const LegendBinCountInput = observer(function LegendBinCountInput(
-  { dataConfiguration }: ILegendBinCountInputProps
+  { dataConfiguration, disabled }: ILegendBinCountInputProps
 ) {
   const { tile } = useTileModelContext()
   const legendAttrID = dataConfiguration.attributeID("legend")
@@ -385,9 +411,11 @@ export const LegendBinCountInput = observer(function LegendBinCountInput(
   const cap = Math.min(values.length, new Set(values).size)
   // While the quantiles are locked the legend scale is frozen, so this control has no effect.
   const isLocked = !!dataConfiguration.legendQuantilesAreLocked
-  const isDisabled = isLocked || cap < 2
-  // The effective (clamped) bin count, so the field reflects what the legend actually renders.
-  const value = dataConfiguration.legendBinCount
+  const isDisabled = disabled || isLocked || cap < 2
+  // The bin count the legend actually renders: the effective (clamped) count, or the locked count
+  // while locked. The locked count can be outside the live limits (e.g. after cases are hidden), so
+  // the field's limits widen to include it rather than clamping the displayed value.
+  const value = dataConfiguration.displayedLegendBinCount
 
   const commit = (n: number) => {
     if (!Number.isFinite(n)) return
@@ -414,8 +442,8 @@ export const LegendBinCountInput = observer(function LegendBinCountInput(
       aria-label={t("V3.Inspector.graph.legendBinCount")}
       // A degenerate legend (<2 distinct values) renders a single bin; allow the (disabled) field
       // to reflect that 1 rather than clamping the display up to 2.
-      minValue={cap < 2 ? 1 : 2}
-      maxValue={Math.max(2, cap)}
+      minValue={Math.min(cap < 2 ? 1 : 2, value)}
+      maxValue={Math.max(2, cap, value)}
       step={1}
       formatOptions={{ maximumFractionDigits: 0 }}
       isDisabled={isDisabled}
@@ -425,8 +453,12 @@ export const LegendBinCountInput = observer(function LegendBinCountInput(
       <Label className="form-label legend-bin-count-label">{t("V3.Inspector.graph.legendBinCount")}</Label>
       <Group className="legend-bin-count-group">
         <Input className="form-input" data-testid="legend-bin-count-input" />
-        <Button slot="decrement" className="legend-bin-count-stepper">−</Button>
-        <Button slot="increment" className="legend-bin-count-stepper">+</Button>
+        <Button slot="decrement" className="legend-bin-count-stepper" data-testid="legend-bin-count-decrement">
+          −
+        </Button>
+        <Button slot="increment" className="legend-bin-count-stepper" data-testid="legend-bin-count-increment">
+          +
+        </Button>
       </Group>
     </NumberField>
   )
@@ -437,16 +469,16 @@ const kLegendRangeBufferChars = 2 // accounts for input field padding
 
 // The number of decimal places the legend uses for its boundary labels, so the Min/Max inputs
 // match the legend labels rather than showing raw ~10-digit data values (e.g. random() defaults).
-// Returns undefined when the scale is empty/degenerate; the caller then falls back to a plain form.
+// Returns undefined when there is no scale, or when neither the legend's display range nor the
+// scale's domain gives a min and max; the caller then falls back to a plain form.
 function legendBoundaryDecimals(dataConfiguration: IDataConfigurationModel) {
   const scale = dataConfiguration.legendNumericColorScale
-  const domain = scale?.domain() ?? []
-  if (domain.length === 0 || isNaN(Number(domain[0]))) return undefined
-  const lo = Number(d3Min(domain as Iterable<number>))
-  const hi = Number(d3Max(domain as Iterable<number>))
-  // Mirror choropleth-legend's boundary set so the input precision matches the rendered labels.
-  const fullBoundaries = [lo, ...getScaleThresholds(scale), hi]
-  return binBoundaryDecimalPlaces(fullBoundaries)
+  if (!scale) return undefined
+  // The same boundaries the legend labels use (with the same display range the legend gets), so the
+  // input precision matches the rendered labels.
+  const { min, max } = dataConfiguration.legendDisplayRange
+  const boundaries = getLegendBoundaries(scale, min, max)
+  return boundaries && binBoundaryDecimalPlaces(boundaries)
 }
 
 // Formats a legend bound for display in the Min/Max inputs. With a known decimal count (from the
@@ -477,10 +509,11 @@ type LegendBound = "min" | "max"
 
 interface ILegendRangeInputsProps {
   dataConfiguration: IDataConfigurationModel
+  disabled?: boolean
 }
 
 export const LegendRangeInputs = observer(function LegendRangeInputs(
-  { dataConfiguration }: ILegendRangeInputsProps
+  { dataConfiguration, disabled }: ILegendRangeInputsProps
 ) {
   const { tile } = useTileModelContext()
   const headingId = useId()
@@ -499,12 +532,16 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
   }
   const effectiveMin = overrideMin ?? dataMin
   const effectiveMax = overrideMax ?? dataMax
-  const decimals = legendBoundaryDecimals(dataConfiguration)
-  const displayMin = formatLegendBound(effectiveMin, decimals)
-  const displayMax = formatLegendBound(effectiveMax, decimals)
   // While the quantiles are locked the legend scale is frozen, so edits here have no
   // effect; disable the inputs to reflect that.
   const isLocked = !!dataConfiguration.legendQuantilesAreLocked
+  const isDisabled = disabled || isLocked
+  // While locked, show the legend's range (legendDisplayRange) rather than the live one, so the
+  // inputs match the legend.
+  const shownRange = isLocked ? dataConfiguration.legendDisplayRange : { min: effectiveMin, max: effectiveMax }
+  const decimals = legendBoundaryDecimals(dataConfiguration)
+  const displayMin = formatLegendBound(shownRange.min, decimals)
+  const displayMax = formatLegendBound(shownRange.max, decimals)
 
   const [minInput, setMinInput] = useState(displayMin)
   const [maxInput, setMaxInput] = useState(displayMax)
@@ -593,7 +630,7 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
   }
 
   const renderInput = (bound: LegendBound, text: string, onChange: (v: string) => void) => (
-    <TextField value={text} isDisabled={isLocked} onChange={(v) => onChange(filterLegendRangeInput(v))}>
+    <TextField value={text} isDisabled={isDisabled} onChange={(v) => onChange(filterLegendRangeInput(v))}>
       <Label className="form-label">
         {t(`V3.Inspector.graph.legendRange.${bound}`)}
       </Label>
@@ -611,8 +648,8 @@ export const LegendRangeInputs = observer(function LegendRangeInputs(
     <div
       role="group"
       aria-labelledby={headingId}
-      className={clsx("legend-range-section", { disabled: isLocked })}
-      aria-disabled={isLocked || undefined}
+      className={clsx("legend-range-section", { disabled: isDisabled })}
+      aria-disabled={isDisabled || undefined}
     >
       {/* a group heading, not a <label>: it names the Min/Max group, not one control */}
       <div id={headingId} className="form-label">{t("V3.Inspector.graph.legendRange")}</div>

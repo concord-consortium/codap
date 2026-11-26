@@ -1,0 +1,168 @@
+import { act, render, waitFor } from "@testing-library/react"
+import { Map as LeafletMap, Point } from "leaflet"
+import { MapContainer } from "react-leaflet"
+import { featureFlagManager } from "../../../models/feature-flags/feature-flag-manager"
+import { IMapPointLayerModel, MapPointLayerModel } from "../models/map-point-layer-model"
+import { HotSpotCanvasLayer } from "../utilities/hot-spot-canvas-layer"
+import { getHotSpotRampInterpolator } from "../utilities/hot-spot-color-ramps"
+import { buildColorLUT } from "../utilities/hot-spot-utils"
+import { kHotSpotPaneName, MapHotSpotLayer } from "./map-hot-spot-layer"
+
+// Wraps the real function so tests can see which ramp the layer draws with
+jest.mock("../utilities/hot-spot-color-ramps", () => {
+  const actual = jest.requireActual("../utilities/hot-spot-color-ramps")
+  return { ...actual, getHotSpotRampInterpolator: jest.fn(actual.getHotSpotRampInterpolator) }
+})
+
+// Wraps the real function so tests can see which color bins the layer draws with
+jest.mock("../utilities/hot-spot-utils", () => {
+  const actual = jest.requireActual("../utilities/hot-spot-utils")
+  return { ...actual, buildColorLUT: jest.fn(actual.buildColorLUT) }
+})
+
+describe("MapHotSpotLayer", () => {
+  afterEach(() => {
+    act(() => featureFlagManager.setServerConfig({}))
+    jest.restoreAllMocks()
+  })
+
+  function mountHotSpotLayer(setup?: (pointLayer: IMapPointLayerModel) => void) {
+    const pointLayer = MapPointLayerModel.create()
+    pointLayer.hotSpotModel.setIsVisible(true)
+    setup?.(pointLayer)
+    let leafletMap: LeafletMap | null = null
+    render(
+      <MapContainer ref={map => { leafletMap = map }} center={[0, 0]} zoom={1}>
+        <MapHotSpotLayer mapPointLayerModel={pointLayer}/>
+      </MapContainer>
+    )
+    return { leafletMap: leafletMap as unknown as LeafletMap, pointLayer }
+  }
+
+  // eslint-disable-next-line testing-library/no-node-access -- the canvas is created by Leaflet, not React
+  const hotSpotCanvas = (leafletMap: LeafletMap) => leafletMap.getPane(kHotSpotPaneName)?.querySelector("canvas")
+
+  it("does not create the hot spot pane when the mapHotSpot flag is off", () => {
+    const { leafletMap } = mountHotSpotLayer()
+    expect(leafletMap.getPane(kHotSpotPaneName)).toBeUndefined()
+  })
+
+  it("places the hot spot pane immediately above the boundaries and below the other overlay panes", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const { leafletMap } = mountHotSpotLayer()
+    const hotSpotPane = leafletMap.getPane(kHotSpotPaneName)
+    expect(hotSpotPane).toBeDefined()
+
+    // CODAP gives every .leaflet-pane the same z-index, so DOM order determines stacking
+    const { mapPane, overlayPane, shadowPane, markerPane, tooltipPane, popupPane } = leafletMap.getPanes()
+    // eslint-disable-next-line testing-library/no-node-access -- verifying Leaflet pane DOM order
+    const paneOrder = Array.from(mapPane.children)
+    const indexOf = (pane?: HTMLElement) => paneOrder.indexOf(pane as Element)
+    const hotSpotIndex = indexOf(hotSpotPane)
+
+    // after the boundaries (overlayPane)...
+    expect(hotSpotIndex).toBeGreaterThan(indexOf(overlayPane))
+    // ...and beneath everything Leaflet draws on top of the overlays
+    for (const pane of [shadowPane, markerPane, tooltipPane, popupPane]) {
+      expect(hotSpotIndex).toBeLessThan(indexOf(pane))
+    }
+  })
+  it("adds a hot spot canvas when shown and removes it when hidden", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const { leafletMap, pointLayer } = mountHotSpotLayer()
+    expect(hotSpotCanvas(leafletMap)).toBeTruthy()
+    act(() => pointLayer.hotSpotModel.setIsVisible(false))
+    expect(hotSpotCanvas(leafletMap)).toBeFalsy()
+  })
+
+  it("shows hot spots even when the points are hidden", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const { leafletMap } = mountHotSpotLayer(pointLayer => pointLayer.setPointsAreVisible(false))
+    expect(hotSpotCanvas(leafletMap)).toBeTruthy()
+  })
+
+  it("redraws at most once per frame when the surface changes", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const { pointLayer } = mountHotSpotLayer(layer => {
+      layer.hotSpotModel.setLatLongSource({ plottedLatLongs: [{ lat: 0, long: 0 }, { lat: 1, long: 1 }] })
+    })
+    const frameCallbacks: FrameRequestCallback[] = []
+    const rafSpy = jest.spyOn(window, "requestAnimationFrame").mockImplementation(callback => {
+      frameCallbacks.push(callback)
+      return frameCallbacks.length
+    })
+    const redrawSpy = jest.spyOn(HotSpotCanvasLayer.prototype, "redraw")
+
+    act(() => {
+      pointLayer.hotSpotModel.setDynamicBandwidth(5000)
+      pointLayer.hotSpotModel.setDynamicBandwidth(6000)
+      pointLayer.hotSpotModel.setDynamicBandwidth(7000)
+    })
+    expect(redrawSpy).not.toHaveBeenCalled()
+
+    act(() => frameCallbacks.splice(0).forEach(callback => callback(0)))
+    expect(redrawSpy).toHaveBeenCalledTimes(1)
+
+    rafSpy.mockRestore()
+    redrawSpy.mockRestore()
+  })
+
+  it("applies the hot spot opacity to the canvas", () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    const { leafletMap } = mountHotSpotLayer()
+    expect(hotSpotCanvas(leafletMap)?.style.opacity).toBe("0.75")
+  })
+
+  it("redraws with the model's color ramp when it changes", async () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    // jsdom gives the map no size and the canvas no context, and the layer draws only when it has both
+    jest.spyOn(LeafletMap.prototype, "getSize").mockReturnValue(new Point(100, 100))
+    const context = {
+      createImageData: (width: number, height: number) => ({ data: new Uint8ClampedArray(width * height * 4) }),
+      putImageData: jest.fn()
+    }
+    jest.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(context as any)
+    const getInterpolator = jest.mocked(getHotSpotRampInterpolator)
+
+    const { pointLayer } = mountHotSpotLayer(layer => {
+      layer.hotSpotModel.setLatLongSource({ plottedLatLongs: [{ lat: 0, long: 0 }] })
+    })
+    expect(getInterpolator).toHaveBeenLastCalledWith("heat", "#5b1a8c", "#fff3a3")
+    expect(context.putImageData).toHaveBeenCalledTimes(1)
+
+    act(() => pointLayer.hotSpotModel.setColorRamp("viridis"))
+    // the redraw is debounced
+    await waitFor(() => expect(getInterpolator).toHaveBeenLastCalledWith("viridis", "#5b1a8c", "#fff3a3"))
+    expect(context.putImageData).toHaveBeenCalledTimes(2)
+  })
+
+  it("redraws with the model's color bins when they change", async () => {
+    featureFlagManager.setServerConfig({ mapHotSpot: "on" })
+    // jsdom gives the map no size and the canvas no context, and the layer draws only when it has both
+    jest.spyOn(LeafletMap.prototype, "getSize").mockReturnValue(new Point(100, 100))
+    const context = {
+      createImageData: (width: number, height: number) => ({ data: new Uint8ClampedArray(width * height * 4) }),
+      putImageData: jest.fn()
+    }
+    jest.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(context as any)
+    const buildLUT = jest.mocked(buildColorLUT)
+
+    const { pointLayer } = mountHotSpotLayer(layer => {
+      layer.hotSpotModel.setLatLongSource({ plottedLatLongs: [{ lat: 0, long: 0 }] })
+    })
+    expect(buildLUT).toHaveBeenLastCalledWith(expect.any(Function), "continuous")
+    expect(context.putImageData).toHaveBeenCalledTimes(1)
+
+    // an in-progress slider value redraws without being committed
+    act(() => pointLayer.hotSpotModel.setDynamicColorBins(4))
+    // the redraw is debounced
+    await waitFor(() => expect(buildLUT).toHaveBeenLastCalledWith(expect.any(Function), 4))
+    expect(context.putImageData).toHaveBeenCalledTimes(2)
+    expect(pointLayer.hotSpotModel.colorBins).toBe("continuous")
+
+    // an out-of-range count is drawn as the nearest limit
+    act(() => pointLayer.hotSpotModel.setColorBins(15))
+    await waitFor(() => expect(buildLUT).toHaveBeenLastCalledWith(expect.any(Function), 10))
+    expect(context.putImageData).toHaveBeenCalledTimes(3)
+  })
+})

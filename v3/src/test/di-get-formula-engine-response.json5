@@ -2082,7 +2082,8 @@
       ],
       "examples": [
         "hours(\"8-31-2005 8:57 PM\") returns 20 (8 PM on a 24-hour clock)",
-        "hours(date(2017,3,20,7,1,59)) returns 7"
+        "hours(date(2017,3,20,7,1,59)) returns 7",
+        "hours(\"1:45 PM\") returns 13 (a time with no date also works)"
       ]
     },
     "minutes": {
@@ -2102,7 +2103,8 @@
       ],
       "examples": [
         "minutes(\"8-31-2005 8:57 PM\") returns 57",
-        "minutes(date(2017,3,20,7,1,59)) returns 1"
+        "minutes(date(2017,3,20,7,1,59)) returns 1",
+        "minutes(\"13:45\") returns 45 (a time with no date also works)"
       ]
     },
     "month": {
@@ -2162,7 +2164,8 @@
       ],
       "examples": [
         "seconds(\"8-31-2005 3:30:51 PM\") returns 51",
-        "seconds(date(2017,3,20,7,1,59)) returns 59"
+        "seconds(date(2017,3,20,7,1,59)) returns 59",
+        "seconds(\"08:05:30\") returns 30 (a time with no date also works)"
       ]
     },
     "today": {
@@ -2217,8 +2220,8 @@
       ],
       "examples": [
         "boolean(age > 60) is true or false depending on the value of age",
-        "boolean(age) returns true for all values except 0",
-        "boolean(\"false\") returns true because a string value is neither false nor 0"
+        "boolean(age) returns false if age is 0 and true for other numbers",
+        "boolean(\"false\") returns false"
       ]
     },
     "isBoolean": {

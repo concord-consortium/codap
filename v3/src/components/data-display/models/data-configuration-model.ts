@@ -1,4 +1,4 @@
-import { extent, ScaleQuantile, scaleQuantile, ScaleQuantize, scaleQuantize, scaleThreshold, ScaleThreshold } from "d3"
+import { extent, ScaleQuantile, scaleQuantile, scaleQuantize, scaleThreshold, ScaleThreshold } from "d3"
 import {comparer, observable, reaction} from "mobx"
 import {
   addDisposer, getEnv, getSnapshot, hasEnv, IAnyStateTreeNode, Instance, ISerializedActionCall,
@@ -29,7 +29,7 @@ import {GraphPlace} from "../../axis-graph-shared"
 import { getScaleThresholds } from "../components/legend/choropleth-legend/choropleth-legend"
 import {CaseData} from "../d3-types"
 import {
-  AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain, GraphSplitAttrRoles
+  AttrRole, GraphAttrRole, TipAttrRoles, graphPlaceToAttrRole, kOther, kMain
 } from "../data-display-types"
 import { dataDisplayGetNumericValue } from "../data-display-value-utils"
 
@@ -66,6 +66,11 @@ export const kDataConfigurationType = "dataConfigurationType"
 // a provisional dataset and metadata. In this case, the provisional dataset or metadata will be retrieved
 // instead of the DataConfiguration's own. This allows the DI system to set up a graph tile snapshot,
 // referencing the dataset and metadata as necessary, outside the main MST tree.
+interface ILegendAttributeAndType {
+  attributeID?: string
+  type?: AttributeType
+}
+
 interface IProvisionalEnvironment {
   provisionalDataSet?: IDataSet
   provisionalMetadata?: IDataSetMetadata
@@ -108,7 +113,12 @@ export const DataConfigurationModel = types
     displayOnlySelectedCases: types.maybe(types.boolean),
     filterFormula: types.maybe(Formula),
     legendQuantilesAreLocked: types.maybe(types.boolean),
-    legendQuantiles: types.array(types.number)
+    // When locked: the inner bin edges (N-1 values for N bins), and the legend's min and max.
+    // Older documents may have legendQuantiles without the min and max. Documents that imported a
+    // locked V2 legend before the min and max were saved may hold V2's N+1 edges instead.
+    legendQuantiles: types.array(types.number),
+    legendLockedMin: types.maybe(types.number),
+    legendLockedMax: types.maybe(types.number)
   })
   .volatile(() => ({
     actionHandlerDisposer: undefined as (() => void) | undefined,
@@ -123,9 +133,6 @@ export const DataConfigurationModel = types
     suppressAnimation: false,
     // The following is set in useSubAxis:setupCategories based on how many fit in available space
     numberOfCategoriesLimitByRole: observable.map<AttrRole, Maybe<number>>(),
-    // When legendQuantilesAreLocked is true, this holds the quantile thresholds
-    _legendNumericColorScale: null as ScaleQuantize<string, never> | ScaleQuantile<string, never> |
-      ScaleThreshold<number, string, never> | null,
   }))
   .views(self => ({
     get axisAttributeIDs() {
@@ -202,10 +209,9 @@ export const DataConfigurationModel = types
       const attr = attrID ? self.dataset?.attrFromID(attrID) : undefined
       return attr?.type
     },
-    roleForAttributeWithCategoryLimit(attrID: string) {
-      return GraphSplitAttrRoles.find(role => {
-        return self.numberOfCategoriesLimitByRole.get(role) !== undefined
-      })
+    // The legend's attribute and type, so a change can tell whether it gives the legend a new one
+    get legendAttributeAndType(): ILegendAttributeAndType {
+      return { attributeID: this.attributeID("legend"), type: this.attributeType("legend") }
     },
     get places() {
       const places = new Set<string>(Object.keys(this.attributeDescriptions))
@@ -279,10 +285,12 @@ export const DataConfigurationModel = types
       return Object.entries(descriptions).every(([role, {attributeID}]) => {
         // can still plot the case without a caption or a legend
         if (["caption", "legend"].includes(role)) return true
-        switch (self.attributeType(role as AttrRole)) {
-          // TODO: handle "date" type
+        const roleType = self.attributeType(role as AttrRole)
+        switch (roleType) {
+          // A split role never arrives here as a date: setupAxes retypes a split role categorical.
+          case "date":
           case "numeric":
-            return isFiniteNumber(dataDisplayGetNumericValue(data, caseID, attributeID, true))
+            return isFiniteNumber(dataDisplayGetNumericValue(data, caseID, attributeID, roleType === "numeric"))
           case "categorical":
             // Treat 0 as a string and return true for all non-empty strings
             return !!data.getStrValue(caseID, attributeID)
@@ -447,6 +455,56 @@ export const DataConfigurationModel = types
   }))
   .views(self => ({
     /**
+     * The categories the role would render with no limit applied: the category set, in its
+     * canonical order, intersected with the values of the visible cases. Empty where the clamp
+     * never applies at all (no visible values, or no category set). Callers must not mutate the
+     * result, since it is cached.
+     *
+     * Deliberately independent of the limit, so changing the limit does not invalidate this.
+     */
+    presentCategoriesForAttrRole: cachedFnWithArgsFactory<(role: AttrRole) => readonly string[]>({
+      key: (role: AttrRole) => role,
+      calculate: (role: AttrRole) => {
+        const valuesSet = new Set(self.valuesForAttrRole(role))
+        const allCategorySet = self.categorySetForAttrRole(role)
+        if (valuesSet.size === 0 || !allCategorySet) return []
+        const result: string[] = []
+        allCategorySet.values.forEach(category => {
+          if (valuesSet.has(category)) result.push(category)
+        })
+        return result
+      },
+      name: "presentCategoriesForAttrRole"
+    })
+  }))
+  .views(self => ({
+    /**
+     * How many categories the role would render with no limit applied. This is the count the
+     * clamp in categoryArrayForAttrRole actually compares against, so it is the right basis for
+     * deciding whether a limit can change anything. It is 0 where the clamp never applies, so any
+     * positive limit is a no-op in those states.
+     */
+    unclampedCategoryCountForAttrRole(role: AttrRole) {
+      return self.presentCategoriesForAttrRole(role).length
+    }
+  }))
+  .views(self => ({
+    /**
+     * Normalizes a categories limit so that limits which cannot affect the result all compare
+     * equal (as undefined). A limit only matters when more categories are rendered than it allows.
+     * Axis code derives the limit from the length of one sub-axis, so it changes roughly every
+     * 12 pixels of sub-axis length during a component resize; comparing normalized values keeps
+     * those no-op changes from rebuilding the cell grid.
+     *
+     * This is used only for comparison. The raw limit is what gets stored, so the clamp stays
+     * correct when a higher-cardinality attribute is later assigned to the role.
+     */
+    effectiveCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
+      if (limit == null || !(limit > 0)) return undefined
+      if (limit >= self.unclampedCategoryCountForAttrRole(role)) return undefined
+      return limit
+    },
+    /**
      * @param role
      * @param emptyCategoryArray
      */
@@ -457,20 +515,14 @@ export const DataConfigurationModel = types
           categoryLimitForRole = self.numberOfCategoriesLimitByRole.get(role)
         if (valuesSet.size === 0) return emptyCategoryArray
 
-        let resultArray: string[] = []
-        // category set maintains the canonical order of categories
-        const allCategorySet = self.categorySetForAttrRole(role)
+        let resultArray: string[]
         // if we don't have a category set just return the values
-        if (!allCategorySet && valuesSet.size > 0) {
+        if (!self.categorySetForAttrRole(role)) {
           resultArray = Array.from(valuesSet)
         }
         else {
-          // return the categories in canonical order
-          allCategorySet?.values.forEach(category => {
-            if (valuesSet.has(category)) {
-              resultArray.push(category)
-            }
-          })
+          // copied, because the clamp below truncates it in place
+          resultArray = self.presentCategoriesForAttrRole(role).slice()
           if (categoryLimitForRole && resultArray.length > categoryLimitForRole) {
             resultArray.length = categoryLimitForRole
             resultArray[categoryLimitForRole - 1] = kOther
@@ -592,12 +644,13 @@ export const DataConfigurationModel = types
       },
       name: "caseIdsForCategory"
     }),
-    // The effective numeric-legend display range: the per-attribute Min/Max override where set, else
-    // the live data extent. A reversed/degenerate effective range (e.g. an orphaned override after
-    // the other bound was cleared) falls back to the data extent. This drives both the quantize color
-    // scale's domain and the legend's displayed endpoint labels, so the legend always matches the
-    // Min/Max the user set -- including in quantile mode, whose trained domain is the data quantiles
-    // rather than the override (CODAP-1292).
+    // The linear or quantile legend's range, ignoring the lock: the per-attribute Min/Max override
+    // where set, else the live data extent. A reversed/degenerate range (e.g. an orphaned override
+    // after the other bound was cleared) falls back to the data extent. This drives the quantize
+    // color scale's domain and, while the legend is not locked, the legend's displayed endpoint
+    // labels, so the legend matches the Min/Max the user set -- including in quantile mode, whose
+    // trained domain is the data quantiles rather than the override. While locked, the locked range
+    // is shown instead (see legendDisplayRange).
     get legendNumericRange(): { min?: number, max?: number } {
       const values = self.numericValuesForAttrRole("legend") ?? []
       const [dataMin, dataMax] = extent(values)
@@ -648,11 +701,43 @@ export const DataConfigurationModel = types
     get legendIsLogarithmic(): boolean {
       return self.metadata?.getAttributeBinningType(self.attributeID("legend")) === "logarithmic"
     },
-    // Endpoint labels to display: the log domain in logarithmic mode, else the linear/quantile range.
-    get legendDisplayRange(): { min?: number, max?: number } {
+    // The live endpoint range: the log domain in logarithmic mode, else the linear/quantile range.
+    // It ignores the lock, so the lock code can always read the current values.
+    get liveLegendDisplayRange(): { min?: number, max?: number } {
       return this.legendIsLogarithmic ? this.legendLogDomain : this.legendNumericRange
     },
+    // True when the legend is locked and has saved values to build the locked scale from: the min
+    // and max (legendQuantiles can be empty for a one-bin legend), or, for older documents, only the
+    // inner edges (see legendQuantiles).
+    get hasLockedLegendScale(): boolean {
+      if (!self.legendQuantilesAreLocked) return false
+      return (self.legendLockedMin != null && self.legendLockedMax != null) || self.legendQuantiles.length > 0
+    },
+    // The number of bins the legend shows: the locked bin count (from the saved edges) when there is
+    // a locked scale, else the live count. The live count can drop while locked, for example when
+    // cases with distinct values are hidden.
+    get displayedLegendBinCount(): number {
+      return this.hasLockedLegendScale ? self.legendQuantiles.length + 1 : self.legendBinCount
+    },
+    // The endpoint range to display, and to use for out-of-range colors and bin selection. When locked
+    // with a saved min and max, those win over the live data and over a Min/Max override.
+    get legendDisplayRange(): { min?: number, max?: number } {
+      const { legendLockedMin: min, legendLockedMax: max } = self
+      if (self.legendQuantilesAreLocked && min != null && max != null) return { min, max }
+      return this.liveLegendDisplayRange
+    },
+    // The locked scale, built only from saved properties, so undo, redo, and reload restore it.
+    get lockedLegendColorScale(): ScaleThreshold<number, string> {
+      const edges = self.legendQuantiles.slice()
+      return scaleThreshold<number, string>()
+        .domain(edges)
+        .range(getChoroplethColors(self.lowColor, self.highColor, edges.length + 1))
+    },
     get legendNumericColorScale() {
+      return this.hasLockedLegendScale ? this.lockedLegendColorScale : this.liveLegendNumericColorScale
+    },
+    // The scale from the live data. It ignores the lock.
+    get liveLegendNumericColorScale() {
       // TODO: Handle the displayOnlySelectedCases better. What we would like to do is
       // to basically ignore displayOnlySelectedCases when computing the legend bins.
       // This way the legend will not jump around when the user is selecting different
@@ -677,9 +762,6 @@ export const DataConfigurationModel = types
       // The best solution might be to separate the displayOnlySelectedCases from FilterCases,
       // perhaps by renaming it PlottableCases and then apply the displayOnlySelectedCases
       // criteria further up chain of filters.
-      if (self.legendQuantilesAreLocked && self._legendNumericColorScale) {
-        return self._legendNumericColorScale
-      }
       const binningType = self.metadata?.getAttributeBinningType(self.attributeID("legend"))
       switch (binningType) {
         case "quantize": {
@@ -761,6 +843,17 @@ export const DataConfigurationModel = types
       return this.legendQuantileScaleAndExtents.extents
     },
   }))
+  .views(self => ({
+    // When legendDisplayRange is defined, values outside it are "missing" rather than clamped
+    // into an end bin. It is the same range used for the endpoint labels, so colors and labels
+    // stay in lockstep (and, while locked, a value added later beyond the locked range is
+    // missing). A degenerate domain yields no min/max but still produces a valid single-bin
+    // scale, so there is no check there and the scale colors the value.
+    isOutsideLegendRange(value: number): boolean {
+      const { min, max } = self.legendDisplayRange
+      return min != null && max != null && (value < min || value > max)
+    },
+  }))
   .views(self => (
     {
       getLegendColorForCategory(cat: string): string {
@@ -779,18 +872,21 @@ export const DataConfigurationModel = types
         // A log scale is undefined for values <= 0; they are always missing, including when the log
         // domain is degenerate (<= 1 distinct positive value) and legendDisplayRange is empty.
         if (self.legendIsLogarithmic && value <= 0) return missingColor
-        // When the effective range is defined, values outside it are "missing" rather than clamped
-        // into an end bin. legendDisplayRange is the same range used for the endpoint labels, so
-        // colors and labels stay in lockstep. A degenerate domain yields no min/max but still
-        // produces a valid single-bin scale, so skip the check there and let the scale color it.
-        const { min, max } = self.legendDisplayRange
-        if (min != null && max != null && (value < min || value > max)) return missingColor
+        if (self.isOutsideLegendRange(value)) return missingColor
         return self.legendNumericColorScale(value)
       },
 
       getLegendColorForDateValue(value: string): string {
-        const dateValueArray = stringValuesToDateSeconds([value])
-        return self.legendNumericColorScale(dateValueArray[0])
+        const [seconds] = stringValuesToDateSeconds([value])
+        // The same range check as for numbers. (A date <= 0 is just a date before 1970, so the
+        // logarithmic rule for numbers does not apply.)
+        // TODO: CODAP-1675. When the attribute itself is not a date (for example, a numeric attribute
+        // from a V2 document whose legend is saved as a date), the legend's range uses the numbers
+        // as they are, but these values are date seconds. Every value would then be out of range, so
+        // skip the check there until the range also uses date seconds.
+        const legendAttrType = self.dataset?.attrFromID(self.attributeID("legend"))?.type
+        if (legendAttrType === "date" && self.isOutsideLegendRange(seconds)) return missingColor
+        return self.legendNumericColorScale(seconds)
       },
 
       getCasesForCategoryValues(
@@ -1029,6 +1125,7 @@ export const DataConfigurationModel = types
       self.valuesForAttrRole.invalidateAll()
       self.numericValuesForAttribute.invalidateAll()
       self.categoryArrayForAttrRole.invalidateAll()
+      self.presentCategoriesForAttrRole.invalidateAll()
       self.caseIdsForCategory.invalidateAll()
       self.allCasesForCategoryAreSelected.invalidateAll()
       self.getCaseDataArray.invalidateAll()
@@ -1151,6 +1248,12 @@ export const DataConfigurationModel = types
         }
         this.invalidateCases()
       }
+      // A visibility slider changes the hidden cases on every drag and playback step, so points/bars
+      // update instantly rather than restarting a transition each step (they'd fade out and back in).
+      // The dataset invalidates its own cases for these, which we observe reactively.
+      if (["setSliderFilter", "clearSliderFilter"].includes(actionCall.name)) {
+        self.suppressAnimation = true
+      }
       // forward all actions from dataset except "setCaseValues" which requires intervention
       if (actionCall.name === "setCaseValues") return
       self.handlers.forEach(handler => handler(actionCall))
@@ -1160,19 +1263,40 @@ export const DataConfigurationModel = types
     setLegendQuantiles(quantiles: number[]) {
       self.legendQuantiles.replace(quantiles)
     },
+    // Saves the live inner edges, min, and max as the locked legend. It reads only the live views,
+    // so it never saves back the old locked values.
+    saveLockedLegend() {
+      this.setLegendQuantiles(getScaleThresholds(self.liveLegendNumericColorScale))
+      const { min, max } = self.liveLegendDisplayRange
+      self.legendLockedMin = min
+      self.legendLockedMax = max
+    },
+    // When the legend attribute or its type changes while locked, lock the new attribute's values.
+    // The old values would not fit the new attribute. The lock checkbox shows only for a numeric or
+    // date legend, so with no legend attribute or any other type, clear the lock instead. Then it
+    // cannot stay on where the user cannot see it. Setting the same attribute or type again keeps
+    // the locked values. Callers pass the legend's attribute and type from before the change, and
+    // run this in the same action as the change, after the case caches are reset, so one undo
+    // reverses both.
+    recomputeLockedLegend(previous: ILegendAttributeAndType) {
+      if (!self.legendQuantilesAreLocked) return
+      const current = self.legendAttributeAndType
+      if (current.attributeID === previous.attributeID && current.type === previous.type) return
+      const isBinnedLegend = current.type === "numeric" || current.type === "date"
+      if (current.attributeID && isBinnedLegend) this.saveLockedLegend()
+      else this.setLegendQuantilesAreLocked(false)
+    },
     setLegendQuantilesAreLocked(areLocked: boolean | undefined) {
       if (areLocked === self.legendQuantilesAreLocked) {
         return
       }
       if (areLocked) {
-        const scale = self.legendNumericColorScale
-        const thresholds = getScaleThresholds(scale)
-        this.setLegendQuantiles(thresholds)
-        self._legendNumericColorScale = scale
+        this.saveLockedLegend()
       }
       else {
-        self._legendNumericColorScale = null
         this.setLegendQuantiles([])
+        self.legendLockedMin = undefined
+        self.legendLockedMax = undefined
       }
       self.legendQuantilesAreLocked = areLocked
     },
@@ -1184,11 +1308,13 @@ export const DataConfigurationModel = types
       const categorySet = self.categorySetForAttrRole('legend')
       categorySet?.setShapeForCategory(cat, shape)
     },
+    // Stores the limit without invalidating anything derived from it, for a caller that has already
+    // decided whether the change affects any result (see effectiveCategoriesLimitForRole).
+    storeNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
+      self.numberOfCategoriesLimitByRole.set(role, limit != null && limit > 0 ? limit : undefined)
+    },
     setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
-      if (limit !== undefined && limit <= 0) {
-        limit = undefined
-      }
-      self.numberOfCategoriesLimitByRole.set(role, limit)
+      this.storeNumberOfCategoriesLimitForRole(role, limit)
       self.categoryArrayForAttrRole.invalidate(role)
     },
   }))
@@ -1249,9 +1375,6 @@ export const DataConfigurationModel = types
   }))
   .actions(self => ({
     afterCreate() {
-      if (self.legendQuantilesAreLocked && self.legendQuantiles.length > 0) {
-        self._legendNumericColorScale = scaleThreshold(self.legendQuantiles, self.choroplethColors)
-      }
       // respond to change of dataset
       addDisposer(self, reaction(
         () => self.dataset,
@@ -1337,17 +1460,23 @@ export const DataConfigurationModel = types
     },
     clearAttributes() {
       self._attributeDescriptions.clear()
+      // There is no legend attribute now, so clear the lock (see recomputeLockedLegend)
+      self.setLegendQuantilesAreLocked(false)
     },
     setAttribute(role: AttrRole, desc?: IAttributeDescriptionSnapshot) {
+      const previousLegend = self.legendAttributeAndType
       self._setAttributeDescription(role, desc)
       self.setPointsNeedUpdating(true)
       self.invalidateCases()
       // No harm in invalidating even if not numeric
       self.numericValuesForAttribute.invalidate(role, self.attributeType(role))
+      if (role === "legend") self.recomputeLockedLegend(previousLegend)
     },
     setAttributeType(role: AttrRole, type: AttributeType, plotNumber = 0) {
+      const previousLegend = self.legendAttributeAndType
       self._attributeDescriptions.get(role)?.setType(type)
       self._setAttributeType(type, plotNumber)
+      if (role === "legend") self.recomputeLockedLegend(previousLegend)
     },
     addNewHiddenCases(hiddenCases: string[]) {
       self.hiddenCases.push(...hiddenCases)

@@ -2,9 +2,10 @@ import { pickRandom } from "mathjs/number"
 import { Random } from "random"
 import { isDateString, parseDate } from "../../../utilities/date-parser"
 import { isDate } from "../../../utilities/date-utils"
+import { greatCircleDistance } from "../../../utilities/geo-utils"
 import { extractNumeric, isValueEmpty } from "../../../utilities/math-utils"
 import { FValue, IFormulaMathjsFunction } from "../formula-types"
-import { UNDEF_RESULT } from "./function-utils"
+import { toBoolean, UNDEF_RESULT } from "./function-utils"
 
 const randomGen = new Random()
 
@@ -14,19 +15,9 @@ export const otherFunctions: Record<string, IFormulaMathjsFunction> = {
     numOfRequiredArguments: 3,
     evaluate: (...args: FValue[]) => {
       const [condition, trueValue, falseValue] = args
-      if (isValueEmpty(condition)) return ""
-      // NaN is treated as falsy (V2 parity: V2's if() uses !!NaN === false). Without this, a
-      // condition like `0/0 < 0` (which propagates as NaN) would incorrectly take the true branch
-      // because Number(NaN) !== 0 is true.
-      if (Number.isNaN(condition)) return falseValue
-      if (condition === true || (typeof condition === "string" && condition.toLowerCase() === "true")) {
-        return trueValue
-      }
-      if (condition === false || (typeof condition === "string" && condition.toLowerCase() === "false")) {
-        return falseValue
-      }
-      if (typeof condition === "object") return trueValue
-      return Number(condition) !== 0 ? trueValue : falseValue
+      const boolCondition = toBoolean(condition)
+      if (boolCondition == null) return ""
+      return boolCondition ? trueValue : falseValue
     }
   },
 
@@ -123,12 +114,7 @@ export const otherFunctions: Record<string, IFormulaMathjsFunction> = {
       const lat2 = extractNumeric(_lat2)
       const long2 = extractNumeric(_long2)
       if (lat1 != null && long1 != null && lat2 != null && long2 != null) {
-        const deltaLat = lat2 - lat1
-        const deltaLong = long2 - long1
-        const a = Math.pow(Math.sin((Math.PI / 180) * deltaLat / 2), 2) +
-                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                  Math.pow(Math.sin((Math.PI / 180) * deltaLong / 2), 2)
-        return 2 * 6371 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        return greatCircleDistance(lat1, long1, lat2, long2) / 1000
       }
       return UNDEF_RESULT
     }

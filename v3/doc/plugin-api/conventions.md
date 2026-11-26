@@ -1,0 +1,252 @@
+# Conventions for the Plugin API reference
+
+How pages in this reference are structured, and why. This page is for people **writing** the
+reference; plugin authors want [the index](README.md).
+
+These conventions exist to satisfy three constraints at once:
+
+1. **One page is one complete answer.** Someone arriving to use `adornment` should not have to
+   read three other pages first.
+2. **Parts of each page are generated.** A resource's supported actions, selector patterns and
+   property table are derived from `src/data-interactive/`, so they must sit in blocks a tool can
+   rewrite without touching hand-written prose.
+3. **The pages are read by models as well as people.** Exact names, complete examples and
+   explicit tables serve both.
+
+---
+
+## Folder layout
+
+```
+doc/plugin-api/            (currently under v3/, moving with it)
+  README.md           index: terminology, request envelope, selector rules, resource table
+  conventions.md      this page
+  resources/          one page per resource
+  guides/             narrative chapters spanning resources
+  notifications.md    catalog of notifications CODAP sends
+```
+
+`resources/` holds reference pages, one per resource, following the layout below. `guides/`
+holds the chapters that cannot be attached to a single resource — embedded-server mode, request
+processing and coalescing, undo and redo, locale. `notifications.md` is a single catalog rather
+than per-resource pages, because plugin authors arrive at it asking "what does CODAP send me?"
+rather than "what does this resource send?".
+
+Whole-folder rule: everything here is **external-facing** reference for plugin authors. The rest
+of the enclosing `doc/` folder is internal design documentation for CODAP developers. Keep the two
+separate — the audiences and the tolerance for implementation detail differ. In particular, do not
+cite internal issue-tracker ids on these pages: a plugin author cannot open them. Say "a known
+limitation" and describe it. For the same reason, do not cite source `file:line` locations — they
+rot on the next edit, and a statement of behavior should stand on its own. The provenance header
+records when the page was last checked against the code; `git log` on the page is the audit trail.
+
+---
+
+## Page layout
+
+Every resource page follows the same section order. Keep it, even when a section is short —
+predictable structure is most of what makes a reference usable.
+
+```markdown
+# <resourceName>
+
+> <provenance header — see below>
+
+<One or two paragraphs: what this resource is, and when a plugin would reach for it.>
+
+## Supported actions
+## Resource selector patterns
+## Values
+## Examples
+## Known limitations      (optional)
+## Notifications
+## Errors
+## See also               (optional)
+```
+
+Sections may be omitted only when they genuinely do not apply — a read-only resource has no
+`create` values, for instance. Do not omit a section merely because it is brief.
+
+**Extra sections are allowed**, and several resources need them: a long-form explanation of one
+action (`## get — subscribing to document state`), a catalog the standard sections cannot hold
+(`## Adornment types`), a caveat that is not an error (`## Known limitations`), or pointers
+(`## See also`). Place them so the required order still reads top to bottom: sections expanding
+on an action go after **Resource selector patterns** and before **Values**; `## Known
+limitations` goes after **Examples**; `## See also` goes last. Keep the required headings
+present and in order around them.
+
+### Provenance header
+
+Every page opens with one, directly under the title:
+
+```markdown
+> **Applies to:** CODAP v3 · **Verified:** 2026-09-25
+> · Parts of this page are generated — see [conventions](../conventions.md).
+```
+
+A reader — human or model — can then qualify what they are reading instead of assuming it is
+current. **Update the date only when you have actually re-checked the page against the code** —
+not when you edit its prose, and never as part of a sweep across pages you did not read. The date
+is a claim that someone verified this page that day.
+
+**A date, not a commit.** Pages are written on a branch and squash-merged, so a commit recorded
+here never appears on `main` and sends a reader looking for something that does not exist. A
+branch name cannot be used either — ours carry issue ids, which this folder does not publish.
+The date tells a reader how current the page is, which is what the header is for; `git log` on
+the page gives the exact commits.
+
+---
+
+## Generated blocks
+
+Mechanical content lives between markers so the generator can replace it without disturbing
+anything a person wrote:
+
+```markdown
+<!-- BEGIN GENERATED: actions -->
+| Action | Supported |
+|---|---|
+| `get` | ✓ |
+<!-- END GENERATED: actions -->
+```
+
+Rules:
+
+- **A marker declares the block machine-owned, whether or not the tool can fill it yet.** The
+  generator writes the blocks it can produce completely and leaves the rest alone, reporting them
+  as hand-maintained. So content you write inside markers is *provisional*: it survives until the
+  generator learns that block, and is then replaced — reported as CHANGED, and failing
+  `--check`, so the replacement is never silent. Run
+  `npm run plugin-api:generate` to see which blocks are written and which are still yours.
+- **Never hand-edit a block the generator writes.** Fix the extractor or the code instead; the
+  next run discards the edit and reports the block as CHANGED.
+- **Never put prose inside the markers** — and read this strictly. A generated block holds only
+  what the extractor can derive from source: names, types, action support, selector patterns and
+  error strings. Anything requiring judgment — why a property is useful, what a value is good for,
+  the *condition* that produces an error, how two failure causes differ — goes immediately before
+  or after the block. If it is inside the markers and not derivable, the generator deletes it and
+  reports the block as CHANGED — recoverable from git, but gone from the page.
+  When in doubt, ask whether a script reading `src/data-interactive/` could produce the cell.
+- **The notification tables are the one exception.** Each table in `notifications.md` is a
+  generated block with one column a person writes: "Fires when". The generator decides which
+  operations are listed and what `values` carries, reads "Fires when" back out of the table, and
+  carries it forward by operation name. Edit that column in place. A row may name several
+  operations that share a description. An operation new in the code gets a row marked
+  `_not yet described_`, which the lint fails until it is described; a row whose operations are
+  all gone is dropped. The `component` notifications get one block per section of the page,
+  and an area of CODAP that no block claims fails the generator.
+- **An operation built when it is sent** (`` `toggle show as ${plotType}` ``, or text joined with
+  `+`) has no name the generator can list. Write its row by hand, naming it with a placeholder
+  for each part that varies: `toggle show as <plot type>`. The row stays while the code still
+  builds an operation of that shape, and is dropped and reported once it doesn't. An operation
+  built that way with no such row fails the generator. So does a notification the extractor
+  can't read at all, such as one whose resource is a variable: no row can cover it, so send it
+  through a notification helper or with a literal resource and operation.
+- Current block names: `actions`, `selectors`, `scope`, `values`, `values-write`, and
+  on the quick reference `adornment-types`, `resource-actions`, `selector-grammar`,
+  `error-catalog`. On `notifications.md`: `notifications-data`, `notifications-drag`,
+  `notifications-undo`, `notifications-document`, `notifications-other`, and
+  `notifications-component-<section>`.
+- A page may carry **more than one property table** when the shape differs by action — the result
+  of a `get` versus the values `create`/`update` accept. Mark both, with distinct names: `values`
+  for the result shape and `values-write` for accepted input. Block names must be unique within a
+  page, since the generator targets them by name.
+- **One table per list.** Do not follow a block with a second table that repeats its rows only to
+  add a column the generator cannot fill. When properties need notes and the block has no
+  `source=`, write one unmarked table with a Notes column instead. Errors are always one unmarked
+  `| Error | Condition |` table: nothing maps errors to resources, so there is nothing for a
+  generated block to hold. The lint still checks that every quoted error string exists in the
+  code.
+- A page written before the generator exists still uses the markers, with the content written by
+  hand. That is the point — the generator takes over later with no restructuring.
+- **A marker shown as an example is still a marker.** The tools scan the raw file, so a marker
+  inside a code fence counts as a real one — the example above works only because it is a
+  well-formed pair. Never illustrate a *malformed* marker: the lint would report it, and on a
+  resource page the generator would refuse to rewrite the whole page.
+
+---
+
+## Repeat rather than cross-reference
+
+Each resource page **restates** the selector patterns that apply to it and the default
+data-context rule, rather than linking back to a shared page.
+
+This is deliberate. A reader who arrives at one page has a complete answer, and a retrieved
+fragment carries the rules needed to use what it describes.
+
+The duplication is owned by the generator, not by authors: the restated data-context rule lives
+in a `scope` generated block, so 38 copies stay consistent because one tool writes them all.
+Do not hand-edit it, and do not replace it with a link.
+
+The exception is genuinely shared narrative — request coalescing, undo/redo, embedded-server mode
+— which lives in its own chapter and is linked, not restated.
+
+---
+
+## Examples must be real
+
+- **Error strings are shown as a plugin receives them**, with `<type>`-style placeholders — not
+  CODAP's internal `%@` / `%@1` i18n notation, which means nothing to a plugin author. The
+  extractor reads `en-US.json5`, which uses the `%@` form, and the generator substitutes neutral
+  placeholders on the way out.
+- Every ` ```json ` block must parse as JSON. No comments, no `/* {String} ... */` annotations, no
+  ellipses. The old wiki page's object-shape blocks were none of these things, and plugin authors
+  copied the annotations into real requests.
+- Every request example must be one that would actually succeed if sent, against a document whose
+  setup the surrounding prose describes.
+- Every `get` example shows its response, as a second ` ```json ` block. Other actions show one
+  when the response carries data a plugin will use, such as the id of something it created.
+- Type and default information belongs in the **Values** property table, not in a comment inside
+  an example.
+- **JavaScript examples must not assume a helper library.** This reference documents the API, not
+  any particular client. Write `sendRequest(...)` with a comment saying it stands for however the
+  plugin sends requests, and show receiving notifications through a `requestHandler(command,
+  callback)` — the iframe-phone shape CODAP actually delivers to. Do not write
+  `codapInterface.sendRequest`: that is a separate helper this reference does not document, and
+  an example that assumes it is wrong for anyone not using it.
+
+---
+
+## Headings and anchors
+
+- Heading text is an API. External links and citations point at it, so changing a heading breaks
+  them. Rename only with a reason.
+- Use sentence case for section headings, and the exact resource name for the page title —
+  `dataDisplay`, not `Data Display`.
+- One `#` title per page.
+
+---
+
+## Naming
+
+- Files are kebab-case of the resource name: `dataDisplay` → `resources/data-display.md`,
+  `interactiveFrame` → `resources/interactive-frame.md`.
+- A resource and its list variant share one page, named for the primary resource: `adornment`
+  and `adornmentList` are both documented in `resources/adornment.md`. Give the list variant its
+  own section, and list it in the index table pointing at that page. On a shared page the
+  **Supported actions** table gains a column per resource rather than a single Supported column.
+
+---
+
+## Deprecated names
+
+This is the policy from now on: CODAP does not rename a resource, action, value key or
+notification operation silently, even an untidy one inherited from v2. A cleanup adds the
+consistent name alongside the old one. CODAP then accepts both, or sends both, for a transition
+period, and the reference documents the old name as deprecated. The old name is removed only in
+a later, announced API version. Some earlier renames were made silently, such as the log event
+names listed under the notification catalog's
+[Known limitations](notifications.md#known-limitations).
+
+On a page, a deprecated name keeps its own row or mention, marked **deprecated**, with the name
+that replaces it. `restoreSetasides` on [`dataContext`](resources/data-context.md) is the
+pattern: "accepted as a deprecated v2 spelling".
+
+---
+
+## Terminology
+
+Use the canonical term from the table on [the index](README.md#terminology), not the synonym that
+reads better in the sentence. The old page alternated freely between "data interactive", "plugin"
+and "DI", which splits retrieval matches and invites readers to treat synonyms as distinct
+concepts.

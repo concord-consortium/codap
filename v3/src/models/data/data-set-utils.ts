@@ -13,7 +13,8 @@ import {
   createCasesNotification, deleteCasesNotification, deleteCollectionNotification, dependentCasesNotification,
   moveAttributeNotification, selectCasesNotification, selectCasesNotificationForDelta
 } from "./data-set-notifications"
-import { IAttributeChangeResult, IMoveAttributeOptions } from "./data-set-types"
+import { IAttributeChangeResult, ICase, IMoveAttributeOptions } from "./data-set-types"
+import { withSetAsideUndoRedo } from "./data-set-undo"
 
 export function getCollectionAttrs(collection: ICollectionModel, data?: IDataSet): IAttribute[] {
   if (collection && !isAlive(collection)) {
@@ -58,6 +59,17 @@ export function isAnyChildSelected(data: IDataSet, caseId: string): boolean {
           : childItemIds?.some(childItemId => data.isCaseSelected(childItemId))
 }
 
+// returns the ids of the given ancestor case's descendants in the specified collection
+export function getDescendantCaseIds(data: IDataSet, ancestorCaseId: string, collectionId: string) {
+  let caseIds = [ancestorCaseId]
+  let currCollectionId = data.caseInfoMap.get(ancestorCaseId)?.collectionId
+  while (currCollectionId && currCollectionId !== collectionId) {
+    caseIds = caseIds.flatMap(caseId => data.caseInfoMap.get(caseId)?.childCaseIds ?? [])
+    currCollectionId = data.getChildCollection(currCollectionId)?.id
+  }
+  return currCollectionId ? caseIds : []
+}
+
 /**
  * Returns the collection containing the attribute from the given array that is closest to the
  * root of the data set. If there is an attribute that is not in any collection, then we return undefined
@@ -89,10 +101,9 @@ interface IMoveAttributeParameters {
   includeNotifications?: boolean
   sourceCollection?: ICollectionModel
   targetCollection: ICollectionModel
-  undoable?: boolean
 }
 export function moveAttribute({
-  afterAttrId, attrId, dataset, includeNotifications, sourceCollection, targetCollection, undoable
+  afterAttrId, attrId, dataset, includeNotifications, sourceCollection, targetCollection
 }: IMoveAttributeParameters) {
   const firstAttr: IAttribute | undefined = getCollectionAttrs(targetCollection, dataset)[0]
   const options: IMoveAttributeOptions =
@@ -102,8 +113,8 @@ export function moveAttribute({
   if (attrId === options.after || attrId === options.before) return
 
   const notifications = includeNotifications ? moveAttributeNotification(dataset) : undefined
-  const undoStringKey = undoable ? "DG.Undo.dataContext.moveAttribute" : undefined
-  const redoStringKey = undoable ? "DG.Redo.dataContext.moveAttribute" : undefined
+  const undoStringKey = "DG.Undo.dataContext.moveAttribute"
+  const redoStringKey = "DG.Redo.dataContext.moveAttribute"
   const logMessage = logMessageWithReplacement("Moved attribute %@ to %@ collection",
                         { attrId, collection: targetCollection.name ?? "new" })
   const modelChangeOptions = { notify: notifications, undoStringKey, redoStringKey, log: logMessage }
@@ -204,20 +215,44 @@ export function selectAndDeselectCases(
 // Set aside helper functions
 
 // For case ids, returns the grouped case. For item ids, returns the childmost grouped case containing that item.
-function getGroupedCases(data: IDataSet, caseOrItemIds: string[]) {
+export function getGroupedCases(data: IDataSet, caseOrItemIds: string[]) {
+  data.validateCases()
   return caseOrItemIds.map(caseId => data.caseInfoMap.get(caseId) ?? data.itemIdChildCaseMap.get(caseId))
     .filter(caseInfo => !!caseInfo).map(caseInfo => caseInfo.groupedCase)
+}
+
+// The shown cases, in every collection, whose shown items are all among the given items, so that removing
+// the items removes the cases too. As in V2, whose deleteCases listed every case that regenerating the
+// cases removed, a case that keeps only set-aside or filtered-out items counts, since those items have no cases.
+export function getVanishingCases(data: IDataSet, itemIds: Iterable<string>) {
+  data.validateCases()
+  const removing = new Set(itemIds)
+  const cases: ICase[] = []
+  data.collections.forEach(collection => {
+    collection.caseIds.forEach(caseId => {
+      const caseInfo = data.caseInfoMap.get(caseId)
+      if (caseInfo?.childItemIds.length && caseInfo.childItemIds.every(itemId => removing.has(itemId))) {
+        cases.push(caseInfo.groupedCase)
+      }
+    })
+  })
+  return cases
 }
 
 export function addSetAsideCases(data: IDataSet, caseOrItemIds: string[], undoable = true) {
   if (caseOrItemIds.length) {
     data.validateCases()
     data.applyModelChange(() => {
-      data.hideCasesOrItems(caseOrItemIds)
+      const setAside = () => data.hideCasesOrItems(caseOrItemIds)
+      if (undoable) withSetAsideUndoRedo(data, setAside)
+      else setAside()
       data.selectCases(caseOrItemIds, false)
     }, {
       notify:
         [selectCasesNotification(data, true), deleteCasesNotification(data, getGroupedCases(data, caseOrItemIds))],
+      // a plugin's set-aside keeps what could be redone, as V2's (a deleteCases that didn't dirty the document,
+      // data_interactive_phone_handler.js:823-828, data_context.js:520)
+      keepRedo: !undoable,
       undoStringKey: undoable ? "V3.Undo.hideShowMenu.setAsideCases" : undefined,
       redoStringKey: undoable ? "V3.Redo.hideShowMenu.setAsideCases" : undefined
     })
@@ -241,10 +276,14 @@ export function restoreSetAsideCases(data?: IDataSet, caseOrItemIds?: string[], 
   const notifications: INotify = createNotification ? [createNotification] : []
   if (setAsideCaseOrItemIds.length) {
     data.applyModelChange(() => {
-      data.showHiddenCasesAndItems(setAsideCaseOrItemIds)
+      const restore = () => data.showHiddenCasesAndItems(setAsideCaseOrItemIds)
+      if (undoable) withSetAsideUndoRedo(data, restore)
+      else restore()
       data.setSelectedCases(setAsideCaseOrItemIds)
     }, {
       notify: notifications.concat(selectCasesNotification(data)),
+      // a plugin's restore keeps what could be redone, as V2's didn't dirty the document (data_context.js:3037-3051)
+      keepRedo: !undoable,
       undoStringKey: undoable ? "V3.Undo.hideShowMenu.restoreSetAsideCases" : undefined,
       redoStringKey: undoable ? "V3.Redo.hideShowMenu.restoreSetAsideCases" : undefined,
       log: "Restore set aside cases"
@@ -280,7 +319,9 @@ export function replaceSetAsideCases(data: IDataSet, caseOrItemIds: string[]) {
       data.hideCasesOrItems(caseOrItemIds)
       data.setSelectedCases(restoredItemIds)
     }, {
-      notify: notifications.concat(selectCasesNotification(data, true))
+      notify: notifications.concat(selectCasesNotification(data, true)),
+      // only plugins replace the set-aside cases; as V2's set-aside and restore, it keeps what could be redone
+      keepRedo: true
     })
   }
 }

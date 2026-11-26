@@ -1,9 +1,10 @@
 import { clsx } from "clsx"
 import { t } from "../../../utilities/translation/translate"
+import { ColorSetting } from "../../common/color-setting"
 import { PaletteCheckbox } from "../../palette-checkbox"
-import { PointColorSetting } from "./point-color-setting"
 
 interface IPlotBackgroundControlsProps {
+  disabled?: boolean
   isTransparent?: boolean
   onBackgroundTransparencyChange: (isTransparent: boolean) => void
   plotBackgroundColor?: string
@@ -11,20 +12,23 @@ interface IPlotBackgroundControlsProps {
 }
 
 export function PlotBackgroundControls(
-  { isTransparent, onBackgroundTransparencyChange, plotBackgroundColor, onBackgroundColorChange }
+  { disabled, isTransparent, onBackgroundTransparencyChange, plotBackgroundColor, onBackgroundColorChange }
   : IPlotBackgroundControlsProps
 ) {
+  const colorDisabled = disabled || isTransparent
+
   return (
     <div>
-      <div className={clsx("palette-row", "color-picker-row", { disabled: isTransparent })}
-        aria-disabled={isTransparent || undefined}>
+      <div className={clsx("palette-row", "color-picker-row", { disabled: colorDisabled })}
+        aria-disabled={colorDisabled || undefined}>
         <label className="form-label color-picker">{t("DG.Inspector.backgroundColor")}</label>
-        <PointColorSetting propertyLabel={t("DG.Inspector.backgroundColor")}
-                          disabled={isTransparent}
+        <ColorSetting propertyLabel={t("DG.Inspector.backgroundColor")} testIdSuffix="background"
+                          disabled={colorDisabled}
                           onColorChange={(color) => onBackgroundColorChange(color)}
                           swatchBackgroundColor={plotBackgroundColor ?? "#FFFFFF"}/>
       </div>
       <PaletteCheckbox
+        isDisabled={disabled}
         isSelected={isTransparent}
         onChange={onBackgroundTransparencyChange}
         data-testid="background-transparency-checkbox"

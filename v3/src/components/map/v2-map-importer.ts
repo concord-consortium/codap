@@ -18,7 +18,6 @@ import {IMapBaseLayerModelSnapshot} from "./models/map-base-layer-model"
 import {IMapPolygonLayerModelSnapshot} from "./models/map-polygon-layer-model"
 import { DataSetMapAttributes } from "./utilities/data-set-map-attributes"
 
-
 export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}: V2TileImportArgs) {
   if (!isV2MapComponent(v2Component)) return
 
@@ -105,6 +104,7 @@ export function v2MapImporter({v2Component, v2Document, getCaseData, insertTile}
           isVisible: grid.isVisible,
           _gridMultiplier: grid.gridMultiplier,
         },
+        hotSpotModel: v2LayerModel.v3?.hotSpot,
         pointsAreVisible: pointsShouldBeVisible,
         connectingLinesAreVisible: connectingLines.isVisible
       }

@@ -1,6 +1,8 @@
-import { IValueType } from "../../models/data/attribute-types"
+import { deleteCasesNotification } from "../../models/data/data-set-notifications"
+import { getVanishingCases } from "../../models/data/data-set-utils"
 import { maybeToV2Id, toV2Id } from "../../utilities/codap-utils"
 import { registerDIHandler } from "../data-interactive-handler"
+import { getCaseValues } from "../data-interactive-utils"
 import { DIHandler, DIResources } from "../data-interactive-types"
 import { collectionNotFoundResult, dataContextNotFoundResult } from "./di-results"
 
@@ -9,9 +11,15 @@ export const diAllCasesHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
 
+    const itemIds = dataContext.items.map(c => c.__id__)
+    // the notice lists every case that goes, in every collection (see getVanishingCases)
+    const deletedCases = getVanishingCases(dataContext, itemIds)
     dataContext.applyModelChange(() => {
-      dataContext.removeCases(dataContext.items.map(c => c.__id__))
+      dataContext.removeCases(itemIds)
     }, {
+      // as in V2, deleting cases keeps the undo history (data_context.js:520, :575)
+      keepRedo: true,
+      notify: deleteCasesNotification(dataContext, deletedCases),
       log: {message: "Delete all cases", args: {}, category: "data"}
     })
     return { success: true }
@@ -21,20 +29,16 @@ export const diAllCasesHandler: DIHandler = {
     if (!dataContext) return dataContextNotFoundResult
     if (!collection) return collectionNotFoundResult
 
-    const attributes = collection.attributes ?? []
-
     const cases = dataContext.getCasesForCollection(collection.id).map(({ __id__ }, index) => {
       const pseudoCase = dataContext.caseInfoMap.get(__id__)
       const parentCase = dataContext.getParentCaseInfo(__id__)
-      const parent = maybeToV2Id(parentCase?.groupedCase.__id__)
+      // as in V2, a case in the top-level collection has a null parent
+      const parent = maybeToV2Id(parentCase?.groupedCase.__id__) ?? null
       const children: number[] = []
       if (pseudoCase) {
         children.push(...(pseudoCase.childCaseIds ?? []).map(childId => toV2Id(childId)))
       }
-      const values: Record<string, IValueType> = {}
-      attributes.forEach(attr => {
-        if (attr) values[attr.name] = dataContext.getValue(__id__, attr.id)
-      })
+      const values = getCaseValues(__id__, dataContext, collection.id)
       return {
         case: { id: toV2Id(__id__), parent, children, values },
         caseIndex: index

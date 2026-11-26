@@ -27,7 +27,8 @@ export function getPluginsRootUrl() {
   return urlParams.pluginURL || kRootPluginsUrl
 }
 
-export const kImporterPluginUrl = "/Importer/index.html?lang=en-US"
+export const kImporterPluginPath = "/Importer/index.html"
+export const kImporterPluginUrl = `${kImporterPluginPath}?lang=en-US`
 export function getImporterPluginUrl() {
   return `${getPluginsRootUrl()}${kImporterPluginUrl}`
 }

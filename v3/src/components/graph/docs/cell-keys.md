@@ -85,15 +85,25 @@ const keyString = cellKeyToString(cellKey)  // Returns "__EMPTY__"
 
 ### `kImpossible` (`"__IMPOSSIBLE__"`)
 
-When the **same attribute** appears on multiple axes with **different values**, the cell key is marked as impossible (no case can exist there):
+When the **same attribute** appears on several axes, a cell key can hold only one value under that attribute's ID. `updateCellKey` keeps the first value and writes any conflicting one under `__IMPOSSIBLE__`:
 
 ```typescript
-// Same attribute on X and Y with different values - impossible!
+// Same attribute on X and Y with different values
 const cellKey = {
   "ATTR-123": "plant",
   "__IMPOSSIBLE__": "meat"  // Conflict marker
 }
 ```
+
+Without clamping, a cell whose key has a conflict holds no case. When a role folds values into `kOther`, a conflict cell can hold cases: a value that is a real category in one role and overflow in another lands in a cell whose key conflicts. With three or more roles on one attribute, the key keeps only the last conflicting value, so distinct cells can share a key. See "How Cases Are Assigned to Cells" below.
+
+## How Cases Are Assigned to Cells
+
+`CellIndexer` (`cell-indexer.ts`) owns the grid encoding. A cell index decomposes as `top, right, y, x` from most to least significant, and `cellKeyForIndex(index)` builds that cell's key. Each case is bucketed once, by its own value in each role (a value outside a role's clamped categories goes to that role's `kOther` slot), in `casesByCellIndex()`. A case's `subPlotNum` is its bucket index.
+
+`subPlotCases(cellKey)` resolves a key the grid generates straight to its bucket. When several cells share the key (see `kImpossible`), it returns all of their cases. A key the grid does not generate, such as a partial key or one built from a raw case value, falls back to matching every plotted case against the key.
+
+The percent denominators `cellCases`, `rowCases` and `columnCases` read from the same buckets. Each one fixes some roles to the cell's slots, lets the other roles vary, and gathers every bucket in that slice, so a `kOther` row or column includes the overflow cases it stands for. When several cells share the key, only the cells that hold cases define the slices, since a cell no case can occupy would add an unrelated row or column.
 
 ## Key Functions and Where to Find Them
 
@@ -102,7 +112,7 @@ const cellKey = {
 **`graph-data-configuration-model.ts`:**
 
 ```typescript
-// Get a cell key by index (0 to totalCells-1)
+// Get a cell key by index (0 to cellCount-1); delegates to CellIndexer
 cellKey(index: number): Record<string, string>
 
 // Get all cell keys for the current graph configuration
@@ -121,10 +131,10 @@ graphCellKeyFromCaseID(caseId: string): Record<string, string>
 // Get all cases in a subplot (cached)
 subPlotCases(cellKey: Record<string, string>): string[]
 
-// Get cases filtered by different dimensions (cached)
-cellCases(cellKey): string[]    // Only topSplit + rightSplit
-rowCases(cellKey): string[]     // y + topSplit + rightSplit
-columnCases(cellKey): string[]  // x + topSplit + rightSplit
+// Percent denominators: the cases sharing the cell's slots in the listed roles (cached)
+cellCases(cellKey): string[]    // rightSplit, plus topSplit when categorical
+rowCases(cellKey): string[]     // topSplit + rightSplit, plus y when categorical
+columnCases(cellKey): string[]  // topSplit + rightSplit, plus x when categorical
 ```
 
 ### Utility Functions

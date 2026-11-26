@@ -31,10 +31,7 @@ describe("featureTourConfig", () => {
 
   it("uses default tour options", () => {
     expect(featureTourConfig.options?.showProgress).toBe(true)
-    expect(featureTourConfig.options?.doneBtnText).toBe("Got it!")
     expect(featureTourConfig.options?.allowClose).toBe(true)
     expect(featureTourConfig.options?.allowKeyboardControl).toBe(true)
-    expect(featureTourConfig.options?.overlayClickBehavior).toBe("close")
-    expect(featureTourConfig.options?.popoverClass).toBe("codap-tour-popover")
   })
 })

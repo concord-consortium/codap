@@ -1,10 +1,10 @@
 import { createDataSet } from "../../data/data-set-conversion"
 import { GlobalValueManager } from "../../global/global-value-manager"
-import { getFormulaTestEnv } from "../test-utils/formula-test-utils"
+import { evaluate, getFormulaTestEnv } from "../test-utils/formula-test-utils"
 import {
-  basicCanonicalNameToDependency, CANONICAL_NAME, CASE_INDEX_FAKE_ATTR_ID, getCanonicalNameMap, getDisplayNameMap,
-  GLOBAL_VALUE, globalValueIdToCanonical, idToCanonical, isCanonicalName, LOCAL_ATTR, localAttrIdToCanonical,
-  rmCanonicalPrefix, safeSymbolName
+  asFormulaIdentifier, basicCanonicalNameToDependency, CANONICAL_NAME, CASE_INDEX_FAKE_ATTR_ID, getCanonicalNameMap,
+  getDisplayNameMap, GLOBAL_VALUE, globalValueIdToCanonical, idToCanonical, isCanonicalName, LOCAL_ATTR,
+  localAttrIdToCanonical, rmCanonicalPrefix, safeSymbolName
 } from "./name-mapping-utils"
 
 describe("localAttrIdToCanonical", () => {
@@ -78,6 +78,33 @@ describe("safeSymbolName", () => {
     expect(safeSymbolName("café")).not.toEqual(safeSymbolName("cafe"))
     expect(safeSymbolName("a b")).not.toEqual(safeSymbolName("a_b"))
   })
+})
+
+describe("asFormulaIdentifier", () => {
+  it("leaves a valid bare identifier unwrapped", () => {
+    expect(asFormulaIdentifier("Speed")).toBe("Speed")
+    expect(asFormulaIdentifier("_a1")).toBe("_a1")
+  })
+
+  it.each(["1a", "a b", "q`t", "back\\slash", "é"])(
+    "produces an identifier for %j that evaluates to the attribute's value", name => {
+      const speed = evaluate("Speed", 0)
+      expect(speed).toEqual(expect.any(Number))
+      const result = evaluate(asFormulaIdentifier(name), 0, undefined, ({ dataSetsByName: { Mammals } }) => {
+        Mammals.attrFromName("Speed")!.setName(name)
+      })
+      expect(result).toBe(speed)
+    })
+
+  it.each(["1g", "my slider", "q`t"])(
+    "produces an identifier for global %j that evaluates to the global's value", name => {
+      const v1 = evaluate("v1")
+      expect(v1).toEqual(expect.any(Number))
+      const result = evaluate(asFormulaIdentifier(name), undefined, undefined, ({ globalValueManager }) => {
+        globalValueManager!.getValueByName("v1")!.setName(name)
+      })
+      expect(result).toBe(v1)
+    })
 })
 
 describe("getDisplayNameMap with names differing only in non-ASCII characters", () => {

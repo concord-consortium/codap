@@ -10,8 +10,11 @@ import { getDIHandler } from "./data-interactive-handler"
 import {
   DIAction, DIHandlerFnResult, DIRequest, DIRequestCallback, DIRequestResponse
 } from "./data-interactive-types"
+import { IDefaultDataContextLink } from "./default-data-context-link"
 import { createItemsInSegments } from "./handlers/item-handler"
 import { errorResult } from "./handlers/di-results"
+import { withNoticeBatch } from "./notification-batch"
+import { withNotificationRequester } from "./notification-requester"
 import { RequestWorkUnit, takeNextWorkUnit, workUnitSize } from "./request-coalescer"
 import { parseResourceSelector, resolveResources } from "./resource-parser"
 
@@ -20,6 +23,10 @@ import "./register-handlers"
 export interface ProcessActionOptions {
   tile?: ITileModel
   cfm?: CloudFileManager
+  // who made the request when it comes from no tile, e.g. the host page (kHostPageId)
+  requesterId?: string
+  // the host page's default data context, for requests from no tile
+  hostPageDataContextLink?: IDefaultDataContextLink
 }
 
 /**
@@ -30,7 +37,7 @@ export async function processAction(
   action: DIAction,
   options: ProcessActionOptions = {}
 ): Promise<DIHandlerFnResult> {
-  const { tile, cfm } = options
+  const { tile, cfm, requesterId, hostPageDataContextLink } = options
 
   if (!action) return errorResult(t("V3.DI.Error.noAction"))
 
@@ -42,13 +49,15 @@ export async function processAction(
   }
 
   const resourceSelector = parseResourceSelector(action.resource)
-  const resources = resolveResources(resourceSelector, action.action, tile, cfm)
+  const resources = resolveResources(resourceSelector, action.action, tile, cfm, hostPageDataContextLink)
   const type = resourceSelector.type ?? ""
   const a = action.action
   const func = getDIHandler(type)?.[a]
   if (!func) return errorResult(t("V3.DI.Error.unsupportedAction", { vars: [a, type] }))
 
-  const actionResult = await func(resources, action.values)
+  // batches the notices of the changes the handler makes before it first waits (see notification-batch.ts)
+  const actionResult = await withNotificationRequester(tile?.id ?? requesterId,
+                                                       () => withNoticeBatch(() => func(resources, action.values)))
   return actionResult ?? errorResult(t("V3.DI.Error.undefinedResponse"))
 }
 
@@ -60,9 +69,16 @@ export async function processRequest(
   options: ProcessActionOptions = {}
 ): Promise<DIRequestResponse> {
   if (Array.isArray(request)) {
+    // As in V2 (data_interactive_phone_handler.js:454-478, 497-502), an action that throws gets an error
+    // in its place in the reply, and the actions after it still run.
     const results: DIHandlerFnResult[] = []
     for (const action of request) {
-      results.push(await processAction(action, options))
+      try {
+        results.push(await processAction(action, options))
+      } catch (error) {
+        console.warn("exception processing request", error)
+        results.push(errorResult(t("V3.DI.Error.exceptionProcessingRequest")))
+      }
     }
     return results
   } else {
@@ -74,7 +90,8 @@ export async function processRequest(
  * Check if an action may have modified table data.
  */
 function mayHaveModifiedTable(action: DIAction, result: DIHandlerFnResult): boolean {
-  if (!result) return false
+  // a malformed action (null, or without a string resource) changed nothing; its result is already an error
+  if (!result || typeof action?.resource !== "string") return false
   const resourceSelector = parseResourceSelector(action.resource)
   const type = resourceSelector.type ?? ""
   const a = action.action
@@ -128,6 +145,9 @@ export function setupRequestQueueProcessor(
     onRequestProcessed,
     ...processOptions
   } = options
+
+  // only the requests of the plugin managing the data set being edited wait for the edit to end
+  const isHeld = () => uiState.isEditingBlockingRequestsFrom(processOptions.tile?.id)
 
   let drainTimer: ReturnType<typeof setTimeout> | undefined
   let isDraining = false
@@ -189,7 +209,8 @@ export function setupRequestQueueProcessor(
     const { resource, members, segments } = unit
 
     const { dataContext } = resolveResources(
-      parseResourceSelector(resource), "create", processOptions.tile, processOptions.cfm)
+      parseResourceSelector(resource), "create", processOptions.tile, processOptions.cfm,
+      processOptions.hostPageDataContextLink)
 
     // When the dataContext can't be resolved, the batched create never runs and nothing is
     // mutated, so it's safe to process the members individually for exact per-request semantics
@@ -212,7 +233,8 @@ export function setupRequestQueueProcessor(
     onProcessingStart?.()
     let results: DIHandlerFnResult[] | undefined
     try {
-      results = createItemsInSegments(dataContext, segments)
+      results = withNotificationRequester(processOptions.tile?.id ?? processOptions.requesterId,
+        () => createItemsInSegments(dataContext, segments))
     } catch (error) {
       console.warn(`${name} exception in coalesced create`, error)
     }
@@ -231,10 +253,14 @@ export function setupRequestQueueProcessor(
   async function drain() {
     drainTimer = undefined
     // if a drain is already in progress, its trailing check will reschedule as needed
-    if (disposed || isDraining || uiState.isEditingBlockingCell || requestQueue.length === 0) return
+    if (disposed || isDraining || isHeld() || requestQueue.length === 0) return
     isDraining = true
+    // While a cell edit holds another plugin's requests, this queue's requests don't interrupt the edit:
+    // the edited table re-selects its cell after an interruption, which would commit the half-typed value.
+    // The hold is checked again once the request is done, since it may have started while the request ran.
+    const interruptsEdit = !uiState.isEditingBlockingRequests
     try {
-      uiState.captureEditingStateBeforeInterruption()
+      if (interruptsEdit) uiState.captureEditingStateBeforeInterruption()
 
       // Take ONE work unit per drain tick, leaving the rest in the queue, so the browser can
       // render between batches (preserving the visible sense of streaming) and requests that
@@ -259,12 +285,12 @@ export function setupRequestQueueProcessor(
         ? await processCoalescedRun(unit)
         : await processSingleRequest(unit.item)
 
-      if (tableModified) uiState.incrementInterruptionCount()
+      if (tableModified && interruptsEdit && !uiState.isEditingBlockingRequests) uiState.incrementInterruptionCount()
     } finally {
       isDraining = false
       // pushes that arrived during the drain re-fire the reaction, but any drain it scheduled
       // while we were draining bailed above, so check for leftover work here
-      if (requestQueue.length > 0 && !uiState.isEditingBlockingCell) scheduleDrain()
+      if (requestQueue.length > 0 && !isHeld()) scheduleDrain()
     }
   }
 
@@ -280,7 +306,7 @@ export function setupRequestQueueProcessor(
 
   const reactionDisposer = reaction(
     () => ({
-      canProcessRequest: !uiState.isEditingBlockingCell,
+      canProcessRequest: !isHeld(),
       queueLength: requestQueue.length
     }),
     ({ canProcessRequest, queueLength }) => {

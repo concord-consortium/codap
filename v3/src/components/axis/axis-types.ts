@@ -15,6 +15,12 @@ export function isAxisPlace(place: string): place is AxisPlace {
   return (AxisPlaces as readonly string[]).includes(place)
 }
 
+// Maps AxisPlace values to lowercase kebab-case for use in data-testid values.
+// Enumerated (not a generic camelToKebab) so adding a new place to AxisPlaces forces
+// an explicit decision rather than silently passing camelCase into testids.
+export const placeTestId = (place: AxisPlace): string =>
+  place === "rightCat" ? "right-cat" : place === "rightNumeric" ? "right-numeric" : place
+
 export function otherPlace(aPlace: AxisPlace): AxisPlace {
   return ['bottom', 'top'].includes(aPlace) ? 'left' : 'bottom'
 }
@@ -48,9 +54,10 @@ export interface AxisBounds {
 
 export interface IAxisDomainOptions {
   clampPosMinAtZero?: boolean
-  // When set, the domain is only ever grown to fit the data, never shrunk. This preserves a
-  // larger user/plugin-set bound even for clamped (count/percent) axes, which otherwise refit
-  // tightly to the data on every change.
+  // When set, the domain is grown to fit the data, not shrunk, unless the axis model still allows
+  // its range to shrink (as after setting up an axis with nothing to fit); with nothing to fit, a
+  // grow-only refit leaves the axis alone. This preserves a larger user/plugin-set bound even for
+  // clamped (count/percent) axes, which otherwise refit tightly to the data on every change.
   growOnly?: boolean
 }
 

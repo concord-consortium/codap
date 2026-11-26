@@ -1,13 +1,17 @@
+import { when } from "mobx"
 import { IAnyStateTreeNode } from "mobx-state-tree"
 import { isWebViewModel } from "../../components/web-view/web-view-model"
+import { kHostPageId } from "../../lib/embedded-mode/embedded-mode-registry"
 import { appState } from "../../models/app-state"
 import { ICustomUndoRedoPatcher, registerCustomUndoRedo } from "../../models/history/custom-undo-redo-registry"
 import { ICustomPatch } from "../../models/history/tree-types"
 import { withCustomUndoRedo } from "../../models/history/with-custom-undo-redo"
 import { getDocumentContentFromNode } from "../../utilities/mst-document-utils"
 import { registerDIHandler } from "../data-interactive-handler"
-import { DIHandler, DIHandlerFnResult, DIResources, DIValues } from "../data-interactive-types"
-import { errorResult, noInteractiveFrameResult } from "./di-results"
+import { replyToUndoRedoAnswer, startUndoRedoAnswer } from "../undo-redo-answer"
+import { t } from "../../utilities/translation/translate"
+import { DIAsyncHandler, DIHandlerFnResult, DIResources, DIValues } from "../data-interactive-types"
+import { errorResult } from "./di-results"
 
 const kPluginUndoRedoPatchType = "PluginUndoRedo"
 
@@ -25,13 +29,21 @@ function isPluginUndoRedoPatch(patch: ICustomPatch): patch is IPluginUndoRedoPat
 function sendUndoRedoMessage(tileId: string, operation: "undoAction" | "redoAction") {
   const documentContent = appState.document.content
   if (!documentContent) return
+  // the requests it sends to reverse or reapply its action keep what can be redone
+  const answerGeneration = startUndoRedoAnswer(tileId)
   documentContent.broadcastMessage({
     action: "notify",
     resource: "undoChangeNotice",
     values: { operation }
   }, (response: any) => {
-    if (response && !response.success) {
-      console.warn(`Plugin ${tileId} failed to handle ${operation}:`, response)
+    replyToUndoRedoAnswer(tileId, answerGeneration)
+    // as in V2, only an explicit `success: false` is a failure
+    if (response?.success === false) {
+      const requester = tileId === kHostPageId ? "The host page" : `Plugin ${tileId}`
+      console.warn(`${requester} failed to handle ${operation}:`, response)
+      // as in V2 (data_interactive_phone_handler.js:2308-2312)
+      appState.alert(t(operation === "undoAction" ? "DG.Undo.exceptionOccurred" : "DG.Redo.exceptionOccurred"),
+        undefined)
     }
   }, tileId)
 }
@@ -56,34 +68,50 @@ function undoRedoResult(): { canUndo: boolean, canRedo: boolean } {
   return { canUndo: document.canUndo, canRedo: document.canRedo }
 }
 
-export const diUndoChangeNoticeHandler: DIHandler = {
-  notify(resources: DIResources, values?: DIValues) {
-    const { interactiveFrame } = resources
-    if (!interactiveFrame) return noInteractiveFrameResult
+// wait for the new entry so the reply describes the history after it; give up after a second
+async function newUndoEntryRecorded(priorUndoEntryId?: string) {
+  const undoManager = appState.document.treeManagerAPI?.undoManager
+  if (!undoManager) return
+  try {
+    await when(() => !!undoManager.undoEntry && undoManager.undoEntry.id !== priorUndoEntryId, { timeout: 1000 })
+  } catch {
+    // timed out
+  }
+}
 
-    const vals = values as { operation?: string } | undefined
+export const diUndoChangeNoticeHandler: DIAsyncHandler = {
+  async notify(resources: DIResources, values?: DIValues) {
+    const { interactiveFrame } = resources
+
+    const vals = values as { operation?: string, logMessage?: string } | undefined
     const operation = vals?.operation
 
     switch (operation) {
       case "undoableActionPerformed": {
-        const webViewContent = isWebViewModel(interactiveFrame.content)
-          ? interactiveFrame.content : undefined
-        if (!webViewContent) {
-          return errorResult("Interactive frame content not found")
+        // the host page has no frame: its entry goes on the document, and undo or redo notifies kHostPageId, as in V2
+        if (interactiveFrame) {
+          if (!isWebViewModel(interactiveFrame.content)) {
+            return errorResult("Interactive frame content not found")
+          }
+          if (!getDocumentContentFromNode(interactiveFrame)) {
+            return errorResult("Document content not found")
+          }
         }
-        if (!getDocumentContentFromNode(interactiveFrame)) {
-          return errorResult("Document content not found")
-        }
-        const tileId = interactiveFrame.id
-        webViewContent.applyModelChange(() => {
+        const tileId = interactiveFrame?.id ?? kHostPageId
+        const model = interactiveFrame?.content ?? appState.document
+        const priorUndoEntryId = appState.document.treeManagerAPI?.undoManager.undoEntry?.id
+        model.applyModelChange(() => {
           withCustomUndoRedo<IPluginUndoRedoPatch>({
             type: kPluginUndoRedoPatchType,
             data: { tileId }
           })
         }, {
           undoStringKey: "DG.Undo.interactiveUndoableAction",
-          redoStringKey: "DG.Redo.interactiveUndoableAction"
+          redoStringKey: "DG.Redo.interactiveUndoableAction",
+          // as in V2 (data_interactive_phone_handler.js:2320, :2338)
+          log: `Interactive action occurred: ${vals?.logMessage || "Unknown action"}`
         })
+        await newUndoEntryRecorded(priorUndoEntryId)
         return { success: true, values: undoRedoResult() } as DIHandlerFnResult
       }
       case "undoButtonPress": {

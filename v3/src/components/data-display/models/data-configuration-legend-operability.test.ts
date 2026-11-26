@@ -2,6 +2,7 @@ import { Instance, types } from "@concord-consortium/mobx-state-tree"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
 import { missingColor } from "../../../utilities/color-utils"
 import { DataSetMetadata } from "../../../models/shared/data-set-metadata"
+import { matchCirclesToData } from "../data-display-utils"
 import { DataConfigurationModel } from "./data-configuration-model"
 
 /*
@@ -59,5 +60,16 @@ describe("a legend attribute the base configuration cannot honor", () => {
 
     expect(tree.config.attributeID("legend")).toBe("")
     expect(tree.config.getLegendColorForCase("c1")).toBe(missingColor)
+  })
+
+  it("matches its points in the missing-value color, as the display's refresh draws them", () => {
+    makeLegendChildmost()
+    const renderer = { matchPointsToData: jest.fn() } as any
+    matchCirclesToData({
+      dataConfiguration: tree.config, renderer, pointRadius: 5, pointColor: "#default", pointStrokeColor: "#000",
+      startAnimation: jest.fn(), stopAnimation: jest.fn(), instanceId: "test"
+    })
+    const getCasePointStyle = renderer.matchPointsToData.mock.lastCall[4]
+    expect(getCasePointStyle({ plotNum: 0, caseID: "c1", subPlotNum: 0 }).fill).toBe(missingColor)
   })
 })

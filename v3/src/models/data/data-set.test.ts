@@ -1,9 +1,10 @@
 import { isEqual, isEqualWith } from "lodash"
 import { autorun, reaction } from "mobx"
-import { applyAction, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
+import { applyAction, applyPatch, clone, destroy, getSnapshot, onAction, onSnapshot } from "mobx-state-tree"
 import { uniqueName } from "../../utilities/js-utils"
 import { onAnyAction } from "../../utilities/mst-utils"
-import { DataSet, fromCanonical, isFilterFormulaDataSet, nullItemData, toCanonical } from "./data-set"
+import { IAttribute } from "./attribute"
+import { DataSet, fromCanonical, IDataSet, isFilterFormulaDataSet, nullItemData, toCanonical } from "./data-set"
 import { isCaseValueChangeAction } from "./data-set-actions"
 import { createDataSet } from "./data-set-conversion"
 import { ICaseID } from "./data-set-types"
@@ -234,11 +235,11 @@ test("DataSet basic functionality", () => {
   expect(mockConsoleWarn1).toHaveBeenCalledTimes(0)
   mockConsole1.mockRestore()
   expect(dataset.getValue("bogus", "bogus")).toBeUndefined()
-  expect(dataset.getValueAtItemIndex(-1, "bogus")).toBeUndefined()
+  expect(dataset.getValueAtFullItemIndex(-1, "bogus")).toBeUndefined()
   expect(dataset.getStrValue("bogus", "bogus")).toBe("")
-  expect(dataset.getStrValueAtItemIndex(-1, "bogus")).toBe("")
+  expect(dataset.getStrValueAtFullItemIndex(-1, "bogus")).toBe("")
   expect(dataset.getNumeric("bogus", "bogus")).toBeUndefined()
-  expect(dataset.getNumericAtItemIndex(-1, "bogus")).toBeUndefined()
+  expect(dataset.getNumericAtFullItemIndex(-1, "bogus")).toBeUndefined()
   // adding a case "before" a non-existent case appends the case to the end
   dataset.addCases(toCanonical(dataset, [{ str: "d", num: 4 }]), { before: "bogus" })
   dataset.validateCases()
@@ -255,8 +256,6 @@ test("DataSet basic functionality", () => {
   dataset.addCases(toCanonical(dataset, [{ str: "d", num: 4 }]), { after: cCaseId })
   expect(dataset.getItemAtIndex(0)).toEqualExcludingIds({ [strAttrID]: "d", [numAttrID]: 4 })
   const caseD4ID = dataset.items[0].__id__
-  expect(dataset.itemIDFromIndex(0)).toBe(caseD4ID)
-  expect(dataset.itemIDFromIndex(-1)).toBeUndefined()
   expect(dataset.getItemAtIndex(-1)).toBeUndefined()
   expect(dataset.getItemAtIndex(0, { canonical: false })).toEqual({ __id__: caseD4ID, str: "d", num: 4 })
   expect(dataset.getItem(caseD4ID, { canonical: false })).toEqual({ __id__: caseD4ID, str: "d", num: 4 })
@@ -266,9 +265,9 @@ test("DataSet basic functionality", () => {
   expect(dataset.attributes[1].value(0)).toBe(4)
   expect(dataset.attributes[1].numValue(0)).toBe(4)
   expect(dataset.getNumeric(caseD4ID, numAttrID)).toBe(4)
-  expect(dataset.getNumericAtItemIndex(0, numAttrID)).toBe(4)
-  expect(dataset.getValueAtItemIndex(0, numAttrID)).toBe(4)
-  expect(dataset.getStrValueAtItemIndex(0, numAttrID)).toBe("4")
+  expect(dataset.getNumericAtFullItemIndex(0, numAttrID)).toBe(4)
+  expect(dataset.getValueAtFullItemIndex(0, numAttrID)).toBe(4)
+  expect(dataset.getStrValueAtFullItemIndex(0, numAttrID)).toBe("4")
 
   // add new case before first case
   dataset.addCases([{ str: "c", num: 3 }], { before: caseD4ID, canonicalize: true })
@@ -276,16 +275,14 @@ test("DataSet basic functionality", () => {
   expect(dataset.items.length).toBe(2)
   expect(caseC3ID).toBeDefined()
   expect(caseC3ID).not.toBe(caseD4ID)
-  expect(dataset.itemIDFromIndex(0)).toBe(caseC3ID)
-  expect(dataset.nextItemID("")).toBeUndefined()
-  expect(dataset.nextItemID(caseC3ID)).toBe(caseD4ID)
+  expect(dataset.itemIds[0]).toBe(caseC3ID)
   expect(dataset.items[1].__id__).toBe(caseD4ID)
   expect(dataset.attributes[0].value(0)).toBe("c")
   expect(dataset.attributes[1].value(0)).toBe(3)
   expect(dataset.attributes[1].numValue(0)).toBe(3)
   expect(dataset.getNumeric(caseC3ID, numAttrID)).toBe(3)
-  expect(dataset.getNumericAtItemIndex(0, numAttrID)).toBe(3)
-  expect(dataset.getValueAtItemIndex(0, numAttrID)).toBe(3)
+  expect(dataset.getNumericAtFullItemIndex(0, numAttrID)).toBe(3)
+  expect(dataset.getValueAtFullItemIndex(0, numAttrID)).toBe(3)
 
   // add multiple new cases before specified case
   dataset.addCases([{ str: "a", num: 1 }, { str: "b", num: 2 }], { before: caseC3ID, canonicalize: true })
@@ -483,8 +480,6 @@ test("Canonical case functionality", () => {
   expect(dataset.items.length).toBe(2)
   expect(caseC3ID).toBeDefined()
   expect(caseC3ID).not.toBe(caseD4ID)
-  expect(dataset.nextItemID("")).toBeUndefined()
-  expect(dataset.nextItemID(caseC3ID)).toBe(caseD4ID)
   expect(dataset.items[1].__id__).toBe(caseD4ID)
   expect(dataset.attributes[0].value(0)).toBe("c")
   expect(dataset.attributes[1].value(0)).toBe(3)
@@ -658,8 +653,102 @@ test("DataSet case hiding/showing (set aside)", () => {
 
   data.moveItems(["item0"])
   expect(data.itemIds).toEqual(["item1", "item2", "item3", "item4", "item5", "item0"])
+  // a second move before the cases are validated still moves each item's values with it
   data.moveItems(["item1", "item2"])
   expect(data.itemIds).toEqual(["item3", "item4", "item5", "item0", "item1", "item2"])
+  expect(data.itemIds.map(id => data.getStrValue(id, childAttr.id))).toEqual(["3", "4", "5", "0", "1", "2"])
+})
+
+test("moveItems moves items to the end when the item to move before is missing", () => {
+  const data = DataSet.create({ name: "data" })
+  const letter = data.addAttribute({ id: "Letter", name: "Letter" })
+  data.addCases(["a", "b", "c"].map(id => ({ __id__: id, [letter.id]: id })))
+  data.validateCases()
+  data.moveItems(["a"], { before: "missing" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["b", "c", "a"])
+  expect(data.items.map(({ __id__ }) => data.getStrValue(__id__, letter.id))).toEqual(["b", "c", "a"])
+})
+
+test("moveItems keeps the items' order, and places them after an item", () => {
+  const data = DataSet.create({ name: "data" })
+  const letter = data.addAttribute({ id: "Letter", name: "Letter" })
+  data.addCases(["a", "b", "c", "d", "e"].map(id => ({ __id__: id, [letter.id]: id })))
+  data.validateCases()
+  const letterValues = () => data.items.map(({ __id__ }) => data.getStrValue(__id__, letter.id))
+  // the items keep their current order, whatever order they're passed in
+  data.moveItems(["d", "b"], { after: "e" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["a", "c", "e", "b", "d"])
+  expect(letterValues()).toEqual(["a", "c", "e", "b", "d"])
+})
+
+// sorts [i3, i1, i2] to [i1, i2, i3] the way a direct patch of _itemIds would, leaving item lookups stale
+function sortLeavingLookupsStale(data: IDataSet, attr: IAttribute) {
+  applyPatch(data, { op: "replace", path: "/_itemIds", value: ["i1", "i2", "i3"] })
+  attr.orderValues([1, 2, 0])
+  expect(data.getItemIndex("i1")).toBe(1)
+}
+
+test("moveItems moves values correctly when item lookups are stale", () => {
+  const data = DataSet.create({ name: "data" })
+  const value = data.addAttribute({ id: "Value", name: "Value" })
+  data.addCases([3, 1, 2].map(v => ({ __id__: `i${v}`, [value.id]: v })))
+  data.validateCases()
+  sortLeavingLookupsStale(data, value)
+  data.moveItems(["i3"], { before: "i1" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["i3", "i1", "i2"])
+  expect(data.itemIds.map(id => data.getNumeric(id, value.id))).toEqual([3, 1, 2])
+})
+
+test("moveItems moves the right items when some items are set aside", () => {
+  const data = DataSet.create({ name: "data" })
+  const letter = data.addAttribute({ id: "Letter", name: "Letter" })
+  const letters = ["a", "b", "c", "d", "e", "f"]
+  data.addCases(letters.map(value => ({ __id__: value, [letter.id]: value })))
+  data.validateCases()
+  data.hideCasesOrItems(["b"])
+  data.validateCases()
+  const letterValues = () => data.items.map(({ __id__ }) => data.getStrValue(__id__, letter.id))
+
+  data.moveItems(["e"], { before: "a" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["e", "a", "c", "d", "f"])
+  expect(letterValues()).toEqual(["e", "a", "c", "d", "f"])
+
+  // the last item, whose index is past the end of the items shown
+  data.moveItems(["f"], { before: "e" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["f", "e", "a", "c", "d"])
+  expect(letterValues()).toEqual(["f", "e", "a", "c", "d"])
+
+  data.moveItems(["e", "c"])
+  data.validateCases()
+  expect(data.itemIds).toEqual(["f", "a", "d", "e", "c"])
+  expect(letterValues()).toEqual(["f", "a", "d", "e", "c"])
+
+  // an id passed more than once moves only that item
+  data.moveItems(["d", "d"], { before: "f" })
+  data.validateCases()
+  expect(data.itemIds).toEqual(["d", "f", "a", "e", "c"])
+  expect(letterValues()).toEqual(["d", "f", "a", "e", "c"])
+
+  data.showHiddenCasesAndItems()
+  data.validateCases()
+  expect(data._itemIds).toEqual(["d", "f", "a", "b", "e", "c"])
+  expect(letterValues()).toEqual(["d", "f", "a", "b", "e", "c"])
+})
+
+test("sortByAttribute keeps item lookups right before the cases are validated", () => {
+  const data = DataSet.create({ name: "data" })
+  const value = data.addAttribute({ id: "Value", name: "Value" })
+  data.addCases([3, 1, 2].map(v => ({ __id__: `i${v}`, [value.id]: v })))
+  data.validateCases()
+  data.sortByAttribute(value.id, "descending")
+  // as an itemSearch in the same request array reads them
+  expect(["i1", "i2", "i3"].map(id => data.getItemIndex(id))).toEqual([2, 1, 0])
+  expect(["i1", "i2", "i3"].map(id => data.getNumeric(id, value.id))).toEqual([1, 2, 3])
 })
 
 test("sortByAttribute with a flat DataSet", () => {
@@ -688,6 +777,50 @@ test("sortByAttribute with a flat DataSet", () => {
   expect(a.values).toEqual(["A3", "A1", "A2", "1", "-1"])
   expect(b.values).toEqual(["5", "3", "0", "B1", "B0"])
   data.completeSnapshot()
+})
+
+test("sortByAttribute leaves items under a parent case whose items are all hidden in place", () => {
+  const data = DataSet.create({
+    name: "data",
+    collections: [{ id: "Parent", name: "Parents" }, { id: "Child", name: "Children" }]
+  })
+  const p = data.addAttribute({ id: "ParentAttr", name: "parentAttr" }, { collection: "Parent" })
+  const c = data.addAttribute({ id: "ChildAttr", name: "childAttr" }, { collection: "Child" })
+  expect(data.getCollectionForAttribute(p.id)?.id).toBe("Parent")
+  data.addCases([
+    { __id__: "ITEM0", [p.id]: "A", [c.id]: "5" },
+    { __id__: "ITEM1", [p.id]: "B", [c.id]: "2" },
+    { __id__: "ITEM2", [p.id]: "A", [c.id]: "3" },
+    { __id__: "ITEM3", [p.id]: "B", [c.id]: "4" },
+    { __id__: "ITEM4", [p.id]: "A", [c.id]: "1" }
+  ])
+  // every item of the parent case B is set aside, so B has no case to sort within
+  data.hideCasesOrItems(["ITEM1", "ITEM3"])
+  data.validateCases()
+  data.sortByAttribute(c.id)
+  // the order includes the set-aside items
+  expect(Array.from(data._itemIds)).toEqual(["ITEM4", "ITEM1", "ITEM2", "ITEM3", "ITEM0"])
+  expect(data._itemIds.map(id => data.getStrValue(id, c.id))).toEqual(["1", "2", "3", "4", "5"])
+})
+
+test("sortByAttribute leaves an all-hidden parent case's items in place among interleaved parents", () => {
+  const data = DataSet.create({
+    name: "data",
+    collections: [{ id: "Parent", name: "Parents" }, { id: "Child", name: "Children" }]
+  })
+  const p = data.addAttribute({ id: "ParentAttr", name: "parentAttr" }, { collection: "Parent" })
+  const c = data.addAttribute({ id: "ChildAttr", name: "childAttr" }, { collection: "Child" })
+  expect(data.getCollectionForAttribute(p.id)?.id).toBe("Parent")
+  const parents = ["A", "B", "C", "A", "B", "C", "A"]
+  const children = ["5", "9", "3", "1", "8", "2", "4"]
+  data.addCases(parents.map((parent, i) => ({ __id__: `I${i}`, [p.id]: parent, [c.id]: children[i] })))
+  data.hideCasesOrItems(["I1", "I4"])
+  data.validateCases()
+  data.sortByAttribute(c.id)
+  // A's and C's items are sorted within the places they had; B's stay where they were
+  expect(Array.from(data._itemIds)).toEqual(["I3", "I1", "I5", "I6", "I4", "I2", "I0"])
+  expect(data._itemIds.map(id => data.getStrValue(id, p.id))).toEqual(parents)
+  expect(data._itemIds.map(id => data.getStrValue(id, c.id))).toEqual(["1", "9", "2", "4", "8", "3", "5"])
 })
 
 test("sortByAttribute with a hierarchical DataSet", () => {
@@ -753,6 +886,27 @@ test("Caching mode", () => {
 
   ds.endCaching(true)
   expect(ds.isCaching()).toBe(false)
+})
+
+test("Caching mode reads each item's own cached values when an earlier item is set aside", () => {
+  const ds = DataSet.create({ name: "data" })
+  ds.addAttribute({ name: "num" })
+  const numAttrID = ds.attributes[0].id
+  ds.addCases(toCanonical(ds, [{ num: 1 }, { num: 2 }, { num: 3 }]))
+  const [aId, bId, cId] = ds.items.map(item => item.__id__)
+  ds.hideCasesOrItems([aId])
+  ds.validateCases()
+
+  ds.beginCaching()
+  ds.setCaseValues([{ __id__: cId, [numAttrID]: 100 }])
+  expect(ds.getValue(cId, numAttrID)).toBe(100)
+  expect(ds.getStrValue(cId, numAttrID)).toBe("100")
+  expect(ds.getNumeric(cId, numAttrID)).toBe(100)
+  // B isn't cached, so it keeps its own value rather than C's
+  expect(ds.getValue(bId, numAttrID)).toBe(2)
+  expect(ds.getStrValue(bId, numAttrID)).toBe("2")
+  expect(ds.getNumeric(bId, numAttrID)).toBe(2)
+  ds.endCaching(false)
 })
 
 test("getNumeric parses blank cached values as NaN (does not coerce '' to 0)", () => {
@@ -1424,4 +1578,19 @@ test("addCases inserts after a case whose last item is the first item", () => {
   data.addCases([{ __id__: "iX", pId: "c" }], { canonicalize: false, after: firstCaseId })
 
   expect(data.itemIds).toEqual(["i0", "iX", "i1"])
+})
+
+test("setItemOrder moves values correctly when item lookups are stale", () => {
+  const data = DataSet.create({ name: "data" })
+  const value = data.addAttribute({ id: "Value", name: "Value" })
+  data.addCases([3, 1, 2].map(v => ({ __id__: `i${v}`, [value.id]: v })))
+  data.validateCases()
+  sortLeavingLookupsStale(data, value)
+  data.setItemOrder(["i3", "i1", "i2"])
+  data.validateCases()
+  expect(data.itemIds).toEqual(["i3", "i1", "i2"])
+  expect(data.itemIds.map(id => data.getNumeric(id, value.id))).toEqual([3, 1, 2])
+  // a list that doesn't name every item is ignored
+  data.setItemOrder(["i1", "i2"])
+  expect(data.itemIds).toEqual(["i3", "i1", "i2"])
 })

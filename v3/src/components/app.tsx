@@ -23,6 +23,7 @@ import { useEmbeddedMode } from "../lib/embedded-mode/use-embedded-mode"
 import { IUseCloudFileManagerHookOptions, useCloudFileManager } from "../lib/cfm/use-cloud-file-manager"
 import { CodapDndContext } from "../lib/dnd-kit/codap-dnd-context"
 import { LogMonitorSidebar } from "./log-monitor-sidebar"
+import { logGAStatus } from "../lib/ga-status"
 import { Logger } from "../lib/logger"
 import { appState } from "../models/app-state"
 import { addDefaultComponents } from "../models/codap/add-default-content"
@@ -39,8 +40,10 @@ import { registerTileTypes } from "../register-tile-types"
 import { importSample, sampleData } from "../sample-data"
 import { t } from "../utilities/translation/translate"
 import { urlParams } from "../utilities/url-params"
-import { If } from "./common/if"
+import { AboutDialog } from "./about-dialog/about-dialog"
 import { AnnouncementBanner } from "./announcement-banner/announcement-banner"
+import { ClipboardHost } from "./clipboard/clipboard-host"
+import { If } from "./common/if"
 import { kCodapAppElementId, kUserEntryDropOverlay } from "./constants"
 import { Container } from "./container/container"
 import { MenuBar, kMenuBarElementId } from "./menu-bar/menu-bar"
@@ -71,6 +74,11 @@ registerTileTypes([])
 export const App = observer(function App() {
   useKeyStates()
   useEmbeddedMode()
+
+  // Only show the entry modal after the welcome dialog has been closed (or never opened in the first place)
+  const [checkedWelcome, setCheckedWelcome] = useState(false)
+  const welcomeClosed = checkedWelcome && !uiState.initialAboutDialogView
+
   // default behavior is to show the user entry modal when CODAP is loaded
   // We close the modal if user imports, drags a document, opens a document
   // or plugin using url params
@@ -80,7 +88,7 @@ export const App = observer(function App() {
   // overrides it whenever a document is auto-opening at startup (e.g. a shared document
   // loaded via the CFM or the `url` param). Reading it here (App is an observer) keeps the
   // modal hidden reactively for the entire load, rather than only after `openedFile`.
-  const showUserEntry = !userDismissedEntry && !uiState.hideUserEntryModal
+  const showUserEntry = welcomeClosed && !userDismissedEntry && !uiState.hideUserEntryModal
   const [isDragOver, setIsDragOver] = useState(false)
   const userEntryOverlayRef = useRef<HTMLDivElement>(null)
   const cfmRef = useRef<CloudFileManager | null>(null)
@@ -146,6 +154,12 @@ export const App = observer(function App() {
     onSetIsDragOver: setIsDragOver
   })
 
+  // open the About dialog's welcome view when CODAP loads
+  useEffect(() => {
+    if (uiState.shouldShowWelcome) uiState.openAboutDialog("welcome")
+    setCheckedWelcome(true)
+  }, [])
+
   useEffect(() => {
     // connect the data broker to the shared model manager
     if (!gDataBroker.sharedModelManager) {
@@ -185,29 +199,26 @@ export const App = observer(function App() {
         // wait for CFM to complete its initialization
         await cfmReadyPromise
 
-        const webviewTiles = appState.document.content?.getTilesOfType(kWebViewTileType)
-        if (webviewTiles) {
-          const webviews = webviewTiles.map(wV => wV.content) as IWebViewModel[]
-          const plugins = webviews.filter(wV => wV.isPlugin)
-          // if any of the plugins are already showing the specified data interactive,
-          // don't create a new one
-          if (plugins.length > 0 && plugins.some(pI => pI.url === di)) {
-            return
-          }
-          //Do not show user entry modal
-        }
-        // setTimeout ensures that other components have been rendered,
-        // which is necessary to properly position the plugin.
-        setTimeout(() => {
-          appState.document.content?.applyModelChange(() => {
-            const plugin = appState.document.content?.createTile?.(kWebViewTileType)
-            if (isWebViewModel(plugin?.content)) plugin.content.setUrl(di)
+        const webviewTiles = appState.document.content?.getTilesOfType(kWebViewTileType) ?? []
+        const webviews = webviewTiles.map(wV => wV.content) as IWebViewModel[]
+        // if any of the plugins are already showing the specified data interactive,
+        // don't create a new one -- but continue with the rest of the initialization
+        const isDiAlreadyShown = webviews.some(wV => wV.isPlugin && wV.url === di)
+        if (!isDiAlreadyShown) {
+          // setTimeout ensures that other components have been rendered,
+          // which is necessary to properly position the plugin.
+          setTimeout(() => {
+            appState.document.content?.applyModelChange(() => {
+              const plugin = appState.document.content?.createTile?.(kWebViewTileType)
+              if (isWebViewModel(plugin?.content)) plugin.content.setUrl(di)
+            })
           })
-        })
+        }
       }
 
       appState.enableDocumentMonitoring()
       Logger.initializeLogger(appState.document)
+      logGAStatus()
 
       window.onbeforeunload = function() {
         if (!uiState.shouldSuppressUnsavedWarning && cfm.client.state.dirty) {
@@ -280,6 +291,13 @@ export const App = observer(function App() {
                 />
               </div>
             </If>
+            <AboutDialog
+              isOpen={!!uiState.initialAboutDialogView}
+              initialView={uiState.initialAboutDialogView ?? "about"}
+              returnFocusRef={uiState.aboutDialogReturnFocusRef}
+              onClose={() => uiState.closeAboutDialog()}
+            />
+            <ClipboardHost />
             <Progress />
             <LogMonitorSidebar />
           </ProgressContext.Provider>

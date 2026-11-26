@@ -5,6 +5,14 @@ import { ICodapV2Attribute, ICodapV2Collection, ICodapV2DataContext } from "../v
 
 export type DICaseValue = IValueType
 export type DICaseValues = Record<string, DICaseValue>
+// as in V2, the values a plugin sends may instead be an array in the order of the collection's attributes
+export type DIRequestCaseValues = DICaseValues | DICaseValue[]
+// a case object in a `case` create or update request
+export interface DIRequestCase {
+  id?: number
+  parent?: number | null
+  values?: DIRequestCaseValues
+}
 export interface DIFullCase {
   children?: number[]
   context?: {
@@ -17,11 +25,11 @@ export interface DIFullCase {
     parent?: {
       id?: number
       name?: string
-    }
+    } | null
   }
   id?: number
   itemId?: number
-  parent?: number
+  parent?: number | null
   values?: DICaseValues
 }
 export interface DIAllCases {
@@ -81,7 +89,7 @@ export interface DINewCase {
   itemID?: number
 }
 export interface DIUpdateCase {
-  values: DICaseValues
+  values: DIRequestCaseValues
 }
 export interface DIUpdateCollection {
   title?: string
@@ -103,7 +111,7 @@ export type DIResultAttributes = { attrs: ICodapV2Attribute[]}
 export interface DIGetCaseResult {
   case: {
     id?: number
-    parent?: number
+    parent?: number | null
     collection?: {
       id?: number
       name?: string

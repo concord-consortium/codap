@@ -8,7 +8,7 @@ import { kSliderIdPrefix } from "./slider-registration"
 import { IDocumentContentModel } from "../../models/document/document-content"
 import { Logger } from "../../lib/logger"
 import { testGetComponent } from "../../data-interactive/handlers/component-handler-test-utils"
-import { getSnapshot } from "mobx-state-tree"
+import { applySnapshot, getSnapshot } from "mobx-state-tree"
 import { kSliderTileType } from "./slider-defs"
 
 // The logger has to be initialized with a document before a new document
@@ -197,6 +197,49 @@ describe("Slider ComponentHandler", () => {
     }
     expect(result4.values!.error).toBeDefined()
     expect(documentContent.tileMap.size).toBe(0)
+
+    for (const multipleOf of ["abc", "", "Infinity", true, {}, [3], NaN, Infinity]) {
+      expect(handler.create!({}, { type: "slider", globalValueName, multipleOf } as any))
+        .toEqual({ success: false, values: { error: "multipleOf must be a number." } })
+      expect(documentContent.tileMap.size).toBe(0)
+    }
+    // refused even without a global, though a well-formed multipleOf is then ignored
+    expect(handler.create!({}, { type: "slider", multipleOf: "abc" } as any))
+      .toEqual({ success: false, values: { error: "multipleOf must be a number." } })
+    expect(documentContent.tileMap.size).toBe(0)
+  })
+
+  test("create accepts a multipleOf sent as text that reads as a number, as for value", () => {
+    const globalValueName = createGlobalValue("testGlobalValue", 1)
+    const result = handler.create!({}, { type: "slider", globalValueName, multipleOf: "0.5" })
+    expect(result.success).toBe(true)
+    const tile = documentContent.tileMap.get(toV3Id(kSliderIdPrefix, (result.values as DIComponentInfo).id!))!
+    const sliderModel = tile.content
+    if (!isSliderModel(sliderModel)) {
+      throw new Error("Expected tile content to be a slider model")
+    }
+    expect(sliderModel.multipleOf).toBe(0.5)
+    expect(handler.update!({ component: tile }, { value: 1.3 }).success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(1.5)
+  })
+
+  test("a negative multipleOf is taken as positive on create, as on update", () => {
+    const globalValueName = createGlobalValue("testGlobalValue", 1)
+    const result = handler.create!({}, { type: "slider", globalValueName, multipleOf: -0.5 })
+    expect(result.success).toBe(true)
+    const tile = documentContent.tileMap.get(toV3Id(kSliderIdPrefix, (result.values as DIComponentInfo).id!))!
+    const sliderModel = tile.content
+    if (!isSliderModel(sliderModel)) {
+      throw new Error("Expected tile content to be a slider model")
+    }
+    expect(sliderModel.multipleOf).toBe(0.5)
+    expect(handler.update!({ component: tile }, { value: 1.25 }).success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(1.5)
+
+    // a slider saved with a negative multipleOf rounds as if it were positive
+    applySnapshot(sliderModel, { ...getSnapshot(sliderModel), multipleOf: -0.5 })
+    expect(handler.update!({ component: tile }, { value: 2.25 }).success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(2.5)
   })
 
   test("update slider with most values", () => {
@@ -283,10 +326,75 @@ describe("Slider ComponentHandler", () => {
     expect(sliderModel.axis.min).toBe(0)
     expect(sliderModel.axis.max).toBe(50)
 
+    // as in v2, the value is rounded to multipleOf, but not kept within the axis
+    expect(handler.update!({ component: tile }, { multipleOf: 0.5, value: 1.3 }).success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(1.5)
+    expect(handler.update!({ component: tile }, { value: 99.8 }).success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(100)
+    // with no "multiple of" setting, the value is used as sent
+    sliderModel.setMultipleOf(0)
+    expect(handler.update!({ component: tile }, { value: 25.3 }).success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(25.3)
+    // sending only multipleOf rounds the current value, as v2 did when the setting changed
+    expect(handler.update!({ component: tile }, { multipleOf: 0.5 }).success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(25.5)
+    // a negative multipleOf is taken as positive, as in the inspector
+    expect(handler.update!({ component: tile }, { multipleOf: -0.5, value: 1.25 }).success).toBe(true)
+    expect(sliderModel.multipleOf).toBe(0.5)
+    expect(sliderModel.globalValue.value).toBe(1.5)
+    // a value whose rounding overflows is used as sent
+    expect(handler.update!({ component: tile }, { value: 1e308 }).success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(1e308)
+    // a multipleOf that isn't a finite number is refused before anything changes
+    for (const multipleOf of ["abc", "", "Infinity", true, {}, [3], NaN, Infinity]) {
+      expect(handler.update!({ component: tile }, { multipleOf, value: 7, upperBound: 99, lowerBound: 1 } as any))
+        .toEqual({ success: false, values: { error: "multipleOf must be a number." } })
+      expect(sliderModel.multipleOf).toBe(0.5)
+      expect(sliderModel.globalValue.value).toBe(1e308)
+      expect(sliderModel.axis.max).toBe(50)
+    }
+    // text that reads as a number is accepted, as for value, and stored as a number
+    expect(handler.update!({ component: tile }, { multipleOf: " -2 ", value: 6.9 } as any).success).toBe(true)
+    expect(sliderModel.multipleOf).toBe(2)
+    expect(sliderModel.globalValue.value).toBe(6)
+    sliderModel.setMultipleOf(0)
+    handler.update!({ component: tile }, { value: 25 })
+
     // Verify get returns the updated value
     const getResult = handler.get!({ component: tile })
     expect(getResult.success).toBe(true)
     expect((getResult.values as any).value).toBe(25)
+
+    // numeric text is read as a number, as update global does
+    expect(handler.update!({ component: tile }, { value: "3" } as any).success).toBe(true)
+    expect(sliderModel.globalValue.value).toBe(3)
+    // anything else is refused before the other values are applied
+    for (const value of [false, "", "abc"]) {
+      const refused = handler.update!({ component: tile }, { value, upperBound: 99, lowerBound: 1 })
+      expect(refused).toEqual({ success: false, values: { error: "global values must be numbers" } })
+      expect(sliderModel.globalValue.value).toBe(3)
+      expect(sliderModel.axis.max).toBe(50)
+    }
+
+    // a refused update changes nothing, the generic properties sent with it included, and sends no notification
+    const broadcastSpy = jest.spyOn(documentContent, "broadcastMessage")
+    const refusals: [Record<string, unknown>, string][] = [
+      [{ multipleOf: "abc" }, "multipleOf must be a number."],
+      [{ value: "abc" }, "global values must be numbers"],
+      [{ scaleType: "bogus" }, "Unsupported scaleType bogus"],
+      [{ animationDirection: 9 }, "Unsupported animationDirection 9"]
+    ]
+    for (const [values, error] of refusals) {
+      broadcastSpy.mockClear()
+      const before = getSnapshot(tile)
+      const globalValue = sliderModel.globalValue.value
+      const refused = handler.update!({ component: tile }, { title: "Renamed", cannotClose: true, ...values })
+      expect(refused).toEqual({ success: false, values: { error } })
+      expect(getSnapshot(tile)).toEqual(before)
+      expect(sliderModel.globalValue.value).toBe(globalValue)
+      expect(broadcastSpy).not.toHaveBeenCalled()
+    }
+    broadcastSpy.mockRestore()
   })
 
   test("update slider with a global value", () => {

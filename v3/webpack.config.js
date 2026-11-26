@@ -1,5 +1,7 @@
 'use strict'
 
+const { execSync } = require('child_process')
+const fs = require('fs')
 const os = require('os')
 const path = require('path')
 const Dotenv = require('dotenv-webpack')
@@ -8,7 +10,11 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const ESLintPlugin = require('eslint-webpack-plugin')
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
+const LicensePlugin = require('webpack-license-plugin')
+// keep these file names in sync with src/components/about-dialog/about-dialog-constants.ts
+const { ossLibrariesJson, thirdPartyNoticesMarkdown } = require('./scripts/oss-licenses')
 const ts = require('typescript')
+const webpack = require('webpack')
 
 const TSCONFIG_PATH = path.resolve(__dirname, 'tsconfig.json')
 
@@ -43,6 +49,41 @@ function swcTargetFromTsConfig() {
 //   https://github.com/concord-consortium/s3-deploy-action/blob/main/README.md#top-branch-example
 const DEPLOY_PATH = process.env.DEPLOY_PATH
 
+// The Rollbar snippet is inserted into index.html so that Rollbar can catch errors that occur
+// before the main bundle runs. The package's `exports` field doesn't expose the snippet, so it is
+// read by path rather than with `require.resolve()`.
+const ROLLBAR_SNIPPET_PATH = path.join(__dirname, 'node_modules/rollbar/dist/rollbar.snippet.js')
+// Decides whether Rollbar is on for a page. It is inlined so that it runs before the main bundle too.
+const ROLLBAR_SETTINGS_PATH = path.join(__dirname, 'src/lib/rollbar/rollbar-settings.js')
+const { name: packageName, version } = require('./package.json')
+const { buildNumber } = require('./build_number.json')
+
+// Rollbar links (source-mapped) stack trace files to GitHub. For this it needs two values:
+// - the code version (`rollbarCodeVersion`), which must be the git commit SHA, to pick the commit
+// - `server.root` (`rollbarServerRoot`), the prefix of the file names in the source maps, which it
+//   strips to get the path in the repo (the Rollbar project's Project Root setting adds `v3/`)
+
+// GITHUB_SHA is set in CI; since the v3 workflow only runs on `push`, it is the pushed commit
+// (not a pull request merge commit).
+function gitCommitSha() {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA
+  try {
+    return execSync('git rev-parse HEAD', { cwd: __dirname, encoding: 'utf8', stdio: 'pipe' }).trim()
+  } catch {
+    return 'unknown'
+  }
+}
+
+const indexHtmlTemplateParameters = {
+  rollbarSnippet: fs.readFileSync(ROLLBAR_SNIPPET_PATH, { encoding: 'utf8' }).trim(),
+  rollbarSettingsScript: fs.readFileSync(ROLLBAR_SETTINGS_PATH, { encoding: 'utf8' }).trim(),
+  rollbarCodeVersion: gitCommitSha(),
+  // source map file names start with `webpack://[namespace]/./`; the namespace defaults to the package name
+  rollbarServerRoot: `webpack://${packageName}/./`,
+  codapVersion: version,
+  codapBuildNumber: buildNumber
+}
+
 const CACHE_DIRECTORY = '.cache'
 
 module.exports = (env, argv) => {
@@ -57,11 +98,13 @@ module.exports = (env, argv) => {
       filename: 'index.html',
       template: 'src/index.html',
       favicon: 'src/public/favicon.ico',
+      templateParameters: indexHtmlTemplateParameters,
     }),
     ...(DEPLOY_PATH ? [new HtmlWebpackPlugin({
       filename: "index-top.html",
       template: "src/index.html",
       favicon: "src/public/favicon.ico",
+      templateParameters: indexHtmlTemplateParameters,
       publicPath: DEPLOY_PATH
     })] : []),
     // Test harness for embedded mode - only included in dev builds
@@ -71,6 +114,36 @@ module.exports = (env, argv) => {
       inject: false,  // Don't inject the main CODAP bundle
     })] : []),
     new CleanWebpackPlugin(),
+    // Lists the third-party packages in the bundle, with their licenses, for the About dialog
+    new LicensePlugin({
+      additionalFiles: {
+        'oss-libraries.json': ossLibrariesJson,
+        'THIRD-PARTY-NOTICES.md': thirdPartyNoticesMarkdown,
+      },
+      // CODAP's own code is in the bundle too, but it isn't a third-party library
+      excludedPackageTest: (name) => name === packageName,
+      includeNoticeText: true,
+      // the Rollbar snippet is inlined into index.html by file path, so it isn't in the module graph
+      includePackages: () => [path.join(__dirname, 'node_modules/rollbar')],
+      licenseOverrides: {
+        // no license field or file; the README includes the MIT license text
+        '@nedb/binary-search-tree@2.1.5': 'MIT',
+      },
+      // replenishDefaultLicenseTexts is off so builds don't use the network; packages that don't ship a
+      // license file get a generic license text from scripts/oss-licenses.js instead
+    }),
+    // webpack-license-plugin always writes oss-licenses.json, but nothing uses it, so don't deploy it.
+    // The plugin writes its files at the ANALYSE stage, so this removes it just after.
+    {
+      apply(compiler) {
+        compiler.hooks.thisCompilation.tap('RemoveOssLicensesJson', compilation => {
+          compilation.hooks.processAssets.tap(
+            { name: 'RemoveOssLicensesJson', stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ANALYSE + 1 },
+            () => compilation.deleteAsset('oss-licenses.json')
+          )
+        })
+      }
+    },
   ]
   if (devMode && !process.env.SKIP_ESLINT) {
     // `build` script runs eslint independently in production mode,

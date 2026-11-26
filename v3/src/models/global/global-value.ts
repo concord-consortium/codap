@@ -32,6 +32,9 @@ export const GlobalValue = types.model("GlobalValue", {
     setDynamicValue(value: number) {
       self.dynamicValue = value
     },
+    clearDynamicValue() {
+      self.dynamicValue = undefined
+    },
     setValue(value: number) {
       self._value = value
       self.dynamicValue = undefined

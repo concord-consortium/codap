@@ -1,4 +1,4 @@
-import { canParseUrl, getExtensionFromUrl, safeParseUrl } from "./urls"
+import { canParseUrl, getBuildAssetUrl, getExtensionFromUrl, safeParseUrl } from "./urls"
 
 describe("urls", () => {
   describe("canParseUrl", () => {
@@ -59,6 +59,22 @@ describe("urls", () => {
 
     it("returns undefined for an invalid URL", () => {
       expect(getExtensionFromUrl("not-a-url")).toBeUndefined()
+    })
+  })
+
+  describe("getBuildAssetUrl", () => {
+    afterEach(() => {
+      delete (globalThis as any).__webpack_public_path__
+    })
+
+    it("resolves against webpack's public path", () => {
+      ;(globalThis as any).__webpack_public_path__ = "https://example.com/codap3/version/v3.1.2/"
+      expect(getBuildAssetUrl("THIRD-PARTY-NOTICES.md"))
+        .toBe("https://example.com/codap3/version/v3.1.2/THIRD-PARTY-NOTICES.md")
+    })
+
+    it("returns the file name when there is no public path (e.g. in Jest)", () => {
+      expect(getBuildAssetUrl("oss-libraries.json")).toBe("oss-libraries.json")
     })
   })
 })

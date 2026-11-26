@@ -158,6 +158,7 @@ describe("inspector-panel accessibility", () => {
         Icon={<svg role="img" aria-label="palette icon" />}
         title="Values"
         setShowPalette={jest.fn()}
+        tileType="graph"
       >
         <div>Palette body</div>
       </InspectorPalette>
@@ -176,6 +177,7 @@ describe("inspector-panel accessibility", () => {
         id="values-palette"
         title="Values"
         setShowPalette={jest.fn()}
+        tileType="graph"
       >
         <div>Palette body</div>
       </InspectorPalette>
@@ -281,4 +283,70 @@ describe("inspector-panel accessibility", () => {
     })
   })
 
+})
+
+describe("InspectorPalette positioning", () => {
+  const originalResizeObserver = global.ResizeObserver
+  const originalGetBoundingClientRect = HTMLElement.prototype.getBoundingClientRect
+  const kPanelTop = 230
+  const kPanelWidth = 72
+  const kPanelRight = 400
+  const kButtonOffset = 6   // button's top relative to the panel's top
+  const kButtonHeight = 52
+  const kPaletteHeight = 200
+  // centered on the button: the pointer's midpoint is the button's midpoint, and the palette's midpoint aligns with it.
+  // The panel is far enough below the app header that centering isn't clamped.
+  const kCenteredTop = `${kButtonOffset + kButtonHeight / 2 - kPaletteHeight / 2}px`
+
+  // Reports a resize as soon as an element is observed, so the palette learns its height.
+  class ImmediateResizeObserver {
+    constructor(private callback: ResizeObserverCallback) {}
+    observe() { this.callback([], this) }
+    unobserve() {}
+    disconnect() {}
+  }
+
+  beforeAll(() => {
+    ;(global as any).ResizeObserver = ImmediateResizeObserver
+    jest.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(kPaletteHeight)
+    // A palette's screen position is the panel's top plus the offset applied to its wrapper.
+    HTMLElement.prototype.getBoundingClientRect = function(this: HTMLElement) {
+      const rect = originalGetBoundingClientRect.call(this)
+      if (!this.classList.contains("codap-inspector-palette")) return rect
+      const top = kPanelTop + (parseFloat(this.parentElement?.style.top ?? "") || 0)
+      return { ...rect.toJSON(), top, y: top, bottom: top + kPaletteHeight, height: kPaletteHeight } as DOMRect
+    }
+  })
+
+  afterAll(() => {
+    ;(global as any).ResizeObserver = originalResizeObserver
+    HTMLElement.prototype.getBoundingClientRect = originalGetBoundingClientRect
+    jest.restoreAllMocks()
+  })
+
+  function renderPalette(content: string) {
+    return (
+      <InspectorPalette
+        title="Config"
+        panelRect={{ top: kPanelTop, right: kPanelRight, width: kPanelWidth } as DOMRect}
+        buttonRect={{ top: kPanelTop + kButtonOffset, height: kButtonHeight } as DOMRect}
+        setShowPalette={jest.fn()}
+        tileType="slider"
+      >
+        <div>{content}</div>
+      </InspectorPalette>
+    )
+  }
+
+  it("keeps the palette in place across re-renders", () => {
+    const { rerender } = render(renderPalette("first"))
+    // the offset is applied to the palette's wrapper, which has no role or testid of its own
+    // eslint-disable-next-line testing-library/no-node-access
+    const wrapper = screen.getByRole("group", { name: "Config" }).parentElement!
+    expect(wrapper.style.top).toBe(kCenteredTop)
+    for (const content of ["second", "third", "fourth"]) {
+      rerender(renderPalette(content))
+      expect(wrapper.style.top).toBe(kCenteredTop)
+    }
+  })
 })

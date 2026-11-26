@@ -1,5 +1,7 @@
 import { AxisHelper as ah } from "../support/helpers/axis-helper"
+import { GraphCanvasHelper as gch } from "../support/helpers/graph-canvas-helper"
 import { GraphLegendHelper as glh } from "../support/helpers/graph-legend-helper"
+import { GraphLegendElements as gle } from "../support/elements/graph-legend-elements"
 import { ToolbarElements as toolbar } from "../support/elements/toolbar-elements"
 import { GraphTileElements as graph } from "../support/elements/graph-tile"
 import { ColorPickerPaletteElements as color_picker } from "../support/elements/color-picker-palette"
@@ -724,8 +726,8 @@ context("Test changing legend colors", () => {
           }
         })
       // Close the popover by clicking outside (close = accept, keeps the selected color)
-      cy.get(".codap-inspector-palette-header-title").click({force: true})
-      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+      cy.get("[data-testid=codap-inspector-palette-header]").click({force: true})
+      cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('.legend-key-shape')
         .invoke('css', 'fill')
         .then((fillColor) => {
@@ -738,7 +740,7 @@ context("Test changing legend colors", () => {
 
       cy.log("Undo/Redo color change")
       toolbar.getUndoTool().click()
-      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+      cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('.legend-key-shape')
         .invoke('css', 'fill')
         .then((fillColor) => {
@@ -749,7 +751,7 @@ context("Test changing legend colors", () => {
           }
         })
       toolbar.getRedoTool().click()
-      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+      cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('.legend-key-shape')
         .invoke('css', 'fill')
         .then((fillColor) => {
@@ -785,7 +787,7 @@ context("Test changing legend colors", () => {
             expect(rgb.g).to.be.within(saturationLandGreen - colorTolerance, saturationLandGreen + colorTolerance)
           }
         })
-      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+      cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('.legend-key-shape')
         .invoke('css', 'fill')
         .then((fillColor) => {
@@ -796,7 +798,7 @@ context("Test changing legend colors", () => {
           }
         })
       color_picker.getSetColorButton().click({waitForAnimations: false})
-      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+      cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('.legend-key-shape')
         .invoke('css', 'fill')
         .then((fillColor) => {
@@ -832,7 +834,7 @@ context("Test changing legend colors", () => {
             expect(rgb.g).to.be.within(hueLandBaseGreen - colorTolerance, hueLandBaseGreen + colorTolerance)
           }
         })
-      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+      cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('.legend-key-shape')
         .invoke('css', 'fill')
         .then((fillColor) => {
@@ -852,7 +854,7 @@ context("Test changing legend colors", () => {
             expect(rgb.g).to.be.within(saturationLandGreen - colorTolerance, saturationLandGreen + colorTolerance)
           }
         })
-      cy.get('[data-testid="legend-key"]').eq(0) //fragile but couldn't get it to work with the contains "land"
+      cy.get('[data-testid^="legend-key-"]').eq(0) //fragile but couldn't get it to work with the contains "land"
         .find('.legend-key-shape')
         .invoke('css', 'fill')
         .then((fillColor) => {
@@ -884,5 +886,57 @@ context("Test changing the legend bins", () => {
     cy.get("[data-testid=legend-bins-type-select]").find("button").click()
     cy.get("[role=option]").contains("Linear").click()
 
+  })
+})
+
+context("Test locking the legend", () => {
+  beforeEach(function () {
+    const queryParams = "?sample=mammals&dashboard&mouseSensor&suppressUnsavedWarning"
+    const url = `${Cypress.config("index")}${queryParams}`
+    cy.visit(url)
+    cy.wait(2500)
+  })
+
+  it("keeps the legend's end labels and bins when the top bin's cases are hidden", () => {
+    cy.dragAttributeToTarget("table", "LifeSpan", "bottom") // LifeSpan => x-axis
+    glh.dragAttributeToPlot("Height") // Height => plot area = adds Height to legend
+    glh.verifyNumericLegend()
+    gle.getNumericLegendCategories().should("have.length", 5)
+
+    gle.getNumericLegendEndLabels().should("have.length", 2)
+    gle.getNumericLegendEndLabels().then($labels => {
+      const lockedMin = $labels.eq(0).text()
+      const lockedMax = $labels.eq(1).text()
+
+      cy.log("Lock the legend")
+      graph.getDisplayStylesButton().click()
+      cy.get("[data-testid=lock-legend-quantiles-checkbox]").click()
+      graph.getDisplayStylesButton().click()
+
+      cy.log("Select the top bin's cases and hide them")
+      glh.selectNumericLegendCategory(4)
+      glh.verifyLegendQuintileSelected(4)
+      gch.getGraphTileId().then(tileId => {
+        const pointsCount = (win: any) => win.rendererArrayMap[tileId][0].pointsCount
+        cy.window().then(win => {
+          const countBefore = pointsCount(win)
+          graph.getHideShowButton().click()
+          cy.get("[data-testid=hide-selected-cases]").click()
+          // Wait until the hidden points are gone, so the checks below see the graph after the hide
+          cy.window().should(winAfter => expect(pointsCount(winAfter)).to.be.lessThan(countBefore))
+        })
+      })
+
+      cy.log("The end labels and the number of bins do not change")
+      gle.getNumericLegendEndLabels().eq(0).should("have.text", lockedMin)
+      gle.getNumericLegendEndLabels().eq(1).should("have.text", lockedMax)
+      gle.getNumericLegendCategories().should("have.length", 5)
+
+      cy.log("Unlock the legend: the max label changes to the max of the cases still shown")
+      graph.getDisplayStylesButton().click()
+      cy.get("[data-testid=lock-legend-quantiles-checkbox]").click()
+      graph.getDisplayStylesButton().click()
+      gle.getNumericLegendEndLabels().eq(1).should("not.have.text", lockedMax)
+    })
   })
 })

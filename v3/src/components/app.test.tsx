@@ -1,11 +1,17 @@
 import { CloudFileManager, CloudFileManagerClientEvent } from "@concord-consortium/cloud-file-manager"
-import { act, render, screen } from "@testing-library/react"
+import { act, render, screen, waitFor } from "@testing-library/react"
 import { ReactNode } from "react"
 import { Root } from "react-dom/client"
+import * as gaStatus from "../lib/ga-status"
+import { Logger } from "../lib/logger"
+import { appState } from "../models/app-state"
+import { persistentState } from "../models/persistent-state"
 import { uiState } from "../models/ui-state"
 import { prf } from "../utilities/profiler"
 import { setUrlParams } from "../utilities/url-params"
 import { App } from "./app"
+import { kWebViewTileType } from "./web-view/web-view-defs"
+import { isWebViewModel } from "./web-view/web-view-model"
 
 let cfm: CloudFileManager | undefined
 let spySetMenuBarInfo: jest.SpyInstance | undefined
@@ -51,11 +57,24 @@ jest.mock("./tool-shelf/tool-shelf", () => ({
   ToolShelf: () => null
 }))
 
+// Mock the `ComponentResizeBorder` because floating-ui's animation-frame polling generates warnings
+// when a tile is rendered:
+//  Warning: An update to ComponentResizeBorder inside a test was not wrapped in act(...).
+// The resize borders aren't relevant to these tests.
+jest.mock("./component-resize-border", () => ({
+  ComponentResizeBorder: () => null
+}))
+
 // Mock the `UserEntryModal` to avoid Chakra Modal/focus-lock act() warnings. The overlay
 // element whose visibility we assert is rendered by `App` itself (gated by `showUserEntry`),
 // not by the modal, so this preserves the behavior under test. The modal has its own test.
 jest.mock("./menu-bar/user-entry-modal", () => ({
   UserEntryModal: () => <div data-testid="mock-user-entry-modal" />
+}))
+
+// Mock the `AboutDialog` for the same reason. Whether it's open is tracked by `uiState`; the dialog has its own test.
+jest.mock("./about-dialog/about-dialog", () => ({
+  AboutDialog: () => null
 }))
 
 describe.skip("App component", () => {
@@ -107,13 +126,28 @@ describe("App user entry modal visibility", () => {
     setUrlParams("")
     // Reset the flag flipped below so it doesn't leak into other tests in this file.
     uiState.setHideUserEntryModal(false)
+    uiState.closeAboutDialog()
+    persistentState.setHideWelcome(false)
     spySetMenuBarInfo?.mockRestore()
     spySetMenuBarInfo = undefined
     cfm = undefined
   })
 
+  it("shows the user entry modal after the welcome view closes", () => {
+    setUrlParams("")
+    render(<App/>)
+    expect(uiState.initialAboutDialogView).toBe("welcome")
+    expect(screen.queryByTestId("mock-user-entry-modal")).not.toBeInTheDocument()
+
+    act(() => {
+      uiState.closeAboutDialog()
+    })
+    expect(screen.getByTestId("mock-user-entry-modal")).toBeInTheDocument()
+  })
+
   it("hides the user entry modal reactively when uiState.hideUserEntryModal becomes true", () => {
     setUrlParams("")
+    persistentState.setHideWelcome(true)
     render(<App/>)
     // With no auto-open params, the user entry modal is shown initially
     expect(screen.getByTestId("mock-user-entry-modal")).toBeInTheDocument()
@@ -123,5 +157,47 @@ describe("App user entry modal visibility", () => {
       uiState.setHideUserEntryModal()
     })
     expect(screen.queryByTestId("mock-user-entry-modal")).not.toBeInTheDocument()
+  })
+})
+
+describe("App initialization with a `di` URL", () => {
+  const kPluginUrl = "https://example.com/plugin.html"
+  let pluginTileId: Maybe<string>
+
+  afterEach(() => {
+    // deleting the tile dirties the document, which updates the CFM's UI
+    act(() => {
+      if (pluginTileId) appState.document.content?.deleteTile(pluginTileId)
+    })
+    pluginTileId = undefined
+    setUrlParams("")
+    Logger.resetForTesting()
+    jest.restoreAllMocks()
+    spySetMenuBarInfo = undefined
+    cfm = undefined
+  })
+
+  beforeEach(() => {
+    Logger.resetForTesting()
+  })
+
+  it("completes initialization when the document already shows the requested plugin", async () => {
+    // the document already contains the plugin that the `di` URL parameter asks for
+    const tile = appState.document.content?.createTile?.(kWebViewTileType)
+    pluginTileId = tile?.id
+    if (isWebViewModel(tile?.content)) {
+      tile.content.setUrl(kPluginUrl)
+      tile.content.setSubType("plugin")
+    }
+    const logGAStatusSpy = jest.spyOn(gaStatus, "logGAStatus").mockResolvedValue()
+
+    setUrlParams(`?di=${kPluginUrl}`)
+    render(<App/>)
+
+    // logGAStatus() is called after the Logger is initialized
+    await waitFor(() => expect(logGAStatusSpy).toHaveBeenCalledTimes(1))
+    expect(Logger.isInitialized).toBe(true)
+    // no duplicate plugin was created
+    expect(appState.document.content?.getTilesOfType(kWebViewTileType)).toHaveLength(1)
   })
 })

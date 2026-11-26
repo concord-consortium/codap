@@ -1,13 +1,22 @@
 import { getSnapshot, onAction } from "mobx-state-tree"
 import { RequestQueue } from "../components/web-view/request-queue"
+import { kWebViewTileType } from "../components/web-view/web-view-defs"
+import { IWebViewModel } from "../components/web-view/web-view-model"
+import "../components/web-view/web-view-registration"
 import { appState } from "../models/app-state"
+import { gDataBroker } from "../models/data/data-broker"
+import { createDefaultTileOfType } from "../models/codap/add-default-content"
 import { SharedDataSet } from "../models/shared/shared-data-set"
+import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { uiState } from "../models/ui-state"
 import { setupTestDataset } from "../test/dataset-test-utils"
+import { toV2Id, toV3ItemId } from "../utilities/codap-utils"
+import { editingBlockedPluginId } from "../utilities/plugin-utils"
 import { registerDIHandler } from "./data-interactive-handler"
 import * as itemHandler from "./handlers/item-handler"
-import { setupRequestQueueProcessor } from "./data-interactive-request-processor"
+import { processAction, processRequest, setupRequestQueueProcessor } from "./data-interactive-request-processor"
 import { DIRequest, DIRequestResponse, DISuccessResult } from "./data-interactive-types"
+import { createDataContextLink } from "./default-data-context-link"
 
 describe("setupRequestQueueProcessor", () => {
   const { content } = appState.document
@@ -27,8 +36,21 @@ describe("setupRequestQueueProcessor", () => {
 
   afterEach(() => {
     disposer?.()
+    // end any cell edit a test started, so its hold can't leak into later tests
+    uiState.setIsEditingCell(false)
     jest.useRealTimers()
   })
+
+  // a cell edit in a data set managed by the plugin in tile PLUGIN1, which holds that plugin's requests
+  const kPluginTile = { id: "PLUGIN1" } as any
+  function setupPluginQueue() {
+    disposer?.()
+    disposer = setupRequestQueueProcessor(queue, { tile: kPluginTile })
+  }
+  function startBlockingEdit() {
+    uiState.setIsEditingCell(true)
+    uiState.setIsEditingBlockingCell(() => kPluginTile.id)
+  }
 
   function createItemRequest(values: object, resource = `dataContext[${datasetName}].item`): DIRequest {
     return { action: "create", resource, values }
@@ -64,6 +86,53 @@ describe("setupRequestQueueProcessor", () => {
     itemIDs.forEach(ids => expect(ids?.length).toBe(1))
     expect(new Set(itemIDs.flat()).size).toBe(3)
     actionDisposer()
+  })
+
+  it("sends one createCases per collection, then one createItems, for a coalesced batch of creates", async () => {
+    // an existing parent "m" with child "y"
+    queue.push({ request: createItemRequest({ a1: "m", a2: "y", a3: 16 }), callback: () => null })
+    await jest.runAllTimersAsync()
+
+    const broadcastSpy = jest.spyOn(content!, "broadcastMessage")
+    const responses: DISuccessResult[] = []
+    // the first request creates parent "n", the second joins the existing "m", the third joins "n"
+    queue.push({ request: createItemRequest({ a1: "n", a2: "x", a3: 17 }),
+      callback: r => responses.push(r as DISuccessResult) })
+    queue.push({ request: createItemRequest({ a1: "m", a2: "y", a3: 18 }),
+      callback: r => responses.push(r as DISuccessResult) })
+    queue.push({ request: createItemRequest({ a1: "n", a2: "w", a3: 19 }),
+      callback: r => responses.push(r as DISuccessResult) })
+    await jest.runAllTimersAsync()
+
+    const changes = broadcastSpy.mock.calls
+      .map(([message]) => message)
+      .filter(message => message.resource === `dataContextChangeNotice[${datasetName}]`)
+      .flatMap(message => ([] as any[]).concat(message.values))
+    expect(changes.map(({ operation }) => operation))
+      .toEqual(["createCases", "createCases", "createCases", "createItems"])
+
+    const [i1, i2, i3] = responses.map(response => response.itemIDs![0])
+    // the v2 id of the case in the given collection that contains the item
+    const caseOf = (itemId: number, collectionIndex: number) => {
+      const collectionId = dataset.collections[collectionIndex].id
+      const entry = Array.from(dataset.caseInfoMap.entries()).find(([, info]) =>
+        info.collectionId === collectionId && info.childItemIds.includes(toV3ItemId(itemId)))
+      return entry && toV2Id(entry[0])
+    }
+    const [c1, c2, c3] = changes.slice(0, 3).map(({ result }) => result.caseIDs)
+    expect(c1).toEqual([caseOf(i1, 0)])
+    expect(c2).toEqual([caseOf(i1, 1), caseOf(i3, 1)])
+    // in collection order: the existing parent "m"'s new child comes before "n"'s
+    expect(c3).toEqual([caseOf(i2, 2), caseOf(i1, 2), caseOf(i3, 2)])
+    // as in V2, createItems pairs each created case with the item it was built from
+    expect(changes[3].result).toEqual({
+      success: true, caseIDs: [...c1, ...c2, ...c3], itemIDs: [i1, i1, i3, i2, i1, i3]
+    })
+    // each response still names only the cases its own request created
+    expect(responses.map(response => response.caseIDs)).toEqual([
+      [caseOf(i1, 0), caseOf(i1, 1), caseOf(i1, 2)], [caseOf(i2, 2)], [caseOf(i3, 1), caseOf(i3, 2)]
+    ])
+    broadcastSpy.mockRestore()
   })
 
   it("processes one batch of at least 5 creates per drain tick", async () => {
@@ -108,8 +177,8 @@ describe("setupRequestQueueProcessor", () => {
     const responses: DIRequestResponse[] = []
 
     // requests accumulate, unprocessed, while a blocking cell edit is in progress
-    uiState.setIsEditingCell(true)
-    uiState.setIsEditingBlockingCell()
+    setupPluginQueue()
+    startBlockingEdit()
     for (let i = 0; i < 50; ++i) {
       queue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 500 + i }), callback: r => responses.push(r) })
     }
@@ -248,8 +317,8 @@ describe("setupRequestQueueProcessor", () => {
     const { actionNames, actionDisposer } = trackTopLevelActions()
     const responses: DIRequestResponse[] = []
 
-    uiState.setIsEditingCell(true)
-    uiState.setIsEditingBlockingCell()
+    setupPluginQueue()
+    startBlockingEdit()
     queue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 12 }), callback: r => responses.push(r) })
     queue.push({ request: createItemRequest({ a1: "b", a2: "y", a3: 13 }), callback: r => responses.push(r) })
 
@@ -262,5 +331,201 @@ describe("setupRequestQueueProcessor", () => {
     expect(responses.length).toBe(2)
     expect(actionNames.filter(actionName => actionName === "applyModelChange").length).toBe(1)
     actionDisposer()
+  })
+
+  it("holds only the managing plugin's requests during a blocking cell edit", async () => {
+    // another plugin's queue and the embedded server's (no tile) keep draining
+    const otherQueue = new RequestQueue()
+    const otherDisposer = setupRequestQueueProcessor(otherQueue, { tile: { id: "OTHER" } as any })
+    const serverQueue = new RequestQueue()
+    const serverDisposer = setupRequestQueueProcessor(serverQueue)
+    setupPluginQueue()
+    startBlockingEdit()
+
+    const responses: string[] = []
+    const get = { action: "get", resource: `dataContext[${datasetName}]` } as DIRequest
+    queue.push({ request: get, callback: () => responses.push("managing") })
+    otherQueue.push({ request: get, callback: () => responses.push("other") })
+    serverQueue.push({ request: get, callback: () => responses.push("server") })
+    await jest.runAllTimersAsync()
+    expect(responses.sort()).toEqual(["other", "server"])
+
+    uiState.setIsEditingCell(false)
+    await jest.runAllTimersAsync()
+    expect(responses).toContain("managing")
+    otherDisposer()
+    serverDisposer()
+  })
+
+  it("doesn't let other queues' requests interrupt a cell edit that holds a plugin's requests", async () => {
+    // an interruption makes the edited table re-select its cell, committing the half-typed value
+    const otherQueue = new RequestQueue()
+    const otherDisposer = setupRequestQueueProcessor(otherQueue, { tile: { id: "OTHER" } as any })
+    setupPluginQueue()
+    startBlockingEdit()
+    const interruptionCount = uiState.interruptionCount
+
+    const responses: DIRequestResponse[] = []
+    otherQueue.push({ request: createItemRequest({ a1: "a", a2: "x", a3: 40 }), callback: r => responses.push(r) })
+    await jest.runAllTimersAsync()
+    expect(responses.length).toBe(1)
+    expect(uiState.interruptionCount).toBe(interruptionCount)
+    expect(uiState.wasEditingCellBeforeInterruption).toBe(false)
+    otherDisposer()
+  })
+
+  it("doesn't count a request that was running when the hold started as interrupting the edit", async () => {
+    const otherQueue = new RequestQueue()
+    const otherDisposer = setupRequestQueueProcessor(otherQueue, { tile: { id: "OTHER" } as any })
+    setupPluginQueue()
+    // a slow create on another queue, like a create dataContextFromURL still downloading
+    registerDIHandler("testSlowCreate", {
+      create: () => new Promise(resolve => setTimeout(() => resolve({ success: true }), 100))
+    })
+    const interruptionCount = uiState.interruptionCount
+    const responses: DIRequestResponse[] = []
+    otherQueue.push({ request: { action: "create", resource: "testSlowCreate" }, callback: r => responses.push(r) })
+    await jest.advanceTimersByTimeAsync(10)
+    startBlockingEdit()
+    await jest.runAllTimersAsync()
+    expect(responses.length).toBe(1)
+    expect(uiState.interruptionCount).toBe(interruptionCount)
+    otherDisposer()
+  })
+
+  it("moves the hold when another plugin takes over the data set during a cell edit", async () => {
+    const pluginTile = () => {
+      const tile = createDefaultTileOfType(kWebViewTileType)!
+      content!.insertTileInDefaultRow(tile)
+      ;(tile.content as IWebViewModel).setBlockAPIRequestsWhileEditing(true)
+      return tile
+    }
+    const tileA = pluginTile()
+    const tileB = pluginTile()
+    const queueA = new RequestQueue()
+    const queueB = new RequestQueue()
+    const disposerA = setupRequestQueueProcessor(queueA, { tile: tileA })
+    const disposerB = setupRequestQueueProcessor(queueB, { tile: tileB })
+    dataset.setManagingControllerId(tileA.id)
+    uiState.setIsEditingCell(true)
+    uiState.setIsEditingBlockingCell(() => editingBlockedPluginId(dataset))
+
+    const responses: string[] = []
+    const get = { action: "get", resource: `dataContext[${datasetName}]` } as DIRequest
+    const send = async (plugin: string, pluginQueue: RequestQueue) => {
+      pluginQueue.push({ request: get, callback: () => responses.push(plugin) })
+      await jest.runAllTimersAsync()
+    }
+    await send("A", queueA)
+    await send("B", queueB)
+    expect(responses).toEqual(["B"])
+
+    // B takes over: A's held request runs, and B's requests now wait
+    dataset.setManagingControllerId(tileB.id)
+    await jest.runAllTimersAsync()
+    await send("B", queueB)
+    expect(responses).toEqual(["B", "A"])
+
+    // B stops blocking: its request runs
+    ;(tileB.content as IWebViewModel).setBlockAPIRequestsWhileEditing(false)
+    await jest.runAllTimersAsync()
+    expect(responses).toEqual(["B", "A", "B"])
+
+    dataset.setManagingControllerId(undefined)
+    disposerA()
+    disposerB()
+  })
+
+  it("replies to a malformed request, alone or in an array", async () => {
+    const responses: DIRequestResponse[] = []
+    const get = { action: "get", resource: `dataContext[${datasetName}]` }
+    queue.push({ request: null as any, callback: r => responses.push(r) })
+    queue.push({ request: [null, { action: "get" }, get] as any, callback: r => responses.push(r) })
+    await jest.runAllTimersAsync()
+    expect(responses).toEqual([
+      { success: false, values: { error: expect.any(String) } },
+      [
+        { success: false, values: { error: expect.any(String) } },
+        { success: false, values: { error: expect.any(String) } },
+        expect.objectContaining({ success: true })
+      ]
+    ])
+  })
+})
+
+describe("the host page's default data context", () => {
+  beforeAll(() => gDataBroker.setSharedModelManager(getSharedModelManager(appState.document)!))
+
+  it("is the data context the host page last created without naming one, as in V2", async () => {
+    const hostPageDataContextLink = createDataContextLink()
+    const host = { hostPageDataContextLink }
+    // nothing named and nothing created yet: not found
+    expect((await processAction({ action: "get", resource: "dataContext" }, host)).success).toBe(false)
+
+    expect((await processAction({ action: "create", resource: "dataContext", values: { name: "Host" } }, host))
+      .success).toBe(true)
+    const result = await processAction({ action: "get", resource: "dataContext" }, host) as DISuccessResult
+    expect(result.success).toBe(true)
+    expect((result.values as any).name).toBe("Host")
+
+    // a request that names its data context leaves the default alone
+    await processAction({ action: "create", resource: "dataContext[Other]", values: { name: "Other" } }, host)
+    expect(((await processAction({ action: "get", resource: "dataContext" }, host) as DISuccessResult)
+      .values as any).name).toBe("Host")
+
+    // another bare create moves it
+    await processAction({ action: "create", resource: "dataContext", values: { name: "Host2" } }, host)
+    expect(((await processAction({ action: "get", resource: "dataContext" }, host) as DISuccessResult)
+      .values as any).name).toBe("Host2")
+
+    // without the link there is no default
+    expect((await processAction({ action: "get", resource: "dataContext" })).success).toBe(false)
+  })
+
+  it("receives coalesced item creates that name no data context", async () => {
+    const hostPageDataContextLink = createDataContextLink()
+    await processAction({ action: "create", resource: "dataContext", values: {
+      name: "HostItems", collections: [{ name: "Cases", attrs: [{ name: "v" }] }]
+    } }, { hostPageDataContextLink })
+    const hostDataSet = gDataBroker.getDataSetByName("HostItems")!
+    const queue = new RequestQueue()
+    jest.useFakeTimers()
+    const disposer = setupRequestQueueProcessor(queue, { hostPageDataContextLink })
+    const actionNames: string[] = []
+    const actionDisposer = onAction(appState.document, call => { actionNames.push(call.name) })
+    try {
+      const responses: DIRequestResponse[] = []
+      for (let i = 0; i < 3; ++i) {
+        const request: DIRequest = { action: "create", resource: "item", values: { v: i } }
+        queue.push({ request, callback: r => responses.push(r) })
+      }
+      await jest.runAllTimersAsync()
+      expect(responses.map(r => (r as DISuccessResult).success)).toEqual([true, true, true])
+      expect(hostDataSet.items.length).toBe(3)
+      // as one batched change, not one by one
+      expect(actionNames.filter(actionName => actionName === "applyModelChange").length).toBe(1)
+    } finally {
+      actionDisposer()
+      disposer()
+      jest.useRealTimers()
+    }
+  })
+})
+
+describe("processRequest", () => {
+  it("replies to an array request with an error in the place of an action that throws, and runs the rest", async () => {
+    registerDIHandler("arrayThrower", { get: () => { throw new Error("handler boom") } })
+    registerDIHandler("arrayCounter", { get: () => ({ success: true, values: { count: ++count } }) as DISuccessResult })
+    let count = 0
+    const result = await processRequest([
+      { action: "get", resource: "arrayCounter" },
+      { action: "get", resource: "arrayThrower" },
+      { action: "get", resource: "arrayCounter" }
+    ])
+    expect(result).toEqual([
+      { success: true, values: { count: 1 } },
+      { success: false, values: { error: "An error occurred while processing the request." } },
+      { success: true, values: { count: 2 } }
+    ])
   })
 })

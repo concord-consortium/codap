@@ -12,7 +12,7 @@ const newSliderValue = "0.6"
 context("Slider UI", () => {
   beforeEach(function () {
     cy.visit(Cypress.config("index"))
-    cy.get('[data-testid="Create New Document-button"]').click()
+    cy.get('[data-testid=new-document-button]').click()
     cfm.openExampleDocument("Mammals")
     cy.wait(2500)
     // Close only the Mammals Sample Guide component
@@ -349,6 +349,23 @@ context("Slider UI", () => {
       .find("text")
       .contains(`${currentYear}`)
   })
+
+  it("restores the numeric scale on undo of a scale type change", () => {
+    c.selectTile("slider", 0)
+    slider.selectScaleType("date")
+    slider.getVariableValueInput().invoke("val").should("match", /\//)
+    slider.closePalette()
+
+    cy.log("Undo returns the slider to its numeric scale")
+    toolbar.getUndoTool().click()
+    slider.getVariableValueInput().should("have.value", initialSliderValue)
+    slider.getSliderTile().find("[data-testid=axis-bottom] text").should("contain", "11")
+      .and("not.contain", "Jan")
+
+    cy.log("Redo returns it to the date scale")
+    toolbar.getRedoTool().click()
+    slider.getVariableValueInput().invoke("val").should("match", /\//)
+  })
   it("checks editing variable value in one slider only affects that slider", () => {
     const newVariableValue = "0.5"
     c.getIconFromToolShelf("slider").click()
@@ -421,7 +438,7 @@ context("Slider UI", () => {
 context("Slider keyboard accessibility", () => {
   beforeEach(function () {
     cy.visit(`${Cypress.config("index")}?suppressUnsavedWarning`)
-    cy.get('[data-testid="Create New Document-button"]').click()
+    cy.get('[data-testid=new-document-button]').click()
     c.getIconFromToolShelf("slider").click()
     slider.getSliderTile().should("be.visible")
   })
@@ -524,25 +541,25 @@ context("Slider keyboard accessibility", () => {
     cy.log("Escape closes Playback palette and restores focus to inspector button")
     c.selectTile("slider", 0)
     slider.getInspectorIcon().click()
-    cy.get("[data-testid=codap-inspector-palette]").should("exist")
-    cy.get("[data-testid=codap-inspector-palette]").find("input").first().type("{esc}")
-    cy.get("[data-testid=codap-inspector-palette]").should("not.exist")
+    cy.get("[data-testid=inspector-palette-slider]").should("exist")
+    cy.get("[data-testid=inspector-palette-slider]").find("input").first().type("{esc}")
+    cy.get("[data-testid=inspector-palette-slider]").should("not.exist")
     slider.getInspectorIcon().should("be.focused")
 
     cy.log("Escape closes Scale palette and restores focus to inspector button")
     // Navigate down to the Scale button, then press Enter to open the Scale palette.
     cy.realPress("ArrowDown")
     cy.realPress("Enter")
-    cy.get("[data-testid=codap-inspector-palette]").should("exist")
-    cy.get("[data-testid=codap-inspector-palette]").find("input").first().type("{esc}")
-    cy.get("[data-testid=codap-inspector-palette]").should("not.exist")
+    cy.get("[data-testid=inspector-palette-slider]").should("exist")
+    cy.get("[data-testid=inspector-palette-slider]").find("input").first().type("{esc}")
+    cy.get("[data-testid=inspector-palette-slider]").should("not.exist")
     slider.getRulerIcon().should("be.focused")
   })
   it("inspector palette focus trap cycles Tab within the palette", () => {
     cy.log("Full Tab cycle through Scale palette: scale-type button → min → max → wraps to scale-type")
     c.selectTile("slider", 0)
     slider.getRulerIcon().click()
-    cy.get("[data-testid=codap-inspector-palette]").should("exist")
+    cy.get("[data-testid=inspector-palette-slider]").should("exist")
     // Scale palette has 3 focusable elements: scale-type button, min input, max input.
     // Start at the scale-type button and Tab through the full cycle.
     cy.get("[data-testid=slider-scale-type-button]").focus()
@@ -566,7 +583,7 @@ context("Slider keyboard accessibility", () => {
 
     cy.log("Tab wraps within the Playback palette")
     slider.clickInspectorPanel()
-    cy.get("[data-testid=codap-inspector-palette]").should("exist")
+    cy.get("[data-testid=inspector-palette-slider]").should("exist")
     // The Playback palette has: multiples input, animation rate input, direction button, mode button.
     // Focus the last button and Tab — should wrap back to the first input.
     cy.get("[data-testid=slider-animation-repetition]").focus()
@@ -580,7 +597,7 @@ context("Slider keyboard accessibility", () => {
     cy.log("scale palette opens and shows min/max inputs")
     c.selectTile("slider", 0)
     slider.getRulerIcon().click()
-    cy.get("[data-testid=codap-inspector-palette]").should("exist")
+    cy.get("[data-testid=inspector-palette-slider]").should("exist")
     cy.get("[data-testid=slider-minimum]").should("be.visible")
     cy.get("[data-testid=slider-maximum]").should("be.visible")
 
@@ -603,5 +620,62 @@ context("Slider keyboard accessibility", () => {
     cy.get("#slider-direction-label").should("exist")
     cy.get("#slider-mode-label").should("exist")
     slider.closePalette()
+  })
+})
+
+context("Slider Configuration palette by keyboard", () => {
+  beforeEach(function () {
+    // a small document with a date attribute, so that a Visibility slider bound to it has a width with a unit menu
+    cy.visit(`${Cypress.config("index")}?suppressUnsavedWarning&features=visibilitySlider`)
+    cy.contains("button", "Create New Document").should("be.visible")
+    cfm.openLocalDocWithUserEntry("cypress/fixtures/attribute-types.codap")
+    cy.get('.codap-case-table [data-testid^="codap-attribute-button-"][data-label="Date"]').should("be.visible")
+    c.getIconFromToolShelf("slider").click()
+    slider.getSliderTile().should("be.visible")
+  })
+  it("sets the type, width and unit from the keyboard, and closes with Escape", () => {
+    c.selectTile("slider", 0)
+    const configButton = () => c.getInspectorPanel().find("[data-testid=slider-config-button]")
+    configButton().focus()
+    cy.realPress("Enter")
+    cy.get("[data-testid=slider-type-button]").focus()
+
+    cy.log("type menu: Enter opens it, arrows move, Enter chooses")
+    cy.realPress("Enter")
+    cy.realPress("ArrowDown")
+    cy.realPress("Enter")
+    cy.get("[data-testid=slider-type-button]").should("contain.text", "Visibility").and("be.focused")
+
+    // a range slider's width can be edited once an attribute is bound, here from the slider's attribute menu
+    cy.realPress("Escape")
+    slider.getSliderTile().find("[data-testid=slider-attribute-menu-button]").click()
+    // the document has a single collection, so the menu lists its attributes directly
+    cy.get('[data-testid="slider-attribute-menu-list"] [role="menuitem"]').contains(/^Date$/).click()
+    slider.getSliderTile().find("[data-testid=slider-attribute-label]").should("contain.text", "Date")
+    c.selectTile("slider", 0)
+    configButton().focus()
+    cy.realPress("Enter")
+    cy.get("[data-testid=slider-type-button]").focus()
+
+    cy.log("width field: Tab reaches it, and Enter commits a typed width")
+    cy.realPress("Tab")
+    cy.get("[data-testid=slider-range-width-input]").should("be.focused")
+    cy.realType("2")
+    cy.realPress("Enter")
+    cy.get("[data-testid=slider-range-width-input]").should("have.value", "2")
+
+    cy.log("unit menu: Tab reaches it, and a unit can be chosen")
+    cy.realPress("Tab")
+    cy.get("[data-testid=slider-range-width-unit]").should("be.focused").invoke("text").then(unit => {
+      cy.realPress("Enter")
+      cy.realPress("ArrowDown")
+      cy.realPress("Enter")
+      cy.get("[data-testid=slider-range-width-unit]").should("not.have.text", unit).and("be.focused")
+    })
+
+    cy.log("Escape closes the palette and returns focus to the Config button")
+    cy.realPress("Escape")
+    cy.get("[data-testid=codap-inspector-palette]").should("not.exist")
+    configButton().should("be.focused")
   })
 })

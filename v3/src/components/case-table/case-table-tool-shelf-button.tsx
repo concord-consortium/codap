@@ -1,9 +1,11 @@
-import { useState } from "react"
-import { Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter,
-    Tooltip, useDisclosure } from "@chakra-ui/react"
+import {
+  Button, Menu, MenuButton, MenuItem, MenuList, ModalBody, ModalFooter, Tooltip, useDisclosure
+} from "@chakra-ui/react"
 import { clsx } from "clsx"
 import { observer } from "mobx-react-lite"
+import { useState } from "react"
 import { useMenuItemScrollIntoView } from "../../hooks/use-menu-item-scroll-into-view"
+import { clipboardManager } from "../../lib/clipboard/clipboard-manager"
 import { logStringifiedObjectMessage } from "../../lib/log-message"
 import { appState } from "../../models/app-state"
 import { createDefaultTileOfType } from "../../models/codap/add-default-content"
@@ -16,16 +18,17 @@ import {
 import { ISharedDataSet, kSharedDataSetType, SharedDataSet } from "../../models/shared/shared-data-set"
 import { getFormulaManager, getSharedModelManager } from "../../models/tiles/tile-environment"
 import { ITileModel } from "../../models/tiles/tile-model"
-import { createTileNotification } from "../../models/tiles/tile-notifications"
+import { createTileNotification, deleteTileNotification } from "../../models/tiles/tile-notifications"
 import { persistentState } from "../../models/persistent-state"
-import { initiateImportFromClipboard } from "../../utilities/clipboard-import"
 import { uniqueName } from "../../utilities/js-utils"
 import { getSpecialLangFontClassName, t } from "../../utilities/translation/translate"
 import { createOrShowTableOrCardForDataset, createTableOrCardForDataset } from "../case-tile-common/case-tile-utils"
 import { CodapModal } from "../codap-modal"
 import { ToolShelfButtonTag } from "../tool-shelf/tool-shelf-button"
 import { kCaseTableTileType } from "./case-table-defs"
-import { openCaseTableNotification } from "./case-table-notifications"
+import {
+  closeCaseTableNotification, openCaseTableNotification, reopenCaseTableNotification
+} from "./case-table-notifications"
 
 import AlertIcon from "../../assets/icons/icon-alert.svg"
 import TableIcon from "../../assets/icons/icon-table.svg"
@@ -48,13 +51,22 @@ export function openTableOrCardForDatasetWithNotifications(dataset: ISharedDataS
   // Capture existing tiles so we can tell whether opening created a new tile or re-showed
   // an existing one, and only fire `create` for a brand-new tile.
   const priorTileIds = new Set(content.tileMap.keys())
+  const priorHiddenTileIds = new Set(Array.from(priorTileIds).filter(tileId => content.isTileHidden(tileId)))
+  const isNewTile = () => !!tile && !priorTileIds.has(tile.id)
+  // a closed case table shown again is closed by undo and reopened by redo, as its close button's undo and redo do
+  const isReshownTile = () => !!tile && priorHiddenTileIds.has(tile.id) && !content.isTileHidden(tile.id)
   document.applyModelChange(() => {
     tile = createOrShowTableOrCardForDataset(dataset)
   }, {
     notify: [
-      () => (tile && !priorTileIds.has(tile.id) ? createTileNotification(tile) : undefined),
+      () => (isNewTile() ? createTileNotification(tile) : undefined),
       () => openCaseTableNotification(tile)
     ],
+    // undoing removes a table this made, as V2's caseTable.open did (app_controller.js:122-123)
+    undoNotify: () => isNewTile() ? deleteTileNotification(tile)
+      : isReshownTile() ? closeCaseTableNotification(tile) : undefined,
+    redoNotify: () => isNewTile() ? createTileNotification(tile)
+      : isReshownTile() ? reopenCaseTableNotification(tile) : undefined,
     undoStringKey: "DG.Undo.caseTable.open",
     redoStringKey: "DG.Redo.caseTable.open",
     log: "Create caseTable component"
@@ -119,6 +131,8 @@ const CaseTableToolShelfMenuList = observer(
         () => createTileNotification(tile),
         () => openCaseTableNotification(tile)
       ],
+      undoNotify: () => deleteTileNotification(tile),
+      redoNotify: () => createTileNotification(tile),
       undoStringKey: "V3.Undo.caseTable.create",
       redoStringKey: "V3.Redo.caseTable.create",
       log: {message: "Create New Empty DataSet", args: {}, category: "document"}
@@ -143,12 +157,12 @@ const CaseTableToolShelfMenuList = observer(
         <MenuItem
           className="tool-shelf-menu-item table-menu-item"
           data-testid="tool-shelf-table-new-clipboard"
-          onClick={() => initiateImportFromClipboard()}
+          onClick={() => clipboardManager.importData()}
         >
           <TableIcon className="menu-icon case-table-icon"/>
           {`${t("DG.AppController.caseTableMenu.clipboardDataset")}`}
         </MenuItem>
-        {datasets.map((dataset) => {
+        {datasets.map((dataset, datasetIndex) => {
           // case table title reflects DataSet title
           const tileTitle = dataset.dataSet.displayTitle
           // See openTableOrCardForDatasetWithNotifications: opening an existing dataset's table
@@ -157,7 +171,9 @@ const CaseTableToolShelfMenuList = observer(
           const handleOpenTableForDataset = () => openTableOrCardForDatasetWithNotifications(dataset)
           return (
             <MenuItem key={`${dataset.dataSet.id}`} className="tool-shelf-menu-item table-menu-item"
-              onClick={handleOpenTableForDataset} data-testid={`tool-shelf-table-${tileTitle}`}>
+              onClick={handleOpenTableForDataset}
+              aria-label={tileTitle}
+              data-testid={`tool-shelf-table-${datasetIndex}`}>
               <TableIcon className="menu-icon case-table-icon"/>
               {tileTitle}
               <span className="menu-list-button tool-shelf-menu-trash" role="button" tabIndex={0}
@@ -243,11 +259,13 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
 
   const buttons = [{label: t("DG.TableController.deleteDataSet.cancelButtonTitle"),
                     className: "cancel",
+                    testId: "delete-data-set-cancel-button",
                     onClick: handleCancel
                    },
                    {
                     label: t("DG.TableController.deleteDataSet.okButtonTitle"),
                     className: "delete",
+                    testId: "delete-data-set-delete-button",
                     onClick: handleDeleteDataSet
                    }]
 
@@ -256,7 +274,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
       data-testid="delete-data-set-modal">
       <ModalBody className="delete-data-set-modal-body">
         <AlertIcon />
-        <div className="delete-data-set-modal-text">
+        <div className="delete-data-set-modal-text" data-testid="delete-data-set-modal-text">
           <p className="warning">
             {t("DG.TableController.deleteDataSet.confirmMessage", { vars: [data?.name || ""] })}
           </p>
@@ -271,7 +289,7 @@ export const DeleteDataSetModal = ({dataSetId, isOpen, onClose, setModalOpen}: I
               color="white" openDelay={1000} placement="bottom" bottom="15px" left="15px"
               data-testid="modal-tooltip">
               <Button key={key} className={`delete-data-set-button-${b.className}`} size="xs" variant="ghost" ml="5"
-                  onClick={b.onClick} data-testid={`delete-data-set-button-${b.className}`}>
+                  onClick={b.onClick} data-testid={b.testId}>
                 {b.label}
               </Button>
             </Tooltip>

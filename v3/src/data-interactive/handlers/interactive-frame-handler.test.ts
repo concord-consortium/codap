@@ -83,6 +83,15 @@ describe("DataInteractive InteractiveFrameHandler", () => {
     expect(handler.update?.({ interactiveFrame: tile }, values).success).toBe(true)
     expect(webViewContent.allowEmptyAttributeDeletion).toBe(allowEmptyAttributeDeletion)
     expect(tile.cannotClose).toBe(cannotClose)
+    expect(handler.update?.({ interactiveFrame: tile }, { cannotClose: false }).success).toBe(true)
+    expect(tile.cannotClose).toBe(false)
+    expect(handler.update?.({ interactiveFrame: tile }, { cannotClose: 1 } as any).success).toBe(true)
+    expect(tile.cannotClose).toBe(true)
+    // an update without cannotClose leaves it alone
+    expect(handler.update?.({ interactiveFrame: tile }, { version }).success).toBe(true)
+    expect(tile.cannotClose).toBe(true)
+    expect(handler.update?.({ interactiveFrame: tile }, { cannotClose: 0 } as any).success).toBe(true)
+    expect(tile.cannotClose).toBe(false)
     const newDimensions =
       appState.document.content?.getTileDimensions(tile.id) as unknown as { height: number, width: number }
     expect(newDimensions.height).toBe(10)
@@ -123,6 +132,41 @@ describe("DataInteractive InteractiveFrameHandler", () => {
 
     expect(result?.success).toBe(true)
     expect(tile.title).toBe("Plugin Title")
+
+    // a number is used as the title, as in V2
+    expect(handler.update?.({ interactiveFrame: tile }, { title: 42 } as any).success).toBe(true)
+    expect(tile.title).toBe("42")
+  })
+
+  it("update clears the title with an empty title or name, and a non-empty title beats name, as in V2", () => {
+    const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
+    tile.setName("Sampler")
+    const update = (values: DIInteractiveFrame) => {
+      expect(handler.update?.({ interactiveFrame: tile }, { title: "Before" }).success).toBe(true)
+      expect(handler.update?.({ interactiveFrame: tile }, values).success).toBe(true)
+      return tile.title
+    }
+    // a cleared title falls back to the tile's name, as with update component
+    expect(update({ title: "" })).toBe("Sampler")
+    expect(update({ name: "" })).toBe("Sampler")
+    expect(update({ title: "", name: "" })).toBe("Sampler")
+    // as in V2, a falsy name clears the title, but a falsy title alone is ignored
+    expect(update({ name: 0 } as any)).toBe("Sampler")
+    expect(update({ name: false } as any)).toBe("Sampler")
+    expect(update({ title: false, name: 0 } as any)).toBe("Sampler")
+    expect(update({ title: 0 } as any)).toBe("Before")
+    expect(update({ title: false } as any)).toBe("Before")
+    expect(update({ title: 0, name: null } as any)).toBe("Before")
+    expect(update({ title: "", name: "Name" })).toBe("Name")
+    expect(update({ title: "Title", name: "Name" })).toBe("Title")
+    expect(update({ name: "Name" })).toBe("Name")
+    expect(update({ cannotClose: true })).toBe("Before")
+  })
+
+  it("update requires values", () => {
+    const tile = appState.document.content!.createOrShowTile(kWebViewTileType)!
+    expect(handler.update?.({ interactiveFrame: tile }))
+      .toEqual({ success: false, values: { error: "A values object is required for this request." } })
   })
 
   it("update sets handlesLocaleChange", () => {

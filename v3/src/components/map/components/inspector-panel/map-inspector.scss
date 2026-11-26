@@ -1,15 +1,23 @@
 @use "../../../vars";
 
-.map-values-controls {
+@mixin color-ramp-option {
   display: flex;
-  flex-direction: column;
-  margin: 5px;
+  align-items: center;
+  gap: 6px;
+}
 
-  .map-values-layer-label{
-    display: flex;
-    align-items: center;
-    font-weight: 500;
-  }
+// The preview strip of a hot spot color ramp, in the menu's button and in its options.
+// Top-level because the menu's popover renders in a portal outside the palette.
+.hot-spot-ramp-strip {
+  flex: none;
+  width: 40px;
+  height: 12px;
+  border: 1px solid vars.$charcoal-light-1;
+  border-radius: 2px;
+}
+
+.hot-spot-color-ramp-popover .react-aria-ListBoxItem {
+  @include color-ramp-option;
 }
 
 .inspector-panel.map.data-display {
@@ -73,16 +81,55 @@
     }
 
     .map-layer-controls {
-      margin: 10px;
       border-top: 1px solid vars.$charcoal-light-2;
+      margin: 10px;
       padding-top: 10px;
 
-      > .react-aria-Checkbox {
+      > :first-child.react-aria-Checkbox {
         font-weight: 500;
+        margin-bottom: 10px;
       }
 
       .palette-row {
         font-weight: normal;
+
+        &.slider-row {
+          margin-top: 8px;
+        }
+      }
+
+      > .palette-form {
+        border-top: 1px solid vars.$charcoal-light-5;
+
+        > :first-child.react-aria-Checkbox {
+          font-weight: 500;
+        }
+
+        > .react-aria-RadioGroup {
+          margin-top: 8px;
+        }
+      }
+
+      .map-hot-spot-controls {
+        .slider-readout {
+          text-align: right;
+          font-size: 12px;
+          color: vars.$charcoal;
+        }
+
+        .color-ramp-row {
+          justify-content: space-between;
+          height: auto;
+          margin-top: 8px;
+
+          .react-aria-Button {
+            min-width: 140px;
+          }
+
+          .react-aria-SelectValue {
+            @include color-ramp-option;
+          }
+        }
       }
     }
   }

@@ -71,6 +71,14 @@ import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { V2UserTitleModel } from "./v2-user-title-model"
 
+// whether any visibility slider's filter hides the item
+function isItemInSliderFilters(filters: ReadonlyMap<string, ReadonlySet<string>>, itemId: string) {
+  for (const hidden of filters.values()) {
+    if (hidden.has(itemId)) return true
+  }
+  return false
+}
+
 // remnant of derived DataSet implementation that isn't in active use
 interface IEnvContext {
   srcDataSet: IDataSet;
@@ -147,6 +155,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   // ordered parent-most to child-most
   collections: types.array(CollectionModel),
   attributesMap: types.map(Attribute),
+  // Every item, in order, including hidden (set-aside or filtered-out) ones. Items have two kinds of index:
+  // - a full index is a position in _itemIds and in the attribute value arrays (getItemIndex,
+  //   getItemIndexForCaseOrItem, the ...AtFullItemIndex getters)
+  // - a shown index is a position in `items` and `itemIds`, which leave out hidden items (getItemAtIndex)
+  // Never look up an index of one kind in the other: whenever an earlier item is hidden, it finds the wrong item.
   _itemIds: types.array(types.string),
   // for serialization only, not for dynamic selection tracking
   snapSelection: types.array(types.string),
@@ -202,6 +215,14 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 
   // cached result of filter formula evaluation for each item ID
   filteredOutItemIds: observable.set<string>(),
+  // items hidden by visibility sliders, keyed by the id of each slider's tile; each slider replaces or
+  // clears only its own set
+  // (shallow, so each set is stored as given rather than copied; invalidateCases does the signaling)
+  sliderFilteredOutItemIds: observable.map<string, ReadonlySet<string>>({}, { deep: false }),
+  // Counts the changes to what visibility sliders hide that a change to a slider itself caused (its range,
+  // attribute, type or dataset, or closing it), rather than a change to the data or a document loading. A selection
+  // slider follows only these, so editing data never selects anything (see SliderModel).
+  sliderFilterChangesBySlider: 0,
   filterFormulaError: "",
 
   // Init: this object does not need to change when a snapshot is applied.
@@ -257,7 +278,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   function _validateItemIds() {
     if (!_isValidItemIds) {
       _cachedItemIds = self._itemIds.filter(itemId =>
-        !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
+        !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId) &&
+          !isItemInSliderFilters(self.sliderFilteredOutItemIds, itemId)
       )
       _cachedItems = _cachedItemIds.map(id => ({ __id__: id }))
       _isValidItemIds = true
@@ -300,6 +322,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         _caseValidationVersion.get()  // establish MobX dependency
         return _isValidItemIds
       },
+      // the shown items' ids, in order; positions here are shown indices (see _itemIds)
       get itemIds() {
         _caseValidationVersion.get()  // stable MobX dependency (survives cache-valid no-op)
         _validateItemIds()
@@ -391,7 +414,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       appendItemIdsToCache(itemIds: string[]) {
         if (_isValidItemIds) {
           const visibleIds = itemIds.filter(itemId =>
-            !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
+            !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId) &&
+            !isItemInSliderFilters(self.sliderFilteredOutItemIds, itemId)
           )
           _cachedItemIds.push(...visibleIds)
           _cachedItems.push(...visibleIds.map(id => ({ __id__: id })))
@@ -491,8 +515,13 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   isItemSetAside(itemId: string) {
     return self.setAsideItemIdsSet.has(itemId)
   },
+  // hidden by the filter formula or by a visibility slider
   isItemFilteredOut(itemId: string) {
-    return self.filteredOutItemIds.has(itemId)
+    return self.filteredOutItemIds.has(itemId) || isItemInSliderFilters(self.sliderFilteredOutItemIds, itemId)
+  },
+  // the items that aren't set aside or filtered out by the filter formula, whatever sliders hide
+  get itemIdsIgnoringSliderFilters(): string[] {
+    return self._itemIds.filter(itemId => !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId))
   }
 }))
 .views(self => ({
@@ -561,9 +590,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   hasItem(itemId: string) {
     return !!self.itemInfoMap.get(itemId)
   },
+  // the item's full index: its position in _itemIds and the attribute value arrays, counting hidden items
   getItemIndex(itemId: string) {
     return self.itemInfoMap.get(itemId)?.index
   },
+  // the full index (see getItemIndex) of the item, or of a case's first item
   getItemIndexForCaseOrItem(caseOrItemId: string) {
     const caseInfo = self.caseInfoMap.get(caseOrItemId)
     // for cases, returns index of first item
@@ -578,15 +609,6 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     if (!itemInfo) return
     const childCaseIndex = itemInfo.caseIds.length - 1
     return itemInfo.caseIds[childCaseIndex]
-  },
-  itemIDFromIndex(index: number) {
-    return self.items[index]?.__id__
-  },
-  nextItemID(id: string) {
-    const index = this.getItemIndex(id),
-          nextItem = (index != null) && (index < self.items.length - 1)
-                      ? self.items[index + 1] : undefined
-    return nextItem?.__id__
   },
   addItemInfo(itemId: string, caseId: string) {
     const itemInfo = self.itemInfoMap.get(itemId)
@@ -729,9 +751,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     }
     else {
       if (attribute.hasFormula) {
-        // If the attribute has a formula, we need to reset all the calculated values to blank values so that they
-        // are not taken into account while calculating case grouping. After the grouping is done, the formula will
-        // be re-evaluated, and the values will be updated to the correct values again.
+        // Clear values from the old collection without affecting grouping. Formulas that failed initialization
+        // stay blank after the move.
         attribute.clearValues()
       }
       if (srcCollection.getAttribute(attributeID) && srcCollection.attributes.length === 1) {
@@ -777,6 +798,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           self.itemIdChildCaseMap.clear()
           Array.from(self.childCollection.caseGroupMap.values()).forEach(caseGroup => {
             self.itemIdChildCaseMap.set(caseGroup.childItemIds[0] ?? caseGroup.hiddenChildItemIds[0], caseGroup)
+          })
+          // A hidden item (set aside, filtered out by the filter formula, or hidden by a visibility slider) can't be
+          // selected, so it's deselected along with the items that no longer exist.
+          self.selection.forEach(itemId => {
+            if (self.itemInfoMap.get(itemId)?.isHidden) itemsToValidate.add(itemId)
           })
           // Defer selection cleanup — flushed by setValidCases() in its runInAction
           if (itemsToValidate.size) {
@@ -920,6 +946,21 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     })
     return created
   },
+  // hides the given items on behalf of the visibility slider in the tile with the given id
+  // (bySlider: see sliderFilterChangesBySlider)
+  setSliderFilter(sliderTileId: string, hiddenItemIds: ReadonlySet<string>, bySlider = false) {
+    self.sliderFilteredOutItemIds.set(sliderTileId, hiddenItemIds)
+    if (bySlider) ++self.sliderFilterChangesBySlider
+    self.invalidateCases()
+  },
+  // stops hiding items on behalf of the visibility slider in the tile with the given id
+  // (bySlider: see sliderFilterChangesBySlider)
+  clearSliderFilter(sliderTileId: string, bySlider = false) {
+    if (self.sliderFilteredOutItemIds.delete(sliderTileId)) {
+      if (bySlider) ++self.sliderFilterChangesBySlider
+      self.invalidateCases()
+    }
+  },
   clearFilterFormula() {
     self.filterFormula = undefined
     self.filteredOutItemIds.clear()
@@ -932,7 +973,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     caseOrItemIds.forEach(id => {
       const caseInfo = self.caseInfoMap.get(id)
       if (caseInfo) {
-        caseInfo.childItemIds.forEach(itemId => {
+        // Hidden children too (e.g. by a filter formula or a visibility slider), so they stay set aside with
+        // their case when whatever hides them changes. Restoring a case restores all its hidden children.
+        [...caseInfo.childItemIds, ...caseInfo.hiddenChildItemIds].forEach(itemId => {
           if (!self.setAsideItemIdsSet.has(itemId)) {
             self.setAsideItemIds.push(itemId)
           }
@@ -1140,6 +1183,7 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     return items
   }
 
+  // the item at a shown index: its position in `items`, which leaves out hidden items
   function getItemAtIndex(index: number, options?: IGetCaseOptions) {
     const item = self.items[index],
           id = item?.__id__
@@ -1191,11 +1235,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
       getValue(caseID: string, attributeID: string) {
         const index = self.getItemIndexForCaseOrItem(caseID)
-        return index != null ? this.getValueAtItemIndex(index, attributeID) : undefined
+        return index != null ? this.getValueAtFullItemIndex(index, attributeID) : undefined
       },
-      getValueAtItemIndex(index: number, attributeID: string) {
+      getValueAtFullItemIndex(index: number, attributeID: string) {
         if (self.isCaching()) {
-          const itemId = self.items[index]?.__id__
+          const itemId = self._itemIds[index]
           const cachedItem = self.itemCache.get(itemId)
           if (cachedItem && Object.prototype.hasOwnProperty.call(cachedItem, attributeID)) {
             return cachedItem[attributeID]
@@ -1206,11 +1250,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
       getStrValue(caseID: string, attributeID: string) {
         const index = self.getItemIndexForCaseOrItem(caseID)
-        return index != null ? this.getStrValueAtItemIndex(index, attributeID) : ""
+        return index != null ? this.getStrValueAtFullItemIndex(index, attributeID) : ""
       },
-      getStrValueAtItemIndex(itemIndex: number, attributeID: string) {
+      getStrValueAtFullItemIndex(itemIndex: number, attributeID: string) {
         if (self.isCaching()) {
-          const itemId = self.items[itemIndex]?.__id__
+          const itemId = self._itemIds[itemIndex]
           const cachedItem = self.itemCache.get(itemId)
           if (cachedItem && Object.prototype.hasOwnProperty.call(cachedItem, attributeID)) {
             return cachedItem[attributeID]?.toString()
@@ -1221,12 +1265,12 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       },
       getNumeric(caseID: string, attributeID: string): number | undefined {
         const index = self.getItemIndexForCaseOrItem(caseID)
-        return index != null ? this.getNumericAtItemIndex(index, attributeID) : undefined
+        return index != null ? this.getNumericAtFullItemIndex(index, attributeID) : undefined
       },
-      getNumericAtItemIndex(index: number, attributeID: string) {
+      getNumericAtFullItemIndex(index: number, attributeID: string) {
         const attr = self.getAttribute(attributeID)
         if (self.isCaching()) {
-          const itemId = self.items[index]?.__id__
+          const itemId = self._itemIds[index]
           const cachedItem = self.itemCache.get(itemId)
           if (cachedItem && Object.prototype.hasOwnProperty.call(cachedItem, attributeID)) {
             // Parse the cached value the same way the attribute does, so blanks become NaN
@@ -1566,44 +1610,6 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
         }
       },
 
-      moveItems(itemIds: string[], options?: IMoveItemsOptions) {
-        const indices = itemIds.map(itemId => self.getItemIndex(itemId)).filter(index => index != null)
-          .sort((a: number, b: number) => b - a) // Reverse order
-        const items = indices.map(index => {
-          const item = { index, item: self.items[index], values: [] as { strValue: string, numValue: number }[] }
-          self.attributes.forEach(attr => item.values.push({
-            strValue: attr.strValues[index],
-            numValue: attr.numValues[index]
-          }))
-          return item
-        }).reverse() // Normal order
-
-        // Remove from ordered arrays
-        indices.forEach(index => {
-          self._itemIds.splice(index, 1)
-          self.attributes.forEach(attr => attr.removeValues(index))
-        })
-
-        // Determine position to re-insert items
-        const beforeIndex = options?.before ? self._itemIds.indexOf(options.before) : undefined
-        const afterIndex = options?.after ? self._itemIds.indexOf(options.after) + 1 : undefined
-        const insertIndex = afterIndex ?? beforeIndex ?? self._itemIds.length
-
-        // Add back to ordered arrays
-        self._itemIds.splice(insertIndex, 0, ...items.map(({ item }) => item.__id__))
-        self.attributes.forEach((attr, index) => {
-          attr.strValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].strValue))
-          attr.numValues.splice(insertIndex, 0, ...items.map(({ values }) => values[index].numValue))
-        })
-
-        // Fix indices
-        for (let i = 0; i < self._itemIds.length; ++i) {
-          const itemId = self._itemIds[i]
-          const itemInfo = self.itemInfoMap.get(itemId)
-          if (itemInfo) itemInfo.index = i
-        }
-      },
-
       selectAll(select = true) {
         if (select) {
           self.items.forEach(({__id__}) => self.selection.add(__id__))
@@ -1843,6 +1849,23 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     })
     self.removeCollection(collection)
   },
+  // Puts the items in the given order, which must list every item, set-aside ones included, exactly once
+  setItemOrder(itemIds: string[]) {
+    if (itemIds.length !== self._itemIds.length) return
+    if (itemIds.every((itemId, index) => itemId === self._itemIds[index])) return
+    // current positions come from _itemIds itself, since itemInfoMap can be stale until the cases are validated
+    const currentIndex = new Map(self._itemIds.map((itemId, index) => [itemId, index]))
+    const origIndices = itemIds.map(itemId => currentIndex.get(itemId)!)
+    self.attributes.forEach(attr => attr.orderValues(origIndices))
+    self._itemIds.replace(itemIds)
+    // keep item lookups right until the cases are next validated
+    itemIds.forEach((itemId, index) => {
+      const itemInfo = self.itemInfoMap.get(itemId)
+      if (itemInfo) itemInfo.index = index
+    })
+  }
+}))
+.actions(self => ({
   sortByAttribute(attributeId: string, direction: "ascending" | "descending" = "ascending") {
     self.validateCases()
 
@@ -1854,14 +1877,15 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     }
 
     const finalItemIds = Array.from(self._itemIds)
-    const itemIdToIndexMap: Record<string, { beforeIndex: number, afterIndex: number }> = {}
-    self._itemIds.forEach((itemId, beforeIndex) => itemIdToIndexMap[itemId] = { beforeIndex, afterIndex: -1 })
-
-    const collection = self.getCollectionForAttribute(attributeId)
-    const parentCollection = collection?.parent
+    const parentCollection = self.getCollectionForAttribute(attributeId)?.parent
 
     // if there's a parent collection, items are sorted within their parent cases
     if (parentCollection) {
+      // an item in no case group (e.g. under a parent whose items are all set aside) keeps its place
+      const itemIdToIndexMap: Record<string, { beforeIndex: number, afterIndex: number }> = {}
+      self._itemIds.forEach((itemId, beforeIndex) => {
+        itemIdToIndexMap[itemId] = { beforeIndex, afterIndex: beforeIndex }
+      })
       parentCollection.caseGroups.forEach(group => {
         // combine all the child item ids for this parent case
         const origGroupItemIds = [...group.childItemIds, ...group.hiddenChildItemIds]
@@ -1877,30 +1901,30 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           const origItemIdAtIndex = origGroupItemIds[index]
           itemIdToIndexMap[itemId].afterIndex = itemIdToIndexMap[origItemIdAtIndex].beforeIndex
         })
-        // sort the items into their appropriate sorted locations
-        finalItemIds.sort((aItemId, bItemId) => {
-          return itemIdToIndexMap[aItemId].afterIndex - itemIdToIndexMap[bItemId].afterIndex
-        })
+      })
+      // sort the items into their appropriate sorted locations
+      finalItemIds.sort((aItemId, bItemId) => {
+        return itemIdToIndexMap[aItemId].afterIndex - itemIdToIndexMap[bItemId].afterIndex
       })
     }
 
     // if no parent collection, items can be sorted globally
     else {
       finalItemIds.sort(compareFn)
-      finalItemIds.forEach((itemId, index) => itemIdToIndexMap[itemId].afterIndex = index)
     }
 
-    // if no changes then nothing to do
-    if (finalItemIds.every((itemId, index) => itemId === self._itemIds[index])) return
-
-    // apply the index mapping to each attribute's value arrays
-    const origIndices = finalItemIds.map(itemId => itemIdToIndexMap[itemId].beforeIndex)
-    self.attributes.forEach(attr => attr.orderValues(origIndices))
-
-    // update the _itemIds array
-    self._itemIds.replace(finalItemIds)
-
-    return itemIdToIndexMap
+    self.setItemOrder(finalItemIds)
+  },
+  // Moves the given items, in their current order, before or after another item, or to the end. The order
+  // includes set-aside and filtered-out items.
+  moveItems(itemIds: string[], options?: IMoveItemsOptions) {
+    const moving = new Set(itemIds)
+    const movingIds = self._itemIds.filter(itemId => moving.has(itemId))
+    const otherIds = self._itemIds.filter(itemId => !moving.has(itemId))
+    const beforeIndex = options?.before ? otherIds.indexOf(options.before) : -1
+    const afterIndex = options?.after ? otherIds.indexOf(options.after) : -1
+    const insertIndex = afterIndex >= 0 ? afterIndex + 1 : beforeIndex >= 0 ? beforeIndex : otherIds.length
+    self.setItemOrder(otherIds.slice(0, insertIndex).concat(movingIds, otherIds.slice(insertIndex)))
   }
 }))
 // performs the specified action so that response actions are included and undo/redo strings assigned

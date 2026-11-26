@@ -1,4 +1,5 @@
 import { CfmElements as cfm } from "./cfm"
+import { MenuHelper as mh } from "../helpers/menu-helper"
 
 export const ToolbarElements = {
   confirmToolbarPosition(position: "Top" | "Left" = "Top") {
@@ -24,6 +25,10 @@ export const ToolbarElements = {
   getToolShelfIcon(component: string) {
     return this.getToolShelfSelector(component)
   },
+  // For tool shelf buttons with a menu, such as Tables
+  openToolShelfMenu(component: string) {
+    mh.openMenu(() => this.getToolShelfIcon(component))
+  },
   getPluginGroup() {
     return cy.get(`.plugin-group-menu-item`)
   },
@@ -40,25 +45,25 @@ export const ToolbarElements = {
     return cy.get("[data-testid=tool-shelf-table-new-clipboard]")
   },
   getDatasetListedInToolShelf(dataset: string) {
-    return cy.get(`[data-testid="tool-shelf-table-${dataset}"]`)
+    return cy.get(`[data-testid^="tool-shelf-table-"][aria-label="${dataset}"]`)
   },
   getDeleteCaseTable(dataset: string) {
-    return cy.get(`[data-testid="tool-shelf-table-${dataset}"] .tool-shelf-menu-trash-icon`)
+    return cy.get(`[data-testid^="tool-shelf-table-"][aria-label="${dataset}"] .tool-shelf-menu-trash-icon`)
   },
   getConfirmDeleteDatasetModal() {
-    return cy.get(`[data-testid=delete-data-set-button-delete]`)
+    return cy.get(`[data-testid=delete-data-set-delete-button]`)
   },
   getTilesButton() {
     return cy.get(`[data-testid=tool-shelf-button-tiles]`)
   },
   getTilesListMenu() {
-    return cy.get(`[data-testid=tiles-list-menu]`)
+    return cy.get(`[data-testid=tool-shelf-tiles-menu-list]`)
   },
   getTilesListMenuItem() {
-    return cy.get(`[data-testid=tiles-list-menu-item]`)
+    return cy.get(`[data-testid^="tool-shelf-tiles-menu-item-"]`)
   },
   getTilesListMenuIcon() {
-    return cy.get(`[data-testid=tile-list-menu-icon]`)
+    return cy.get(`[data-testid=tool-shelf-tiles-menu-icon]`)
   },
   getTilesListMenuItemLabel() {
     return this.getTilesListMenuItem().find('.tile-menu-item-label')

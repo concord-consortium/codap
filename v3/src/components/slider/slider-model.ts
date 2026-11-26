@@ -1,12 +1,19 @@
-import { reaction } from "mobx"
-import { addDisposer, Instance, SnapshotIn, types} from "mobx-state-tree"
+import { comparer, reaction } from "mobx"
+import { addDisposer, Instance, isAlive, SnapshotIn, types} from "mobx-state-tree"
+import { IDataSet } from "../../models/data/data-set"
 import { GlobalValue } from "../../models/global/global-value"
 import { getGlobalValueManager } from "../../models/global/global-value-manager"
 import { applyModelChange } from "../../models/history/apply-model-change"
+import { withoutUndo } from "../../models/history/without-undo"
+import { getAllTileDataSets } from "../../models/shared/shared-data-tile-utils"
+import { getDataSetFromId, getSharedDataSetFromDataSetId } from "../../models/shared/shared-data-utils"
 import { ISharedModel } from "../../models/shared/shared-model"
 import { ITileContentModel, TileContentModel } from "../../models/tiles/tile-content"
+import { getTileModel } from "../../models/tiles/tile-model"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
-import { DateUnit, dateUnits, determineLevels, unitsStringToMilliseconds } from "../../utilities/date-utils"
+import {
+  DateUnit, dateUnits, determineLevels, offsetDateSeconds, unitsStringToMilliseconds
+} from "../../utilities/date-utils"
 import { AxisPlace } from "../axis/axis-types"
 import { AxisHelper } from "../axis/helper-models/axis-helper"
 import { IAxisModel } from "../axis/models/axis-model"
@@ -14,12 +21,23 @@ import { IBaseNumericAxisModel } from "../axis/models/base-numeric-axis-model"
 import {
   DateAxisModel, isAnyNumericAxisModel, isDateAxisModel, NumericAxisModel
 } from "../axis/models/numeric-axis-models"
+import { dataDisplayGetNumericExtent, dataDisplayGetNumericValue } from "../data-display/data-display-value-utils"
 import { kSliderTileType } from "./slider-defs"
+import { selectExactly, visibleSetsEqual } from "./slider-selection"
 import {
   AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, FixValueFn, ISliderScaleType,
   kDefaultAnimationDirection, kDefaultAnimationMode, kDefaultAnimationRate, kDefaultDateMultipleOfUnit,
-  kDefaultSliderAxisMax, kDefaultSliderAxisMin, kDefaultSliderScaleType, SliderScaleTypes
+  kDefaultRangeFraction, kDefaultSliderAxisMax, kDefaultSliderAxisMin, kDefaultSliderScaleType, kDefaultSliderType,
+  SliderScaleTypes, SliderType, SliderTypes
 } from "./slider-types"
+
+function areSetsEqual<T>(a: ReadonlySet<T>, b: ReadonlySet<T>) {
+  if (a.size !== b.size) return false
+  for (const item of a) {
+    if (!b.has(item)) return false
+  }
+  return true
+}
 
 export const SliderModel = TileContentModel
   .named("SliderModel")
@@ -34,11 +52,31 @@ export const SliderModel = TileContentModel
     _animationRate: types.maybe(types.number),  // frames per second
     scaleType: types.optional(types.enumeration([...SliderScaleTypes]), kDefaultSliderScaleType),
     axis: types.optional(types.union(NumericAxisModel, DateAxisModel),
-      () => NumericAxisModel.create({ place: 'bottom', min: kDefaultSliderAxisMin, max: kDefaultSliderAxisMax }))
+      () => NumericAxisModel.create({ place: 'bottom', min: kDefaultSliderAxisMin, max: kDefaultSliderAxisMax })),
+    sliderType: types.optional(types.enumeration([...SliderTypes]), kDefaultSliderType),
+    // the bound attribute, stored as plain ids rather than MST references
+    dataSetId: types.maybe(types.string),
+    attributeId: types.maybe(types.string),
+    // width of the range thumb, in axis units (epoch seconds for dates); the global value is its low end
+    rangeWidth: types.maybe(types.number),
+    // for serialization only: whether a selection slider owned the selection when saved (see prepareSnapshot)
+    snapOwnsSelection: types.maybe(types.boolean)
   })
   .volatile(() => ({
     axisHelper: undefined as Maybe<AxisHelper>,
-    _isAxisAnimating: false
+    _isAxisAnimating: false,
+    dynamicRangeWidth: undefined as number | undefined,
+    // The selection a selection slider owns: what it last selected, or the selection it took as its own (e.g. on load,
+    // or once the dataset deselected the cases it hides); undefined when it doesn't own the selection. Once the slider
+    // loses the selection this is cleared, so only a touch on the slider (resumeSelection) takes it back.
+    appliedItemIds: undefined as ReadonlySet<string> | undefined,
+    // whether the slider let go of the selection because it was bound to another dataset, rather than because the
+    // user selected some other way, so its component doesn't treat it as a pause (e.g. stop playback)
+    isReleasedForRebind: false,
+    // whether the ownership saved with the document has been restored (see the selection binding reaction)
+    isSavedOwnershipRestored: false,
+    // between prepareSnapshot and completeSnapshot, while the saved ownership must be left as prepared
+    isSnapshotPending: false
    }))
   .views(self => ({
     get name() {
@@ -73,10 +111,158 @@ export const SliderModel = TileContentModel
     },
     get globalValueManager() {
       return getGlobalValueManager(getSharedModelManager(self))
+    },
+    get dataSet(): IDataSet | undefined {
+      return self.dataSetId ? getDataSetFromId(self, self.dataSetId) : undefined
+    },
+    get attribute() {
+      return self.attributeId ? this.dataSet?.getAttribute(self.attributeId) : undefined
+    },
+    // the units of a numeric axis's values, from the bound attribute (a date axis's units come from its unit menus)
+    get numericUnits() {
+      return self.scaleType === "numeric" ? this.attribute?.units || undefined : undefined
+    },
+    // The bound attribute's numeric values (epoch seconds for dates) for the cases that aren't set aside or
+    // filtered out by the filter formula. Cases hidden by sliders are included, so that the slider's own
+    // hiding doesn't narrow what it hides, snaps to, or plays through.
+    get attributeValues(): Array<{ itemId: string, value?: number | null }> {
+      const dataSet = this.dataSet
+      const attr = this.attribute
+      if (!dataSet || !attr) return []
+      // attribute values live in a volatile array; changeCount is what signals that they changed
+      void attr.changeCount
+      return dataSet.itemIdsIgnoringSliderFilters.map(itemId =>
+        ({ itemId, value: dataDisplayGetNumericValue(dataSet, itemId, attr.id) }))
+    },
+    get isRangeSlider() {
+      return self.sliderType !== "variable"
+    },
+    // A range no wider than the axis. The saved width isn't narrowed to fit the axis, so zooming the axis in
+    // and back out (or undoing the zoom) leaves the width as it was, and an axis change adds no change of its
+    // own. (The low end is limited the same way; see rangeLow.)
+    get width() {
+      const [axisMin, axisMax] = self.axis.domain
+      return Math.min(self.dynamicRangeWidth ?? self.rangeWidth ?? 0, Math.max(0, axisMax - axisMin))
+    },
+    // sorted distinct values of the bound attribute (see attributeValues), for zero-width snapping
+    get snapValues(): number[] {
+      const values = new Set<number>()
+      this.attributeValues.forEach(({ value }) => {
+        if (value != null && isFinite(value)) values.add(value)
+      })
+      return Array.from(values).sort((a, b) => a - b)
     }
   }))
   .views(self => ({
+    // A range slider's low end, kept within the axis with room for the width. Like the width, it's limited when
+    // read rather than moved while the axis changes dynamically, so zooming the axis in and back out leaves the
+    // range where it was; the limited position is saved when the axis change is (see the valueDomain reaction).
+    get rangeLow() {
+      if (!self.isRangeSlider) return self.value
+      const [min, max] = this.valueDomain
+      return Math.min(max, Math.max(min, self.value))
+    },
+    get rangeHigh() {
+      return this.rangeLow + self.width
+    },
+    // the interval the value may occupy: for a range slider, the low end, which leaves room for the width
+    get valueDomain(): readonly [number, number] {
+      const [min, max] = self.axis.domain
+      return self.isRangeSlider ? [min, Math.max(min, max - self.width)] : self.axis.domain
+    },
+    // the nearest data value within the axis, or the value itself if the axis contains none
+    snapToData(value: number) {
+      const [axisMin, axisMax] = self.axis.domain
+      const values = self.snapValues.filter(v => v >= axisMin && v <= axisMax)
+      if (!values.length) return value
+      // binary search for the nearest value
+      let lo = 0
+      let hi = values.length - 1
+      while (lo < hi) {
+        const mid = Math.floor((lo + hi) / 2)
+        if (values[mid] < value) lo = mid + 1
+        else hi = mid
+      }
+      const above = values[lo]
+      const below = lo > 0 ? values[lo - 1] : above
+      return value - below <= above - value ? below : above
+    }
+  }))
+  .views(self => ({
+    // A test of whether a value lies within the inclusive range; a missing or non-finite value never does. The
+    // tolerance keeps a case at either end when floating point leaves the bound a hair inside it. A collapsed range is
+    // snapped to a data value, so it matches that value exactly; a tolerance would also take in a distinct value a hair
+    // away. The bounds are worked out once per pass over the cases.
+    get rangeTest(): (value?: number | null) => boolean {
+      if (self.width === 0) {
+        const at = self.rangeLow
+        return value => value != null && value === at
+      }
+      const low = self.rangeLow - 8 * Number.EPSILON * Math.max(1, Math.abs(self.rangeLow))
+      const high = self.rangeHigh + 8 * Number.EPSILON * Math.max(1, Math.abs(self.rangeHigh))
+      return value => value != null && isFinite(value) && value >= low && value <= high
+    },
+    // Whether the bound attribute's values can be judged against the range: not while it has a formula (see
+    // configurationExtent), e.g. one added after binding, nor once a change of its type to or from Date leaves its
+    // values in different units from the slider's scale. The slider applies its range again once it's reconfigured.
+    get isAttributeCompatible() {
+      const { attribute } = self
+      if (!self.dataSet || !attribute || attribute.hasFormula) return false
+      return (attribute.type === "date") === (self.scaleType === "date")
+    }
+  }))
+  .views(self => ({
+    // whether this is a selection slider bound to an attribute it can select by (the visibility slider's condition)
+    get isBoundSelectionSlider() {
+      return self.sliderType === "selection" && self.isAttributeCompatible
+    }
+  }))
+  .views(self => ({
+    // The cases a visibility slider hides: those whose value is missing or outside the inclusive range.
+    get sliderHiddenItemIds(): ReadonlySet<string> {
+      const hidden = new Set<string>()
+      const inRange = self.rangeTest
+      self.attributeValues.forEach(({ itemId, value }) => {
+        if (!inRange(value)) hidden.add(itemId)
+      })
+      return hidden
+    },
+    // The cases a bound selection slider selects: the visible ones whose value lies within the inclusive range.
+    get selectionTargetItemIds(): ReadonlySet<string> {
+      const target = new Set<string>()
+      const dataSet = self.dataSet
+      if (!self.isBoundSelectionSlider || !dataSet) return target
+      // attributeValues already leaves out the cases that are set aside or filtered out by the filter formula, so
+      // only those hidden by visibility sliders remain to be checked
+      const inRange = self.rangeTest
+      const sliderFilters = Array.from(dataSet.sliderFilteredOutItemIds.values())
+      self.attributeValues.forEach(({ itemId, value }) => {
+        if (inRange(value) && !sliderFilters.some(hidden => hidden.has(itemId))) target.add(itemId)
+      })
+      return target
+    }
+  }))
+  .views(self => ({
+    // Whether the selection is still the one this slider made: the user hasn't selected some other way since.
+    get ownsSelection() {
+      const dataSet = self.dataSet
+      return !!self.appliedItemIds && self.isBoundSelectionSlider && !!dataSet &&
+              visibleSetsEqual(dataSet, dataSet.selection, self.appliedItemIds)
+    },
+    // Whether a bound selection slider shows as paused: the user has selected some other way, or the selection no
+    // longer covers the visible cases in range (e.g. after a data edit). In the latter case the slider still owns the
+    // selection, so its next range or visibility change updates it.
+    get isSelectionPaused() {
+      const dataSet = self.dataSet
+      if (!self.isBoundSelectionSlider || !dataSet) return false
+      return !this.ownsSelection || !visibleSetsEqual(dataSet, self.appliedItemIds!, self.selectionTargetItemIds)
+    },
     constrainValue(value: number) {
+      if (self.isRangeSlider) {
+        const [min, max] = self.valueDomain
+        const clamped = Math.min(max, Math.max(min, value))
+        return self.width === 0 ? self.snapToData(clamped) : clamped
+      }
       // keep value in bounds of axis min and max when thumbnail is dragged
       const keepValueInBounds = (num: number) => {
         if (num < self.axis.min) return self.axis.min
@@ -91,9 +277,48 @@ export const SliderModel = TileContentModel
       }
       return keepValueInBounds(value)
     },
+    // the value one playback step further
+    nextAnimationValue(sign: 1 | -1, fallbackIncrement: number) {
+      const { increment, multipleOf } = self
+      // Comparisons with multiples allow a tolerance, a fraction of the multiple, so floating point doesn't make a
+      // range step to the multiple it's already on, or past a data value a multiple away.
+      const kTolerance = 1e-9
+      // A zero-width range shows only the cases at its value, so it steps through the data's distinct values: the
+      // first one at least a multiple away, or else the next one. A date's multiple is offset in calendar months and
+      // years, so playback by months doesn't skip a short one.
+      const values = self.snapValues
+      if (self.isRangeSlider && self.width === 0 && values.length) {
+        const step = multipleOf && increment
+          ? {
+              target: self.scaleType === "date"
+                ? offsetDateSeconds(self.value, sign * multipleOf, self.dateMultipleOfUnit)
+                : self.value + sign * multipleOf,
+              tolerance: kTolerance * increment
+            }
+          : undefined
+        // the next value must move, even when a multiple too small to change the value leaves the target on it
+        const isNext = (v: number) =>
+          sign * (v - self.value) > 0 && (step ? sign * (v - step.target) >= -step.tolerance : true)
+        const next = sign > 0 ? values.find(isNext) : [...values].reverse().find(isNext)
+        // past the last value, signal the end with an infinity: rounding can return max + 1 to the axis, but not it
+        return next ?? sign * Infinity
+      }
+      // Otherwise playback steps by the multiple restriction, as for a variable slider, or else by the fallback step.
+      // A range's low end needn't be on a multiple (a drag of its ends ignores the restriction; see sliderStep), so a
+      // range with width steps to the next multiple in the direction of play.
+      if (self.isRangeSlider && increment) {
+        const multiples = self.value / increment
+        const next = sign > 0 ? Math.floor(multiples + kTolerance) + 1 : Math.ceil(multiples - kTolerance) - 1
+        return next * increment
+      }
+      // a multiple of zero (e.g. from a V2 document) is no restriction, so it steps by the fallback
+      return self.value + sign * (increment || fallbackIncrement)
+    },
+    // bounded by the value domain, so a range slider's playback wraps or stops when its high end reaches the axis
     validateValue(value: number, belowMin: FixValueFn, aboveMax: FixValueFn) {
-      if (value < self.axis.min) return belowMin(value)
-      if (value > self.axis.max) return aboveMax(value)
+      const [min, max] = self.valueDomain
+      if (value < min) return belowMin(value)
+      if (value > max) return aboveMax(value)
       return value
     },
     hasBinnedNumericAxis(axisModel: IAxisModel) {
@@ -117,6 +342,33 @@ export const SliderModel = TileContentModel
     },
     getAxisHelper(place: AxisPlace, subAxisIndex: number) {
       return self.axisHelper
+    },
+    // The span that determines a date range width's units: the bound attribute's extent (padded for a single value;
+    // see configurationExtent), else the axis's, which is also used for an attribute with a formula.
+    get widthUnitSpan() {
+      void self.attribute?.changeCount // see attributeValues
+      const dataSet = self.dataSet
+      const extent = dataSet && self.attributeId ? this.configurationExtent(dataSet, self.attributeId) : undefined
+      const [min, max] = extent ?? self.axis.domain
+      return max - min
+    },
+    // axis bounds for configuring from the attribute, or undefined if it can't configure a slider
+    configurationExtent(dataSet: IDataSet, attrId: string): Maybe<[number, number]> {
+      const attribute = dataSet.getAttribute(attrId)
+      const attrType = attribute?.type
+      if (attrType !== "numeric" && attrType !== "date") return
+      // A formula attribute's values can depend on which cases are visible (caseIndex, aggregates, prev/next)
+      // and aren't computed for hidden cases, so a range slider can't judge cases by them yet.
+      if (attribute?.hasFormula) return
+      // over the cases the slider's own hiding excludes too, so re-binding sees the attribute's full extent
+      const extent = dataDisplayGetNumericExtent(dataSet, attrId, dataSet.itemIdsIgnoringSliderFilters)
+      if (!extent) return
+      const [min, max] = extent
+      if (min < max) return extent
+      // a single value still needs an axis with width
+      // half a day (in seconds) for dates
+      const pad = attrType === "date" ? unitsStringToMilliseconds("day") / 1000 / 2 : 0.5
+      return [min - pad, max + pad]
     }
   }))
   .actions(self => ({
@@ -130,6 +382,59 @@ export const SliderModel = TileContentModel
       self.globalValue.setValue(self.constrainValue(value))
     },
   }))
+  .actions(self => {
+    // clamps [low, high] to the axis with low <= high, snapping a zero-width range to the data
+    function normalizeRange(low: number, high: number): [number, number] {
+      const [min, max] = self.axis.domain
+      let lo = Math.min(max, Math.max(min, Math.min(low, high)))
+      let hi = Math.min(max, Math.max(min, Math.max(low, high)))
+      if (hi === lo) {
+        lo = hi = self.snapToData(lo)
+      }
+      return [lo, hi]
+    }
+    // clamps low into the domain that leaves room for the current width
+    function normalizeMove(low: number) {
+      const [min, max] = self.valueDomain
+      const clamped = Math.min(max, Math.max(min, low))
+      return self.width === 0 ? self.snapToData(clamped) : clamped
+    }
+    return {
+      // The low end moves, within the change, to keep the range on the axis, so notifications sent with it agree.
+      // A range collapsed to zero width snaps to the data, as it does when one handle is dragged onto the other.
+      setRangeWidth(width: number) {
+        self.rangeWidth = width
+        self.dynamicRangeWidth = undefined
+        self.globalValue.setValue(width === 0 ? self.snapToData(self.rangeLow) : self.rangeLow)
+      },
+      setDynamicRange(low: number, high: number) {
+        const [lo, hi] = normalizeRange(low, high)
+        self.dynamicRangeWidth = hi - lo
+        self.globalValue.setDynamicValue(lo)
+      },
+      setRange(low: number, high: number) {
+        const [lo, hi] = normalizeRange(low, high)
+        self.rangeWidth = hi - lo
+        self.dynamicRangeWidth = undefined
+        self.globalValue.setValue(lo)
+      },
+      moveDynamicRange(low: number) {
+        self.globalValue.setDynamicValue(normalizeMove(low))
+      },
+      // drops an uncommitted dynamic change, e.g. keyboard steps that ended where they began
+      cancelDynamicRange() {
+        self.dynamicRangeWidth = undefined
+        self.globalValue.clearDynamicValue()
+      },
+      moveRange(low: number) {
+        const lo = normalizeMove(low)
+        // the unlimited width, so a move while the axis is zoomed in doesn't save the narrower width
+        self.rangeWidth = self.dynamicRangeWidth ?? self.rangeWidth
+        self.dynamicRangeWidth = undefined
+        self.globalValue.setValue(lo)
+      }
+    }
+  })
   .actions(self => ({
     setDynamicValueIfDynamic(value: number) {
       // update dynamically if either the slider or the axis is updating dynamically
@@ -148,16 +453,82 @@ export const SliderModel = TileContentModel
     }
   }))
   .actions(self => ({
+    // selects the visible cases in range and takes ownership of the selection
+    applySelection() {
+      const dataSet = self.dataSet
+      if (!self.isBoundSelectionSlider || !dataSet) return
+      const target = self.selectionTargetItemIds
+      selectExactly(dataSet, target)
+      self.appliedItemIds = target
+      self.isReleasedForRebind = false
+    },
+    // stops owning the selection, leaving it as it is
+    releaseSelection(forRebind = false) {
+      self.appliedItemIds = undefined
+      self.isReleasedForRebind = forRebind
+    },
+    // while owning the selection, takes it as is (e.g. once the dataset deselects the cases it hides)
+    syncAppliedSelection() {
+      const selection = self.dataSet?.selection
+      if (selection && self.appliedItemIds && selection.size !== self.appliedItemIds.size) {
+        self.appliedItemIds = new Set(selection)
+      }
+    },
+    // On opening a document, a slider saved owning the selection owns the restored selection, whatever it is now;
+    // the selection itself isn't changed. Only the first time the slider is bound after loading.
+    restoreSavedOwnership() {
+      const dataSet = self.dataSet
+      if (self.isSavedOwnershipRestored || !self.isBoundSelectionSlider || !dataSet) return
+      self.isSavedOwnershipRestored = true
+      if (self.snapOwnsSelection) {
+        self.appliedItemIds = new Set(dataSet.selection)
+        // Used up, so a later snapshot (e.g. one undo restores after the tile is deleted) can't claim it again. A
+        // snapshot being taken (e.g. of a document just imported from V2) clears it when it completes instead.
+        if (!self.isSnapshotPending) {
+          withoutUndo({ noDirty: true, suppressWarning: true })
+          self.snapOwnsSelection = undefined
+        }
+      }
+    },
+    // should be called before retrieving snapshot (pre-serialization)
+    prepareSnapshot() {
+      // Ownership isn't model state (selection isn't undoable), so it's recorded only for saving. Saved ownership
+      // that hasn't been restored yet (e.g. a document imported and saved before its tiles are bound) is kept.
+      self.isSnapshotPending = true
+      withoutUndo({ noDirty: true, suppressWarning: true })
+      if (self.isSavedOwnershipRestored) self.snapOwnsSelection = self.ownsSelection || undefined
+      return Promise.resolve()
+    },
+    // should be called after retrieving snapshot (post-serialization)
+    completeSnapshot() {
+      self.isSnapshotPending = false
+      if (!self.isSavedOwnershipRestored) return
+      withoutUndo({ noDirty: true, suppressWarning: true })
+      self.snapOwnsSelection = undefined
+    }
+  }))
+  .actions(self => ({
+    // for the user's direct gestures on the slider, which resume a paused slider
+    resumeSelection() {
+      self.applySelection()
+    }
+  }))
+  .actions(self => ({
     afterCreate() {
       addDisposer(self, reaction(
-        () => self.axis.domain,
-        ([axisMin, axisMax]) => {
+        // the axis's dynamic state too, so committing a change that ends where the drag left the axis still fires
+        () => ({ domain: self.valueDomain, isDynamic: self.axis.isUpdatingDynamically }),
+        ({ isDynamic }) => {
           // skip constraining value during axis animation (value is intentionally outside bounds)
           if (self._isAxisAnimating) return
-          // keep the thumbnail within axis bounds when axis bounds are changed
-          if (self.value < axisMin) self.setDynamicValueIfDynamic(axisMin)
-          if (self.value > axisMax) self.setDynamicValueIfDynamic(axisMax)
-        }, { name: "SliderModel [axis.domain]" }
+          // A range slider's position (and width) are limited when read during a dynamic axis change, and the
+          // limited position is saved only when the change is, within its undo entry.
+          if (self.isRangeSlider && isDynamic) return
+          const [min, max] = self.valueDomain
+          // keep the thumb within axis bounds when axis bounds are changed
+          if (self.value < min) self.setDynamicValueIfDynamic(min)
+          if (self.value > max) self.setDynamicValueIfDynamic(max)
+        }, { name: "SliderModel [valueDomain]", equals: comparer.structural }
       ))
     },
     afterAttachToDocument() {
@@ -175,6 +546,95 @@ export const SliderModel = TileContentModel
             globalValueManager && sharedModelManager.addTileSharedModel(self, globalValueManager)
           }
         }, { name: "SliderModel [sharedModelManager]", fireImmediately: true }
+      ))
+      // link the tile to the bound dataset (and only that one) so it takes part in shared-model updates
+      addDisposer(self, reaction(
+        () => {
+          const sharedModelManager = getSharedModelManager(self)
+          return { sharedModelManager, isReady: sharedModelManager?.isReady, dataSetId: self.dataSetId }
+        },
+        ({ sharedModelManager, isReady, dataSetId }) => {
+          if (!sharedModelManager || !isReady) return
+          getAllTileDataSets(self).forEach(linked => {
+            if (linked.dataSet.id !== dataSetId) sharedModelManager.removeTileSharedModel(self, linked)
+          })
+          const sharedDataSet = dataSetId ? getSharedDataSetFromDataSetId(self, dataSetId) : undefined
+          sharedDataSet && sharedModelManager.addTileSharedModel(self, sharedDataSet)
+        }, { name: "SliderModel [dataSetId]", fireImmediately: true }
+      ))
+      // A bound visibility slider hides the cases outside its range; anything else clears its filter. The
+      // filter is volatile, so it's recomputed rather than saved, and it never becomes a history entry.
+      let filteredDataSet: IDataSet | undefined
+      const sliderTileId = getTileModel(self)?.id
+      const clearFilter = (bySlider = false) => {
+        if (sliderTileId && filteredDataSet && isAlive(filteredDataSet)) {
+          filteredDataSet.clearSliderFilter(sliderTileId, bySlider)
+        }
+        filteredDataSet = undefined
+      }
+      addDisposer(self, reaction(
+        () => {
+          const dataSet = self.dataSet
+          const applies = self.sliderType === "visibility" && self.isAttributeCompatible
+          const hidden = applies ? self.sliderHiddenItemIds : undefined
+          const { rangeLow: low, rangeHigh: high, sliderType, attributeId } = self
+          return { dataSet, hidden, low, high, sliderType, attributeId }
+        },
+        ({ dataSet, hidden, low, high, sliderType, attributeId }, previous) => {
+          // the slider stopped hiding because its type or dataset changed, rather than e.g. its attribute being deleted
+          const stoppedBySlider = !!previous?.hidden && (sliderType !== "visibility" || dataSet !== previous.dataSet)
+          if (filteredDataSet !== dataSet) clearFilter(stoppedBySlider)
+          if (sliderTileId && dataSet && hidden) {
+            // skip a change that hides the same cases, which would regroup the whole dataset for nothing
+            const current = dataSet.sliderFilteredOutItemIds.get(sliderTileId)
+            if (!current || !areSetsEqual(current, hidden)) {
+              // Whether the range or attribute of a slider that was already hiding changed, rather than the data
+              // changing or the slider starting to hide (as when a document loads). Starting to hide only hides, so a
+              // selection slider has nothing to add.
+              const bySlider = !!current && !!previous?.hidden &&
+                (low !== previous.low || high !== previous.high || attributeId !== previous.attributeId)
+              dataSet.setSliderFilter(sliderTileId, hidden, bySlider)
+            }
+            filteredDataSet = dataSet
+          }
+          else {
+            clearFilter(stoppedBySlider)
+          }
+        }, { name: "SliderModel [visibility filter]", fireImmediately: true }
+      ))
+      // closing the slider shows what it hid
+      addDisposer(self, () => clearFilter(true))
+      // A selection slider that stops being bound, or is bound to another dataset, lets go of the selection. One
+      // that becomes bound doesn't take it, even if it happens to match, except that on opening a document a slider
+      // saved owning the selection owns it again. Neither changes the selection.
+      addDisposer(self, reaction(
+        () => [self.isBoundSelectionSlider, self.dataSet],
+        ([bound, dataSet], previous) => {
+          if (!bound) self.releaseSelection()
+          else if (previous && previous[1] !== dataSet) self.releaseSelection(true)
+          if (bound) self.restoreSavedOwnership()
+        }, { name: "SliderModel [selection binding]", fireImmediately: true, equals: comparer.shallow }
+      ))
+      // Once the selection is no longer the one the slider made, the slider lets go of it for good, so a selection
+      // that later happens to match (e.g. once a visibility slider hides the differences) doesn't become its own.
+      // While it's still the slider's, the slider keeps track of it as the dataset deselects the cases it hides, so
+      // when they're shown again they're missing from both, rather than only from the selection.
+      addDisposer(self, reaction(
+        () => ({ owns: self.ownsSelection, size: self.dataSet?.selection.size }),
+        ({ owns }) => {
+          if (!self.appliedItemIds) return
+          if (!owns) self.releaseSelection()
+          else self.syncAppliedSelection()
+        }, { name: "SliderModel [selection ownership]", equals: comparer.structural }
+      ))
+      // While a selection slider owns the selection, it follows changes to its range or attribute (by dragging,
+      // playback, undo, or a plugin) and changes to the visibility sliders themselves (see
+      // DataSet.sliderFilterChangesBySlider).
+      addDisposer(self, reaction(
+        () => [self.rangeLow, self.rangeHigh, self.attributeId, self.dataSet?.sliderFilterChangesBySlider],
+        () => {
+          if (self.ownsSelection) self.applySelection()
+        }, { name: "SliderModel [selection triggers]", equals: comparer.shallow }
       ))
     },
     destroyGlobalValue() {
@@ -213,11 +673,12 @@ export const SliderModel = TileContentModel
     },
     setScaleType(scaleType: ISliderScaleType) {
       if (scaleType !== self.scaleType) {
+        let value: number
         switch (scaleType) {
           case "numeric":
             self.axis = NumericAxisModel.create({
                           place: 'bottom', min: kDefaultSliderAxisMin, max: kDefaultSliderAxisMax })
-            self.setValue(0.5)
+            value = 0.5
             break
           case "date": {
             const currentDate = new Date()
@@ -229,12 +690,20 @@ export const SliderModel = TileContentModel
               min: firstDayOfYear,
               max: lastDayOfYear
             })
-            self.setValue(currentDate.getTime() / 1000)
+            value = currentDate.getTime() / 1000
           }
             break
         }
         self.scaleType = scaleType
         self.axisHelper = undefined
+        // An unbound range's width is in the old scale's units, so it's reset to the default for the new axis. That
+        // comes before the value is set, which the old width would otherwise limit to the start of the axis.
+        if (self.isRangeSlider && !self.attributeId) {
+          const [min, max] = self.axis.domain
+          self.rangeWidth = (max - min) * kDefaultRangeFraction
+          self.dynamicRangeWidth = undefined
+        }
+        self.setValue(value)
       }
     },
     setAxisMin(n: number) {
@@ -258,6 +727,38 @@ export const SliderModel = TileContentModel
         }
       }
     },
+  }))
+  .actions(self => ({
+    setSliderType(sliderType: SliderType) {
+      // a variable slider has no binding or width
+      if (sliderType === "variable" && self.isRangeSlider) {
+        self.dataSetId = undefined
+        self.attributeId = undefined
+        self.rangeWidth = undefined
+        self.dynamicRangeWidth = undefined
+      }
+      self.sliderType = sliderType
+      // a range slider needs a width; one it already has (e.g. when switched between range types) is kept
+      if (self.isRangeSlider && self.rangeWidth == null) {
+        const [min, max] = self.axis.domain
+        self.rangeWidth = (max - min) * kDefaultRangeFraction
+      }
+    },
+    configureFromAttribute(dataSet: IDataSet, attrId: string) {
+      const extent = self.configurationExtent(dataSet, attrId)
+      if (!extent) return
+      const [min, max] = extent
+      if (self.sliderType !== "selection") self.sliderType = "visibility"
+      self.dataSetId = dataSet.id
+      self.attributeId = attrId
+      self.setScaleType(dataSet.getAttribute(attrId)?.type === "date" ? "date" : "numeric")
+      self.setAxisMin(min)
+      self.setAxisMax(max)
+      self.rangeWidth = (max - min) * kDefaultRangeFraction
+      self.dynamicRangeWidth = undefined
+      // the global value tracks the low end of the range, which a multiple restriction mustn't snap away from
+      self.globalValue.setValue(min)
+    }
   }))
   // performs the specified action so that response actions are included and undo/redo strings assigned
   .actions(applyModelChange)

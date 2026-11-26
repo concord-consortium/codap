@@ -19,7 +19,7 @@ jobs:
             v3
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: v3/package-lock.json
       - name: Install Dependencies
@@ -35,7 +35,7 @@ jobs:
         with:
           path: v3/.cache/webpack/
           key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
-      - uses: cypress-io/github-action@v6
+      - uses: cypress-io/github-action@v7
         with:
           working-directory: v3
           start: npm start

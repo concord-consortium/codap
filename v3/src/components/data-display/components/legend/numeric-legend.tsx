@@ -12,8 +12,22 @@ import { IBaseLegendProps } from "./legend-common"
 
 import vars from "../../../vars.scss"
 
+interface INumericLegendExtentArgs {
+  labelHeight: number
+  numberHeight: number
+  bottomClearance?: number
+}
+
+export function numericLegendExtent({labelHeight, numberHeight, bottomClearance = 0}: INumericLegendExtentArgs) {
+  // The label's background rect spans labelHeight + 2 * labelPaddingY vertically
+  // (paddingY above and below the text), so the choropleth needs to clear that.
+  // The choropleth is drawn from the top, so the clearance becomes empty space below the
+  // value labels.
+  return labelHeight + 2 * labelPaddingY + kChoroplethHeight + numberHeight + 2 * axisGap + bottomClearance
+}
+
 export const NumericLegend =
-  observer(function NumericLegend({layerIndex, setDesiredExtent}: IBaseLegendProps) {
+  observer(function NumericLegend({layerIndex, setDesiredExtent, numericLegendBottomClearance = 0}: IBaseLegendProps) {
   const dataConfiguration = useDataConfigurationContext(),
     tileWidth = useDataDisplayLayout().tileWidth,
     [choroplethElt, setChoroplethElt] = useState<SVGGElement | null>(null),
@@ -32,9 +46,7 @@ export const NumericLegend =
         if (dataConfiguration?.placeCanHaveZeroExtent('legend')) {
           return 0
         }
-        // The label's background rect spans labelHeight + 2 * labelPaddingY vertically
-        // (paddingY above and below the text), so the choropleth needs to clear that.
-        return labelHeight + 2 * labelPaddingY + kChoroplethHeight + numberHeight + 2 * axisGap
+        return numericLegendExtent({labelHeight, numberHeight, bottomClearance: numericLegendBottomClearance})
       }
 
       if (!choroplethElt || !dataConfiguration) return
@@ -44,10 +56,10 @@ export const NumericLegend =
       // attributes — years are typed numeric (not date), so isDate won't catch them. This mirrors
       // getNumFormatterForAttribute, which suppresses grouping for inferred year types.
       const legendAttr = dataConfiguration.dataset?.attrFromID(legendAttrID)
-      // Display the effective legend range as the endpoint labels so the legend matches the user-set
+      // Display legendDisplayRange as the endpoint labels so the legend matches the user-set
       // Min/Max even in quantile mode (whose trained domain is the data quantiles, not the override
       // range); in logarithmic mode this is the positive log domain (floored to the smallest positive
-      // value), not the raw override/data extent.
+      // value), not the raw override/data extent. It also handles a locked legend.
       const { min: legendMin, max: legendMax } = dataConfiguration.legendDisplayRange
       choroplethLegend(dataConfiguration.legendNumericColorScale, choroplethElt,
         {
@@ -74,7 +86,8 @@ export const NumericLegend =
     },
     [dataConfiguration]
   ),
-  [choroplethElt, dataConfiguration, getLabelHeight, layerIndex, legendAttrID, setDesiredExtent, tileWidth])
+  [choroplethElt, dataConfiguration, getLabelHeight, layerIndex, legendAttrID, numericLegendBottomClearance,
+    setDesiredExtent, tileWidth])
 
   // Reactions to check
   // - changing attribute by menu

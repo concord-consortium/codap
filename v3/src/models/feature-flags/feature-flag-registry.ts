@@ -26,6 +26,12 @@ export interface IFeatureFlagInfo {
  * `never`, which would make every call to isFeatureEnabled() a type error.
  */
 export const kFeatureFlags = {
+  combineDateTime: {
+    description: "Attribute menu item that combines a date attribute with a time attribute",
+    owner: "MappingTime",
+    added: "2026-11-19",
+    expires: "2027-11-30"
+  },
   legendBinCount: {
     description: "Number-of-bins control for numeric legends",
     owner: "MappingTime",
@@ -44,6 +50,12 @@ export const kFeatureFlags = {
     added: "2026-07-24",
     expires: "2027-07-31"
   },
+  mapHotSpot: {
+    description: "Hot spot layer on the map",
+    owner: "MappingTime",
+    added: "2026-11-04",
+    expires: "2027-11-30"
+  },
   pointShapes: {
     description: "Per-legend-category point shapes on the graph and map",
     owner: "LEADS",
@@ -61,6 +73,18 @@ export const kFeatureFlags = {
     owner: "ESTEEM",
     added: "2026-07-22",
     expires: "2027-07-31"
+  },
+  selectionSlider: {
+    description: "Selection slider type (selects cases within a range of an attribute)",
+    owner: "MappingTime",
+    added: "2026-09-24",
+    expires: "2027-09-30"
+  },
+  visibilitySlider: {
+    description: "Visibility slider type (hides cases outside a range of an attribute)",
+    owner: "MappingTime",
+    added: "2026-09-24",
+    expires: "2027-09-30"
   }
 } as const satisfies Record<string, IFeatureFlagInfo>
 

@@ -46,6 +46,16 @@ namesPlugin(Colord, parsers)
 // Extract the parsing function that the plugin installed into the parser arrays.
 const parseColorName = parsers.string[0][0]
 
+/**
+ * Returns true if the string is a color in a strict (non-name) format, e.g. hex, rgb() or hsl().
+ * Other libraries (e.g. pixi.js) may register the names plugin with colord's global parsers,
+ * so the format must be checked rather than relying on colord to reject names.
+ */
+export function isStrictColorString(str: string) {
+  const format = getColorFormat(str)
+  return !!format && format !== "name"
+}
+
 export interface ParseColorOptions {
   colorNames?: boolean
   alpha?: number
@@ -62,7 +72,7 @@ export function parseColor(str: string, options?: ParseColorOptions) {
   // if it's a valid color name, return it
   if (options?.colorNames && parseColorName(str)) return str.toLowerCase()
   // if it's a valid color string, return its hex equivalent
-  return getColorFormat(str) ? colord(str).toHex() : ""
+  return isStrictColorString(str) ? colord(str).toHex() : ""
 }
 
 /**
@@ -80,7 +90,7 @@ export function parseColorToHex(str: string, options?: ParseColorOptions) {
     }
 
     // If not a named color, attempt to parse as a regular color string
-    if (!parsed && getColorFormat(str)) {
+    if (!parsed && isStrictColorString(str)) {
       parsed = colord(str).toRgb()
     }
 
@@ -132,16 +142,19 @@ export function tinycolor(color: string) {
   return new TinyColor(color)
 }
 
-// Returns a color that is between color1 and color2. Alpha is interpolated alongside RGB so
-// numeric legend gradients fade smoothly when an endpoint has transparency (CODAP-1385).
-export function interpolateColors(color1: string, color2: string, percentage: number) {
+/**
+ * Linearly interpolates each RGBA channel between two colors. Channels are not rounded, so callers
+ * that need exact values (e.g. filling a Uint8ClampedArray) control the rounding.
+ */
+export function interpolateRgba(color1: string, color2: string, t: number): RgbaColor {
   const rgb1 = colord(color1).toRgb()
   const rgb2 = colord(color2).toRgb()
-  const r = rgb1.r + percentage * (rgb2.r - rgb1.r)
-  const g = rgb1.g + percentage * (rgb2.g - rgb1.g)
-  const b = rgb1.b + percentage * (rgb2.b - rgb1.b)
-  const a = rgb1.a + percentage * (rgb2.a - rgb1.a)
-  return colord({ r, g, b, a }).toHex()
+  return {
+    r: rgb1.r + t * (rgb2.r - rgb1.r),
+    g: rgb1.g + t * (rgb2.g - rgb1.g),
+    b: rgb1.b + t * (rgb2.b - rgb1.b),
+    a: rgb1.a + t * (rgb2.a - rgb1.a)
+  }
 }
 
 // Create a very light, low-saturation version of a base color. The defaults are used for default color ranges.
@@ -162,10 +175,13 @@ export function lowColorFromBase(baseColor: string, lightness = 0.92, satScale =
   return hex.toLowerCase() === "#ffffff" ? "#f7f9fb" : hex
 }
 
-// Returns `count` colors evenly interpolated between color1 and color2 (endpoints included).
-// Defaults to five colors, preserving the original behavior for callers that don't pass a count.
+// Returns `count` hex colors evenly interpolated between color1 and color2 (endpoints included).
 export function getChoroplethColors(color1: string, color2: string, count = 5) {
   if (count <= 1) return [color1]
+
   return Array.from({ length: count }, (_, i) =>
-    i === 0 ? color1 : i === count - 1 ? color2 : interpolateColors(color1, color2, i / (count - 1)))
+    i === 0 ? color1
+      : i === count - 1 ? color2
+      : colord(interpolateRgba(color1, color2, i / (count - 1))).toHex()
+  )
 }

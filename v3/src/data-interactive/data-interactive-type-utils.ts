@@ -50,14 +50,15 @@ export function convertCaseToV2FullCase(c: ICase, dataContext: IDataSet) {
   const collectionId = _collection?.id
   const caseGroup = dataContext.caseInfoMap.get(caseId)
 
-  const parent = maybeToV2Id(dataContext.getParentCaseId(caseId))
+  // as in V2, a top-level case's parent, and a top-level collection's parent, are null
+  const parent = maybeToV2Id(dataContext.getParentCaseId(caseId)) ?? null
 
   const collectionIndex = collectionId ? dataContext.getCollectionIndex(collectionId) : -1
   const parentCollection = collectionIndex > 0 ? dataContext.collections[collectionIndex - 1] : undefined
   const parentCollectionInfo = parentCollection ? {
     id: toV2Id(parentCollection.id),
     name: parentCollection.name
-  } : undefined
+  } : null
   const collection = _collection ? {
     id: toV2Id(_collection.id),
     name: _collection.name,
@@ -84,7 +85,8 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
   const caseGroup = dataContext.caseInfoMap.get(caseId)
   const collectionId = caseGroup?.collectionId ?? dataContext.childCollection.id
 
-  const parent = maybeToV2Id(dataContext.getParentCaseId(caseId))
+  // as in V2, a case in the top-level collection has a null parent
+  const parent = maybeToV2Id(dataContext.getParentCaseId(caseId)) ?? null
 
   const _collection = dataContext.getCollection(collectionId)
   const collection = _collection ? {
@@ -106,7 +108,7 @@ export function getCaseRequestResultValues(c: ICase, dataContext: IDataSet): DIG
 
 export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataSet): ICodapV2Attribute {
   const metadata = dataContext && getMetadataFromDataSet(dataContext)
-  const { cid, name, type, title, description, id, effectivePrecision } = attribute
+  const { cid, name, userType, title, description, id, effectivePrecision } = attribute
   const v2Id = toV2Id(id)
   const _defaultRange = metadata?.getAttributeDefaultRange(attribute.id)
   const defaultRange = _defaultRange ? { defaultMin: _defaultRange[0], defaultMax: _defaultRange[1] } : undefined
@@ -121,7 +123,9 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
     ...(low ? { "low-attribute-color": low } : {}),
     ...(high ? { "high-attribute-color": high } : {})
   } as ICodapV2CategoryMap
-  const categoryMap = categorySet ? { _categoryMap } : undefined
+  // as in V2, where assigned colors were kept in the category map, they are reported even without a category set
+  const attrMeta = metadata?.attributes.get(attribute.id)
+  const categoryMap = categorySet || attrMeta?.color || attrMeta?.colorRange ? { _categoryMap } : undefined
   // Omitted entirely when no category carries a shape, so a document that never used the feature
   // gains nothing.
   const shapeMap = categorySet?.shapeMap ?? {}
@@ -129,7 +133,8 @@ export function convertAttributeToV2(attribute: IAttribute, dataContext?: IDataS
 
   return {
     name,
-    type,
+    // as in V2, a type CODAP inferred from the values is reported as null
+    type: userType ?? null,
     title,
     cid,
     description,
@@ -205,11 +210,20 @@ export function convertCollectionToV2(collection: ICollectionModel, options?: CC
 export interface IConvertDataSetToV2Options {
   exportCases?: boolean
   gameContextMetadataMap?: GameContextMetadataMap
+  // leave out the set-aside items, e.g. to add them as a plugin reads them (getV2SetAsideItems)
+  omitSetAsideItems?: boolean
+}
+
+// The items currently set aside, with each one's values as `getValues` reads them
+export function getV2SetAsideItems<T>(dataSet: IDataSet, getValues: (itemId: string) => T) {
+  return dataSet._itemIds
+    .filter(itemId => dataSet.isItemSetAside(itemId))
+    .map(itemId => ({ id: toV2ItemId(itemId), values: getValues(itemId) }))
 }
 
 export function convertDataSetToV2(dataSet: IDataSet, options?: IConvertDataSetToV2Options): ICodapV2DataContextV3 {
   const { name, _title, id } = dataSet
-  const { exportCases = false, gameContextMetadataMap } = options || {}
+  const { exportCases = false, gameContextMetadataMap, omitSetAsideItems = false } = options || {}
   const v3Metadata = getMetadataFromDataSet(dataSet)
   const { description, source, importDate, isAttrConfigChanged, isAttrConfigProtected } = v3Metadata || {}
   const v2Id = toV2Id(id)
@@ -271,9 +285,9 @@ export function convertDataSetToV2(dataSet: IDataSet, options?: IConvertDataSetT
     ...v2Metadata,
     flexibleGroupingChangeFlag: isAttrConfigChanged,
     preventReorg: isAttrConfigProtected,
-    setAsideItems: dataSet._itemIds
-                    .filter(itemId => dataSet.isItemSetAside(itemId))
-                    .map(itemId => ({ id: toV2ItemId(itemId), values: dataSet.getItem(itemId, itemOptions) ?? {} })),
+    ...(!omitSetAsideItems && {
+      setAsideItems: getV2SetAsideItems(dataSet, itemId => dataSet.getItem(itemId, itemOptions) ?? {})
+    }),
     contextStorage: {
       _links_: { selectedCases },
       ...(gameContextMetadata ?? {})

@@ -9,13 +9,14 @@ import {GraphPlace} from "../../axis-graph-shared"
 import {AxisPlace} from "../../axis/axis-types"
 import { CaseData, CaseDataWithSubPlot } from "../../data-display/d3-types"
 import {
-  AttrRole, GraphAttrRole, graphPlaceToAttrRole, ICaseSubsetDescription, kMain, kOther, PrimaryAttrRoles
+  AttrRole, GraphAttrRole, graphPlaceToAttrRole, GraphSplitAttrRole, GraphSplitAttrRoles, ICaseSubsetDescription,
+  kMain, kOther, PrimaryAttrRoles
 } from "../../data-display/data-display-types"
 import {
   AttributeDescription, DataConfigurationModel, IAttributeDescriptionSnapshot, IDataConfigurationModel
 } from "../../data-display/models/data-configuration-model"
-import {updateCellKey} from "../adornments/utilities/adornment-utils"
 import {cellKeyToString} from "../utilities/cell-key-utils"
+import { CellIndexer } from "./cell-indexer"
 
 export const kGraphDataConfigurationType = "graphDataConfigurationType"
 
@@ -361,6 +362,13 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     },
   }))
   .views(self => ({
+    cellIndexer: cachedFnWithArgsFactory<() => CellIndexer>({
+      key: () => "cellIndexer",
+      calculate: () => new CellIndexer(self.getCategoriesOptions()),
+      name: "cellIndexer"
+    })
+  }))
+  .views(self => ({
     categoricalValueForCaseInRole(caseID: string, role: AttrRole) {
       const attrID = self.attributeID(role),
         categoryArray = self.categoryArrayForAttrRole(role),
@@ -459,40 +467,13 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return maxInBin
     },
     cellKey(index: number) {
-      const { xAttrId, xCats, yAttrId, yCats, topAttrId, topCats, rightAttrId, rightCats } = self.getCategoriesOptions()
-      const rightCatCount = rightCats.length || 1
-      const yCatCount = yCats.length || 1
-      const xCatCount = xCats.length || 1
-      let cellKey: Record<string, string> = {}
-
-      // Determine which categories are associated with the cell's axes using the provided index value and
-      // the attributes and categories present in the graph.
-      const topIndex = Math.floor(index / (rightCatCount * yCatCount * xCatCount))
-      const topCat = topCats[topIndex]
-      cellKey = updateCellKey(cellKey, topAttrId, topCat)
-      const rightIndex = Math.floor(index / (yCatCount * xCatCount)) % rightCatCount
-      const rightCat = rightCats[rightIndex]
-      cellKey = updateCellKey(cellKey, rightAttrId, rightCat)
-      const yIndex = Math.floor(index / xCatCount) % yCatCount
-      const yCat = yCats[yIndex]
-      cellKey = updateCellKey(cellKey, yAttrId, yCat)
-      const xCat = xCats[index % xCatCount]
-      cellKey = updateCellKey(cellKey, xAttrId, xCat)
-
-      return cellKey
+      return self.cellIndexer().cellKeyForIndex(index)
     },
     getAllCellKeys() {
-      const { xCats, yCats, topCats, rightCats } = self.getCategoriesOptions()
-      const topCatCount = topCats.length || 1
-      const rightCatCount = rightCats.length || 1
-      const xCatCount = xCats.length || 1
-      const yCatCount = yCats.length || 1
-      const columnCount = topCatCount * xCatCount
-      const rowCount = rightCatCount * yCatCount
-      const totalCount = rowCount * columnCount
+      const indexer = self.cellIndexer()
       const cellKeys: Record<string, string>[] = []
-      for (let i = 0; i < totalCount; ++i) {
-        cellKeys.push(this.cellKey(i))
+      for (let i = 0; i < indexer.cellCount; ++i) {
+        cellKeys.push(indexer.cellKeyForIndex(i))
       }
       return cellKeys
     },
@@ -526,6 +507,87 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     })
   }))
   .views(self => ({
+    /**
+     * Returns a function mapping a case to its cell index, with the per-role lookups done once.
+     *
+     * A role only splits into per-category cells when getCategoriesOptions gave it real categories.
+     * x and y get the single placeholder category [""] whenever their attribute isn't categorical
+     * (e.g. a numeric axis), so every case belongs to that one degenerate slot rather than being
+     * looked up by its (non-categorical) data value.
+     */
+    cellIndexResolver() {
+      const indexer = self.cellIndexer()
+      const [x, y, top, right] = GraphSplitAttrRoles.map(role => {
+        const splits = role === "topSplit" || role === "rightSplit" || self.attributeType(role) === "categorical"
+        const attrId = splits ? self.attributeID(role) : undefined
+        return (caseId: string) => {
+          if (!splits) return 0
+          return indexer.slotFor(role, attrId ? self.dataset?.getStrValue(caseId, attrId) : undefined)
+        }
+      })
+      return (caseId: string) =>
+        indexer.indexForSlots({ top: top(caseId), right: right(caseId), y: y(caseId), x: x(caseId) })
+    }
+  }))
+  .views(self => ({
+    casesByCellIndex: cachedFnWithArgsFactory<() => string[][]>({
+      key: () => "casesByCellIndex",
+      calculate: () => {
+        const buckets: string[][] = Array.from({ length: self.cellIndexer().cellCount }, () => [])
+        const cellIndexForCase = self.cellIndexResolver()
+        self.allPlottedCases().forEach(caseId => {
+          const cellIndex = cellIndexForCase(caseId)
+          if (cellIndex >= 0) buckets[cellIndex].push(caseId)
+        })
+        return buckets
+      },
+      name: "casesByCellIndex"
+    })
+  }))
+  .views(self => ({
+    /**
+     * The plotted cases in every cell that shares cellKey's slot in each of the given roles; the
+     * other roles may hold any slot. The cases come from the cell grid's buckets, so a kOther cell
+     * gathers the overflow cases it stands for, and only the matching cells are visited.
+     *
+     * A key the grid generates is resolved to its cells first and the slots read from those, since
+     * its values can't always be mapped back to slots: an attribute in several roles keeps only one
+     * role's value, and a real category spelled like kOther shares the overflow cell's key. A key
+     * the grid doesn't generate falls back to mapping its values to slots, and matches no case if it
+     * lacks a value for one of the roles' attributes. For a key built from raw case values, that
+     * fallback puts an overflow value in its role's kOther row, whereas the subPlotCases fallback
+     * still compares raw values.
+     */
+    casesInCellsMatchingRoles(cellKey: Record<string, string>, roles: GraphSplitAttrRole[]) {
+      const indexer = self.cellIndexer()
+      const pick = (slotOf: (role: GraphSplitAttrRole) => number) => {
+        const slots: Partial<Record<GraphSplitAttrRole, number>> = {}
+        roles.forEach(role => { slots[role] = slotOf(role) })
+        return slots
+      }
+      const buckets = self.casesByCellIndex()
+      let sliceSlots: Partial<Record<GraphSplitAttrRole, number>>[]
+      const cellIndices = indexer.indicesForCellKey(cellKey)
+      if (cellIndices.length) {
+        // A key can be shared with cells no case can occupy (one attribute in several roles with
+        // conflicting slots). Those are always empty, so only populated cells' slices are counted;
+        // if none is populated the numerator is 0 and any of them will do.
+        const populated = cellIndices.filter(index => buckets[index].length > 0)
+        sliceSlots = (populated.length ? populated : cellIndices).map(index => {
+          const cellSlots = indexer.slotsForIndex(index)
+          return pick(role => cellSlots[role])
+        })
+      } else {
+        const attrIds = roles.map(role => self.attributeID(role))
+        if (attrIds.some(attrId => attrId && cellKey[attrId] === undefined)) return []
+        sliceSlots = [pick(role => indexer.slotFor(role, cellKey[self.attributeID(role)]))]
+      }
+      // Cells that share a key can share a row or column too, so dedupe before reading buckets.
+      const indices = new Set(sliceSlots.flatMap(slots => indexer.indicesMatchingSlots(slots)))
+      return Array.from(indices).sort((a, b) => a - b).flatMap(index => buckets[index])
+    }
+  }))
+  .views(self => ({
     maxPercentAllCells(extraPrimaryAttrRole: AttrRole, extraSecondaryAttrRole: AttrRole) {
       if (self.attributeID('legend')) return 100  // because we divide the full bar into categories
       // Compute percent relative to total plotted cases (not per-subplot) to match V2 behavior.
@@ -554,49 +616,23 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     subPlotCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => cellKeyToString(cellKey),
       calculate: (cellKey: Record<string, string>) => {
-        // Find attributes with value 'other' and add them to the list of attributes to filter by
-        const copyOfCellKey = {...cellKey}
-        const attributeIDsWithValueOther:string[] = []
-        Object.keys(copyOfCellKey).forEach(attrID => {
-          if (copyOfCellKey[attrID] === kOther) {
-            attributeIDsWithValueOther.push(attrID)
-          }
-        })
-        // Trim down cellKey to only include attributes with values other than 'other'
-        attributeIDsWithValueOther.forEach(attrID => {
-          delete copyOfCellKey[attrID]
-        })
-        // Find cases that are not affected by the 'other' attributes
-        let targetCases = self.allPlottedCases().filter((caseId) => {
+        const cellIndices = self.cellIndexer().indicesForCellKey(cellKey)
+        if (cellIndices.length === 1) return self.casesByCellIndex()[cellIndices[0]]
+        // A key shared by several cells (see CellIndexer) answers for all of them, so each case is
+        // found by its own cell's key.
+        if (cellIndices.length > 1) return cellIndices.flatMap(index => self.casesByCellIndex()[index])
+        // Keys the cell grid doesn't generate are answered by a subset match against raw case
+        // values: a partial key naming only some of the categorical roles, or a key built from a
+        // raw case value for a role whose overflow the grid folds into kOther. The match can't
+        // resolve a kOther entry, so a partial key carrying one yields no cases; no caller builds
+        // one.
+        return self.allPlottedCases().filter(caseId => {
           const itemData = self.dataset?.getFirstItemForCase(caseId, { numeric: false })
-          const caseData = itemData || { __id__: caseId }
-          return self.isCaseInSubPlot(copyOfCellKey, caseData)
+          return self.isCaseInSubPlot(cellKey, itemData || { __id__: caseId })
         })
-        // Winnow targetCases to include only those that belong to all the 'other' attributes
-        attributeIDsWithValueOther.forEach(attrID => {
-          const roleForThisOtherAttr = self.roleForAttributeWithCategoryLimit(attrID)
-          if (roleForThisOtherAttr) {
-            targetCases = targetCases.filter((caseId) => {
-              return self.categoricalValueForCaseInRole(caseId, roleForThisOtherAttr) === kOther
-            })
-          }
-        })
-        return targetCases
       },
       name: "subPlotCases"
     }),
-    subPlotKeyFromExtraCategories(extraPrimaryCategory: string, extraSecondaryCategory: string) {
-      const primaryAttrRole = self.primaryRole ?? "x"
-      const primaryIsBottom = primaryAttrRole === "x"
-      const extraPrimaryRole = primaryIsBottom ? "topSplit" : "rightSplit"
-      const extraPrimaryAttrID = self.attributeID(extraPrimaryRole) ?? ""
-      const extraSecondaryRole = primaryIsBottom ? "rightSplit" : "topSplit"
-      const extraSecondaryAttrID = self.attributeID(extraSecondaryRole) ?? ""
-      const key: Record<string, string> = {}
-      extraSecondaryAttrID && (key[extraSecondaryAttrID] = extraSecondaryCategory)
-      extraPrimaryAttrID && (key[extraPrimaryAttrID] = extraPrimaryCategory)
-      return key
-    },
     graphCellKeyFromCaseID(caseID: string) {
       const subPlotKey = this.subPlotKey(caseID)
       const primaryAttributeID = self.primaryAttributeID
@@ -612,9 +648,6 @@ export const GraphDataConfigurationModel = DataConfigurationModel
         return subPlotKey
       }
     },
-    numCasesInSubPlotGivenCategories(extraPrimaryCategory: string, extraSecondaryCategory: string) {
-      return this.subPlotCases(this.subPlotKeyFromExtraCategories(extraPrimaryCategory, extraSecondaryCategory)).length
-    },
     numPrimaryCategoryCases(caseID: string) {
       // Determine the sub-plot to which this case belongs and return the number of cases within that sub-plot
       // that belong to the case's primary category
@@ -627,71 +660,27 @@ export const GraphDataConfigurationModel = DataConfigurationModel
     cellCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => cellKeyToString(cellKey),
       calculate: (cellKey: Record<string, string>) => {
-        const rightAttrID = self.attributeID("rightSplit")
-        const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
-        const topAttrID = self.attributeID("topSplit")
-        const topAttrType = self.attributeType("topSplit")
-        const topValue = topAttrID ? cellKey[topAttrID] : ""
-
-        return self.allPlottedCases().filter(caseId => {
-          const caseData = self.dataset?.getFirstItemForCase(caseId, { numeric: false })
-          if (!caseData) return false
-          const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
-          const isTopMatch = !topAttrID || topAttrType !== "categorical" ||
-            (topAttrType === "categorical" && topValue === caseData[topAttrID])
-
-          return isRightMatch && isTopMatch
-        })
+        const roles: GraphSplitAttrRole[] = ["rightSplit"]
+        if (self.attributeType("topSplit") === "categorical") roles.push("topSplit")
+        return self.casesInCellsMatchingRoles(cellKey, roles)
       },
       name: "cellCases"
     }),
     rowCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => cellKeyToString(cellKey),
       calculate: (cellKey: Record<string, string>) => {
-        const leftAttrID = self.attributeID("y")
-        const leftAttrType = self.attributeType("y")
-        const leftValue = leftAttrID ? cellKey[leftAttrID] : ""
-        const rightAttrID = self.attributeID("rightSplit")
-        const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
-        const topAttrID = self.attributeID("topSplit")
-        const topValue = topAttrID ? cellKey[topAttrID] : ""
-
-        return self.allPlottedCases().filter(caseId => {
-          const caseData = self.dataset?.getFirstItemForCase(caseId, { numeric: false })
-          if (!caseData) return false
-
-          const isLeftMatch = !leftAttrID || leftAttrType !== "categorical" ||
-            (leftAttrType === "categorical" && leftValue === caseData[leftAttrID])
-          const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
-          const isTopMatch = !topAttrID || topValue === caseData[topAttrID]
-
-          return isLeftMatch && isRightMatch && isTopMatch
-        })
+        const roles: GraphSplitAttrRole[] = ["rightSplit", "topSplit"]
+        if (self.attributeType("y") === "categorical") roles.push("y")
+        return self.casesInCellsMatchingRoles(cellKey, roles)
       },
       name: "rowCases"
     }),
     columnCases: cachedFnWithArgsFactory({
       key: (cellKey: Record<string, string>) => cellKeyToString(cellKey),
       calculate: (cellKey: Record<string, string>) => {
-        const bottomAttrID = self.attributeID("x")
-        const bottomAttrType = self.attributeType("x")
-        const bottomValue = bottomAttrID ? cellKey[bottomAttrID] : ""
-        const topAttrID = self.attributeID("topSplit")
-        const topValue = topAttrID ? cellKey[topAttrID] : ""
-        const rightAttrID = self.attributeID("rightSplit")
-        const rightValue = rightAttrID ? cellKey[rightAttrID] : ""
-
-        return self.allPlottedCases().filter(caseId => {
-          const caseData = self.dataset?.getFirstItemForCase(caseId, { numeric: false })
-          if (!caseData) return false
-
-          const isBottomMatch = !bottomAttrID || bottomAttrType !== "categorical" ||
-            (bottomAttrType === "categorical" && bottomValue === caseData[bottomAttrID])
-          const isTopMatch = !topAttrID || topValue === caseData[topAttrID]
-          const isRightMatch = !rightAttrID || rightValue === caseData[rightAttrID]
-
-          return isBottomMatch && isTopMatch && isRightMatch
-        })
+        const roles: GraphSplitAttrRole[] = ["rightSplit", "topSplit"]
+        if (self.attributeType("x") === "categorical") roles.push("x")
+        return self.casesInCellsMatchingRoles(cellKey, roles)
       },
       name: "columnCases"
     }),
@@ -699,26 +688,46 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       return self.showMeasuresForSelection ? caseIds.filter(caseId => self.dataset?.isCaseSelected(caseId)) : caseIds
     }
   }))
-  .actions(self => {
-    const baseSetNumberOfCategoriesLimitForRole = self.setNumberOfCategoriesLimitForRole
-    return {
-      setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number) {
-        if (self.numberOfCategoriesLimitByRole.get(role) !== limit) {
-          self.subPlotCases.invalidateAll()
-          self.cellMap.invalidateAll()
-          baseSetNumberOfCategoriesLimitForRole.call(self, role, limit)
-          self.categoryArrayForAttrRole.invalidate(role)
-          self.categoryArrayForAttrRole.invalidate(role, [])
-        }
+  .actions(self => ({
+    // The cell-grid caches are a chain: casesByCellIndex is built from cellIndexer, and subPlotCases
+    // and the percent denominators (cellCases, rowCases, columnCases) are read out of
+    // casesByCellIndex. Invalidating one without the others leaves them answering from a stale
+    // grid, so they are invalidated together here. A kOther cell keeps its key as the clamp changes,
+    // so a stale denominator would otherwise be reused while the numerator grows.
+    invalidateCellGrid() {
+      self.cellIndexer.invalidateAll()
+      self.casesByCellIndex.invalidateAll()
+      self.subPlotCases.invalidateAll()
+      self.cellCases.invalidateAll()
+      self.rowCases.invalidateAll()
+      self.columnCases.invalidateAll()
+    }
+  }))
+  .actions(self => ({
+    setNumberOfCategoriesLimitForRole(role: AttrRole, limit: number | undefined) {
+      // Compare effective limits, not raw ones (see effectiveCategoriesLimitForRole), so a
+      // resize drag doesn't rebuild the cell grid and category arrays on every step.
+      const prevLimit = self.numberOfCategoriesLimitByRole.get(role)
+      const effectiveLimitChanged = self.effectiveCategoriesLimitForRole(role, prevLimit) !==
+                                    self.effectiveCategoriesLimitForRole(role, limit)
+      // The raw limit is stored either way, and without the base action's invalidation.
+      self.storeNumberOfCategoriesLimitForRole(role, limit)
+      if (effectiveLimitChanged) {
+        self.invalidateCellGrid()
+        self.cellMap.invalidateAll()
+        self.categoryArrayForAttrRole.invalidate(role)
+        self.categoryArrayForAttrRole.invalidate(role, [])
       }
     }
-  })
+  }))
   .views(self => ({
     get caseDataWithSubPlot() {
       const allCaseData: CaseDataWithSubPlot[] = self.joinedCaseDataArrays
       const caseIDToSubPlot: Record<string, number> = {}
-      self.getAllCellKeys().forEach((cellKey, cellIndex) => {
-        self.subPlotCases(cellKey).forEach(caseID => {
+      // Seed only from the buckets. A case the indexer could not slot (a cell index < 0)
+      // belongs to no bucket, and must keep an undefined subPlotNum so it is not drawn.
+      self.casesByCellIndex().forEach((caseIds, cellIndex) => {
+        caseIds.forEach(caseID => {
           caseIDToSubPlot[caseID] = cellIndex
         })
       })
@@ -810,12 +819,13 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       }
     },
     setAttribute(role: GraphAttrRole, desc?: IAttributeDescriptionSnapshot) {
+      const previousLegend = self.legendAttributeAndType
       // For 'x' and 'y' roles, if the given attribute is already present on the other axis, then
-      // move whatever attribute is assigned to the given role to that axis.
-      if (['x', 'y'].includes(role)) {
+      // move whatever attribute is assigned to the given role to that axis. Removing an attribute moves nothing.
+      if (desc?.attributeID && ['x', 'y'].includes(role)) {
         const otherRole = role === 'x' ? 'y' : 'x',
           otherDesc = self.attributeDescriptionForRole(otherRole)
-        if (otherDesc?.attributeID === desc?.attributeID) {
+        if (otherDesc?.attributeID === desc.attributeID) {
           const currentDesc = self.attributeDescriptionForRole(role) ?? {attributeID: '', type: 'categorical'}
           self._setAttributeDescription(otherRole, currentDesc)
         }
@@ -834,6 +844,7 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       self.invalidateCases()
       self.numericValuesForAttribute.invalidate(role, self.attributeType(role))
       self.cellMap.invalidateAll()
+      if (role === "legend") self.recomputeLockedLegend(previousLegend)
     },
     addYAttribute(desc: IAttributeDescriptionSnapshot, index?: number) {
       if (index != null && index >= 0) {
@@ -864,15 +875,23 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       }
     },
     setAttributeType(role: GraphAttrRole, type: AttributeType, plotNumber = 0) {
+      const previousLegend = self.legendAttributeAndType
       if (role === 'y') {
         self._yAttributeDescriptions[plotNumber]?.setType(type)
       } else {
         self._attributeDescriptions.get(role)?.setType(type)
       }
       self._setAttributeType(type, plotNumber)
+      if (role === "legend") self.recomputeLockedLegend(previousLegend)
     }
   }))
   .actions(self => ({
+    // Retypes the given attribute in the given role. With several attributes on the left axis, each
+    // label's "Treat as" item names its own attribute, which need not be the first.
+    setAttributeTypeOfAttribute(role: GraphAttrRole, attrID: string, type: AttributeType) {
+      const yIndex = role === "y" ? self._yAttributeDescriptions.findIndex(desc => desc.attributeID === attrID) : -1
+      self.setAttributeType(role, type, Math.max(yIndex, 0))
+    },
     replaceYAttribute(desc?: IAttributeDescriptionSnapshot, plotNumber = 0) {
       if (self._yAttributeDescriptions[plotNumber]) self.removeYAttributeAtIndex(plotNumber)
       if (desc) self.addYAttribute(desc, plotNumber)
@@ -888,11 +907,8 @@ export const GraphDataConfigurationModel = DataConfigurationModel
       self.removeYAttributeAtIndex(index)
     },
     clearGraphSpecificCasesCache() {
+      self.invalidateCellGrid()
       self.allPlottedCases.invalidate()
-      self.subPlotCases.invalidateAll()
-      self.rowCases.invalidateAll()
-      self.columnCases.invalidateAll()
-      self.cellCases.invalidateAll()
       self.cellMap.invalidateAll()
     },
     handleDataSetChange(data?: IDataSet) {

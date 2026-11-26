@@ -33,9 +33,14 @@ export function layerHasLegendToShow(layer: IBaseLayerModel): boolean {
 interface IMultiLegendProps {
   divElt: HTMLDivElement | null
   onDropAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
+  // a change from a legend's attribute menu; drops are handled by onDropAttribute
+  onChangeAttribute: (place: GraphPlace, dataSet: IDataSet, attrId: string) => void
+  numericLegendBottomClearance?: number
 }
 
-export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribute}: IMultiLegendProps) {
+export const MultiLegend = observer(function MultiLegend({
+  divElt, onDropAttribute, onChangeAttribute, numericLegendBottomClearance
+}: IMultiLegendProps) {
   const dataDisplayModel = useBaseDataDisplayModelContext(),
     layout = useDataDisplayLayout(),
     legendRef = useRef() as React.RefObject<HTMLDivElement>,
@@ -85,6 +90,8 @@ export const MultiLegend = observer(function MultiLegend({divElt, onDropAttribut
                   <Legend layerIndex={index}
                           setDesiredExtent={setDesiredExtent}
                           onDropAttribute={onDropAttribute}
+                          onChangeAttribute={onChangeAttribute}
+                          numericLegendBottomClearance={numericLegendBottomClearance}
                   />
                 </DataConfigurationContext.Provider>
               </div>

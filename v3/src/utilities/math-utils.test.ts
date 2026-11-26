@@ -1,22 +1,51 @@
-import {FormatLocaleDefinition, format, formatLocale} from "d3-format"
+import { FormatLocaleDefinition, format, formatLocale } from "d3-format"
 import {
   between,
   binBoundaryDecimalPlaces,
   binBoundarySignificantFigures,
   checkNumber,
   chooseDecimalPlaces,
+  degreesToRadians,
   equalFrequencyBins,
   extractNumeric,
   fitGaussianLM,
   isFiniteNumber,
   isNumber,
-  isValueNonEmpty, normal
+  isValueNonEmpty, mod, normal,
+  radiansToDegrees
 } from "./math-utils"
 
 // default formatting except uses ASCII minus sign
 const asciiLocale = formatLocale({ minus: "-" } as FormatLocaleDefinition)
 
 describe("math-utils", () => {
+
+  describe("degreesToRadians", () => {
+    it("converts degrees to radians", () => {
+      expect(degreesToRadians(0)).toBe(0)
+      expect(degreesToRadians(180)).toBeCloseTo(Math.PI)
+      expect(degreesToRadians(-90)).toBeCloseTo(-Math.PI / 2)
+      expect(degreesToRadians(360)).toBeCloseTo(2 * Math.PI)
+    })
+  })
+
+  describe("radiansToDegrees", () => {
+    it("converts radians to degrees", () => {
+      expect(radiansToDegrees(0)).toBe(0)
+      expect(radiansToDegrees(Math.PI)).toBeCloseTo(180)
+      expect(radiansToDegrees(-Math.PI / 2)).toBeCloseTo(-90)
+    })
+  })
+
+  describe("mod", () => {
+    it("returns a result in [0, m), even for negative numbers", () => {
+      expect(mod(5, 3)).toBe(2)
+      expect(mod(-1, 3)).toBe(2)
+      expect(mod(-3, 3)).toBe(0)
+      expect(mod(0, 3)).toBe(0)
+      expect(mod(-0.5, 256)).toBeCloseTo(255.5)
+    })
+  })
 
   describe("d3-format", () => {
     const defaultFormat = format("")
@@ -141,6 +170,27 @@ describe("math-utils", () => {
       expect(extractNumeric("-Infinity")).toBe(-Infinity)
       expect(extractNumeric("aa123bbb")).toBe(123)
       expect(extractNumeric("123aa456")).toBe(123456)
+    })
+
+    it("should treat an unambiguous comma as a decimal separator", () => {
+      expect(extractNumeric("38,7223")).toBe(38.7223)
+      expect(extractNumeric("-9,1393")).toBe(-9.1393)
+      expect(extractNumeric("-86,95444")).toBe(-86.95444)
+      expect(extractNumeric("34,45")).toBe(34.45)
+      expect(extractNumeric("0,5")).toBe(0.5)
+      expect(extractNumeric(" 38,7223 ")).toBe(38.7223)
+      expect(extractNumeric("1.234,56")).toBe(1234.56)
+      expect(extractNumeric("-1.234.567,8")).toBe(-1234567.8)
+    })
+
+    it("should treat other commas as thousands separators", () => {
+      expect(extractNumeric("1,234")).toBe(1234)
+      expect(extractNumeric("12,345")).toBe(12345)
+      expect(extractNumeric("1,234,567")).toBe(1234567)
+      expect(extractNumeric("1,234.56")).toBe(1234.56)
+      expect(extractNumeric("$1,234.56")).toBe(1234.56)
+      // a leading 0 isn't a thousands group, so the comma isn't treated as a decimal separator
+      expect(extractNumeric("0.123,4")).toBe(0.1234)
     })
   })
 

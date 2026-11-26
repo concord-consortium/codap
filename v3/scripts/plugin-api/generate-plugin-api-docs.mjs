@@ -1,0 +1,635 @@
+#!/usr/bin/env node
+//
+// generate-plugin-api-docs.mjs
+//
+// Rewrites the generated blocks in v3/doc/plugin-api/ from the extractor's inventory, and
+// reports drift between the documented reference and the code.
+//
+// Generated blocks are delimited by
+//   <!-- BEGIN GENERATED: <name> -->  ...  <!-- END GENERATED: <name> -->
+// and everything outside them is left untouched (see doc/plugin-api/conventions.md).
+//
+// Which blocks this tool writes, and why not the others:
+//
+//   actions          written. Derived from the actions each handler defines.
+//   scope            written. Derived from two signals: the #default exemption list (does the
+//                    parser resolve a data context at all?) and whether the handler reads one.
+//                    The list alone is not enough — adornment has one resolved and ignores it.
+//   adornment-types  written. Derived from the adornment registrations.
+//   values           written ONLY when the block declares its source interface, as
+//                    `<!-- BEGIN GENERATED: values source=DIAttribute -->`. Resources do not
+//                    map to interfaces by name — few resources match a
+//                    DI<Name> convention — so the author states the mapping and the tool
+//                    fills the table.
+//   anything else    left alone and reported. A block this tool cannot produce completely is
+//                    better hand-written than half-generated; the lint checks those instead.
+//
+// Drift is reported as:
+//   NEW      a resource in the code with no page documenting it
+//   REMOVED  a page for a resource the code no longer registers
+//   CHANGED  a page whose actions block disagreed with the code (rewritten)
+//
+// Usage: node generate-plugin-api-docs.mjs [--check]
+//   --check  report only; write nothing.
+//
+// Exits 2 for NEW, REMOVED or CHANGED under --check, and in either mode for a stale baseline
+// entry, a page whose markers are not well formed, or a block declaring a source= the inventory
+// does not have. Exits 3 if the extractor could not produce an inventory.
+//
+import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs"
+import { fileURLToPath } from "node:url"
+import { markerProblems } from "./markers.mjs"
+import { buildPageFor, listPages } from "./coverage.mjs"
+import { readInventory } from "./inventory.mjs"
+import { dirname, join, relative } from "node:path"
+
+const here = dirname(fileURLToPath(import.meta.url))
+const v3Dir = join(here, "..", "..")
+const docsDir = join(v3Dir, "doc", "plugin-api")
+const resourcesDir = join(docsDir, "resources")
+const inventoryPath = join(docsDir, "plugin-api-inventory.json")
+
+const check = process.argv.includes("--check")
+
+// Re-extract so the inventory is never stale relative to the code we are checking against.
+function required(value, what) {
+  if (value == null || (Array.isArray(value) && value.length === 0)) {
+    console.error(`generate-plugin-api-docs: the inventory has no ${what}. Re-run the extractor; ` +
+                  `rendering from an empty list would rewrite real documentation into emptiness.`)
+    process.exit(3)
+  }
+  return value
+}
+
+const inventory = readInventory()
+
+// From the inventory, which reads it from DIBaseHandler. A second hard-coded list here would
+// silently drop an eighth action from every table and from the schema enum — exactly what the
+// extractor refuses to do.
+const ACTIONS = required(inventory.actions, "inventory.actions")
+const tick = b => (b ? "✓" : "—")
+
+// Order by code unit, never by locale: `localeCompare` follows the host's, so the same inventory
+// renders a different catalog under e.g. LC_ALL=tr_TR and `--check` is then red forever there.
+const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0)
+
+// --- which page documents which resource ---------------------------------------------------
+// A page declares the resources it covers in its `actions` block header, which names one
+// column per resource. That keeps the mapping in the page rather than in a side table.
+const pages = listPages(resourcesDir)
+// Pages outside resources/ that also carry generated blocks.
+const extraPages = ["quick-reference.md", "notifications.md"].filter(f => existsSync(join(docsDir, f)))
+const pageFor = buildPageFor(resourcesDir, inventory.resources)
+
+// --- block renderers ------------------------------------------------------------------------
+function renderActions(resourceNames) {
+  const found = resourceNames.map(n => inventory.resources.find(r => r.name === n)).filter(Boolean)
+  if (!found.length) return null
+  // The extractor records actions: null when it cannot resolve a handler. That is "unknown",
+  // not "unsupported" — rendering it as — would publish a false negative.
+  const cell = (r, a) => (r.actions == null ? "?" : tick(r.actions.includes(a)))
+  if (found.length === 1) {
+    return ["| Action | Supported |", "|---|---|",
+      ...ACTIONS.map(a => `| \`${a}\` | ${cell(found[0], a)} |`)].join("\n")
+  }
+  const head = `| Action | ${found.map(r => r.name).join(" | ")} |`
+  const rule = `|---|${found.map(() => "---").join("|")}|`
+  const rows = ACTIONS.map(a => `| \`${a}\` | ${found.map(r => cell(r, a)).join(" | ")} |`)
+  return [head, rule, ...rows].join("\n")
+}
+
+// Two independent signals decide this. The #default exemption list says whether the parser
+// resolves a data context at all; `usesDataContext` says whether the handler reads one. A
+// resource can have one resolved and ignore it, so reporting from the list alone is misleading.
+function renderScope(resourceNames) {
+  const found = resourceNames.map(n => inventory.resources.find(r => r.name === n)).filter(Boolean)
+  // Refuse rather than guess: if a resource was renamed in code, or a page covers several and we
+  // resolved only some, an assertion here would be fabricated. Leave the block for a human.
+  if (!resourceNames.length || found.length !== resourceNames.length) return null
+  const exempt = resourceNames.every(n => inventory.defaultContextExemptions.includes(n))
+  const uses = found.some(r => r.usesDataContext)
+  if (exempt) {
+    return "This resource is **not** scoped to a data context, so the default-data-context rule does not\n" +
+           "apply. Naming a `dataContext` in the selector has no effect."
+  }
+  if (!uses) {
+    // Do not conclude "naming a dataContext has no effect" from the handler alone. The parser
+    // resolves `collection` and `attribute` segments *within* the resolved data context, so for
+    // attributeList the context fully determines the result even though its handler never reads
+    // one. State the mechanism, which is true for both shapes, instead of a conclusion that is
+    // true only when the selector has no segment resolved inside the context.
+    return "This resource's handler does not read a data context itself. CODAP still resolves one —\n" +
+           "defaulting to `#default` when the selector omits it — and uses it to resolve any\n" +
+           "`collection` or `attribute` segment earlier in the selector. Naming a different\n" +
+           "`dataContext` therefore changes what this resource returns only when the selector\n" +
+           "contains such a segment."
+  }
+  return "This resource is scoped to a data context. Omitting one selects `#default`, your plugin's\n" +
+         "own data context — see [the index](../README.md#the-default-data-context)."
+}
+
+function renderAdornmentTypes() {
+  const rows = inventory.adornmentTypes.map(a => {
+    const aliases = a.aliases.map(x => `\`${x}\``).join(", ")
+    const label = a.aliases.length ? `\`${a.type}\` (alias ${aliases})` : `\`${a.type}\``
+    if (a.actions == null) return `| ${label} | ? | ? | ? | ? |`   // unresolved handler
+    const has = x => a.actions.includes(x)
+    return `| ${label} | ${tick(has("get"))} | ${tick(has("create"))} | ${tick(has("update"))} | ` +
+           `${has("delete") ? "✓" : "hides"} |`
+  })
+  return ["| Type | get | create | update | delete |", "|---|---|---|---|---|", ...rows].join("\n")
+}
+
+function renderValues(sourceName) {
+  const iface = inventory.valueTypes[sourceName]
+  if (!iface) return null
+  // Backtick the type rather than escaping only the pipe. A bare `Partial<Foo>` renders as
+  // "Partial" on GitHub — the angle brackets parse as an HTML tag and the argument vanishes.
+  // Today's types survive by luck (`Record<string, X>` keeps its comma), so this is latent, not
+  // visible. Backticks also escape the pipe inside a union, so one treatment covers both.
+  const esc = t => "`" + t.replace(/\|/g, "\\|") + "`"
+  // Many of these interfaces inherit most of what they have. Naming the interface each member
+  // came from lets a reader see where a property originates — the v2 component shape, the v2
+  // attribute shape, or the DI layer itself. The column appears only when something is actually
+  // inherited, so flat interfaces keep a three-column table.
+  const inherits = iface.members.some(m => m.inherited)
+  const from = m => m.inherited ?? sourceName
+  const rows = iface.members.map(m =>
+    `| \`${m.name}\` | ${esc(m.type)} | ${m.optional ? "optional" : "required"} |` +
+    (inherits ? ` \`${from(m)}\` |` : ""))
+  const head = inherits ? "| Property | Type | | Declared in |" : "| Property | Type | |"
+  const rule = inherits ? "|---|---|---|---|" : "|---|---|---|"
+  return [head, rule, ...rows].join("\n")
+}
+
+// --- the quick-reference tables -------------------------------------------------
+function renderResourceActions() {
+  const head = `| Resource | ${ACTIONS.map(a => `\`${a}\``).join(" | ")} |`
+  const rule = `|---|${ACTIONS.map(() => "---").join("|")}|`
+  // `actions: null` means the handler could not be resolved, not that it supports nothing.
+  // Rendering "—" there would publish "this action is unsupported" as a fact we do not have,
+  // which is the same distinction renderActions already makes with "?".
+  const rows = inventory.resources.map(r =>
+    `| \`${r.name}\` | ${ACTIONS.map(a => (r.actions == null ? "?" : tick(r.actions.includes(a)))).join(" | ")} |`)
+  return [head, rule, ...rows].join("\n")
+}
+
+function renderSelectorGrammar() {
+  const resourceNames = inventory.resources.map(r => `\`${r.name}\``).join(", ")
+  const exempt = inventory.defaultContextExemptions.map(k => `\`${k}\``).join(", ")
+  return [
+    "A resource selector is a dot-separated chain of segments. Each segment is a key, optionally",
+    "followed by a name or id in square brackets:",
+    "",
+    "```",
+    "selector  := segment ( \".\" segment )*",
+    "segment   := key ( \"[\" nameOrId \"]\" )?",
+    "key       := one or more word characters",
+    "nameOrId  := a name, a title, or a numeric id — or #default for a data context",
+    "```",
+    "",
+    "**Any word is accepted as a key at parse time.** CODAP does not validate keys against a list",
+    "while parsing, so a misspelled selector never fails there.",
+    "",
+    "A misspelled **final** segment decides which handler runs, so there is none, and the request",
+    "fails with `Unsupported action: <action>/<key>`.",
+    "",
+    "A misspelled **earlier** segment is simply unread: the parser stores it under a key nothing",
+    "looks at, and resolution proceeds as though you had not written that segment at all. What",
+    "that costs depends on which segment it was.",
+    "",
+    "- **A misspelled `dataContext`** is the dangerous one. With no data context named, CODAP",
+    "  supplies `#default`, so the request runs against the default data context and reports",
+    "  success — against data you did not ask for.",
+    "- **A misspelled `collection`** leaves the resource to resolve without one. For `attribute`",
+    "  the search widens to the whole data context and usually finds the attribute anyway;",
+    "  `attributeList` returns an empty list; the case resources report not found.",
+    "",
+    "Do not read a successful parse, or even a successful request, as a valid selector.",
+    "",
+    `**Keys that name a resource** (${inventory.resources.length}): ${resourceNames}.`,
+    "",
+    "Earlier segments narrow the target — `dataContext[Mammals].collection[Cases].attributeList`",
+    "reads the attributes of one collection of one data context.",
+    "",
+    "**Data-context defaulting.** When a selector omits `dataContext`, CODAP supplies `#default`,",
+    "which resolves to the plugin's own data context (see the index). That does not apply to these",
+    `resource types: ${exempt}. Nor does it apply when creating a data context, since there is`,
+    "nothing to default to yet. Note that some resources have a data context resolved and ignore",
+    "it; each resource's page says which."
+  ].join("\n")
+}
+
+// CODAP's i18n notation (%@, %@1) means nothing to a plugin author, and the conventions forbid
+// it on these pages. Substitute a neutral placeholder: the generator cannot know that %@1 is a
+// type and %@2 an action — a resource page that knows may name them meaningfully in its own
+// hand-written errors table.
+const plainPlaceholders = msg => msg
+  .replace(/%@(\d+)/g, "<value$1>")
+  .replace(/%\{(\w+)\}/g, "<$1>")
+  .replace(/%@/g, "<value>")
+
+function renderErrorCatalog() {
+  const rows = [...inventory.errors]
+    .sort((a, b) => cmp(a.message, b.message))
+    .map(e => `| \`${plainPlaceholders(e.message).replace(/\|/g, "\\|")}\` | ` +
+              `${e.exportedAs ? `\`${e.exportedAs}\`` : "—"} |`)
+  return ["| Error | Prebuilt result |", "|---|---|", ...rows].join("\n")
+}
+
+
+// --- the notification catalog ------------------------------------------------------------
+// One table per resource family, and for `component` one per area of CODAP that raises it. What
+// the generator owns and what a person writes is described under "The notification tables are
+// the one exception" in doc/plugin-api/conventions.md.
+//
+// Operation names are reproduced exactly as a plugin receives them; see "Operation names are
+// v2's" on the notifications page for why the untidy ones stay.
+function notificationArea(source) {
+  const m = /src\/(?:components|models|lib)\/([^/]+)\//.exec(source)
+  if (!m) return "other"
+  return { tiles: "lifecycle", "case-tile-common": "case table", "data-display": "data display",
+           "case-table": "case table", "case-card": "case card", common: "formula",
+           "dnd-kit": "drag" }[m[1]] ?? m[1]
+}
+
+// The families that get a section of their own, by block name. Everything else lands in one
+// table, so a new family added in code reaches the page rather than vanishing.
+const kFamilyBlocks = {
+  "notifications-data": "dataContextChangeNotice",
+  "notifications-drag": "dragDrop",
+  "notifications-undo": "undoChangeNotice",
+  "notifications-document": "document"
+}
+// Component notifications, one block per section of the page, each holding the areas it names.
+// An area no block claims is reported rather than dropped.
+const kComponentBlocks = {
+  "notifications-component-lifecycle": ["lifecycle", "container", "other"],
+  "notifications-component-graph": ["graph"],
+  "notifications-component-axis": ["axis"],
+  "notifications-component-slider": ["slider"],
+  "notifications-component-map": ["map"],
+  "notifications-component-case-table": ["case table", "case card"],
+  "notifications-component-text": ["text", "calculator", "formula"],
+  "notifications-component-data-display": ["data display"]
+}
+const kNamedNotificationFamilies = new Set(["component", ...Object.values(kFamilyBlocks)])
+const kUndescribed = "_not yet described_"
+const emptyNotificationBlock = Symbol("empty notification block")
+const notificationKey = n => `${n.resource}\u0000${n.operation ?? ""}`
+// Tracked by entry, not by key: the same operation sent from an area no block claims must still
+// be reported, even though another area's table lists that operation.
+const placedNotifications = new Set()
+// A documented name with a <placeholder>, such as `toggle show as <plot type>`, stands for a site
+// whose operation the code builds when it sends it. It matches a site whose shape is the same,
+// placeholders aside (the extractor records each expression in a shape as `<>`).
+const coveredUnresolved = new Set()
+const unmatchedTemplates = []
+const templateShape = op => op.replace(/<[^>]*>/g, "<>")
+const kNotReadable = "_not readable from the code_"
+
+// "—" means no values beyond the operation, and "…" values the extractor couldn't name;
+// unreadable keys say so rather than guess.
+function notificationValues(n) {
+  if (!n.valueKeys) return kNotReadable
+  if (!n.valueKeys.length) return n.valueKeysPartial ? "…" : "—"
+  return n.valueKeys.map(k => `\`${k}\``).join(", ") + (n.valueKeysPartial ? ", …" : "")
+}
+
+function notificationOperation(n) {
+  if (n.operation) return `\`${n.operation}\``
+  return n.noOperation ? "_none_" : "_computed at the call site_"
+}
+
+// The rows of an existing table: the cells under Resource, Operation and Fires when.
+function tableRows(body) {
+  const split = l => l.trim().replace(/^\||\|$/g, "").split(/(?<!\\)\|/).map(c => c.trim())
+  const lines = body.split("\n").filter(l => l.trim().startsWith("|"))
+  if (lines.length < 2) return []
+  const head = split(lines[0])
+  const at = name => head.indexOf(name)
+  return lines.slice(2).map(split).map(c => ({
+    resource: at("Resource") >= 0 ? c[at("Resource")] : null,
+    operation: c[at("Operation")] ?? "",
+    fires: at("Fires when") >= 0 && c[at("Fires when")] ? c[at("Fires when")] : kUndescribed
+  }))
+}
+
+// `entries` are the notifications this table lists; `body` is the table as it stands.
+// `unresolved` are the sites in this table's area whose operation the extractor couldn't name.
+function renderNotificationTable(entries, body,
+                                 { withResource = false, valuesHead = "`values` carries", unresolved = [] } = {}) {
+  // A block whose last notification is gone would otherwise keep listing it; the page needs
+  // editing, so that is reported rather than left as hand-maintained.
+  if (!entries.length && !unresolved.length) return emptyNotificationBlock
+  const byKey = new Map(entries.map(n => [notificationKey(n), n]))
+  const placed = new Set()
+  const rows = []
+  for (const old of tableRows(body)) {
+    // `global[<name>]` is listed by its resource, `global`.
+    const resource = withResource ? (/`([^`[]+)/.exec(old.resource ?? "")?.[1] ?? "")
+      : (entries[0] ?? unresolved[0]).resource
+    const names = [...old.operation.matchAll(/`([^`]+)`/g)].map(m => m[1])
+    const isTemplated = op => op.includes("<")
+    const keyOf = op => `${resource}\u0000${op}`
+    const literal = names.length ? names.filter(op => !isTemplated(op)) : [""]
+    const live = literal.map(keyOf).filter(k => byKey.has(k) && !placed.has(k))
+    // A templated name stays only while a site of its shape is still in the code. It covers every
+    // site of that shape, so two calls (or two branches of one call) that build it both pass.
+    const kept = names.filter(isTemplated).filter(op => {
+      const sites = unresolved.filter(u => u.shape === templateShape(op) && u.resource === resource)
+      sites.forEach(site => coveredUnresolved.add(site))
+      if (!sites.length) unmatchedTemplates.push(`${resource} \`${op}\``)
+      return sites.length > 0
+    })
+    if (!live.length && !kept.length) continue
+    live.forEach(k => placed.add(k))
+    const members = live.map(k => byKey.get(k))
+    const keepsAll = live.length === literal.length && kept.length === names.filter(isTemplated).length
+    rows.push({
+      resource: old.resource,
+      // Rewritten in the row's own order, so a templated name keeps its place.
+      operation: keepsAll ? old.operation
+        : names.filter(op => kept.includes(op) || live.includes(keyOf(op)))
+          .map(op => isTemplated(op) ? `\`${op}\`` : notificationOperation(byKey.get(keyOf(op)))).join(", "),
+      fires: old.fires,
+      members,
+      templated: kept
+    })
+  }
+  for (const [k, n] of byKey) {
+    if (placed.has(k)) continue
+    rows.push({ resource: `\`${n.resource}\``, operation: notificationOperation(n), fires: kUndescribed, members: [n],
+                templated: [] })
+  }
+  if (!rows.length) return emptyNotificationBlock
+  entries.forEach(n => placedNotifications.add(n))
+
+  // A row naming several operations shows one values cell when they agree, and each one's otherwise.
+  // A templated name's values can't be read.
+  const values = r => {
+    const cells = [...r.members.map(notificationValues), ...r.templated.map(() => kNotReadable)]
+    if (!cells.length) return kNotReadable
+    const names = [...r.members.map(notificationOperation), ...r.templated.map(op => `\`${op}\``)]
+    return cells.every(c => c === cells[0]) ? cells[0] : names.map((name, i) => `${name}: ${cells[i]}`).join("; ")
+  }
+  // A values column that is the same on every row says so once, below the table.
+  const cells = rows.map(values)
+  const shared = rows.length > 1 && cells.every(c => c === cells[0]) && cells[0].startsWith("`") ? cells[0] : null
+  const head = ["Operation", "Fires when", ...(shared ? [] : [valuesHead])]
+  if (withResource) head.unshift("Resource")
+  const line = (r, i) => `| ${[...(withResource ? [r.resource] : []), r.operation, r.fires,
+                               ...(shared ? [] : [cells[i]])].join(" | ")} |`
+  // A data context change notice's values is an array of changes, each carrying the shared property.
+  const isDataChange = entries.length > 0 && entries.every(n => n.resource?.startsWith("dataContextChangeNotice"))
+  const sharedLine = isDataChange ? `Every change in \`values\` carries ${shared}.`
+    : `Every one carries ${shared} in \`values\`.`
+  return [`| ${head.join(" | ")} |`, `|${head.map(() => "---").join("|")}|`, ...rows.map(line),
+    ...(shared ? ["", sharedLine] : [])].join("\n")
+}
+
+function renderNotifications(block, body) {
+  const all = inventory.notifications ?? []
+  const unresolvedSites = inventory.unresolvedNotifications ?? []
+  // The same test picks this block's notifications and its unresolved sites.
+  const render = (inBlock, options) =>
+    renderNotificationTable(all.filter(inBlock), body, { ...options, unresolved: unresolvedSites.filter(inBlock) })
+  if (block === "notifications-other") {
+    return render(n => !kNamedNotificationFamilies.has(n.resource), { withResource: true })
+  }
+  if (kFamilyBlocks[block]) return render(n => n.resource === kFamilyBlocks[block])
+  // Every component notification also carries `id`, `type` and `diType`; the column lists what
+  // each one adds, and the page says so above the tables.
+  const areas = kComponentBlocks[block]
+  return render(n => n.resource === "component" && areas.includes(notificationArea(n.source)),
+                { valuesHead: "`values` also carries" })
+}
+const isNotificationBlock = name =>
+  name === "notifications-other" || name in kFamilyBlocks || name in kComponentBlocks
+
+// --- rewrite ---------------------------------------------------------------------------------
+// The body may be empty — a new page can declare a block and let the generator fill it.
+const BLOCK = /<!-- BEGIN GENERATED: ([\w-]+)((?:\s+\w+=\S+)*) -->\n?([\s\S]*?)\n?<!-- END GENERATED: \1 -->/g
+const report = { new: [], removed: [], changed: [], skipped: [], markers: [], badSource: [], emptyBlocks: [] }
+
+for (const page of [...pages, ...extraPages]) {
+  const path = pages.includes(page) ? join(resourcesDir, page) : join(docsDir, page)
+  const before = readFileSync(path, "utf8")
+
+  // Never rewrite a page whose markers are not provably well formed — see markers.mjs for what
+  // a rewrite would otherwise destroy. Report and skip the page; the lint reports the same.
+  const badMarkers = markerProblems(before)
+  if (badMarkers.length) {
+    for (const problem of badMarkers) report.markers.push(`${page}: ${problem}`)
+    continue
+  }
+
+  const covered = [...pageFor].filter(([, p]) => p === page).map(([n]) => n)
+
+  const after = before.replace(BLOCK, (whole, name, attrText, body) => {
+    const attrs = Object.fromEntries([...attrText.matchAll(/(\w+)=(\S+)/g)].map(m => [m[1], m[2]]))
+    let rendered = null
+    if (name === "actions") rendered = renderActions(covered)
+    else if (name === "scope") rendered = renderScope(covered)
+    else if (name === "adornment-types") rendered = renderAdornmentTypes()
+    else if (name === "resource-actions") rendered = renderResourceActions()
+    else if (name === "selector-grammar") rendered = renderSelectorGrammar()
+    else if (name === "error-catalog") rendered = renderErrorCatalog()
+    else if (isNotificationBlock(name)) rendered = renderNotifications(name, body)
+    else if (name.startsWith("values") && attrs.source) rendered = renderValues(attrs.source)
+
+    if (rendered === emptyNotificationBlock) {
+      report.emptyBlocks.push(`${page}: ${name}`)
+      return whole
+    }
+    if (rendered == null) {
+      // A block that *declares* a source is a claim: that interface exists and the tool fills
+      // this table from it. If it does not resolve, the claim is false — a renamed or deleted
+      // interface leaving a frozen table behind — so that is a failure, not hand-maintenance.
+      if (attrs.source) {
+        report.badSource.push(`${page}: ${name} declares source=${attrs.source}, not in the inventory`)
+      }
+      else report.skipped.push(`${page}: ${name}`)
+      return whole
+    }
+    if (rendered !== body) report.changed.push(`${page}: ${name}`)
+    return `<!-- BEGIN GENERATED: ${name}${attrText} -->\n${rendered}\n<!-- END GENERATED: ${name} -->`
+  })
+
+  if (after !== before && !check) writeFileSync(path, after)
+}
+
+// Every notification the code sends must land in some table: a family or area with no block on
+// the page would otherwise vanish from the catalog with every check green.
+const unplaced = (inventory.notifications ?? [])
+  .filter(n => !placedNotifications.has(n))
+  .map(n => `${n.resource} ${n.operation ?? "(no operation)"}` +
+            (n.resource === "component" ? ` — area "${notificationArea(n.source)}" has no block` : ""))
+// A site whose operation couldn't be named is sent with nothing documenting it, unless a row names
+// its shape. One with no shape, such as a message whose resource is a variable, no row can cover.
+const uncovered = (inventory.unresolvedNotifications ?? []).filter(u => !coveredUnresolved.has(u))
+const uncoveredShapes = uncovered.filter(u => u.shape).map(u => `${u.source}: ${u.resource} \`${u.operation}\``)
+const unreadableSites = uncovered.filter(u => !u.shape)
+  .map(u => `${u.source}: ${u.resource ?? "resource not readable"}`)
+
+// --- JSON Schema for the request envelope --------------------------------------------
+// Validates the envelope and the action vocabulary, and carries the resource -> supported
+// actions map so a tool can check an action against its resource. It deliberately does not try
+// to validate `values`: those shapes vary per resource and per action, and a schema that
+// guessed them would reject valid requests.
+function buildSchema() {
+  // Only resources whose handler resolved. An unresolved one listed as [] would tell a tool that
+  // every action is unsupported, which is a claim the extractor explicitly declined to make.
+  const byResource = {}
+  for (const r of inventory.resources) if (r.actions != null) byResource[r.name] = r.actions
+  const unresolved = inventory.resources.filter(r => r.actions == null).map(r => r.name)
+  return {
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    $id: "https://codap.concord.org/schemas/plugin-api-request.schema.json",
+    title: "CODAP Data Interactive request",
+    description:
+      "Generated from v3/src by v3/scripts/plugin-api. Validates the request envelope a plugin " +
+      "sends to CODAP. `values` is not yet validated: its shape varies by resource and action, " +
+      "and the mapping from those to a value interface is not yet extracted. It is documented " +
+      "per resource in v3/doc/plugin-api/resources/.",
+    // A request is one action or a batch of them: DIRequest = DIAction | DIAction[].
+    oneOf: [{ $ref: "#/$defs/action" }, { type: "array", items: { $ref: "#/$defs/action" }, minItems: 1 }],
+    $defs: {
+      action: {
+  type: "object",
+  required: ["action", "resource"],
+  additionalProperties: false,
+  properties: {
+      action: { enum: ACTIONS, description: "The verb. Not every resource supports every action." },
+      resource: {
+        type: "string",
+        minLength: 1,
+        pattern: "^[A-Za-z#][A-Za-z0-9_#]*(\\[[^\\]]+\\])?(\\.[A-Za-z][A-Za-z0-9_]*(\\[[^\\]]+\\])?)*$",
+        description: "A dot-separated selector chain; see doc/plugin-api/quick-reference.md."
+      },
+    values: { description: "Payload for create, update and notify. Shape varies by resource." }
+  }
+      },
+      supportedActions: {
+        description: "resource name -> the actions its handler implements. Data for tools; not " +
+          "referenced by the validation above. Resources whose handler could not be resolved are " +
+          "omitted rather than listed as supporting nothing" +
+          (unresolved.length ? `: ${unresolved.join(", ")}.` : "."),
+        const: byResource
+      },
+      // These are the members of DIResourceSelector, which is not the same set as the resource
+      // keys a selector may use: it includes `type`, which the parser sets itself, and omits the
+      // list-style resources. Named accordingly so no one validates against it.
+      resourceSelectorMembers: {
+        description: "Members of the internal DIResourceSelector type. Data for tools; NOT the " +
+          "set of valid selector keys — see the resource table in doc/plugin-api/quick-reference.md.",
+        const: inventory.selectorKeys
+      }
+    }
+  }
+}
+// Both committed artifacts are written here, and compared in --check mode — otherwise they can
+// drift from the code indefinitely with CI green.
+const artifacts = [
+  [join(docsDir, "plugin-api-request.schema.json"), JSON.stringify(buildSchema(), null, 2) + "\n"],
+  // The inventory's verifiedAgainst records when it was regenerated, so compare everything else.
+  [inventoryPath, JSON.stringify(inventory, null, 2) + "\n"]
+]
+// `source` fields carry file:line, so any edit anywhere above a registration shifts them and the
+// byte comparison reports the artifact stale — a red advisory check caused by a blank line in an
+// unrelated handler. The line numbers are useful to a human reading the inventory and useless to
+// the comparison, so normalize them out of it along with verifiedAgainst.
+const stripVolatile = t => t
+  .replace(/"verifiedAgainst":\s*"[^"]*"/, '"verifiedAgainst":""')
+  .replace(/("source":\s*"[^"]*?):\d+"/g, '$1"')
+for (const [file, content] of artifacts) {
+  if (check) {
+    const current = existsSync(file) ? readFileSync(file, "utf8") : ""
+    if (stripVolatile(current) !== stripVolatile(content)) {
+      report.changed.push(`${relative(docsDir, file)} is stale — run npm run plugin-api:generate`)
+    }
+  } else {
+    // Writing unconditionally churns verifiedAgainst on every run, so a regenerate that changed
+    // nothing still shows up as a modified file in git.
+    const current = existsSync(file) ? readFileSync(file, "utf8") : ""
+    if (stripVolatile(current) !== stripVolatile(content)) writeFileSync(file, content)
+  }
+}
+
+// --- drift ------------------------------------------------------------------------------------
+// Resources known to be undocumented while resources still lack pages. Without this baseline
+// the check would be red from the day it lands until every resource has a page, and a permanently red
+// advisory check is worse than none — it trains people to ignore it. A resource that appears
+// here has been *decided about*; one that appears in NEW has not.
+const baselinePath = join(docsDir, "undocumented-baseline.txt")
+const baseline = new Set(
+  existsSync(baselinePath)
+    ? readFileSync(baselinePath, "utf8").split("\n").map(l => l.replace(/#.*/, "").trim()).filter(Boolean)
+    : []
+)
+const baselined = []
+for (const r of inventory.resources) {
+  if (pageFor.has(r.name)) continue
+  if (baseline.has(r.name)) baselined.push(r.name)
+  else report.new.push(r.name)
+}
+for (const [name] of pageFor) if (!inventory.resources.some(r => r.name === name)) report.removed.push(name)
+const staleBaseline = [...baseline].filter(n => pageFor.has(n) || !inventory.resources.some(r => r.name === n))
+
+const line = (label, arr) => console.error(`${label}: ${arr.length}${arr.length ? "\n  " + arr.join("\n  ") : ""}`)
+console.error(`Inventory: ${inventory.counts.resources} resources, verified against ${inventory.verifiedAgainst}`)
+
+// Two ways a declared shape can come out wrong, both reported rather than left silent.
+//
+// A type that still produced members but could not find a base is missing that base's rows —
+// nothing in the DI type files triggers this today, but an `extends Omit<X, "y">` would.
+//
+// A type that produced NO members is absent from valueTypes altogether. Several are, and
+// they are legitimate: MST `SnapshotIn<typeof Model>` snapshots and alias-of-alias chains denote
+// no fixed member list, and neither do unions, Records or function types. They are listed so the
+// absence is visible rather than inferred — and a `values source=` block naming one of them is
+// already a hard failure, so this stays advisory.
+{
+  const partial = Object.entries(inventory.valueTypes)
+    .filter(([, v]) => v.unresolvedBases?.length)
+    .map(([n, v]) => `${n} -> ${v.unresolvedBases.join(", ")}`)
+  if (partial.length) {
+    console.error(`UNRESOLVED BASES (inherited properties missing from these tables): ${partial.length}`)
+    for (const u of partial) console.error(`  ${u}`)
+  }
+  const none = Object.entries(inventory.unextractable ?? {})
+  if (none.length) {
+    console.error(`NOT EXTRACTABLE (declared shapes with no member list; not usable as source=): ${none.length}`)
+    for (const [n, v] of none) console.error(`  ${n}${v.extends ? ` extends ${v.extends.join(", ")}` : ""}`)
+  }
+}
+console.error(`Documented: ${pageFor.size} resources across ${pages.length} pages`)
+line("CHANGED (blocks rewritten)", report.changed)
+line("NEW (in code, undocumented, NOT baselined)", report.new)
+console.error(`Known undocumented (baselined): ${baselined.length}`)
+if (staleBaseline.length) line("STALE baseline entries (now documented or gone — remove them)", staleBaseline)
+line("REMOVED (documented, not in code)", report.removed)
+if (report.skipped.length) line("Hand-maintained (left alone)", report.skipped)
+if (report.markers.length) line("MARKER PROBLEMS (page not rewritten)", report.markers)
+if (report.badSource.length) line("UNRESOLVED source= (block left frozen)", report.badSource)
+if (unplaced.length) line("NOTIFICATIONS IN NO TABLE (add a block for them)", unplaced)
+if (uncoveredShapes.length) {
+  line("OPERATIONS BUILT WHEN SENT, IN NO ROW (add a row naming them with a <placeholder>)", uncoveredShapes)
+}
+if (unreadableSites.length) {
+  line("NOTIFICATIONS THE EXTRACTOR CAN'T READ (no row can cover these; send them through a notification " +
+       "helper, or with a literal resource and operation)", unreadableSites)
+}
+if (unmatchedTemplates.length) {
+  line("TEMPLATED ROWS NO CODE SENDS (dropped; check the page)", unmatchedTemplates)
+}
+if (report.emptyBlocks.length) {
+  line("NOTIFICATION BLOCKS WITH NOTHING LEFT (left as is; remove the section)", report.emptyBlocks)
+}
+
+// Marker problems fail in both modes: in --check they are a defect, and in write mode they mean
+// a page was deliberately skipped, so exiting 0 would report success for work not done.
+if (report.markers.length || report.badSource.length || unplaced.length || uncovered.length ||
+    report.emptyBlocks.length) process.exit(2)
+if (check && (report.changed.length || report.new.length || report.removed.length ||
+              staleBaseline.length)) process.exit(2)

@@ -1,9 +1,6 @@
 import { parse, ParseConfig, ParseResult } from "papaparse"
-import { kImporterPluginInsertOptions, kWebViewTileType } from "../components/web-view/web-view-defs"
-import { IWebViewSnapshot } from "../components/web-view/web-view-model"
-import { getImporterPluginUrl } from "../constants"
-import { appState } from "../models/app-state"
 import { DataSet, IDataSet } from "../models/data/data-set"
+import { insertImporterTile } from "./generic-import"
 
 type RowType = Record<string, string>
 export type CsvParseResult = ParseResult<RowType>
@@ -60,23 +57,14 @@ type IImportFromCsvArgs = IImportFromCsvContentArgs | IImportFromCsvFileArgs | I
 
 export function initiateImportFromCsv(options: IImportFromCsvArgs) {
   // The importer plugin is used to import a csv string into a dataset.
-  const webViewModelSnap: IWebViewSnapshot = {
-    type: kWebViewTileType,
-    subType: "plugin",
-    url: getImporterPluginUrl(),
-    state: {
-      contentType: 'text/csv',
-      name: "Importer",
-      file: "file" in options ? options.file : undefined,
-      targetDatasetName: "data" in options ? options.data?.name : undefined,
-      datasetName: "datasetName" in options ? options.datasetName : undefined,
-      text: "text" in options ? options.text : undefined,
-      url: "url" in options ? options.url : undefined
-    }
-  }
-  appState.document.content?.insertTileSnapshotInDefaultRow({
-    _title: "Importer",
-    content: webViewModelSnap
-  }, kImporterPluginInsertOptions)
+  insertImporterTile({
+    contentType: 'text/csv',
+    name: "Importer",
+    file: "file" in options ? options.file : undefined,
+    targetDatasetName: "data" in options ? options.data?.name : undefined,
+    datasetName: "datasetName" in options ? options.datasetName : undefined,
+    text: "text" in options ? options.text : undefined,
+    url: "url" in options ? options.url : undefined
+  })
 }
 

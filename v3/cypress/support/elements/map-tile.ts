@@ -13,10 +13,7 @@ export const MapTileElements = {
   selectHideShowButton() {
     c.getInspectorPanel().find("[data-testid=map-hide-show-button]").click()
     // Menu content renders in a React Aria Popover portal outside the inspector panel DOM
-    cy.get("[data-testid=hide-show-menu-list]").should("be.visible")
-  },
-  getDisplayValuesButton() {
-    return c.getInspectorPanel().find("[data-testid=map-display-values-button]")
+    cy.get("[data-testid=inspector-menu-hide-show]").should("be.visible")
   },
   getDisplayConfigButton() {
     return c.getInspectorPanel().find("[data-testid=map-display-config-button]")
@@ -25,7 +22,7 @@ export const MapTileElements = {
     return c.getInspectorPanel().find("[data-testid=map-camera-button]")
   },
   getInspectorPalette() {
-    return c.getInspectorPanel().find("[data-testid=codap-inspector-palette]")
+    return c.getInspectorPanel().find("[data-testid=inspector-palette-map]")
   },
   getHeatmapBullet(type: "heatmap" | "points" = "heatmap") {
     return this.getInspectorPalette().contains(`Display as ${type}`)
@@ -60,10 +57,10 @@ export const MapTileElements = {
     return cy.get("[data-testid=hide-selected-cases]")
   },
   selectHideSelectedCases() {
-    cy.get("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
+    cy.get("[data-testid=inspector-menu-hide-show]").should("be.visible").then(() => {
       cy.get("[data-testid=hide-selected-cases]").click()
       cy.get("[data-testid=hide-selected-cases]").should("not.exist")
-      cy.get("[data-testid=hide-show-menu-list]").should("not.exist")
+      cy.get("[data-testid=inspector-menu-hide-show]").should("not.exist")
     })
   },
   getHideUnselectedCases() {
@@ -72,21 +69,41 @@ export const MapTileElements = {
   getHeatmapCanvas() {
     return this.getMapTile().find(".heatmap-canvas")
   },
+  getAttribution() {
+    return this.getMapTile().find(".leaflet-control-attribution")
+  },
+  getBaseLayerCheckbox() {
+    return cy.get("[data-testid=map-layers-checkbox-base]")
+  },
+  getBaseLayerButton(layer: "oceans" | "topo" | "streets") {
+    return cy.get(`[data-testid=map-layers-base-${layer}]`)
+  },
+  getHotSpotCheckbox(index = 0) {
+    // The palette renders at top: 0, then moves into place once a ResizeObserver reports its height.
+    // Cypress sees that move as animation, so wait until the checkbox stays in one place before returning it.
+    let lastTop: number | undefined
+    return cy.get("[data-testid=map-layers-checkbox-hot-spot]").eq(index).should($el => {
+      const { top } = $el[0].getBoundingClientRect()
+      const isStable = top === lastTop
+      lastTop = top
+      expect(isStable, "hot spot checkbox position is stable").to.equal(true)
+    })
+  },
   selectHideUnselectedCases() {
-    cy.get("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
+    cy.get("[data-testid=inspector-menu-hide-show]").should("be.visible").then(() => {
       cy.get("[data-testid=hide-unselected-cases]").click()
       cy.get("[data-testid=hide-unselected-cases]").should("not.exist")
-      cy.get("[data-testid=hide-show-menu-list]").should("not.exist")
+      cy.get("[data-testid=inspector-menu-hide-show]").should("not.exist")
     })
   },
   getShowAllCases() {
     return cy.get("[data-testid=show-all-cases]")
   },
   selectShowAllCases() {
-    cy.get("[data-testid=hide-show-menu-list]").should("be.visible").then(() => {
+    cy.get("[data-testid=inspector-menu-hide-show]").should("be.visible").then(() => {
       cy.get("[data-testid=show-all-cases]").click()
       cy.get("[data-testid=show-all-cases]").should("not.exist")
-      cy.get("[data-testid=hide-show-menu-list]").should("not.exist")
+      cy.get("[data-testid=inspector-menu-hide-show]").should("not.exist")
     })
   }
 }

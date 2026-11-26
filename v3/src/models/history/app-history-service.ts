@@ -1,32 +1,71 @@
 import { getRoot, IActionContext } from "mobx-state-tree"
 import { withUndoRedoStrings } from "./codap-undo-types"
-import { IApplyModelChangeOptions, IHistoryService, IWithoutUndoOptions } from "./history-service"
+import { IApplyModelChangeOptions, IHistoryService, INotify, IWithoutUndoOptions } from "./history-service"
 import { ILogFunctionEnv } from "../../lib/log-message"
 import { DEBUG_UNDO } from "../../lib/debug"
-import { ICoreNotifyFunctionEnv } from "../../data-interactive/notification-core-types"
-import { isChildOfUndoRedo, runningCalls } from "./tree-types"
+import { ICoreNotification, ICoreNotifyFunctionEnv } from "../../data-interactive/notification-core-types"
+import { sendNotice } from "../../data-interactive/notification-batch"
+import { getNotificationRequesterTileId } from "../../data-interactive/notification-requester"
+import { isDataContextChangeNotice } from "../../data-interactive/notification-utils"
+import { isAnsweringUndoRedo } from "../../data-interactive/undo-redo-answer"
+import { getRunningActionCall, isChildOfUndoRedo, isUndoingOrRedoing, runningCalls } from "./tree-types"
 import { withoutUndo } from "./without-undo"
 
 interface IDependencies extends
   Partial<ILogFunctionEnv>, Partial<ICoreNotifyFunctionEnv>
 {}
 
+// The notifications an INotify describes, built now
+function resolveNotifications(notify?: INotify): ICoreNotification[] {
+  const actualNotifications = notify instanceof Function ? notify() : notify
+  if (!actualNotifications) return []
+  const notificationArray = Array.isArray(actualNotifications) ? actualNotifications : [actualNotifications]
+  return notificationArray
+    .map(_notification => typeof _notification === "function" ? _notification() : _notification)
+    .filter(_notification => !!_notification)
+}
+
 export class AppHistoryService implements IHistoryService {
   tileEnv?: IDependencies
+  // the notices to send when a history entry is undone or redone, by entry id. They hold callbacks, so they
+  // can't be kept on the (MST) history entry itself.
+  private entryNotices = new Map<string, { undo: ICoreNotification[], redo: ICoreNotification[] }>()
 
   setDependencies(dependencies: IDependencies) {
     this.tileEnv = dependencies
   }
 
   handleApplyModelChange(options?: IApplyModelChangeOptions) {
-    const { log, notify, notifyTileId, excludeTileId, noDirty, undoStringKey, redoStringKey, suppressWarning } =
-      options || {}
+    const {
+      log, notify, notifyTileId, excludeTileId, noDirty, keepRedo, undoStringKey, redoStringKey, suppressWarning
+    } = options || {}
 
     // Add strings to undoable action or keep out of the undo stack
     if (undoStringKey != null && redoStringKey != null) {
       withUndoRedoStrings(undoStringKey, redoStringKey)
     } else {
       withoutUndo({ noDirty, suppressWarning })
+      // Mark the entry (the outermost action's) to clear the redo list when it completes, unless the change
+      // doesn't dirty the document or is made while undoing or redoing, or by a plugin answering undoAction or
+      // redoAction (undo-redo-answer.ts). TreeManager.completeHistoryEntry also skips entries that don't dirty
+      // the document, such as a noDirty change wrapping one made without options.
+      const env = getRunningActionCall()?.env
+      if (env && !noDirty && !keepRedo && !isUndoingOrRedoing() &&
+          !isAnsweringUndoRedo(getNotificationRequesterTileId())) {
+        env.clearsRedo = true
+      }
+    }
+
+    // Keep the notices to send when this change is undone or redone
+    const { undoNotify, redoNotify } = options || {}
+    const historyEntryId = (undoNotify || redoNotify) && getRunningActionCall()?.env?.historyEntryId
+    if (historyEntryId) {
+      // several changes in one entry: undo reverses them, so their undo notices go out last change first
+      const prior = this.entryNotices.get(historyEntryId)
+      this.entryNotices.set(historyEntryId, {
+        undo: [...resolveNotifications(undoNotify), ...(prior?.undo ?? [])],
+        redo: [...(prior?.redo ?? []), ...resolveNotifications(redoNotify)]
+      })
     }
 
     // Send log message to logger
@@ -40,21 +79,30 @@ export class AppHistoryService implements IHistoryService {
 
     // Broadcast notifications to plugins
     if (notify && this.tileEnv?.notify) {
-      // Convert notifications to INotification[]
-      const actualNotifications = notify instanceof Function ? notify() : notify
-      if (actualNotifications) {
-        const notificationArray = Array.isArray(actualNotifications) ? actualNotifications : [actualNotifications]
-
-        // Actually broadcast the notifications
-        for (const _notification of notificationArray) {
-          const __notification = typeof _notification === "function" ? _notification() : _notification
-          if (__notification) {
-            const { message, callback } = __notification
-            this.tileEnv.notify(message, callback ?? (() => null), notifyTileId, excludeTileId)
-          }
-        }
+      for (const { message, callback } of resolveNotifications(notify)) {
+        // a plugin isn't sent the data context change notices broadcast while its own request is being
+        // handled (see notification-requester.ts)
+        const _excludeTileId = excludeTileId ??
+          (isDataContextChangeNotice(message.resource) ? getNotificationRequesterTileId() : undefined)
+        sendNotice(this.tileEnv.notify, message, callback ?? (() => null), notifyTileId, _excludeTileId)
       }
     }
+  }
+
+  // Forget the notices of entries no longer in the undo history
+  pruneUndoRedoNotices(historyEntryIds: Set<string>) {
+    Array.from(this.entryNotices.keys()).forEach(id => {
+      if (!historyEntryIds.has(id)) this.entryNotices.delete(id)
+    })
+  }
+
+  // Send every plugin the notices kept for a history entry that was just undone or redone. Nobody requested
+  // the undo or redo, so nobody is left out.
+  sendUndoRedoNotices(historyEntryId: string | undefined, operation: "undo" | "redo") {
+    const notices = historyEntryId ? this.entryNotices.get(historyEntryId)?.[operation] : undefined
+    // held with the document notice that precedes them, while a batch is open (see notification-batch.ts)
+    const notify = this.tileEnv?.notify
+    if (notify) notices?.forEach(({ message, callback }) => sendNotice(notify, message, callback ?? (() => null)))
   }
 
   withoutUndo(actionCall: IActionContext, options?: IWithoutUndoOptions) {

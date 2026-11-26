@@ -28,7 +28,7 @@ Player forwarding, and the Data Interactive log monitor API for plugins.
            ├─→ sendToLoggingService()                → matching plugins
            │     POST logger.concordqa.org/logs
            │
-           ├─→ sendToAnalyticsService()
+           ├─→ sendToAnalyticsService()  [skipped if excludeAnalytics; args only if in analyticsArgs]
            │     window.gtag("event", ...)
            │
            └─→ logListeners.forEach(listener)
@@ -80,11 +80,13 @@ applyModelChange(() => { /* model mutation */ }, {
 
 The history service extracts the `log` option and routes it to `Logger.log()`.
 
-`Logger.formatAndSend()` delivers each log message to three destinations:
+`Logger.formatAndSend()` delivers each log message to three destinations (GA is skipped
+for events logged with the `excludeAnalytics` option):
 
 1. **Log server** — POST to `logger.concordqa.org/logs` (domain-gated to
    `*.concord.org` hosts, with a `DEBUG_LOGGER` localStorage override)
-2. **Google Analytics** — `window.gtag("event", ...)` with filename and URL
+2. **Google Analytics** — `window.gtag("event", ...)` with a limited set of args
+   (only those named in the `analyticsArgs` option), sent as top-level event parameters
 3. **Log listeners** — registered callbacks for extensibility
 
 Key features:
@@ -100,6 +102,50 @@ Key features:
   anonymous session tracking.
 - **`resetForTesting()`**: Static method that clears the singleton, pending
   messages, and pending listeners for test isolation.
+- **`excludeAnalytics` option**: `Logger.log(event, args, category, { excludeAnalytics: true })`
+  sends the event to the log server and log listeners but not to GA. The option is kept
+  for events queued before initialization. It is used by the `GA status` event below.
+- **`analyticsArgs` option**: `Logger.log(event, args, category, { analyticsArgs: ["url"] })`
+  names the args sent to GA. By default GA gets the event with no args, while the log
+  server and log listeners always get all of them. The banner events use it.
+
+### Google Analytics
+
+CODAP v3 reports to the `CODAP - GA4` property (measurement ID `G-ZYRHG9RN3K`). The
+property also has a stream for the codap.concord.org WordPress site, so filter reports
+by stream when the distinction matters.
+
+GA4 only reports an event parameter once it is registered as an event-scoped custom
+dimension (Admin → Data display → Custom definitions), and only from the date it is
+registered. When sending a new arg via `analyticsArgs`, register a dimension whose
+event parameter matches the arg name exactly. A property allows 50 such dimensions, and
+the WordPress site's MonsterInsights plugin already uses 27 of them, so prefer generic,
+reusable names (`url`, `filename`) over event-specific ones. Currently registered for
+CODAP: `bannerId`, `url`.
+
+Don't send args that may identify a user, such as document names or URLs a user entered
+(documents, web views). Students as young as middle school use CODAP.
+
+`DEBUG_LOGGER` shows the payload passed to `gtag()`, before gtag serializes it, so it
+can't confirm what GA receives. To verify, check the `ep.*` parameters of the
+`/g/collect` request in the browser's network tab, or use GA's Realtime report or DebugView.
+
+### GA Status Event
+
+**File:** `src/lib/ga-status.ts`
+
+To measure how often GA is blocked (e.g. by school content filters), `logGAStatus()` runs
+once per page load, after `Logger.initializeLogger()`, and logs one `GA status` event with
+`{ status, waitMs }`:
+
+| `status` | Meaning |
+|----------|---------|
+| `loaded` | The real gtag.js ran: it called back from `gtag("get", <id>, "client_id", callback)`. The placeholder `gtag()` in `index.html` only queues calls, so its existence proves nothing. |
+| `blocked` | The GA script tag's `onerror` handler set `window.codapGAScriptError` (e.g. a DNS block, or an error status such as a 403 block page). |
+| `timeout` | Neither happened within 10 seconds (e.g. a filter served its own page with a 200 status, or a very slow network). |
+
+`waitMs` is the time from the start of the check, not from page load. The event uses
+`excludeAnalytics`, because it is useless in GA: when GA is blocked, the event can't reach it.
 
 ### Layer 2: CFM Integration (LARA/Activity Player Forwarding)
 
@@ -134,7 +180,7 @@ Each channel has a single responsibility:
 |---------|---------|
 | `cfmClient.log()` (via listener) | Forward all logs to LARA/AP (via PR #419) |
 | `logLaraData` provider callback | Extract `run_remote_endpoint` from LARA data |
-| `Logger` → log server + GA | Direct logging to Concord servers (unchanged) |
+| `Logger` → log server + GA | Direct logging to Concord servers; GA is skipped for `excludeAnalytics` events |
 | `appOptions.log` | No-op (loop prevention) |
 | CFM `"log"` event listener | Commented out (not needed) |
 
@@ -227,7 +273,7 @@ The `logMessageNotice` payload delivered to matching plugins:
 | Application ID | `"CODAP"` | `"CODAPV3"` (temporary, see below) |
 | Session format | `YYMMDDHHMMSS-random` or `runKey` | `nanoid()` or `runKey` |
 | Log message format | Printf-style `%@` substitution | `ILogMessage { message, args, category }` |
-| Analytics | `ga('send', 'event', ...)` | `gtag('event', ...)` (limited to filename/URL) |
+| Analytics | `ga('send', 'event', ...)` | `gtag('event', ...)` (args only via `analyticsArgs`) |
 | Framework | SproutCore observer system | MobX-State-Tree + React |
 | LARA forwarding | Not present | Logger listener → `cfmClient.log()` → PR #419 → lara-interactive-api |
 | `appOptions.log` | Routes CFM events to `DG.logUser()` | No-op (loop prevention) |
@@ -267,6 +313,8 @@ using a Logger listener that calls `cfmClient.log()`.
 |------|------|
 | `src/lib/logger.ts` | Core Logger singleton — log server, GA, listener dispatch |
 | `src/lib/logger.test.ts` | Logger unit tests |
+| `src/lib/ga-status.ts` | Logs whether GA loaded or was blocked (`GA status` event) |
+| `src/lib/ga-status.test.ts` | GA status unit tests |
 | `src/lib/cfm/cfm-log-utils.ts` | `handleLogLaraData` helper |
 | `src/lib/cfm/cfm-log-utils.test.ts` | CFM log utility tests |
 | `src/lib/cfm/use-cloud-file-manager.ts` | CFM configuration — `logLaraData` callback, LARA forwarding listener |

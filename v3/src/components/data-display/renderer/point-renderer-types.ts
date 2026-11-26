@@ -25,6 +25,14 @@ export interface IPointStyle {
 }
 
 /**
+ * The parts of a new point's style that come from its case (e.g. its legend color, shape and selection),
+ * overriding the uniform style a match applies, so a point a match adds is drawn as the next style
+ * refresh would draw it rather than in the uniform style until then. Existing points keep their styles
+ * until that refresh.
+ */
+export type GetCasePointStyle = (caseData: CaseDataWithSubPlot) => Partial<IPointStyle>
+
+/**
  * Metadata associated with each point
  */
 export interface IPointMetadata extends CaseData {
@@ -92,6 +100,10 @@ export interface IPointState {
   style: IPointStyle
   isRaised: boolean
   isVisible: boolean
+  // false until the point's position is first set; renderers don't draw a point without one (except in
+  // Pixi's fused-bars layer), which would otherwise appear at (0, 0) until the next position refresh
+  // places it
+  isPositioned: boolean
 }
 
 /**

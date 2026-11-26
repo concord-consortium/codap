@@ -78,7 +78,9 @@ export class GraphController {
         stopAnimation = graphModel.stopAnimation
       dataConfiguration && matchCirclesToData({
         dataConfiguration, renderer, pointDisplayType, pointShape: graphModel.pointDescription.pointShape,
-        pointRadius, startAnimation, stopAnimation, instanceId, pointColor, pointStrokeColor
+        pointRadius, startAnimation, stopAnimation, instanceId, pointColor, pointStrokeColor,
+        selectedPointRadius: graphModel.getPointRadius('select'),
+        getPointColorAtIndex: graphModel.pointDescription.pointColorAtIndex
       })
     }
   }

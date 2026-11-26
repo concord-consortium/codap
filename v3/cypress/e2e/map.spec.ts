@@ -68,9 +68,6 @@ context("Map UI", () => {
     map.getHideShowButton().then($element => {
       c.checkReactAriaToolTip($element, c.tooltips.mapHideShowButton)
     })
-    map.getDisplayValuesButton().then($element => {
-      c.checkReactAriaToolTip($element, c.tooltips.mapDisplayValuesButton)
-    })
     map.getDisplayConfigButton().then($element => {
       c.checkReactAriaToolTip($element, c.tooltips.mapDisplayConfigButton)
     })
@@ -171,6 +168,7 @@ context("Map UI", () => {
     map.getHideUnselectedCases().should("not.have.attr", "aria-disabled")
     map.getShowAllCases().should("have.attr", "aria-disabled", "true")
   })
+
   it("checks heatmap", () => {
     cfm.openLocalDoc(filename1)
     c.getIconFromToolShelf("map").click()
@@ -197,14 +195,12 @@ context("Map UI", () => {
     map.getHeatmapCanvas().should("exist")
 
     // Hidden when points are hidden
-    map.getDisplayValuesButton().click()
-    map.getInspectorPalette().contains("Points").click()
+    cy.get("[data-testid^=map-layers-checkbox-points-]").click()
     map.getHeatmapCanvas().should("not.exist")
-    map.getInspectorPalette().contains("Points").click()
+    cy.get("[data-testid^=map-layers-checkbox-points-]").click()
     map.getHeatmapCanvas().should("exist")
 
     // Hidden when points are toggled
-    map.getDisplayConfigButton().click()
     map.getHeatmapBullet("points").should("exist")
     map.getHeatmapBullet("points").click()
     map.getHeatmapCanvas().should("not.exist")
@@ -216,6 +212,7 @@ context("Map UI", () => {
     mlh.removeAttributeFromLegend("Length")
     map.getHeatmapCanvas().should("not.exist")
   })
+
   it("checks map pins", () => {
     c.getIconFromToolShelf("table").click()
     toolbar.getNewCaseTable().click()
@@ -281,15 +278,14 @@ context("Map UI", () => {
     map.getMapPin().should("have.class", "selected-pin")
     table.getSelectedRows().should("have.length", 1)
 
-    cy.log("Can hide pins using the ruler menu")
-    map.getDisplayValuesButton().click()
-    map.getInspectorPalette().contains("Pins").click()
+    cy.log("Can hide pins using the Pins checkbox in the layers menu")
+    map.getDisplayConfigButton().click()
+    cy.get("[data-testid^=map-layers-checkbox-pins-]").click()
     map.getMapPins().should("not.exist")
-    map.getInspectorPalette().contains("Pins").click()
+    cy.get("[data-testid^=map-layers-checkbox-pins-]").click()
     map.getMapPin().should("exist")
 
-    cy.log("Can hide pins using the layers menu")
-    map.getDisplayConfigButton().click()
+    cy.log("Can hide pins using the layer checkbox in the layers menu")
     map.getInspectorPalette().contains(/cases/i).click()
     map.getMapPins().should("not.exist")
     map.getInspectorPalette().contains(/cases/i).click()
@@ -415,6 +411,41 @@ context("Map UI", () => {
     mlh.selectCategoryColorForCategoricalLegend(arrayOfValues[0].values[1])
     mlh.verifyCategoricalLegendKeySelected(arrayOfValues[0].values[1], arrayOfValues[0].selected[1])
   })
+
+  it("shows the base map layer's attribution with 'Powered by Esri'", () => {
+    cfm.openLocalDoc(filename1)
+    c.getIconFromToolShelf("map").click()
+    map.getMapTile().should("exist")
+    c.selectTile("map", 0)
+    map.getDisplayConfigButton().should("exist")
+
+    cy.log("default (Topo) layer shows its attribution and 'Powered by Esri'")
+    map.getAttribution().should("contain.text", "Powered by Esri")
+    map.getAttribution().should("contain.text", "Intermap, increment P Corp.")
+    map.getAttribution().find('a[href="https://www.esri.com"]').should("exist")
+
+    cy.log("each base layer shows its own attribution")
+    map.getDisplayConfigButton().should("exist").click()
+    map.getBaseLayerButton("oceans").click()
+    map.getAttribution().should("contain.text", "NOAA NGDC, and other contributors")
+    map.getAttribution().should("not.contain.text", "Intermap")
+    map.getAttribution().should("contain.text", "Powered by Esri")
+
+    map.getBaseLayerButton("streets").click()
+    map.getAttribution().should("contain.text", "Esri (Thailand)")
+    map.getAttribution().should("contain.text", "Powered by Esri")
+
+    cy.log("hiding the base layer removes the Esri attribution")
+    map.getBaseLayerCheckbox().click()
+    map.getAttribution().should("not.contain.text", "Powered by Esri")
+    map.getAttribution().should("not.contain.text", "Esri (Thailand)")
+
+    cy.log("showing it again restores the Esri attribution")
+    map.getBaseLayerCheckbox().click()
+    map.getAttribution().should("contain.text", "Powered by Esri")
+    map.getAttribution().should("contain.text", "Esri (Thailand)")
+  })
+
   it("shows connecting lines when Connecting Lines option is checked", () => {
     cfm.openLocalDoc(filename1)
     c.getIconFromToolShelf("map").click()
@@ -422,20 +453,52 @@ context("Map UI", () => {
     cy.wait(2000)  // Wait for map renderer to initialize
     cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 0)
     // Verify map is selected by checking for map-specific inspector button
-    map.getDisplayValuesButton().should("exist").click()
-    cy.get("[data-testid^=map-values-lines-checkbox]").should("be.visible")
-    cy.get("[data-testid^=map-values-lines-checkbox]").click()
+    map.getDisplayConfigButton().should("exist").click()
+    cy.get("[data-testid^=map-layers-checkbox-lines-]").should("be.visible")
+    cy.get("[data-testid^=map-layers-checkbox-lines-]").click()
     cy.wait(2000)
     cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 1)
-    cy.get("[data-testid^=map-values-lines-checkbox]").click()
+    cy.get("[data-testid^=map-layers-checkbox-lines-]").click()
     cy.wait(2000)
     cy.get("[data-testid=connecting-lines-map-1").find("path").should("have.length", 0)
+  })
+
+  it("shows and hides points and the grid from the Layers palette", () => {
+    cfm.openLocalDoc(filename1)
+    c.getIconFromToolShelf("map").click()
+    c.selectTile("map", 0)
+
+    const pointRenderer = (tileId: string) => cy.window().its("rendererArrayMap").its(tileId).its(0)
+    const pointsAreVisible = (tileId: string) => pointRenderer(tileId).its("isVisible")
+
+    mch.getMapTileId().then(tileId => {
+      // `its` retries until the renderer exists and has its points, so no fixed wait is needed
+      pointRenderer(tileId).its("pointsCount").should("be.greaterThan", 0)
+      map.getDisplayConfigButton().click()
+
+      cy.log("Points checkbox hides and shows the points")
+      pointsAreVisible(tileId).should("eq", true)
+      cy.get("[data-testid^=map-layers-checkbox-points-]").click()
+      pointsAreVisible(tileId).should("eq", false)
+      // the point formatting options are disabled while the points are hidden
+      cy.get("[data-testid=stroke-same-as-fill-checkbox]").should("have.attr", "data-disabled")
+      cy.get("[data-testid^=map-layers-checkbox-points-]").click()
+      pointsAreVisible(tileId).should("eq", true)
+      cy.get("[data-testid=stroke-same-as-fill-checkbox]").should("not.have.attr", "data-disabled")
+    })
+
+    cy.log("Grid checkbox shows and hides the grid")
+    map.getMapTile().find(".leaflet-rectangle").should("not.exist")
+    cy.get("[data-testid^=map-layers-checkbox-grid-]").click()
+    map.getMapTile().find(".leaflet-rectangle").should("have.length.greaterThan", 0)
+    cy.get("[data-testid^=map-layers-checkbox-grid-]").click()
+    map.getMapTile().find(".leaflet-rectangle").should("not.exist")
   })
 })
 
 const apiTesterUrl='https://concord-consortium.github.io/codap-data-interactives/DataInteractiveAPITester/index.html?lang=en'
 const openAPITester = () => {
-  c.clickIconFromToolShelf("web page")
+  c.clickIconFromToolShelf("web-view")
   webView.enterUrl(apiTesterUrl)
   cy.wait(1000)
 }
@@ -646,5 +709,21 @@ context("Map Resizing", () => {
       expect(bounds.getSouth()).to.be.within(-16, 12)
       expect(bounds.getWest()).to.be.within(-5, -1)
     })
+  })
+})
+
+context("Map hot spots", () => {
+  beforeEach(() => {
+    const queryParams = "?mouseSensor&suppressUnsavedWarning&features=mapHotSpot#file=examples:Four%20Seals"
+    cy.visit(`${Cypress.config("index")}${queryParams}`)
+  })
+
+  it("adds and removes the hot spot canvas", () => {
+    c.selectTile("map", 0)
+    map.getDisplayConfigButton().click()
+    map.getHotSpotCheckbox().click()
+    map.getMapTile().find(".codap-hot-spot-canvas").should("exist")
+    map.getHotSpotCheckbox().click()
+    map.getMapTile().find(".codap-hot-spot-canvas").should("not.exist")
   })
 })

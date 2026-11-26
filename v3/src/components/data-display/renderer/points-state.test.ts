@@ -431,6 +431,25 @@ describe("PointsState", () => {
       expect(state.size).toBe(3)
     })
 
+    it("styles each added point with its own style, leaving existing points alone", () => {
+      const existingId = state.addPoint(createCaseData(0, "case1"), defaultStyle)
+      const caseDataArray = [createCaseData(0, "case1"), createCaseData(0, "case2")]
+      const getCasePointStyle = (caseData: CaseDataWithSubPlot) => ({ fill: `color-${caseData.caseID}` })
+
+      const { added } = state.syncWithCaseData(caseDataArray, defaultStyle, getCasePointStyle)
+
+      expect(state.getPoint(added[0])?.style.fill).toBe("color-case2")
+      expect(state.getPoint(added[0])?.style.radius).toBe(defaultStyle.radius)
+      expect(state.getPoint(existingId)?.style.fill).toBe(defaultStyle.fill)
+    })
+
+    it("adds points without a position until one is set", () => {
+      const { added } = state.syncWithCaseData([createCaseData(0, "case1")], defaultStyle)
+      expect(state.getPoint(added[0])?.isPositioned).toBe(false)
+      state.updatePointPosition(added[0], 10, 20)
+      expect(state.getPoint(added[0])?.isPositioned).toBe(true)
+    })
+
     it("removes points not in case data array", () => {
       const id1 = state.addPoint(createCaseData(0, "case1"), defaultStyle)
       const id2 = state.addPoint(createCaseData(0, "case2"), defaultStyle)

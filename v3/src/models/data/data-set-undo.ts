@@ -314,7 +314,8 @@ export function removeCasesWithCustomUndoRedo(data: IDataSet, caseIds: string[])
 
   function completeBatch() {
     if (nextBatch.items.length) {
-      nextBatch.beforeId = data.getItemAtIndex(lastIndex + 1)?.__id__
+      // lastIndex is a full index, so the item to restore before is the next one in _itemIds, hidden or not
+      nextBatch.beforeId = data._itemIds[lastIndex + 1]
       undoRedoPatch.data.batches.push({...nextBatch})
     }
   }
@@ -364,7 +365,6 @@ interface ISortItemsCustomPatch extends ICustomPatch {
     attrId: string
     direction: "ascending" | "descending"
     beforeItemIds: string[]
-    itemIdToIndexMap: Record<string, { beforeIndex: number, afterIndex: number }>
   }
 }
 function isSortItemsCustomPatch(patch: ICustomPatch): patch is ISortItemsCustomPatch {
@@ -374,12 +374,15 @@ function isSortItemsCustomPatch(patch: ICustomPatch): patch is ISortItemsCustomP
 const sortItemsCustomUndoRedo: ICustomUndoRedoPatcher = {
   undo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
     if (isSortItemsCustomPatch(patch)) {
-      const { dataId, beforeItemIds, itemIdToIndexMap } = patch.data
+      const { dataId, beforeItemIds } = patch.data
       const data = resolveIdentifier<typeof DataSet>(DataSet, node, dataId)
+      if (!data) return
 
-      const afterIndices = beforeItemIds.map(itemId => itemIdToIndexMap[itemId].afterIndex)
-      data?.attributes.forEach(attr => attr.orderValues(afterIndices))
-      data?._itemIds.replace(beforeItemIds)
+      // restore by item id, since non-undoable plugin changes can come between (deleted items skipped, added ones last)
+      const current = new Set(data._itemIds)
+      const restored = beforeItemIds.filter(itemId => current.has(itemId))
+      const restoredSet = new Set(restored)
+      data.setItemOrder(restored.concat(data._itemIds.filter(itemId => !restoredSet.has(itemId))))
     }
   },
   redo: (node: IAnyStateTreeNode, patch: ICustomPatch, entry: HistoryEntryType) => {
@@ -400,8 +403,7 @@ export function sortItemsWithCustomUndoRedo(data: IDataSet, attrId: string, dire
       dataId: data.id,
       attrId,
       direction,
-      beforeItemIds: Array.from(data._itemIds),
-      itemIdToIndexMap: {}  // filled in later
+      beforeItemIds: Array.from(data._itemIds)
     }
   }
 
@@ -409,7 +411,7 @@ export function sortItemsWithCustomUndoRedo(data: IDataSet, attrId: string, dire
   data?.applyModelChange(() => {
     withCustomUndoRedo(undoRedoPatch, sortItemsCustomUndoRedo)
 
-    undoRedoPatch.data.itemIdToIndexMap = data?.sortByAttribute(attrId, direction) ?? {}
+    data?.sortByAttribute(attrId, direction)
   }, {
     log: logStringifiedObjectMessage("Sort cases by attribute: %@",
             { attributeId: attrId, attribute: data?.getAttribute(attrId)?.name }),
@@ -417,4 +419,65 @@ export function sortItemsWithCustomUndoRedo(data: IDataSet, attrId: string, dire
     undoStringKey: "DG.Undo.caseTable.sortCases",
     redoStringKey: "DG.Redo.caseTable.sortCases"
   })
+}
+
+/*
+ * set aside / restore custom undo/redo
+ *
+ * The set-aside list is an array, so its standard patches are by position. A plugin's set-aside changes
+ * (a case delete that takes its set-aside items, a restore) aren't on the history, so they shift those
+ * positions and the user's earlier entries would undo or redo the wrong items. These entries record the item
+ * ids each change set aside and restored instead, and skip items deleted since.
+ */
+interface ISetAsideCustomPatch extends ICustomPatch {
+  type: "DataSet.setAside",
+  data: {
+    dataId: string  // DataSet id
+    setAsideIds: string[]   // the items the change set aside
+    restoredIds: string[]   // the items the change restored
+  }
+}
+function isSetAsideCustomPatch(patch: ICustomPatch): patch is ISetAsideCustomPatch {
+  return patch.type === "DataSet.setAside"
+}
+
+function setAsideItems(data: IDataSet, setAsideIds: string[], restoredIds: string[]) {
+  // hideCasesOrItems and showHiddenCasesAndItems skip items that no longer exist
+  data.showHiddenCasesAndItems(restoredIds)
+  data.hideCasesOrItems(setAsideIds)
+}
+
+const setAsideCustomUndoRedo: ICustomUndoRedoPatcher = {
+  undo: (node: IAnyStateTreeNode, patch: ICustomPatch) => {
+    if (isSetAsideCustomPatch(patch)) {
+      const { dataId, setAsideIds, restoredIds } = patch.data
+      const data = resolveIdentifier<typeof DataSet>(DataSet, node, dataId)
+      if (data) setAsideItems(data, restoredIds, setAsideIds)
+    }
+  },
+  redo: (node: IAnyStateTreeNode, patch: ICustomPatch) => {
+    if (isSetAsideCustomPatch(patch)) {
+      const { dataId, setAsideIds, restoredIds } = patch.data
+      const data = resolveIdentifier<typeof DataSet>(DataSet, node, dataId)
+      if (data) setAsideItems(data, setAsideIds, restoredIds)
+    }
+  }
+}
+
+// Called within an undoable change that sets items aside or restores them; makes it undo and redo by item id.
+// The custom patch replaces the history entry's standard patches, so the entry must change nothing undoable
+// but the set-aside list: undo and redo would leave anything else as it is.
+export function withSetAsideUndoRedo(data: IDataSet, change: () => void) {
+  const before = new Set(data.setAsideItemIds)
+  change()
+  const after = new Set(data.setAsideItemIds)
+  const setAsideIds = Array.from(after).filter(itemId => !before.has(itemId))
+  const restoredIds = Array.from(before).filter(itemId => !after.has(itemId))
+  // a change that set nothing aside and restored nothing leaves no undo entry
+  if (setAsideIds.length || restoredIds.length) {
+    withCustomUndoRedo<ISetAsideCustomPatch>({
+      type: "DataSet.setAside",
+      data: { dataId: data.id, setAsideIds, restoredIds }
+    }, setAsideCustomUndoRedo)
+  }
 }

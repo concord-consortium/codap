@@ -1,4 +1,4 @@
-import { getChoroplethColors, interpolateColors, parseColor, parseColorToHex } from "./color-utils"
+import { getChoroplethColors, interpolateRgba, parseColor, parseColorToHex } from "./color-utils"
 
 describe("Color utilities", () => {
   it("parseColor works as expected without color names", () => {
@@ -16,7 +16,7 @@ describe("Color utilities", () => {
     expect(parseColor("#ff0000")).toBe("#ff0000")
     expect(parseColor("#00ff0080")).toBe("#00ff0080")
     expect(parseColor("#00f")).toBe("#0000ff")
-    expect(parseColor("#00f8")).toBe("#0000ff87")
+    expect(parseColor("#00f8")).toBe("#0000ff88")
 
     // supports rgb()
     expect(parseColor("rgb(0, 255, 0)")).toBe("#00ff00")
@@ -45,7 +45,7 @@ describe("Color utilities", () => {
     expect(parseColor("#ff0000", { colorNames: true })).toBe("#ff0000")
     expect(parseColor("#00ff0080", { colorNames: true })).toBe("#00ff0080")
     expect(parseColor("#00f", { colorNames: true })).toBe("#0000ff")
-    expect(parseColor("#00f8", { colorNames: true })).toBe("#0000ff87")
+    expect(parseColor("#00f8", { colorNames: true })).toBe("#0000ff88")
 
     // supports rgb()
     expect(parseColor("rgb(0, 255, 0)", { colorNames: true })).toBe("#00ff00")
@@ -75,7 +75,7 @@ describe("Color utilities", () => {
     expect(parseColorToHex("#ff0000")).toBe("#ff0000")
     expect(parseColorToHex("#00ff0080")).toBe("#00ff0080")
     expect(parseColorToHex("#00f")).toBe("#0000ff")
-    expect(parseColorToHex("#00f8")).toBe("#0000ff87")
+    expect(parseColorToHex("#00f8")).toBe("#0000ff88")
 
     // supports rgb()
     expect(parseColorToHex("rgb(0, 255, 0)")).toBe("#00ff00")
@@ -104,7 +104,7 @@ describe("Color utilities", () => {
     expect(parseColorToHex("#ff0000", { colorNames: true })).toBe("#ff0000")
     expect(parseColorToHex("#00ff0080", { colorNames: true })).toBe("#00ff0080")
     expect(parseColorToHex("#00f", { colorNames: true })).toBe("#0000ff")
-    expect(parseColorToHex("#00f8", { colorNames: true })).toBe("#0000ff87")
+    expect(parseColorToHex("#00f8", { colorNames: true })).toBe("#0000ff88")
 
     // supports rgb()
     expect(parseColorToHex("rgb(0, 255, 0)", { colorNames: true })).toBe("#00ff00")
@@ -119,23 +119,12 @@ describe("Color utilities", () => {
     expect(parseColorToHex("hsl(460, 50%, 50%)", { colorNames: true })).toBe("#6abf40")
   })
 
-  it("interpolateColors interpolates RGB and alpha", () => {
-    // RGB interpolation between two opaque colors
-    expect(interpolateColors("#000000", "#ffffff", 0)).toBe("#000000")
-    expect(interpolateColors("#000000", "#ffffff", 1)).toBe("#ffffff")
-    expect(interpolateColors("#000000", "#ffffff", 0.5)).toBe("#808080")
-
-    // Opaque endpoints stay opaque (no 8-digit hex suffix introduced)
-    expect(interpolateColors("#ff0000", "#0000ff", 0.5)).toBe("#800080")
-
-    // Alpha interpolates linearly alongside RGB (CODAP-1385)
-    // fully opaque -> fully transparent at midpoint = 50% alpha
-    expect(interpolateColors("#ff0000ff", "#ff000000", 0.5)).toBe("#ff000080")
-    // both endpoints transparent: midpoint alpha lies between them
-    expect(interpolateColors("#ff000000", "#ff0000ff", 0.25)).toBe("#ff000040")
-    // alpha-only difference is preserved at the endpoints
-    expect(interpolateColors("#ff0000ff", "#ff000000", 0)).toBe("#ff0000")
-    expect(interpolateColors("#ff0000ff", "#ff000000", 1)).toBe("#ff000000")
+  it("interpolateRgba returns unrounded numeric RGBA", () => {
+    expect(interpolateRgba("#000000", "#ffffff", 0)).toEqual({ r: 0, g: 0, b: 0, a: 1 })
+    expect(interpolateRgba("#000000", "#ffffff", 1)).toEqual({ r: 255, g: 255, b: 255, a: 1 })
+    expect(interpolateRgba("#000000", "#ffffff", 0.5)).toEqual({ r: 127.5, g: 127.5, b: 127.5, a: 1 })
+    // alpha interpolates alongside RGB
+    expect(interpolateRgba("#ff0000ff", "#ff000000", 0.25)).toEqual({ r: 255, g: 0, b: 0, a: 0.75 })
   })
 
   it("getChoroplethColors propagates alpha across all five stops", () => {
@@ -166,5 +155,17 @@ describe("getChoroplethColors", () => {
     expect(three[0]).toBe("#000000")
     expect(three[2]).toBe("#ffffff")
     expect(getChoroplethColors("#000000", "#ffffff", 7)).toHaveLength(7)
+  })
+
+  // Other libraries (e.g. pixi.js) register colord's names plugin globally, which must not
+  // make color names parse as strict colors. Keep this test last, since the import persists.
+  it("parseColor and parseColorToHex ignore color names after pixi.js loads", async () => {
+    await import("pixi.js")
+    expect(parseColor("red")).toBe("")
+    expect(parseColor("TOMATO")).toBe("")
+    expect(parseColorToHex("red")).toBe("")
+    expect(parseColor("#ff0000")).toBe("#ff0000")
+    expect(parseColor("red", { colorNames: true })).toBe("red")
+    expect(parseColorToHex("red", { colorNames: true })).toBe("#ff0000")
   })
 })

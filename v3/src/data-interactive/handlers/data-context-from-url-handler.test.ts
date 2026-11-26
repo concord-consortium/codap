@@ -4,6 +4,7 @@ import { gDataBroker } from "../../models/data/data-broker"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
 import { CsvParseResult, downloadCsvFile } from "../../utilities/csv-import"
 import { diDataContextFromURLHandler, getFilenameFromUrl } from "./data-context-from-url-handler"
+import "../../components/case-table/case-table-registration"
 
 jest.mock("../../utilities/csv-import", () => {
   const originalModule = jest.requireActual("../../utilities/csv-import")
@@ -43,9 +44,15 @@ describe("DataInteractive DataContextHandler", () => {
         }, "")
       })
 
-      const result = await handler.create!({}, {URL: "https://example.com"})
-      expect(mockedDownloadCsvFile).toHaveBeenCalled()
-      expect(result.success).toBe(false)
+      const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+      try {
+        const result = await handler.create!({}, {URL: "https://example.com"})
+        expect(mockedDownloadCsvFile).toHaveBeenCalled()
+        expect(result.success).toBe(false)
+        expect(broadcastSpy).not.toHaveBeenCalled()
+      } finally {
+        broadcastSpy.mockRestore()
+      }
     })
 
     it("creates a dataset", async () => {
@@ -66,18 +73,27 @@ describe("DataInteractive DataContextHandler", () => {
         onComplete(parseResult, "")
       })
 
-      expect(gDataBroker.length).toBe(0)
-      const result = await handler.create!({}, {URL: "https://example.com/"})
-      expect(gDataBroker.length).toBe(1)
-      expect(mockedDownloadCsvFile).toHaveBeenCalled()
-      expect(result.success).toBe(true)
-      // There is also an id field, but that is harder to test.
-      expect(result.values).toMatchObject({
-        name: "https://example.com/"
-      })
+      const broadcastSpy = jest.spyOn(appState.document.content!, "broadcastMessage")
+      try {
+        expect(gDataBroker.length).toBe(0)
+        const result = await handler.create!({}, {URL: "https://example.com/"})
+        expect(gDataBroker.length).toBe(1)
+        expect(broadcastSpy.mock.calls).toEqual([[
+          { action: "notify", resource: "documentChangeNotice", values: { operation: "dataContextCountChanged" } },
+          expect.any(Function), undefined, undefined
+        ]])
+        expect(mockedDownloadCsvFile).toHaveBeenCalled()
+        expect(result.success).toBe(true)
+        // There is also an id field, but that is harder to test.
+        expect(result.values).toMatchObject({
+          name: "https://example.com/"
+        })
+      } finally {
+        broadcastSpy.mockRestore()
+      }
     })
 
-    it("imports the dataset without creating a default (case table) tile", async () => {
+    it("opens a case table for the imported dataset by default", async () => {
       gDataBroker.setSharedModelManager(getSharedModelManager(appState.document)!)
       const content = appState.document.content!
       const importSpy = jest.spyOn(content, "importDataSet")
@@ -92,10 +108,31 @@ describe("DataInteractive DataContextHandler", () => {
       })
 
       const tablesBefore = content.getTilesOfType(kCaseTableTileType).length
-      const result = await handler.create!({}, {URL: "https://example.com/mammals.csv"})
+      const result = await handler.create!({}, {URL: "https://example.com/nhanes.csv"})
+      expect(result.success).toBe(true)
+      expect(importSpy).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ createDefaultTile: true }))
+      expect(content.getTilesOfType(kCaseTableTileType).length).toBe(tablesBefore + 1)
+      importSpy.mockRestore()
+    })
+
+    it("imports the dataset without a case table when showCaseTable is false", async () => {
+      gDataBroker.setSharedModelManager(getSharedModelManager(appState.document)!)
+      const content = appState.document.content!
+      const importSpy = jest.spyOn(content, "importDataSet")
+
+      mockedDownloadCsvFile.mockImplementation((url, onComplete, onError) => {
+        const parseResult: CsvParseResult = {
+            data: [{col1: "value1"}],
+            errors: [],
+            meta: { delimiter: "", linebreak: "", aborted: false, truncated: false, cursor: 0 }
+        }
+        onComplete(parseResult, "")
+      })
+
+      const tablesBefore = content.getTilesOfType(kCaseTableTileType).length
+      const result = await handler.create!({}, {URL: "https://example.com/mammals.csv", showCaseTable: false})
       expect(result.success).toBe(true)
       expect(importSpy).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ createDefaultTile: false }))
-      // The import should not add a case table tile.
       expect(content.getTilesOfType(kCaseTableTileType).length).toBe(tablesBefore)
       importSpy.mockRestore()
     })

@@ -1,4 +1,5 @@
 @use "../../vars";
+@use "../../common/attribute-label-states" as label;
 
 .attribute-label {
   font: vars.$label-font !important;
@@ -17,28 +18,26 @@
 }
 
 .attribute-label-arrow path {
-  fill: transparent;
+  @include label.caret-hidden;
 }
 
 // Arrow becomes visible in any active state
 g.tile-selected, g.hovered, g.focused, g.menu-open {
   .attribute-label-arrow path {
-    fill: vars.$accent;
+    @include label.caret-shown;
   }
 }
 
 // Flip arrow when menu is open
 g.menu-open .attribute-label-arrow path {
-  transform-box: fill-box;
-  transform-origin: center;
-  transform: scaleY(-1);
+  @include label.caret-flipped;
 }
 
 // Hover and focus states
 g.hovered, g.focused {
   .attribute-label-bg {
-    fill: vars.$accent-light-3;
-    stroke: vars.$accent;
+    fill: label.$active-fill;
+    stroke: label.$active-border;
   }
 }
 
@@ -51,7 +50,7 @@ g.focused .attribute-label-bg {
 // Selected state (menu open) — darker background
 g.menu-open {
   .attribute-label-bg {
-    fill: vars.$accent-light-2;
-    stroke: vars.$accent;
+    fill: label.$open-fill;
+    stroke: label.$active-border;
   }
 }

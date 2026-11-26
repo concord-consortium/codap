@@ -6,6 +6,9 @@
 ### Versions
 |      Version    |          Release Date |
 |-----------------|-----------------------|
+| [3.2.0](https://codap3.concord.org/version/3.2.0/) | November 25, 2026 |
+| [3.1.2](https://codap3.concord.org/version/3.1.2/) | October 24, 2026 |
+| [3.1.1](https://codap3.concord.org/version/3.1.1/) | October 6, 2026 |
 | [3.1.0](https://codap3.concord.org/version/3.1.0/) | August 5, 2026 |
 | [3.1.0-beta.1](https://codap3.concord.org/version/3.1.0-beta.1/) | July 26, 2026 |
 | [3.0.5](https://codap3.concord.org/version/3.0.5/) | July 18, 2026 |

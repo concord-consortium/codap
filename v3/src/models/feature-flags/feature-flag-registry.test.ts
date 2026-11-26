@@ -21,7 +21,10 @@ describe("owner helpers", () => {
 
   it("returns every flag owned by a project", () => {
     expect([...flagsForOwner("MappingTime")].sort())
-      .toEqual(["legendBinCount", "legendLogarithmic", "legendRange"])
+      .toEqual([
+        "combineDateTime", "legendBinCount", "legendLogarithmic", "legendRange", "mapHotSpot",
+        "selectionSlider", "visibilitySlider"
+      ])
   })
 
   it("returns an empty array for an unknown owner", () => {

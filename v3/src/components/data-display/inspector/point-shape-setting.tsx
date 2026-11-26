@@ -91,7 +91,8 @@ export const PointShapeSetting = observer(function PointShapeSetting({
       selectedKey={shape}
       data-testid="point-shape-select"
     >
-      <Button className={clsx("point-shape-thumb", { open: isOpen })} excludeFromTabOrder={disabled}>
+      <Button className={clsx("point-shape-thumb", { open: isOpen })} excludeFromTabOrder={disabled}
+        data-testid="point-shape-thumb">
         <span className="point-shape-thumb-value">
           <ShapeIcon shape={shape} className="point-shape-thumb-glyph"
             data-testid="point-shape-glyph" style={glyphStyle} />
@@ -120,7 +121,7 @@ export const PointShapeSetting = observer(function PointShapeSetting({
         * The color picker in this same palette disables flipping for the same reason, so the
         * fault lies in how popovers position within the palette rather than in this control.
         */}
-      <Popover shouldFlip={false}
+      <Popover shouldFlip={false} data-testid="point-shape-popover"
         className={({ defaultClassName }) => clsx(defaultClassName, "point-shape-popover")}>
         <ListBox>
           {PointShapes.map(_shape => (

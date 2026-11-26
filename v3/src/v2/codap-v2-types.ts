@@ -56,6 +56,12 @@ export interface ICodapV2SliderStorage extends ICodapV2BaseComponentStorage {
     scaleType: "numeric" | "date",
     multipleOf?: number
     dateMultipleOfUnit?: string
+    // range sliders only; v2 sees a variable slider whose value is the range's low end
+    sliderType?: "visibility" | "selection"
+    dataContext?: number  // v2 id of the bound dataset
+    attribute?: number    // v2 id of the bound attribute
+    rangeWidth?: number   // in axis units (epoch seconds for dates)
+    ownsSelection?: boolean  // selection sliders only: whether it owned the selection when saved
   }
 }
 
@@ -121,6 +127,11 @@ export interface ICodapV2GameViewStorage extends ICodapV2BaseComponentStorage {
   }
   // ignore: occurs 62 times in cfm-shared and is always null
   currentGameFormulas?: null
+  // v3 extensions
+  v3?: {
+    // the id of the game's DG.GameContext, when the plugin's default (`_links_.context`) has moved to another one
+    gameContextId?: number
+  }
 }
 
 export interface ICodapV2GuideViewItem {
@@ -401,6 +412,8 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   // AttributeScale.binCount (V3 has no corresponding model field — see codap-v2-type-utils.ts).
   numberOfLegendQuantiles?: number
   legendQuantilesAreLocked?: boolean
+  // The locked bin edges. V2 writes [min, ...inner edges, padded max] (N+1 values for N bins).
+  // Older versions of V3 wrote only the inner edges. See importLegendLockProps.
   legendQuantiles?: number[] | null[] // null occurs in some documents, presumably as a result of a bug
   pointColor?: string
   strokeColor?: string
@@ -465,11 +478,12 @@ export interface ICodapV2GraphStorage extends ICodapV2BaseComponentStorage {
   } & ICodapV2LegendQuantileV3Extensions
 }
 
-// Legend quantile properties that v3 can write into a v3 extension namespace. For graphs these
-// also appear at the native top level; for maps the v3 namespace is the only place they are stored.
+// Legend quantile properties that v3 writes into a map's v3 extension namespace, because V2 does
+// not save them for maps. For graphs, V3 writes them only at the native top level.
 export interface ICodapV2LegendQuantileV3Extensions {
   numberOfLegendQuantiles?: number
   legendQuantilesAreLocked?: boolean
+  // In the same formats as the graph's native legendQuantiles
   legendQuantiles?: number[] | null[] // null occurs in some documents, presumably as a result of a bug
 }
 
@@ -516,6 +530,10 @@ export function isV2MapLegacyStorage(obj: unknown): obj is ICodapV2MapCurrentSto
   return !!obj && typeof obj === "object" && "legendRole" in obj && obj.legendRole != null
 }
 
+export interface ICodapV2MapLayerBaseStorageV3Extensions extends ICodapV2LegendQuantileV3Extensions {
+  filterFormula?: string
+}
+
 export interface ICodapV2MapLayerBaseStorage {
   _links_: {
     context: IGuidLink<"DG.DataContextRecord">
@@ -532,10 +550,23 @@ export interface ICodapV2MapLayerBaseStorage {
   isVisible: boolean
   strokeSameAsFill?: boolean
 
-  // v3 extensions
-  v3?: {
-    filterFormula?: string
-  } & ICodapV2LegendQuantileV3Extensions
+  v3?: ICodapV2MapLayerBaseStorageV3Extensions
+}
+
+// The MapHotSpotModel snapshot, written whole when any property differs from its default.
+// Keys are MST property names, so renaming a model property requires an import migration.
+export interface ICodapV2MapHotSpotStorage {
+  isVisible?: boolean
+  bandwidth?: number
+  opacity?: number
+  colorRamp?: string
+  lowColor?: string
+  highColor?: string
+  colorBins?: number | string
+}
+
+export interface ICodapV2MapPointLayerStorageV3Extensions extends ICodapV2MapLayerBaseStorageV3Extensions {
+  hotSpot?: ICodapV2MapHotSpotStorage
 }
 
 export interface ICodapV2MapPointLayerStorage extends ICodapV2MapLayerBaseStorage {
@@ -557,6 +588,8 @@ export interface ICodapV2MapPointLayerStorage extends ICodapV2MapLayerBaseStorag
   }
   // v2 saves/restores this value, but never uses it
   linesShouldBeVisible?: boolean
+
+  v3?: ICodapV2MapPointLayerStorageV3Extensions
 }
 export function isV2MapPointLayerStorage(obj: unknown): obj is ICodapV2MapPointLayerStorage {
   return !!obj && typeof obj === "object" && "pointColor" in obj && obj.pointColor != null

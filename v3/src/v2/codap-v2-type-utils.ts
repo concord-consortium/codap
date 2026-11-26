@@ -1,6 +1,7 @@
 import { AxisModelType } from "../components/axis/models/axis-model"
 import { IFormula } from "../models/formula/formula"
 import { kDefaultPointShape } from "../utilities/point-shape-utils"
+import { ICodapV2MapHotSpotStorage } from "./codap-v2-types"
 
 interface IBaseLegendQuantileProps {
   numberOfLegendQuantiles?: number
@@ -40,9 +41,68 @@ function hasLegendQuantiles(props?: IExportLegendQuantileProps | IImportLegendQu
 
 interface ILegendQuantileSource {
   attributeType(role: string): string | undefined
-  legendBinCount: number
+  displayedLegendBinCount: number
   legendQuantilesAreLocked?: boolean
   legendQuantiles: number[]
+  legendLockedMin?: number
+  legendLockedMax?: number
+  liveLegendDisplayRange: { min?: number, max?: number }
+}
+
+// V2 saves a locked legend's bin edges with the min first and the max last (N+1 values for N bins).
+// It adds a small amount to the max so the max value itself falls in the last bin, because V2's bins
+// do not include their upper edge. V3 saves the true min and max separately from the inner edges, so
+// the padding is removed on import and added once on export.
+const kV2LegendMaxPaddingFactor = 0.000001
+
+export function padV2LegendMax(min: number, max: number) {
+  return max + Math.abs(max - min) * kV2LegendMaxPaddingFactor
+}
+
+// The inverse of padV2LegendMax: the largest number that pads to paddedMax or less. V2 padded the
+// true max with the same arithmetic, so the result is never below it. (A result below it would make
+// the max case "missing".) When the min is much larger in magnitude than the max, the padding is
+// much larger than the max, and many numbers pad to the same value. Then the result can be above the
+// true max, because the saved value does not hold the exact max. A paddedMax below min was not
+// padded this way; keep it.
+export function unpadV2LegendMax(min: number, paddedMax: number) {
+  if (!(paddedMax >= min) || !Number.isFinite(paddedMax) || !Number.isFinite(min)) return paddedMax
+  const padsWithin = (value: number) => padV2LegendMax(min, value) <= paddedMax
+  // The padding can be too small to change paddedMax; then paddedMax is the largest such number.
+  if (padsWithin(paddedMax)) return paddedMax
+  // Binary search between low (pads to paddedMax or less) and high (pads to more). Start from the
+  // estimate max ~= (paddedMax + min * f) / (1 + f), from paddedMax = max + (max - min) * f.
+  let low = min
+  let high = paddedMax
+  const estimate = (paddedMax + min * kV2LegendMaxPaddingFactor) / (1 + kV2LegendMaxPaddingFactor)
+  if (estimate > low && estimate < high) {
+    if (padsWithin(estimate)) low = estimate
+    else high = estimate
+  }
+  // Halve the interval until low and high are neighboring numbers. About 2,100 halvings reach that
+  // from any interval; the limit only guards against an unexpected input.
+  for (let i = 0; i < 2200; i++) {
+    const middle = Number.isFinite(high - low) ? low + (high - low) / 2 : low / 2 + high / 2
+    if (middle <= low || middle >= high) break
+    if (padsWithin(middle)) low = middle
+    else high = middle
+  }
+  return low
+}
+
+// The locked bin edges in V2 format. Without a saved min and max (see legendQuantiles in the data
+// configuration), the live range is used, widened to include the saved edges so the values stay in
+// order (an end bin can then have zero width). With no range at all, only the inner edges are written.
+function exportLockedLegendEdges(dataConfig: ILegendQuantileSource) {
+  const inner = [...dataConfig.legendQuantiles]
+  let min = dataConfig.legendLockedMin ?? dataConfig.liveLegendDisplayRange?.min
+  let max = dataConfig.legendLockedMax ?? dataConfig.liveLegendDisplayRange?.max
+  if (min == null || max == null) return inner
+  if (inner.length > 0) {
+    min = Math.min(min, inner[0])
+    max = Math.max(max, inner[inner.length - 1])
+  }
+  return [min, ...inner, padV2LegendMax(min, max)]
 }
 
 interface IExportLegendQuantileStorageOptions {
@@ -51,37 +111,56 @@ interface IExportLegendQuantileStorageOptions {
   // extension namespace (v3:) and maps omit the block for a default (5, unlocked) legend.
   v2Native?: boolean
 }
-// Derives the V2 legend-quantile storage from a data configuration. The bin count is sourced from
-// the per-attribute binCount (via legendBinCount); for a non-numeric or absent legend it falls back
-// to V2's default of 5 (legendBinCount collapses to 1 when the legend isn't numeric). For the v3
-// extension namespace (and maps) the block is emitted only when the count differs from V2's default
-// of 5 or the quantiles are locked; the native V2 graph path (v2Native) always emits it.
+// Derives the V2 legend-quantile storage from a data configuration. The bin count is
+// displayedLegendBinCount: the locked count while locked (so it matches the exported edges even
+// after hiding cases has lowered the live count), else the per-attribute bin count (clamped).
+// A numeric or date legend has bins, as in V2; for any other or absent legend it falls back to V2's
+// default of 5 (the bin count collapses to 1 there). For the v3 extension namespace (and maps) the
+// block is emitted only when the count differs from V2's default of 5 or the quantiles are locked;
+// the native V2 graph path (v2Native) always emits it.
 // Defensive: some callers (e.g. the data-interactive data-context export) pass a bare DataSet that
-// has neither attributeType nor legendBinCount; for those this returns {} rather than throwing.
+// has neither attributeType nor a bin count; for those this returns {} rather than throwing.
 export function exportLegendQuantileStorage(
   dataConfig: ILegendQuantileSource, options?: IExportLegendQuantileStorageOptions
-) {
+): IExportLegendQuantileProps {
   if (typeof dataConfig?.attributeType !== "function") return {}
-  const isNumericLegend = dataConfig.attributeType("legend") === "numeric"
+  const legendType = dataConfig.attributeType("legend")
+  const isBinnedLegend = legendType === "numeric" || legendType === "date"
   const locked = dataConfig.legendQuantilesAreLocked ?? false
-  const count = isNumericLegend ? dataConfig.legendBinCount : 5
+  const count = isBinnedLegend ? dataConfig.displayedLegendBinCount : 5
   if (!options?.v2Native && count === 5 && !locked) return {}
   return {
     numberOfLegendQuantiles: count,
     legendQuantilesAreLocked: locked,
-    ...(locked ? { legendQuantiles: [...dataConfig.legendQuantiles] } : {})
+    ...(locked ? { legendQuantiles: exportLockedLegendEdges(dataConfig) } : {})
   }
 }
 
 // Lock props for the DataConfiguration snapshot. The bin count is handled separately
 // (applyImportedLegendBinCount) because it lives in per-attribute metadata, not the config.
+// V2's edges (see kV2LegendMaxPaddingFactor) are split into legendLockedMin, the inner
+// legendQuantiles, and legendLockedMax.
+// V2 always writes exactly count + 1 edges. Older versions of V3 wrote only the inner edges, with a
+// count that did not reliably match them (the locked count, the live count, or the number of inner
+// edges). So a list is read as V2's format only when it has count + 1 values or there is no count,
+// and as inner edges otherwise.
 export function importLegendLockProps(props?: IImportLegendQuantileProps) {
   if (!props?.legendQuantilesAreLocked) return {}
   const validQuantiles = !!props.legendQuantiles?.length &&
     props.legendQuantiles.every((q: number | null) => q != null)
+  if (!validQuantiles) return { legendQuantilesAreLocked: true }
+  const edges = props.legendQuantiles as number[]
+  const count = props.numberOfLegendQuantiles
+  const isV2Edges = count == null || edges.length === count + 1
+  // A V2 list always has at least 2 values: the min and the padded max. So a list of 1 value
+  // (possible only without a count) is kept as an inner edge.
+  if (!isV2Edges || edges.length < 2) return { legendQuantilesAreLocked: true, legendQuantiles: edges }
+  const min = edges[0]
   return {
     legendQuantilesAreLocked: true,
-    ...(validQuantiles ? { legendQuantiles: props.legendQuantiles as number[] } : {})
+    legendQuantiles: edges.slice(1, -1),
+    legendLockedMin: min,
+    legendLockedMax: unpadV2LegendMax(min, edges[edges.length - 1])
   }
 }
 
@@ -102,11 +181,14 @@ export function applyImportedLegendBinCount(
 // Therefore, we provide an option to include legend quantiles when exporting v3 extension properties.
 interface IExportV3PropsOptions {
   axisTypes?: V2PlaceToV3AxisTypeMap
+  // map point layers only; v2 has no hot spots.
+  // Only include when the hot spot should actually be saved, i.e. it differs from the default.
+  hotSpot?: ICodapV2MapHotSpotStorage
   includeLegendQuantiles?: boolean
   pointShape?: string
 }
 export function exportV3Properties(props: IExportV3Properties, options?: IExportV3PropsOptions) {
-  const { axisTypes, includeLegendQuantiles, pointShape } = options || {}
+  const { axisTypes, hotSpot, includeLegendQuantiles, pointShape } = options || {}
   const _hasFilter = hasFilterFormula(props)
   // Only write legend quantile props into the v3 namespace when explicitly requested (maps). Graphs
   // round-trip the bin count via the native top-level numberOfLegendQuantiles, so a v3 copy would be
@@ -118,13 +200,15 @@ export function exportV3Properties(props: IExportV3Properties, options?: IExport
   const _hasAxisTypes = axisTypes && (Object.keys(axisTypes).length > 0)
   // Only a non-default shape is worth writing; a document that never used the feature gains nothing.
   const _hasPointShape = pointShape != null && pointShape !== kDefaultPointShape
-  return _hasFilter || _hasLegendQuantiles || _hasAxisTypes || _hasPointShape
+  const _hasHotSpot = hotSpot != null
+  return _hasFilter || _hasLegendQuantiles || _hasAxisTypes || _hasPointShape || _hasHotSpot
           ? {
               v3: {
                 ...(_hasFilter ? { filterFormula: props.filterFormula?.display } : {}),
                 ...legendStorage,
                 ...(axisTypes ? { axisTypes } : {}),
-                ...(_hasPointShape ? { pointShape } : {})
+                ...(_hasPointShape ? { pointShape } : {}),
+                ...(_hasHotSpot ? { hotSpot: { ...hotSpot } } : {})
               }
             }
           : {}

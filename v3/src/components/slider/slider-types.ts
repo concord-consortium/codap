@@ -1,5 +1,10 @@
 export const kSliderClass = "slider-wrapper"
 export const kSliderClassSelector = `.${kSliderClass}`
+// Marks an element within a slider whose presses and keys aren't gestures on the slider, so they don't resume a paused
+// selection slider: e.g. the attribute menu, where choosing an attribute resumes the slider when it binds it. Spread
+// the props onto the element; test for it with the selector.
+export const kNoSelectionResumeProps = { "data-no-selection-resume": "" } as const
+export const kNoSelectionResumeSelector = "[data-no-selection-resume]"
 
 export const kDefaultSliderWidth = 300
 export const kDefaultSliderHeight = 200
@@ -37,5 +42,12 @@ export const kDefaultSliderScaleType = "numeric"
 export function isSliderScaleType(value: any): value is ISliderScaleType {
   return SliderScaleTypes.includes(value)
 }
+
+export const SliderTypes = ["variable", "visibility", "selection"] as const
+export type SliderType = typeof SliderTypes[number]
+export const kDefaultSliderType: SliderType = "variable"
+
+// initial width of a range slider's thumb, as a fraction of the axis range
+export const kDefaultRangeFraction = 0.1
 
 export type FixValueFn = (value: number) => number

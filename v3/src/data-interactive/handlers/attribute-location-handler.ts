@@ -19,7 +19,7 @@ export const diAttributeLocationHandler: DIHandler = {
     if (!targetCollection) return collectionNotFoundResult
 
     const targetAttrs = dataContext.getCollection(targetCollection.id)?.attributes ?? []
-    const numPos = Number(position)
+    const numPos = position == null ? NaN : Number(position)
 
     // If the position isn't specified or isn't a number, make the attribute the right-most
     // Otherwise, round the position to an integer

@@ -1,4 +1,6 @@
-import { makeCallback, notification } from "../../data-interactive/notification-utils"
+import {
+  dataContextChangeNoticeResource, makeCallback, notification
+} from "../../data-interactive/notification-utils"
 import { toV2Id } from "../../utilities/codap-utils"
 import { getMetadataFromDataSet } from "../shared/shared-data-utils"
 import { IAttribute } from "./attribute"
@@ -11,10 +13,11 @@ function dataSetNotification(
   operation: string, result?: any, dataSet?: IDataSet, callback?: (result: any) => void,
   extraValues?: Record<string, any>
 ) {
-  const resource = dataSet ? `dataContextChangeNotice[${dataSet.name}]` : `documentChangeNotice`
+  const resource = dataSet ? dataContextChangeNoticeResource(dataSet.name) : `documentChangeNotice`
   const values = { operation, result, ...extraValues }
 
-  return notification(resource, values, callback)
+  // as in V2, the values of a data context change notice are an array of { operation, result }
+  return notification(resource, dataSet ? [values] : values, callback ?? makeCallback(operation))
 }
 
 export const dataContextCountChangedNotification = dataSetNotification("dataContextCountChanged")
@@ -54,7 +57,7 @@ export function deleteCollectionNotification(dataSet?: IDataSet) {
 }
 
 export function updateCollectionNotification(collection?: ICollectionModel, dataSet?: IDataSet) {
-  const result = { success: true, properties: { name: collection?.name } }
+  const result = { success: true, properties: { name: collection?.name, title: collection?.title } }
   return dataSetNotification("updateCollection", result, dataSet)
 }
 
@@ -110,10 +113,36 @@ export function createCasesNotification(caseIDs: string[], data?: IDataSet) {
   return dataSetNotification("createCases", result, data)
 }
 
+// V2 sends `createItems` after the `createCases` notices for a plugin's `create item`
+// (data_context.js:785-795): `caseIDs` are the cases the items created, and `itemIDs`, parallel to it,
+// the item each case was built from (so an item can appear more than once)
+export function createItemsNotification(data: IDataSet, caseIDs: number[], itemIDs: number[]) {
+  return dataSetNotification("createItems", { success: true, caseIDs, itemIDs }, data)
+}
+
+// V2 sends `updateItems` after the `updateCases` for a plugin's item update (data_context.js:804-843),
+// carrying only `success`. V3 additionally carries the updated items' ids.
+export function updateItemsNotification(data: IDataSet, itemIds: string[]) {
+  return dataSetNotification("updateItems", { success: true, itemIDs: itemIds.map(id => toV2Id(id)) }, data)
+}
+
+// New in V3: `deleteItems` after the `deleteCases` for a plugin's item delete, with the deleted items'
+// ids. V2 had a deleteItems change but never forwarded it to plugins (data_context.js:919-945 returns
+// no `success`), so a plugin that tracks items had to map the deleted cases back to items.
+export function deleteItemsNotification(data: IDataSet, itemIds: string[]) {
+  return dataSetNotification("deleteItems", { success: true, itemIDs: itemIds.map(id => toV2Id(id)) }, data)
+}
+
+// As in V2, the moved cases are listed in full as well when there are any: V2's `notify caseByID` and `caseByIndex`
+// passed `cases` (data_interactive_phone_handler.js:1258-1264), which the notification manager sent with each case's
+// id, parent, context, collection and values (notification_manager.js:189-218). The undo and `itemSearch` moves pass
+// none, as V2's itemSearch move carried none.
 export function moveCasesNotification(data: IDataSet, cases: ICase[] = []) {
+  const adapter = getDataSetNotificationAdapter()
   const result = {
     success: true,
-    caseIDs: cases.map(aCase => toV2Id(aCase.__id__))
+    caseIDs: cases.map(aCase => toV2Id(aCase.__id__)),
+    ...(cases.length > 0 ? { cases: cases.map(aCase => adapter.convertCase(aCase, data)) } : {})
   }
   return dataSetNotification("moveCases", result, data)
 }
@@ -144,11 +173,13 @@ export function updateCasesNotificationFromIds(data: IDataSet, caseIds?: string[
   return updateCasesNotification(data, cases)
 }
 
-export function deleteCasesNotification(data: IDataSet, cases?: ICase[]) {
+// withCaseIds adds the cases' ids as caseIDs, the field V2's item deletes sent (data_context.js:919-945)
+export function deleteCasesNotification(data: IDataSet, cases?: ICase[], withCaseIds = false) {
   const adapter = getDataSetNotificationAdapter()
   const result = {
     success: true,
-    cases: cases?.map(c => adapter.convertCase(c, data))
+    cases: cases?.map(c => adapter.convertCase(c, data)),
+    ...(withCaseIds && { caseIDs: cases?.map(c => toV2Id(c.__id__)) ?? [] })
   }
   return dataSetNotification("deleteCases", result, data)
 }

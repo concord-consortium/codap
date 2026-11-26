@@ -1,0 +1,6 @@
+# Resources with no page yet. Remove a line when its page lands; the drift check
+# reports any resource that is undocumented and NOT listed here, and any line here that is
+# no longer needed. Maintained by hand.
+
+tourElements
+uiNotificationMonitor

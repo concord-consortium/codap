@@ -1,0 +1,324 @@
+# adornment
+
+> **Applies to:** CODAP v3 · **Verified:** 2026-09-25
+> · Parts of this page are generated — see [conventions](../conventions.md).
+
+Adornments are the measures and overlays a graph can display on top of its points — a mean line,
+a box plot, a least-squares line, a movable value, and so on. This resource reads and controls
+them. `adornmentList` enumerates the adornments a graph currently has.
+
+Adornments belong to **graphs only**. Addressing this resource on any other component returns
+`Unsupported component type <type>`.
+
+**An adornment exists only once it has been shown.** A graph starts with no adornments in its
+store; one is added the first time it is displayed, whether by the user or through `create`.
+Hiding it — including via `delete` — leaves it in the store with `isVisible: false`. So a `get`
+for an adornment the user has never turned on returns `Adornment not found.`, while a `get` for
+one that was shown and then hidden succeeds and reports `isVisible: false`.
+
+## Supported actions
+
+<!-- BEGIN GENERATED: actions -->
+| Action | adornment | adornmentList |
+|---|---|---|
+| `get` | ✓ | ✓ |
+| `create` | ✓ | — |
+| `update` | ✓ | — |
+| `delete` | ✓ | — |
+| `notify` | — | — |
+| `register` | — | — |
+| `unregister` | — | — |
+<!-- END GENERATED: actions -->
+
+**`create` and `update` work for only some adornment types** — a common surprise with this
+resource, since the table above says only that the resource accepts those actions. See
+[Adornment types](#adornment-types) for what each type supports. `delete` works for every type:
+when a type has no delete handler CODAP falls back to hiding the adornment, which is why it
+never removes it from the store.
+
+## Resource selector patterns
+
+<!-- BEGIN GENERATED: selectors -->
+| Pattern | Actions |
+|---|---|
+| `component[<component>].adornment[<type-or-id>]` | get |
+| `component[<component>].adornment` | create, update, delete |
+| `component[<component>].adornmentList` | get |
+<!-- END GENERATED: selectors -->
+
+`<component>` identifies the graph by title, name, or numeric id. `<type-or-id>` is either the
+adornment's `type` string or its `id`.
+
+For `create`, `update` and `delete` the type goes in `values.type` rather than in the selector,
+because those requests carry a values object anyway.
+
+<!-- BEGIN GENERATED: scope -->
+This resource's handler does not read a data context itself. CODAP still resolves one —
+defaulting to `#default` when the selector omits it — and uses it to resolve any
+`collection` or `attribute` segment earlier in the selector. Naming a different
+`dataContext` therefore changes what this resource returns only when the selector
+contains such a segment.
+<!-- END GENERATED: scope -->
+
+### Type names and aliases
+
+Type strings contain spaces — `"Movable Line"`, `"Box Plot"`. Two kinds of alias are accepted
+everywhere a type is:
+
+- **Space-free forms**, registered automatically: `"MovableLine"` resolves to `"Movable Line"`.
+- **`"Percent"`**, which resolves to `"Count"`. Percent is part of the Count adornment rather
+  than a separate one, though the UI and `adornmentList` present them separately.
+
+## Adornment types
+
+Fifteen types register a handler. `create` and `update` need a type-specific handler; `delete`
+falls back to hiding, so it works everywhere.
+
+<!-- BEGIN GENERATED: adornment-types -->
+| Type | get | create | update | delete |
+|---|---|---|---|---|
+| `Box Plot` (alias `BoxPlot`) | ✓ | ✓ | ✓ | hides |
+| `Count` (alias `Percent`) | ✓ | ✓ | ✓ | ✓ |
+| `LSRL` | ✓ | ✓ | ✓ | hides |
+| `Mean` | ✓ | ✓ | ✓ | hides |
+| `Mean Absolute Deviation` (alias `MeanAbsoluteDeviation`) | ✓ | ✓ | ✓ | hides |
+| `Median` | ✓ | ✓ | ✓ | hides |
+| `Movable Line` (alias `MovableLine`) | ✓ | ✓ | ✓ | hides |
+| `Movable Point` (alias `MovablePoint`) | ✓ | ✓ | ✓ | hides |
+| `Movable Value` (alias `MovableValue`) | ✓ | ✓ | ✓ | ✓ |
+| `Normal Curve` (alias `NormalCurve`) | ✓ | ✓ | ✓ | hides |
+| `Plotted Function` (alias `PlottedFunction`) | ✓ | ✓ | ✓ | hides |
+| `Plotted Value` (alias `PlottedValue`) | ✓ | ✓ | ✓ | hides |
+| `Region of Interest` (alias `RegionofInterest`) | ✓ | ✓ | ✓ | hides |
+| `Standard Deviation` (alias `StandardDeviation`) | ✓ | ✓ | ✓ | hides |
+| `Standard Error` (alias `StandardError`) | ✓ | ✓ | ✓ | hides |
+<!-- END GENERATED: adornment-types -->
+
+"hides" in the table means `delete` succeeds by hiding rather than removing. It does **not** mean
+`delete` always succeeds: deleting a type the graph has never shown returns `Adornment not
+found.`, because there is nothing in the store to hide.
+
+## Values
+
+### get
+
+Returns the adornment's identity plus type-specific measure data:
+
+<!-- BEGIN GENERATED: values -->
+| Property | Type |
+|---|---|
+| `id` | String |
+| `type` | String |
+| `isVisible` | Boolean |
+| `data` | Array |
+<!-- END GENERATED: values -->
+
+`id` is the adornment's identifier — note that this is a **string**, one of the exceptions to the
+usual numeric ids described in [the index](../README.md#request-shape). `type` is the canonical
+type string, not whichever alias you asked with. `isVisible` is `false` for an adornment that was
+shown and later hidden.
+
+`data` holds one entry per graph cell: a graph split by categorical attributes has one entry per
+subplot, each carrying a `categories` object identifying which. What each entry contains depends
+on the type — **do not assume the key matches the adornment name.** Three worth knowing:
+
+`Mean` and `Median` key the entry by the measure's own name:
+
+```json
+{ "data": [{ "mean": 12.5 }] }
+```
+
+`Standard Deviation` does **not** use a `standardDeviation` key. It reports the mean plus the
+±1 SD range:
+
+```json
+{ "data": [{ "mean": 10, "min": 0, "max": 20 }] }
+```
+
+`Box Plot` carries the five-number summary — `median`, `lowerQuartile`, `upperQuartile`,
+`interquartileRange`, `lower` and `upper` — and the result also carries top-level `showICI` and
+`showOutliers` alongside `data`.
+
+`Mean Absolute Deviation` and `Standard Error` report a `min` and `max` around the mean, like
+`Standard Deviation`; the first carries the `mean` with them, the second the `standardError`.
+`Standard Error` also carries top-level `_numStErrs`, the number of standard errors the range
+spans. `Normal Curve` carries the `mean`, `standardDeviation` and `standardError`.
+
+For other types, read the handler under `src/components/graph/adornments/` — the full per-type
+catalog is not yet here.
+
+### create, update, delete
+
+All three take a `values` object containing at least `type`:
+
+<!-- BEGIN GENERATED: values-write -->
+| Property | Type | Required |
+|---|---|---|
+| `type` | String | yes |
+<!-- END GENERATED: values-write -->
+
+`type` is the adornment type or an alias. Omitting it — or sending no `values` at all — returns
+`A values object is required for this request.`
+
+Individual types accept further properties — a `Movable Value` takes a value to place, a
+`Plotted Value` takes an expression. Those are documented with the types themselves, which this
+page does not yet cover, except for these:
+
+| Type | Property | Effect on `create` and `update` |
+|---|---|---|
+| all of the types below, and `Mean`, `Median`, `Standard Deviation`, `Mean Absolute Deviation` and `Normal Curve` | `isVisible` | `update` shows or hides the adornment; `create` always shows it |
+| `Box Plot` | `showOutliers` | shows outliers separately, as the inspector's checkbox does |
+| `Box Plot` | `showICI` | shows the informal confidence interval. The inspector offers this only when CODAP is opened with the `ICI` URL parameter, or while it is on; the API sets it either way |
+| `Standard Error` | `_numStErrs` | the number of standard errors shown, as `get` reports it. Any finite value of 0 or more is accepted, as in v2; the inspector shows it rounded to the nearest 0.5. A negative value is ignored, as v2's inspector ignored one |
+| `Movable Line` | `slope`, `intercept` | the line, in every cell the graph has at the time of the request; a cell added later starts where the inspector puts it. Either may be sent alone. While the graph's intercept is locked, `intercept` stays 0. Unlike a drag, nothing keeps the line within the axes |
+| `Movable Point` | `x`, `y` | the point, in every cell the graph has at the time of the request; a cell added later starts where the inspector puts it. Either may be sent alone. `get` reports them under the attributes' names. Nothing keeps the point within the axes |
+| `Plotted Function` | `formula` (or `expression`) | the function of `x` to plot; `""` clears it. `get` reports `formula` JSON-encoded (`2*x` comes back as `"\"2*x\""`), so a plugin `JSON.parse`s it before sending it back |
+| `Plotted Value` | `formula` (or `expression`) | the value to plot; `""` clears it. `get` reports `formula` JSON-encoded, so a plugin `JSON.parse`s it before sending it back |
+
+For these types, `create` on a graph whose plot cannot show the adornment returns
+`Adornment not supported by plot type.`, and creating one that already exists shows it again.
+Without these properties, a new `Movable Line` or `Movable Point` starts where the inspector puts
+it, and a new `Plotted Function` or `Plotted Value` has no formula yet. `create` replies with the
+same values as `get`. The formula of a `Plotted Function` or `Plotted Value` is evaluated after
+the request, so the `create` reply's `error` and `plottedValue` may not reflect the formula just
+sent; on an adornment the graph already has, they can be the previous formula's. Send `get`
+afterward.
+
+If both `formula` and `expression` are sent, `formula` is used; a `null` value is treated as
+absent, so `{ "formula": null, "expression": "3*x" }` uses the expression and `{ "slope": null }`
+changes nothing.
+
+`create` and `update` refuse a value of the wrong type, and change nothing. A `null` value is
+treated as absent, not refused, and so is a `null` `position`, `extent` or `axis` in a
+`Region of Interest` range. A `primary` or `secondary` range that is sent replaces the previous
+one: a `position` or `extent` it leaves out, or sends as `null`, is left unset, and the region is
+drawn as if it were 0. These are refused:
+
+- for every type, an `isVisible` that isn't `true` or `false`
+- for `Box Plot`, a `showOutliers` or `showICI` that isn't either, and for `LSRL`, a
+  `showConfidenceBands`, `showR` or `showRSquared` that isn't either
+- for `Standard Error`, a `_numStErrs` that isn't a finite number, and for `Movable Line` and
+  `Movable Point`, a `slope`, `intercept`, `x` or `y` that isn't one
+- for `Count` and `Percent`, a `percentType` other than `cell`, `column` or `row`
+- for `Region of Interest`, a `primary` or `secondary` that isn't an object, a `position` or
+  `extent` in it that isn't a number or a string, or a `secondary` `axis` other than `y`; the
+  error names the range, as in `secondary.position must be a number or a string.`
+- for `Plotted Function` and `Plotted Value`, a formula that isn't a string
+
+The error names the property, as in `isVisible must be true or false.`
+
+## Examples
+
+These examples use a dot plot named `Heights`, showing one numeric attribute. `Mean` can be
+shown only on a dot plot, so on a scatter plot the same requests fail.
+
+**List the adornments on a graph.**
+
+```json
+{
+  "action": "get",
+  "resource": "component[Heights].adornmentList"
+}
+```
+
+```json
+{
+  "success": true,
+  "values": [
+    { "id": "ADRN123", "type": "Count", "isVisible": true },
+    { "id": "ADRN123", "type": "Percent", "isVisible": false },
+    { "id": "ADRN456", "type": "Mean", "isVisible": true }
+  ]
+}
+```
+
+Note that `Count` and `Percent` are reported as separate entries sharing one `id`, each with its
+own visibility.
+
+The list is **filtered by the graph's current plot type** — an adornment in the store that the
+current plot cannot display is omitted. `Count` and `Percent` are the exception: they bypass that
+check and are always listed when a Count adornment exists, whether or not the current plot type
+can display them.
+
+**Read a specific adornment.**
+
+```json
+{
+  "action": "get",
+  "resource": "component[Heights].adornment[Mean]"
+}
+```
+
+```json
+{
+  "success": true,
+  "values": {
+    "id": "ADRN456",
+    "type": "Mean",
+    "isVisible": true,
+    "data": [ { "mean": 0.645 } ]
+  }
+}
+```
+
+**Show a mean line.**
+
+```json
+{
+  "action": "create",
+  "resource": "component[Heights].adornment",
+  "values": { "type": "Mean" }
+}
+```
+
+**Hide it again.**
+
+```json
+{
+  "action": "delete",
+  "resource": "component[Heights].adornment",
+  "values": { "type": "Mean" }
+}
+```
+
+The adornment remains in the graph's store with `isVisible: false`, so a subsequent `get`
+succeeds rather than reporting it missing.
+
+**Show it again.** Because the hidden adornment is still in the store, `update` can turn it back
+on:
+
+```json
+{
+  "action": "update",
+  "resource": "component[Heights].adornment",
+  "values": { "type": "Mean", "isVisible": true }
+}
+```
+
+## Notifications
+
+Toggling an adornment emits a component notification whose operation is specific to the
+adornment — `togglePlottedMean`, `toggle connecting line`, `add movable value` and so on. These
+match the v2 operation strings, including v2's inconsistent casing. See
+[the notification catalog](../notifications.md#component-changes--component) for the full list.
+Only changes made in the graph itself send them; no `adornment` request sends a notification.
+
+## Errors
+
+| Error | Condition |
+|---|---|
+| `Unsupported component type <type>` | The selector named a component that is not a graph. |
+| `Adornment not found.` | `get`, `update` or `delete` for a type the graph has never displayed, or an id that matches nothing. |
+| `Adornment list not found.` | `adornmentList` on a component whose adornment list could not be resolved. |
+| `Unsupported adornment type` | The adornment exists but has no registered handler. |
+| `The <type> adornment does not currently support <action> requests.` | `create` for a type CODAP doesn't have. (`update` for one replies `Adornment not found.`) |
+| `<property> must be a number.` | `create` or `update` on `Standard Error` with a `_numStErrs`, or on `Movable Line` or `Movable Point` with a `slope`, `intercept`, `x` or `y`, that isn't a finite number. |
+| `<property> must be one of <values>.` | `create` or `update` on `Count` or `Percent` with a `percentType`, or on `Region of Interest` with a `secondary` `axis`, that isn't one of the values listed. |
+| `<property> must be an object.` | `create` or `update` on `Region of Interest` with a `primary` or `secondary` that isn't an object. |
+| `<property> must be a number or a string.` | `create` or `update` on `Region of Interest` with a `position` or `extent` that is neither. |
+| `<property> must be a string.` | `create` or `update` on `Plotted Function` or `Plotted Value` with a `formula` or `expression` that isn't a string. |
+| `<property> must be true or false.` | `create` or `update` with an `isVisible`, a `Box Plot`'s `showOutliers` or `showICI`, or an `LSRL`'s `showConfidenceBands`, `showR` or `showRSquared`, that isn't a boolean. |
+| `Not a(n) <type> adornment.` | Internal type mismatch between the resolved adornment and its handler. |
+| `Adornment not supported by plot type.` | The adornment cannot be displayed by the graph's current plot type. |
+| `The current plot type does not support Percent.` | `create` with `type: "Percent"` on a plot that cannot show percentages. |
+| `A values object is required for this request.` | `create`, `update` or `delete` sent without `values`, or without `values.type`. |

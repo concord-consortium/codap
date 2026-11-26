@@ -4,7 +4,6 @@ import { prf } from "../../utilities/profiler"
 import { useAxisLayoutContext } from "../axis/models/axis-layout-context"
 import { ISliderModel } from "./slider-model"
 import { FixValueFn, kAnimationDefaults } from "./slider-types"
-import { valueChangeNotification } from "./slider-utils"
 
 // Uses requestAnimationFrame instead of setInterval to ensure each animation tick
 // aligns with a browser paint cycle. When the tick work takes longer than the
@@ -36,6 +35,14 @@ function useAnimationFrame(callback: () => void, interval: number | null) {
   }, [interval])
 }
 
+// The value resetSlider tests against the end of the value domain when playback starts, to restart from the
+// other end if the slider is already there. A variable slider includes its multiples increment. A range slider
+// tests where it is now: its next step may land exactly on the end (a collapsed range's last data value), and
+// that end still has to be shown before playback wraps.
+export function playbackStartTestValue(sliderModel: ISliderModel, sign: 1 | -1) {
+  return sliderModel.isRangeSlider ? sliderModel.value : sliderModel.value + sign * (sliderModel.increment ?? 0)
+}
+
 interface IUseSliderAnimationProps {
   sliderModel?: ISliderModel
   running: boolean
@@ -52,31 +59,29 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
   const axisLayout = useAxisLayoutContext()
   const multiScale = axisLayout.getAxisMultiScale("bottom")
 
+  // the interval the value may occupy, which for a range slider leaves room for the range's width
   const getAxisDomain = useCallback(function getAxisDomain(): readonly [number, number] {
-    const { axis: { domain } } = sliderModel || { axis: { domain: [0, 10] } }
-    return domain
+    return sliderModel?.valueDomain ?? [0, 10]
   }, [sliderModel])
 
   const resetSlider = useCallback((val?: number) => {
     if (!sliderModel || !isAlive(sliderModel)) return 0
     const [axisMin, axisMax] = getAxisDomain()
     const sign = animationDirection === "lowToHigh" ? 1 : -1
-    const testValue = val ?? sliderModel.value + sign * (sliderModel.increment ?? 0)
+    const testValue = val ?? playbackStartTestValue(sliderModel, sign)
     // During animation, resetSlider runs both at the top level and nested inside the value-change
     // applyModelChange (validateValue calls it at a loop boundary), so suppress the child-action
     // warning; the change is non-undoable either way.
     if (animationDirection === "lowToHigh" && testValue >= axisMax) {
       sliderModel.applyModelChange(
         () => sliderModel.setValue(axisMin),
-        { noDirty: true, suppressWarning: true,
-          notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+        { noDirty: true, suppressWarning: true }
       )
     }
     if (animationDirection === "highToLow" && testValue <= axisMin) {
       sliderModel.applyModelChange(
         () => sliderModel.setValue(axisMax),
-        { noDirty: true, suppressWarning: true,
-          notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+        { noDirty: true, suppressWarning: true }
       )
     }
     return sliderModel.value
@@ -87,7 +92,7 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
       prf.measure("Slider.animationTick", () => {
         sliderModel.applyModelChange(
           () => sliderModel.setValidatedValue(sliderModel.validateValue(val, min, max)),
-          { noDirty: true, notify: () => valueChangeNotification(sliderModel.value, sliderModel.name) }
+          { noDirty: true }
         )
       })
     }
@@ -107,10 +112,9 @@ export const useSliderAnimation = ({sliderModel, running, setRunning}: IUseSlide
 
   useAnimationFrame(() => {
     if (running && sliderModel) {
-      const increment = sliderModel.increment ? sliderModel.increment
-        : multiScale?.resolution ? multiScale.resolution : 1
+      const fallbackIncrement = multiScale?.resolution ? multiScale.resolution : 1
       const incrementModifier = direction === 'highToLow' || prevDirectionRef.current === 'highToLow' ? -1 : 1
-      const newValue = sliderModel.value + increment * incrementModifier
+      const newValue = sliderModel.nextAnimationValue(incrementModifier, fallbackIncrement)
 
       switch (direction) {
         case "lowToHigh":

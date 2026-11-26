@@ -1,0 +1,242 @@
+#!/usr/bin/env node
+//
+// lint-plugin-api-docs.mjs
+//
+// Checks the reference in v3/doc/plugin-api/ against the code and against its own conventions,
+// so "the docs are accurate" is a build-time fact rather than a review-time judgment.
+//
+// Checks:
+//   json          every ```json block parses
+//   responses     on a resource page, every `get` example is followed by its response
+//   links         every relative link resolves, and so does its #anchor
+//   tables        every markdown table row has its header's column count
+//   markers       BEGIN/END GENERATED markers pair up, and names are unique within a page
+//   scope-drift   pages report no more scope variants than there are scope cases
+//   errors        a quoted phrase that reads like an error message exists in the code
+//   citations     no source file:line citations (external pages; conventions.md is exempt)
+//   issue-ids     no internal issue-tracker ids
+//   placeholders  no CODAP-internal %@ i18n notation
+//   notifications every operation listed in the catalog has a "Fires when" description
+//   sections      each resource page has the required sections
+//   provenance    every page but conventions.md starts with a title and a provenance header
+//   llms          llms.txt links only pages that exist, and lists every resource and guide page
+//   examples      every request example names a resource and action the inventory lists (or is
+//                 a notice CODAP sends), and every documented action has an example, so each
+//                 becomes a plugin API Tester template (tester-templates.mjs)
+//   coverage      which resources in the code have no page (reported; --strict to fail)
+//
+// Undocumented resources are expected while resources still lack pages, so coverage is
+// reported but only fails with --strict.
+//
+// Usage: node lint-plugin-api-docs.mjs [--strict]
+// Exit code 1 if any check fails.
+//
+import { readFileSync, readdirSync, existsSync } from "node:fs"
+import { fileURLToPath } from "node:url"
+import { dirname, join, relative, normalize } from "node:path"
+import { headingsOf, jsonBlocksOf, stripFences } from "./markdown.mjs"
+import { markerProblems } from "./markers.mjs"
+import { buildPageFor } from "./coverage.mjs"
+import { readInventory } from "./inventory.mjs"
+import { buildTesterTemplates } from "./tester-templates.mjs"
+
+const here = dirname(fileURLToPath(import.meta.url))
+const v3Dir = join(here, "..", "..")
+const docsDir = join(v3Dir, "doc", "plugin-api")
+const strict = process.argv.includes("--strict")
+
+const inventory = readInventory()
+
+const problems = []
+const fail = (file, msg) => problems.push(`${file}: ${msg}`)
+
+function allMarkdown(dir, out = []) {
+  for (const name of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, name.name)
+    if (name.isDirectory()) allMarkdown(p, out)
+    else if (name.name.endsWith(".md")) out.push(p)
+  }
+  return out
+}
+
+const files = allMarkdown(docsDir).sort()
+
+// The anchors GitHub generates for a page's headings.
+const anchorCache = new Map()
+function anchorsOf(path) {
+  if (!anchorCache.has(path)) {
+    anchorCache.set(path, new Set(headingsOf(readFileSync(path, "utf8")).map(h => h.anchor)))
+  }
+  return anchorCache.get(path)
+}
+const REQUIRED_SECTIONS = ["## Supported actions", "## Resource selector patterns", "## Values",
+                           "## Examples", "## Notifications", "## Errors"]
+const knownErrors = new Set(inventory.errors.map(e => e.message))
+const scopeBlocks = new Map()   // block text -> [files]
+
+for (const file of files) {
+  const name = relative(docsDir, file)
+  const raw = readFileSync(file, "utf8")
+  const isResourcePage = name.startsWith("resources/")
+  const isConventions = name === "conventions.md"
+  const outsideFences = stripFences(raw)
+
+  // json
+  for (const [i, { body }] of jsonBlocksOf(raw).entries()) {
+    try { JSON.parse(body) } catch (e) { fail(name, `json block ${i + 1} does not parse: ${e.message}`) }
+  }
+
+  // responses — a `get` example shows what comes back, as the next json block. Only resource
+  // pages: the index shows request shapes on their own before it introduces responses.
+  if (isResourcePage) {
+    const parsed = jsonBlocksOf(raw).map(({ body }) => {
+      try { return JSON.parse(body) } catch { return null }
+    })
+    for (const [i, request] of parsed.entries()) {
+      if (request?.action !== "get") continue
+      if (typeof parsed[i + 1]?.success !== "boolean") {
+        fail(name, `get example for ${request.resource} is not followed by its response`)
+      }
+    }
+  }
+
+  // links and anchors
+  for (const m of outsideFences.matchAll(/\]\(([^)#]*?)(?:#([^)]*))?\)/g)) {
+    const [, target, anchor] = m
+    if (/^[a-z][a-z+.-]*:/i.test(target)) continue
+    const path = target ? normalize(join(dirname(file), target)) : file
+    if (!existsSync(path)) { fail(name, `broken link: ${target}`); continue }
+    if (anchor && path.endsWith(".md") && !anchorsOf(path).has(anchor)) {
+      fail(name, `broken anchor: ${target}#${anchor}`)
+    }
+  }
+
+  // tables
+  const lines = raw.split("\n")
+  const cols = l => l.replace(/\\\|/g, "").split("|").length
+  for (let i = 0; i < lines.length; i++) {
+    if (!lines[i].trim().startsWith("|") || !/^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1] ?? "")) continue
+    const want = cols(lines[i])
+    for (let j = i + 2; j < lines.length && lines[j].trim().startsWith("|"); j++) {
+      if (cols(lines[j]) !== want) {
+        fail(name, `line ${j + 1}: table row has ${cols(lines[j]) - 1} cells, header has ${want - 1}`)
+      }
+    }
+  }
+
+  // markers — the same ordered walk the generator runs before it rewrites anything, so the lint
+  // and the generator cannot disagree about whether a page is safe: unmatched, crossed, nested,
+  // duplicated and malformed markers are all rejected here and there by the same code.
+  for (const problem of markerProblems(raw)) fail(name, problem)
+
+  // scope drift
+  const scope = /<!-- BEGIN GENERATED: scope -->\n([\s\S]*?)\n<!-- END GENERATED: scope -->/.exec(raw)
+  if (scope) {
+    if (!scopeBlocks.has(scope[1])) scopeBlocks.set(scope[1], [])
+    scopeBlocks.get(scope[1]).push(name)
+  }
+
+  // error strings quoted in prose must exist in the code
+  if (!isConventions) {
+    // Any backticked phrase that reads like an error message: starts with a capital and contains
+    // one of a few error-ish keywords. That is deliberately narrow — it cannot check strings like
+    // `unknown request: <value>` — so it catches invented errors, not every mismatch.
+    for (const m of raw.matchAll(/`([A-Z][^`\n]{6,120})`/g)) {
+      const quoted = m[1]
+      if (knownErrors.has(quoted)) continue
+      // tolerate the generator's neutral placeholders and page-specific named ones
+      const normalized = quoted.replace(/<[\w\d]+>/g, "%@")
+      const matches = [...knownErrors].some(e => e.replace(/%@\d?/g, "%@") === normalized)
+      if (!matches && /not found|not supported|required|Unsupported|Unable|Cannot|Invalid/i.test(quoted)) {
+        fail(name, `quoted error string not found in code: "${quoted}"`)
+      }
+    }
+  }
+
+  // external-page hygiene
+  if (!isConventions) {
+    for (const m of outsideFences.matchAll(/`[\w-]+\.(?:ts|tsx):\d+/g)) {
+      fail(name, `source citation on an external page: ${m[0]}\``)
+    }
+    for (const m of raw.matchAll(/\bCODAP-\d{3,}\b/g)) fail(name, `internal issue id on an external page: ${m[0]}`)
+    for (const m of outsideFences.matchAll(/%@\d?/g)) fail(name, `CODAP-internal placeholder notation: ${m[0]}`)
+  }
+
+  // resource page shape
+  if (isResourcePage) {
+    for (const s of REQUIRED_SECTIONS) if (!raw.includes(s)) fail(name, `missing required section: ${s}`)
+  }
+  if (!isConventions) {
+    if (!/^> \*\*Applies to:\*\*/m.test(raw)) fail(name, "missing provenance header")
+    if (!raw.startsWith("# ")) fail(name, "page does not start with a title")
+  }
+}
+
+// llms.txt links pages by their published URL. Each must exist, and every page under resources/
+// and guides/ must be listed, so a new page cannot be left out.
+const llmsPath = join(docsDir, "llms.txt")
+if (!existsSync(llmsPath)) fail("llms.txt", "missing")
+else {
+  const listed = new Set()
+  const prefix = "https://raw.githubusercontent.com/concord-consortium/codap/main/v3/doc/plugin-api/"
+  for (const [, url] of readFileSync(llmsPath, "utf8").matchAll(/\]\((https:[^)]+)\)/g)) {
+    if (!url.startsWith(prefix)) {
+      if (/^https:\/\/raw\.githubusercontent\.com\//.test(url)) fail("llms.txt", `not under ${prefix}: ${url}`)
+      continue
+    }
+    const target = url.slice(prefix.length)
+    listed.add(target)
+    if (!existsSync(join(docsDir, target))) fail("llms.txt", `broken link: ${target}`)
+  }
+  for (const file of files) {
+    const name = relative(docsDir, file)
+    const mustList = name.startsWith("resources/") || (name.startsWith("guides/") && name !== "guides/README.md")
+    if (mustList && !listed.has(name)) fail("llms.txt", `does not list ${name}`)
+  }
+}
+
+// There is one scope paragraph per scope case, so more variants than cases means a page has
+// drifted from what the generator writes.
+if (scopeBlocks.size > 3) {
+  problems.push(`scope blocks: ${scopeBlocks.size} distinct variants; expected at most 3 (one per scope case)`)
+}
+
+// notifications — fail every row the generator marked undescribed (see conventions.md), until
+// someone writes when it fires.
+{
+  const page = join(docsDir, "notifications.md")
+  if (existsSync(page)) {
+    for (const line of readFileSync(page, "utf8").split("\n")) {
+      if (!line.startsWith("|") || !line.includes("_not yet described_")) continue
+      // The operation is the cell just before "Fires when", whether or not a Resource cell leads
+      const cells = line.replace(/^\|/, "").split("|").map(c => c.trim())
+      const operation = cells[cells.findIndex(c => c.includes("_not yet described_")) - 1]
+      fail("notifications.md", `${operation ?? line} has no "Fires when" description`)
+    }
+  }
+}
+
+// examples — the same rules the tester's templates are built with
+for (const { file, message } of buildTesterTemplates(join(docsDir, "resources"), inventory).problems) {
+  fail(`resources/${file}`, message)
+}
+
+// coverage — the same mapping the generator uses, so the two cannot disagree about which
+// resources have a page. See coverage.mjs for how a page declares what it documents.
+const pageFor = buildPageFor(join(docsDir, "resources"), inventory.resources)
+const documented = new Set(pageFor.keys())
+const undocumented = inventory.resources.filter(r => !documented.has(r.name)).map(r => r.name)
+
+console.error(`Linted ${files.length} pages against ${inventory.counts.resources} resources ` +
+              `(code @ ${inventory.verifiedAgainst})`)
+if (undocumented.length) {
+  console.error(`Undocumented resources: ${undocumented.length}\n  ${undocumented.join(", ")}`)
+  if (strict) problems.push(`${undocumented.length} resources have no page (--strict)`)
+}
+
+if (problems.length) {
+  console.error(`\nFAIL — ${problems.length} problem(s):`)
+  for (const p of problems) console.error(`  ${p}`)
+  process.exit(1)
+}
+console.error("OK — no problems found")

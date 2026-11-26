@@ -1,25 +1,17 @@
-import { colord, Colord } from "colord"
+import { Colord } from "colord"
+import { isStrictColorString } from "../../../utilities/color-utils"
 import { isDateString } from "../../../utilities/date-parser"
 import { isDate } from "../../../utilities/date-utils"
 import { hasOwnProperty } from "../../../utilities/js-utils"
 import { isValueEmpty, isValueNonEmpty } from "../../../utilities/math-utils"
 import { FValue, IFormulaMathjsFunction } from "../formula-types"
+import { toBoolean } from "./function-utils"
 
 export const logicFunctions: Record<string, IFormulaMathjsFunction> = {
 
   boolean: {
     numOfRequiredArguments: 1,
-    evaluate: (arg: FValue) => {
-      if (isValueEmpty(arg)) return ""
-      // NaN is treated as falsy (V2 parity: !!NaN === false). Without this, Number(NaN) !== 0
-      // evaluates to true and boolean(0/0) would incorrectly return true.
-      if (Number.isNaN(arg)) return false
-      if (arg === true || arg === false) return arg
-      if (typeof arg === "string" && arg.toLowerCase() === "false") return false
-      if (typeof arg === "string" && arg.toLowerCase() === "true") return true
-      if (typeof arg === "object") return true
-      return Number(arg) !== 0
-    }
+    evaluate: (arg: FValue) => toBoolean(arg) ?? ""
   },
 
   isBoolean: {
@@ -43,9 +35,8 @@ export const logicFunctions: Record<string, IFormulaMathjsFunction> = {
   isColor: {
     numOfRequiredArguments: 1,
     evaluate: (arg: FValue) => {
-      return (arg instanceof Colord || typeof arg === "string")
-              ? colord(arg).isValid()
-              : false
+      if (arg instanceof Colord) return arg.isValid()
+      return typeof arg === "string" && isStrictColorString(arg)
     }
   },
 

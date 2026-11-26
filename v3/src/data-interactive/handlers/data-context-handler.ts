@@ -16,8 +16,8 @@ import { t } from "../../utilities/translation/translate"
 import { registerDIHandler } from "../data-interactive-handler"
 import { DIHandler, DIResources, DIValues } from "../data-interactive-types"
 import { DIUpdateDataContext, DIDataContext, DINotifyDataContext } from "../data-interactive-data-set-types"
-import { basicDataSetInfo, convertDataSetToV2 } from "../data-interactive-type-utils"
-import { getAttribute } from "../data-interactive-utils"
+import { basicDataSetInfo, convertDataSetToV2, getV2SetAsideItems } from "../data-interactive-type-utils"
+import { getAttribute, getCaseValues } from "../data-interactive-utils"
 import { findTileFromNameOrId } from "../resource-parser-utils"
 import { createCollection } from "./di-handler-utils"
 import { attributeNotFoundResult, dataContextNotFoundResult, errorResult, fieldRequiredResult } from "./di-results"
@@ -25,7 +25,7 @@ import { attributeNotFoundResult, dataContextNotFoundResult, errorResult, fieldR
 const requestRequiredResult = fieldRequiredResult("Notify", "dataContext", "request")
 
 export const diDataContextHandler: DIHandler = {
-  create(_resources: DIResources, _values?: DIValues) {
+  create(resources: DIResources, _values?: DIValues) {
     const values = _values as DIDataContext
     const { collections, description, metadata, name: _name, title } = values
     const name = _name || gDataBroker.newDataSetName
@@ -45,6 +45,10 @@ export const diDataContextHandler: DIHandler = {
       sharedMetadata.setImportDate(metadata?.importDate)
       sharedMetadata.setSource(metadata?.source)
       sharedMetadata.setDescription(metadata?.description ?? description)
+
+      // A bare `create dataContext` makes the new data context the plugin's, or the host page's, default
+      const { defaultDataContextLink, isDefaultDataContext } = resources
+      if (isDefaultDataContext) defaultDataContextLink?.setDataContextId(dataSet.id)
 
       if (collections?.length) {
         // remove the default collection
@@ -80,7 +84,10 @@ export const diDataContextHandler: DIHandler = {
     const { dataContext } = resources
     if (!dataContext) return dataContextNotFoundResult
 
-    return { success: true, values: convertDataSetToV2(dataContext) }
+    const values = convertDataSetToV2(dataContext, { omitSetAsideItems: true })
+    // set-aside items read back as other items do
+    const setAsideItems = getV2SetAsideItems(dataContext, itemId => getCaseValues(itemId, dataContext))
+    return { success: true, values: { ...values, setAsideItems } }
   },
 
   notify(resources: DIResources, values?: DIValues) {

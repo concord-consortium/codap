@@ -224,7 +224,7 @@ export class TreeMonitor {
   // stored in the recorder.
   async recordAction(call: IActionTrackingMiddleware3Call<CallEnv>, env: CallEnv) {
     const { recorder, initialSharedModelMap, sharedModelModifications, historyEntryId,
-      exchangeId, noDirty, undoable, customPatches, clientData } = env
+      exchangeId, noDirty, undoable, clearsRedo, customPatches, clientData } = env
     if (!isActionFromManager(call)) {
       // We record the start of the action even if it doesn't have any
       // patches. This is useful when an action only modifies the shared
@@ -241,6 +241,7 @@ export class TreeMonitor {
         action: getActionPath(call),
         noDirty,
         undoable,
+        clearsRedo,
         customPatches,
         clientData
       })

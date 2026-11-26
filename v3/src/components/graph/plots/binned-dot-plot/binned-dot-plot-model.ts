@@ -169,7 +169,8 @@ export const BinnedDotPlotModel = DotPlotModel
     },
     countAdornmentValues({ cellKey }: ICountAdornmentValuesProps) {
       const dataConfig = self.dataConfiguration
-      const { binWidth, totalNumberOfBins, minBinEdge } = self.binDetails()
+      const binDetails = self.binDetails()
+      const { totalNumberOfBins } = binDetails
       const caseDataArray = dataConfig?.subPlotCases(cellKey) ?? []
       const showMeasuresForSelection = !!dataConfig?.showMeasuresForSelection
       const totalNumberOfCases = caseDataArray.length
@@ -181,8 +182,7 @@ export const BinnedDotPlotModel = DotPlotModel
           ? dataDisplayGetNumericValue(dataset, caseID, primaryAttributeID)
           : undefined
         if (isFiniteNumber(caseValue)) {
-          const diff = caseValue - minBinEdge
-          const binIndex = binWidth ? Math.floor(diff / binWidth) : 0
+          const binIndex = binDetails.getBinForValue(caseValue) ?? 0
           if (binIndex >= 0 && binIndex < totalNumberOfBins) {
             if (!binCounts[binIndex]) {
               binCounts[binIndex] = { numInBin: 0, numSelected: 0 }

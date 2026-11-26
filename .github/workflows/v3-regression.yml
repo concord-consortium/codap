@@ -47,6 +47,9 @@ jobs:
     # only run the regression tests if the PR is labeled.
     if: fromJSON(needs.prepare.outputs.run_regression)
     runs-on: ubuntu-latest
+    # Run in parallel, each runner takes about 10 minutes; run serially (e.g. once the Cypress Cloud quota is used up),
+    # a full run takes about 65 minutes. Without a limit, a hung spec holds a runner for GitHub's 6-hour default.
+    timeout-minutes: 75
     # Run in a container so every parallel runner has the exact same OS version,
     # browser version, and dependencies. This prevents Cypress Cloud from rejecting
     # parallel runs due to environment mismatches during GitHub runner image rollouts.
@@ -73,7 +76,7 @@ jobs:
         with:
           path: v3/.cache/webpack/
           key: webpack-dev-build-${{ hashFiles('v3/webpack.config.js') }}
-      - uses: cypress-io/github-action@v6
+      - uses: cypress-io/github-action@v7
         with:
           working-directory: v3
           start: npm start

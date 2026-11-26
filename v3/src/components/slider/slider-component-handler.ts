@@ -5,6 +5,7 @@ import { V2Slider } from "../../data-interactive/data-interactive-component-type
 import { DIValues } from "../../data-interactive/data-interactive-types"
 import { DIComponentHandler } from "../../data-interactive/handlers/component-handler"
 import { errorResult } from "../../data-interactive/handlers/di-results"
+import { toGlobalValue } from "../../data-interactive/handlers/global-handler"
 import { appState } from "../../models/app-state"
 import { GlobalValueManager } from "../../models/global/global-value-manager"
 import { isDateUnit } from "../../utilities/date-utils"
@@ -24,6 +25,7 @@ function validateInput(values: DIValues | undefined, sliderModel?: ISliderModel)
     animationDirection: _animationDirection,
     animationMode: _animationMode,
     globalValueName,
+    multipleOf,
     scaleType,
     dateMultipleOfUnit,
   } = values as V2Slider
@@ -84,14 +86,30 @@ function validateInput(values: DIValues | undefined, sliderModel?: ISliderModel)
     snapshot.animationMode = AnimationModes[modeNumber]
   }
 
+  if (multipleOf != null) {
+    // a number or text that reads as one, as for the slider's value
+    const _multipleOf = toGlobalValue(multipleOf)
+    if (_multipleOf == null) {
+      return {error: errorResult(t("V3.DI.Error.valueNotNumber", { vars: ["multipleOf"] }))}
+    }
+    // taken as positive, as setMultipleOf does for the inspector
+    snapshot.multipleOf = Math.abs(_multipleOf)
+  }
+
   return { validatedValues: snapshot }
+}
+
+// checked before anything changes, as update global does
+function validateValue(value: V2Slider["value"]) {
+  const _value = value != null ? toGlobalValue(value) : undefined
+  if (value != null && _value == null) return { error: errorResult(t("V3.DI.Error.globalIllegalValue")) }
+  return { value: _value }
 }
 
 export const sliderComponentHandler: DIComponentHandler = {
   create({ values }) {
     const {
       animationRate,
-      multipleOf,
       lowerBound,
       upperBound,
     } = values as V2Slider
@@ -104,6 +122,7 @@ export const sliderComponentHandler: DIComponentHandler = {
       animationMode,
       dateMultipleOfUnit,
       globalValue,
+      multipleOf,
       scaleType,
     } = validatedValues
 
@@ -154,6 +173,12 @@ export const sliderComponentHandler: DIComponentHandler = {
     }
   },
 
+  // run before the generic properties are applied, so a refused update changes nothing
+  validateUpdate(content, values) {
+    if (!isSliderModel(content)) return
+    return validateInput(values, content).error ?? validateValue((values as V2Slider).value).error
+  },
+
   update(content, values) {
     if (!isSliderModel(content)) return { success: false }
 
@@ -169,6 +194,8 @@ export const sliderComponentHandler: DIComponentHandler = {
     if (error) {
       return error
     }
+    const { error: valueError, value: _value } = validateValue(value)
+    if (valueError) return valueError
 
     const {
       scaleType,
@@ -181,9 +208,6 @@ export const sliderComponentHandler: DIComponentHandler = {
 
     if (animationRate != null) {
       snapshot._animationRate = animationRate
-    }
-    if (multipleOf != null) {
-      snapshot.multipleOf = multipleOf
     }
     if (scaleType != null) {
       // The scaleType has already been validated, so we can safely use it
@@ -198,8 +222,13 @@ export const sliderComponentHandler: DIComponentHandler = {
 
     applySnapshot(content, snapshot)
 
-    if (value != null) {
-      content.globalValue.setValue(value)
+    // as in v2 (slider_model.js:133-144), round to multipleOf but don't clamp to the axis
+    if (_value != null || multipleOf != null) {
+      // a slider saved with a negative multipleOf rounds as if it were positive
+      const increment = Math.abs(content.increment ?? 0)
+      const newValue = _value ?? content.globalValue.value
+      const rounded = increment ? Math.round(newValue / increment) * increment : newValue
+      content.globalValue.setValue(Number.isFinite(rounded) ? rounded : newValue)
     }
 
     return { success: true }

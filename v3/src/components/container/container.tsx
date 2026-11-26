@@ -10,7 +10,7 @@ import { appState } from "../../models/app-state"
 import { isFreeTileRow } from "../../models/document/free-tile-row"
 import { isMosaicTileRow } from "../../models/document/mosaic-tile-row"
 import { getSharedModelManager } from "../../models/tiles/tile-environment"
-import { deleteTileNotification } from "../../models/tiles/tile-notifications"
+import { createTileNotification, deleteTileNotification } from "../../models/tiles/tile-notifications"
 import { uiState } from "../../models/ui-state"
 import { t } from "../../utilities/translation/translate"
 import { urlParams } from "../../utilities/url-params"
@@ -43,6 +43,9 @@ export const Container: React.FC = observer(function Container() {
       tileId && documentContent?.deleteOrHideTile(tileId)
     }, {
       notify: deleteTileNotification(tile),
+      // undoing the close brings the component back; redoing it closes it again
+      undoNotify: createTileNotification(tile),
+      redoNotify: deleteTileNotification(tile),
       log: logMessageWithReplacement("Close component: %@", {tileType: tile?.content.type}, "component"),
       undoStringKey: "DG.Undo.component.close",
       redoStringKey: "DG.Redo.component.close"
@@ -58,6 +61,7 @@ export const Container: React.FC = observer(function Container() {
         aria-describedby="tile-area-hint"
         aria-label={t("V3.app.tileArea.ariaLabel")}
         className={classes}
+        data-testid="codap-container"
         ref={containerRef}
       >
         <h2 className="codap-visually-hidden">{appState.document.title}</h2>

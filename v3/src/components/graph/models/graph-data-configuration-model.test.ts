@@ -1,9 +1,10 @@
 import { reaction } from "mobx"
-import {applyPatch, Instance, types} from "mobx-state-tree"
+import {applyPatch, Instance, recordPatches, types} from "mobx-state-tree"
 import { DataSet, toCanonical } from "../../../models/data/data-set"
 import {DataSetMetadata} from "../../../models/shared/data-set-metadata"
-import { missingColor } from "../../../utilities/color-utils"
-import { kMain } from "../../data-display/data-display-types"
+import { defaultSelectedColor, defaultSelectedStroke, missingColor } from "../../../utilities/color-utils"
+import { getScaleThresholds } from "../../data-display/components/legend/choropleth-legend/choropleth-legend"
+import { kMain, kOther } from "../../data-display/data-display-types"
 import { matchCirclesToData } from "../../data-display/data-display-utils"
 import {GraphDataConfigurationModel, isGraphDataConfigurationModel} from "./graph-data-configuration-model"
 
@@ -14,6 +15,19 @@ const TreeModel = types.model("Tree", {
 })
 
 let tree: Instance<typeof TreeModel>
+
+// Adds two extra attributes and 50 extra cases used by tests that need enough categories to
+// exercise clamping/bucketing. Kept out of the shared beforeEach so the rest of this file's tests
+// still see exactly the 3-case dataset from the outer beforeEach.
+function addSwapFixture(aTree: Instance<typeof TreeModel>) {
+  aTree.data.addAttribute({ id: "lowId", name: "low" })
+  aTree.data.addAttribute({ id: "hiId", name: "hi" })
+  const swapRows: any[] = []
+  for (let i = 0; i < 50; i++) {
+    swapRows.push({ __id__: `s${i}`, low: i % 2 === 0 ? "A" : "B", hi: `v${i}` })
+  }
+  aTree.data.addCases(toCanonical(aTree.data, swapRows))
+}
 
 describe("DataConfigurationModel", () => {
   beforeEach(() => {
@@ -72,6 +86,131 @@ describe("DataConfigurationModel", () => {
       {plotNum: 0, caseID: caseIdFromItemId("c2")},
       {plotNum: 0, caseID: caseIdFromItemId("c3")}
     ])
+  })
+
+  describe("categories limit normalization (resize performance)", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    const sweepAxisLengths = (config: typeof tree.config, from: number, to: number) => {
+      const kFontHeight = 12
+      for (let axisLength = from; axisLength <= to; axisLength += kFontHeight) {
+        config.setNumberOfCategoriesLimitForRole("x", Math.floor(axisLength / kFontHeight))
+      }
+    }
+
+    it("does not invalidate subplot caches for limits that cannot change the result", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "nId" })
+      const primeCaches = config.caseDataWithSubPlot  // prime the caches
+      expect(primeCaches.length).toBeGreaterThan(0)
+
+      const spies = [
+        jest.spyOn(config.subPlotCases, "invalidateAll"),
+        jest.spyOn(config.casesByCellIndex, "invalidateAll"),
+        jest.spyOn(config.cellIndexer, "invalidateAll"),
+        jest.spyOn(config.cellMap, "invalidateAll")
+      ]
+
+      // every limit in this sweep is far larger than the handful of categories, so none of them
+      // can affect the plotted result
+      sweepAxisLengths(config, 300, 600)
+
+      spies.forEach(spy => {
+        expect(spy).not.toHaveBeenCalled()
+        spy.mockRestore()
+      })
+    })
+
+    it("does not invalidate the category arrays for limits that cannot change the result", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "nId" })
+      expect(config.categoryArrayForAttrRole("x").length).toBeGreaterThan(0)  // prime the cache
+
+      const categorySpy = jest.spyOn(config.categoryArrayForAttrRole, "invalidate")
+
+      // every limit in this sweep is far larger than the handful of categories, so none of them
+      // can affect the category array, and recomputing it is O(cases)
+      sweepAxisLengths(config, 300, 600)
+
+      expect(categorySpy).not.toHaveBeenCalled()
+      categorySpy.mockRestore()
+    })
+
+    it("invalidates when the effective limit actually changes", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "nId" })
+      config.setNumberOfCategoriesLimitForRole("x", 10)  // above the category count: a no-op
+
+      const subPlotSpy = jest.spyOn(config.subPlotCases, "invalidateAll")
+      config.setNumberOfCategoriesLimitForRole("x", 1)   // below it: a real clamp
+      expect(subPlotSpy).toHaveBeenCalled()
+      subPlotSpy.mockRestore()
+    })
+
+    it("keeps the clamp when a higher-cardinality attribute replaces a lower-cardinality one", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      // the limit can be set before the new attribute is assigned
+      config.setNumberOfCategoriesLimitForRole("x", 10)
+      config.setAttribute("x", { attributeID: "hiId" })
+
+      // the stored limit must still be the raw 10, so the 50-category attribute is clamped
+      expect(config.numberOfCategoriesLimitByRole.get("x")).toBe(10)
+      expect(config.categoryArrayForAttrRole("x").length).toBe(10)
+    })
+
+    it("treats only a positive limit below the category count as effective", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      expect(config.unclampedCategoryCountForAttrRole("x")).toBe(50)
+      expect(config.effectiveCategoriesLimitForRole("x", 50)).toBeUndefined()
+      expect(config.effectiveCategoriesLimitForRole("x", 49)).toBe(49)
+      expect(config.effectiveCategoriesLimitForRole("x", 0)).toBeUndefined()
+      expect(config.effectiveCategoriesLimitForRole("x", -1)).toBeUndefined()
+      expect(config.effectiveCategoriesLimitForRole("x", NaN)).toBeUndefined()
+      expect(config.effectiveCategoriesLimitForRole("x", undefined)).toBeUndefined()
+    })
+
+    it("clamps the category array without shortening the unclamped categories it is built from", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      const present = config.presentCategoriesForAttrRole("x")
+      expect(present.length).toBe(50)
+
+      config.setNumberOfCategoriesLimitForRole("x", 10)
+      expect(config.categoryArrayForAttrRole("x").length).toBe(10)
+      expect(config.presentCategoriesForAttrRole("x")).toBe(present)
+      expect(present.length).toBe(50)
+      expect(present).not.toContain(kOther)
+      expect(config.unclampedCategoryCountForAttrRole("x")).toBe(50)
+
+      // clearing the limit restores every category
+      config.setNumberOfCategoriesLimitForRole("x", undefined)
+      expect(config.categoryArrayForAttrRole("x")).toEqual(present)
+    })
+
+    it("still applies a limit smaller than the number of categories", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "nId" })
+
+      const allCategories = config.categoryArrayForAttrRole("x")
+      expect(allCategories.length).toBeGreaterThan(1)
+
+      config.setNumberOfCategoriesLimitForRole("x", 1)
+      expect(config.categoryArrayForAttrRole("x")).toEqual([kOther])
+
+      config.setNumberOfCategoriesLimitForRole("x", allCategories.length)
+      expect(config.categoryArrayForAttrRole("x")).toEqual(allCategories)
+    })
   })
 
   it("behaves as expected with dot chart on x axis", () => {
@@ -142,6 +281,26 @@ describe("DataConfigurationModel", () => {
     expect(config.plottedAttributeIDs).toContain("y2Id")
     expect(config.plottedAttributeIDs).toContain("yRightId")
     expect(config.plottedAttributeIDs.length).toBe(new Set(config.plottedAttributeIDs).size)
+  })
+
+  it("setAttributeTypeOfAttribute retypes the chosen one of several left-axis attributes", () => {
+    const config = tree.config
+    config.setDataset(tree.data, tree.metadata)
+    tree.data.addAttribute({ id: "y2Id", name: "y2" })
+    config.setAttribute("x", { attributeID: "xId" })
+    config.setAttribute("y", { attributeID: "yId" })
+    config.addYAttribute({ attributeID: "y2Id" })          // 2nd attribute on the left y axis
+
+    config.setAttributeTypeOfAttribute("y", "y2Id", "categorical")
+    expect(config.yAttributeDescriptions[1].type).toBe("categorical")
+    expect(config.yAttributeDescriptions[0].type).not.toBe("categorical")
+
+    config.setAttributeTypeOfAttribute("y", "yId", "categorical")
+    expect(config.yAttributeDescriptions[0].type).toBe("categorical")
+
+    // other roles have a single attribute
+    config.setAttributeTypeOfAttribute("x", "xId", "categorical")
+    expect(config.attributeType("x")).toBe("categorical")
   })
 
   it("behaves as expected with scatter plot and explicit caption attribute", () => {
@@ -369,6 +528,22 @@ describe("DataConfigurationModel", () => {
     expect(config.suppressAnimation).toBe(true)
   })
 
+  it("suppresses animation when a visibility slider hides or shows cases", () => {
+    // A slider updates the hidden cases on every drag and playback step, so points must snap rather than
+    // restart a transition each step (they'd otherwise fade out and back in).
+    const config = tree.config
+    config.setDataset(tree.data, tree.metadata)
+    config.setAttribute("x", { attributeID: "xId" })
+    expect(config.suppressAnimation).toBe(false)
+
+    tree.data.setSliderFilter("SLIDER_TILE", new Set([tree.data.itemIds[0]]))
+    expect(config.suppressAnimation).toBe(true)
+
+    config.setSuppressAnimation(false)
+    tree.data.clearSliderFilter("SLIDER_TILE")
+    expect(config.suppressAnimation).toBe(true)
+  })
+
   it("matchCirclesToData stops in-flight animation (not just skips starting) when suppressed", () => {
     // When cases stream in, an animation timer armed earlier (e.g. during initial plot setup) can
     // still be running. Merely skipping startAnimation isn't enough — the points would keep getting
@@ -398,6 +573,41 @@ describe("DataConfigurationModel", () => {
     expect(startAnimation).not.toHaveBeenCalled()
     expect(stopAnimation).toHaveBeenCalledTimes(1)
     expect(config.suppressAnimation).toBe(false)
+  })
+
+  it("matchCirclesToData gives the renderer each case's plot, legend and selection style", () => {
+    const config = tree.config
+    config.setDataset(tree.data, tree.metadata)
+    const renderer = { matchPointsToData: jest.fn() } as any
+    const props = {
+      dataConfiguration: config, renderer, pointRadius: 5, selectedPointRadius: 7, pointColor: "#default",
+      pointStrokeColor: "#000", getPointColorAtIndex: (index: number) => `#plot${index}`,
+      startAnimation: jest.fn(), stopAnimation: jest.fn(), instanceId: "test"
+    }
+    const caseID = caseIdFromItemId("c1")!
+    const caseData = { plotNum: 0, caseID, subPlotNum: 0 }
+    const getCasePointStyle = () => {
+      matchCirclesToData(props)
+      return renderer.matchPointsToData.mock.lastCall[4]
+    }
+
+    expect(getCasePointStyle()(caseData)).toMatchObject({ fill: "#default", radius: 5, stroke: "#000" })
+    expect(getCasePointStyle()({ ...caseData, plotNum: 1 }).fill).toBe("#plot1")
+
+    tree.data.setSelectedCases([caseID])
+    expect(getCasePointStyle()(caseData))
+      .toMatchObject({ fill: defaultSelectedColor, radius: 7, stroke: "#000" })
+
+    config.setAttribute("legend", { attributeID: "xId" })
+    const legendStyle = getCasePointStyle()(caseData)
+    // a legend colors a selected point by its case and marks the selection with its stroke
+    expect(legendStyle).toMatchObject({
+      fill: config.getLegendColorForCase(caseID), shape: config.getLegendShapeForCase(caseID),
+      radius: 7, stroke: defaultSelectedStroke
+    })
+    tree.data.setSelectedCases([])
+    expect(getCasePointStyle()(caseData))
+      .toMatchObject({ fill: config.getLegendColorForCase(caseID), radius: 5, stroke: "#000" })
   })
 
   it("only allows x and y as primary place", () => {
@@ -582,6 +792,10 @@ describe("DataConfigurationModel", () => {
     expect(noCategoricalCellKeys.length).toEqual(1)
     expect(noCategoricalCellKeys[0]).toEqual({})
 
+    // cellIndexer caches its result until invalidated; each mockData swap below simulates a
+    // fresh category configuration, so the cache must be cleared to pick it up.
+    config.cellIndexer.invalidateAll()
+
     // For a graph with one categorical attribute
     mockData = {
       id: {
@@ -606,6 +820,8 @@ describe("DataConfigurationModel", () => {
     expect(oneCategoricalCellKeys.length).toEqual(2)
     expect(oneCategoricalCellKeys[0]).toEqual({"def456": "small"})
     expect(oneCategoricalCellKeys[1]).toEqual({"def456": "large"})
+
+    config.cellIndexer.invalidateAll()
 
     // For a graph with multiple categorical attributes
     mockData = {
@@ -642,6 +858,667 @@ describe("DataConfigurationModel", () => {
         }
       }
     }
+  })
+
+  describe("categories limit vs hidden cases", () => {
+    beforeEach(() => addSwapFixture(tree))
+
+    it("normalizes a limit that is a no-op against the VISIBLE categories, not the full set", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+
+      // hide everything except five distinct hi values, so the rendered category count (5) is far
+      // below the attribute's full category set (50)
+      const keep = ["v0", "v1", "v2", "v3", "v4"]
+      const toHide = config.allPlottedCases()
+        .filter(id => !keep.includes(tree.data.getStrValue(id, "hiId") ?? ""))
+      config.setHiddenCases(toHide)
+
+      expect(config.unclampedCategoryCountForAttrRole("x")).toBe(keep.length)
+
+      // a limit of 10 clamps nothing (10 >= 5 rendered categories), though it is below the full 50
+      const subPlotSpy = jest.spyOn(config.subPlotCases, "invalidateAll")
+      try {
+        config.setNumberOfCategoriesLimitForRole("x", 10)
+        expect(config.effectiveCategoriesLimitForRole("x", 10)).toBeUndefined()
+        expect(subPlotSpy).not.toHaveBeenCalled()
+      }
+      finally {
+        subPlotSpy.mockRestore()
+      }
+    })
+
+    it("recounts the visible categories when the visible cases change", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      const keep = ["v0", "v1", "v2", "v3", "v4"]
+      config.setHiddenCases(config.allPlottedCases()
+        .filter(id => !keep.includes(tree.data.getStrValue(id, "hiId") ?? "")))
+      config.setNumberOfCategoriesLimitForRole("x", 10)  // a no-op while 5 categories are visible
+      expect(config.unclampedCategoryCountForAttrRole("x")).toBe(keep.length)
+
+      config.setHiddenCases([])
+      expect(config.unclampedCategoryCountForAttrRole("x")).toBe(50)
+      expect(config.categoryArrayForAttrRole("x").length).toBe(10)
+
+      // a stale count of 5 would treat 10 -> 12 as a no-op and leave the axis clamped at 10
+      config.setNumberOfCategoriesLimitForRole("x", 12)
+      expect(config.categoryArrayForAttrRole("x").length).toBe(12)
+    })
+  })
+
+  describe("cell bucketing", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    it("puts each plotted case in exactly one cell, and subPlotCases reads the buckets", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+
+      const buckets = config.casesByCellIndex()
+      const total = buckets.reduce((sum, ids) => sum + ids.length, 0)
+      expect(total).toBe(config.allPlottedCases().length)
+
+      const seen = new Set<string>()
+      buckets.forEach(ids => ids.forEach(id => {
+        expect(seen.has(id)).toBe(false)
+        seen.add(id)
+      }))
+
+      const indexer = config.cellIndexer()
+      for (let i = 0; i < indexer.cellCount; i++) {
+        expect(config.subPlotCases(indexer.cellKeyForIndex(i))).toEqual(buckets[i])
+      }
+    })
+
+    it("buckets cases with a numeric x role instead of dropping them from every cell", () => {
+      // see cellIndexResolver for the degenerate slot a numeric role gets
+      const config = tree.config
+      tree.data.addAttribute({ id: "catId", name: "cat" })
+      tree.data.setCaseValues([
+        { __id__: "c1", catId: "P" },
+        { __id__: "c2", catId: "Q" }
+      ])
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "xId" })          // numeric: c1 x=1, c2 x=2
+      config.setAttribute("topSplit", { attributeID: "catId" }) // categorical: c1 cat=P, c2 cat=Q
+
+      const [c1Id, c2Id] = caseIdsFromItemIds(["c1", "c2"]) as string[]
+      expect(config.allPlottedCases()).toEqual([c1Id, c2Id])
+
+      const cellIndexForCase = config.cellIndexResolver()
+      const c1Cell = cellIndexForCase(c1Id)
+      const c2Cell = cellIndexForCase(c2Id)
+      expect(c1Cell).toBeGreaterThanOrEqual(0)
+      expect(c2Cell).toBeGreaterThanOrEqual(0)
+
+      const buckets = config.casesByCellIndex()
+      expect(buckets[c1Cell]).toContain(c1Id)
+      expect(buckets[c2Cell]).toContain(c2Id)
+      expect(buckets.reduce((sum, ids) => sum + ids.length, 0)).toBe(2)
+    })
+
+    it("does not read the dataset once per cell", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      const getStrValueSpy = jest.spyOn(tree.data, "getStrValue")
+      // the per-cell subset match reads cases through getFirstItemForCase
+      const getItemSpy = jest.spyOn(tree.data, "getFirstItemForCase")
+
+      config.casesByCellIndex()
+      const fewCells = getStrValueSpy.mock.calls.length
+
+      getStrValueSpy.mockClear()
+      config.setAttribute("topSplit", { attributeID: "hiId" })
+      config.casesByCellIndex()
+      const manyCells = getStrValueSpy.mock.calls.length
+
+      // reads scale with cases and roles, NOT with the number of cells
+      expect(manyCells).toBeLessThan(fewCells * 4)
+      expect(getItemSpy).not.toHaveBeenCalled()
+      getStrValueSpy.mockRestore()
+      getItemSpy.mockRestore()
+    })
+  })
+
+  describe("equivalence with the previous subplot membership logic where it is unchanged", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    // The previous subPlotCases, adapted to run outside the model, as a reference: it filters all
+    // plotted cases per cell. Its kOther handling is wrong whenever the first role holding a limit
+    // isn't the clamped one, so these configurations clamp only x (or nothing); the kOther tests
+    // below cover the configurations where the two differ.
+    const referenceSubPlotCases = (config: typeof tree.config, cellKey: Record<string, string>) => {
+      const copyOfCellKey: Record<string, string> = { ...cellKey }
+      const attributeIDsWithValueOther: string[] = []
+      Object.keys(copyOfCellKey).forEach(attrID => {
+        if (copyOfCellKey[attrID] === kOther) attributeIDsWithValueOther.push(attrID)
+      })
+      attributeIDsWithValueOther.forEach(attrID => delete copyOfCellKey[attrID])
+      let targetCases = config.allPlottedCases().filter((caseId: string) => {
+        const itemData = tree.data.getFirstItemForCase(caseId, { numeric: false })
+        const caseData = itemData || { __id__: caseId }
+        return config.isCaseInSubPlot(copyOfCellKey, caseData)
+      })
+      // resolves kOther against the first role holding any limit, ignoring the attribute id
+      attributeIDsWithValueOther.forEach(() => {
+        const role = (["x", "y", "topSplit", "rightSplit"] as const)
+          .find(r => config.numberOfCategoriesLimitByRole.get(r) !== undefined)
+        if (role) {
+          targetCases = targetCases.filter((caseId: string) =>
+            config.categoricalValueForCaseInRole(caseId, role) === kOther)
+        }
+      })
+      return targetCases
+    }
+
+    interface IConfig { x?: string, y?: string, topSplit?: string, rightSplit?: string, xLimit?: number }
+    const configure = ({ xLimit, ...roles }: IConfig) => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      Object.entries(roles).forEach(([role, attributeID]) => {
+        config.setAttribute(role as keyof typeof roles, { attributeID })
+      })
+      if (xLimit != null) config.setNumberOfCategoriesLimitForRole("x", xLimit)
+      return config
+    }
+
+    const configs: Array<[string, IConfig]> = [
+      ["x only", { x: "lowId" }],
+      ["x and y", { x: "lowId", y: "nId" }],
+      ["x and topSplit", { x: "lowId", topSplit: "nId" }],
+      ["x and rightSplit", { x: "lowId", rightSplit: "nId" }],
+      ["topSplit and rightSplit", { topSplit: "lowId", rightSplit: "nId" }],
+      ["all four roles", { x: "lowId", y: "nId", topSplit: "modId", rightSplit: "nId" }],
+      ["x clamped", { x: "hiId", xLimit: 3 }],
+      ["x clamped with y", { x: "hiId", y: "lowId", xLimit: 5 }],
+      ["x clamped with both splits", { x: "hiId", topSplit: "lowId", rightSplit: "modId", xLimit: 4 }],
+      ["no attributes", {}]
+    ]
+
+    beforeEach(() => {
+      tree.data.addAttribute({ id: "modId", name: "mod" })
+      tree.data.items.forEach((item, i) => tree.data.setCaseValues([{ __id__: item.__id__, modId: `m${i % 3}` }]))
+    })
+
+    configs.forEach(([name, config]) => {
+      it(`matches the reference implementation, in order: ${name}`, () => {
+        const dataConfig = configure(config)
+        const indexer = dataConfig.cellIndexer()
+        for (let i = 0; i < indexer.cellCount; i++) {
+          const cellKey = indexer.cellKeyForIndex(i)
+          expect(dataConfig.subPlotCases(cellKey)).toEqual(referenceSubPlotCases(dataConfig, cellKey))
+        }
+      })
+    })
+  })
+
+  describe("subPlotCases with a cell key the grid does not generate", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    it("matches a raw category value that clamping folded into kOther", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      config.setNumberOfCategoriesLimitForRole("x", 3)
+
+      // hiId has 50 distinct values, so all but a couple are clamped away; the grid's cell keys
+      // name only the surviving categories plus kOther. Callers such as the bar tooltip and the
+      // dot line plot still build their keys from the raw case value, which names no cell.
+      const xCats = config.categoryArrayForAttrRole("x", [])
+      expect(xCats).toContain(kOther)
+      const clampedValue = "v40"
+      expect(xCats).not.toContain(clampedValue)
+      expect(config.cellIndexer().indicesForCellKey({ hiId: clampedValue })).toEqual([])
+
+      expect(config.subPlotCases({ hiId: clampedValue })).toEqual(caseIdsFromItemIds(["s40"]))
+    })
+
+    it("treats an empty cell key as every plotted case even when the grid has many cells", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      expect(config.cellIndexer().cellCount).toBeGreaterThan(1)
+
+      expect([...config.subPlotCases({})].sort()).toEqual([...config.allPlottedCases()].sort())
+    })
+  })
+
+  describe("percent denominators (cellCases / rowCases / columnCases)", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    const sorted = (caseIds: readonly string[]) => [...caseIds].sort()
+    const setSwapValues = (attrId: string, valueFor: (i: number) => string | number) => {
+      tree.data.setCaseValues(Array.from({ length: 50 }, (_, i) => ({ __id__: `s${i}`, [attrId]: valueFor(i) })))
+    }
+    // Every cell's count/percent numerator must lie within each of its denominators.
+    const expectNumeratorsWithinDenominators = () => {
+      const config = tree.config
+      config.getAllCellKeys().forEach(cellKey => {
+        const numerator = config.subPlotCases(cellKey)
+        for (const denominator of [config.cellCases(cellKey), config.rowCases(cellKey), config.columnCases(cellKey)]) {
+          expect(numerator.filter(caseId => !denominator.includes(caseId))).toEqual([])
+        }
+      })
+    }
+    // The plotted cases whose value for attrId was clamped into kOther, optionally narrowed to one
+    // value of a second attribute.
+    const overflowCases = (attrId: string, other?: { attrId: string, value: string }) => {
+      const config = tree.config
+      const cats = config.categoryArrayForAttrRole(
+        config.attributeID("x") === attrId ? "x" : config.attributeID("y") === attrId ? "y" : "topSplit", [])
+      return config.allPlottedCases().filter(caseId => {
+        if (cats.includes(config.dataset!.getStrValue(caseId, attrId) ?? "")) return false
+        return !other || config.dataset!.getStrValue(caseId, other.attrId) === other.value
+      })
+    }
+
+    it("finds the overflow cases for kOther on y (Row %)", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("y", 10)
+      expect(config.categoryArrayForAttrRole("y", [])).toContain(kOther)
+
+      const expected = overflowCases("hiId")
+      expect(expected.length).toBeGreaterThan(0)
+      // the row spans every x category, so its denominator is every overflow case
+      expect(sorted(config.rowCases({ hiId: kOther, lowId: "A" }))).toEqual(sorted(expected))
+      // and the count/percent numerator for that cell is a subset of it
+      const numerator = config.subPlotCases({ hiId: kOther, lowId: "A" })
+      expect(numerator.length).toBeGreaterThan(0)
+      expect(numerator.every(caseId => expected.includes(caseId))).toBe(true)
+    })
+
+    it("finds the overflow cases for kOther on x (Column %)", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      config.setAttribute("y", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("x", 10)
+
+      const expected = overflowCases("hiId")
+      expect(expected.length).toBeGreaterThan(0)
+      expect(sorted(config.columnCases({ hiId: kOther, lowId: "B" }))).toEqual(sorted(expected))
+    })
+
+    it("finds the overflow cases for kOther on a top split (any percent type)", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("topSplit", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("topSplit", 10)
+      expect(config.categoryArrayForAttrRole("topSplit", [])).toContain(kOther)
+
+      const expected = overflowCases("hiId")
+      expect(expected.length).toBeGreaterThan(0)
+      const key = { hiId: kOther, lowId: "A" }
+      expect(sorted(config.cellCases(key))).toEqual(sorted(expected))
+      expect(sorted(config.rowCases(key))).toEqual(sorted(expected))
+      expect(sorted(config.columnCases(key))).toEqual(sorted(overflowCases("hiId", { attrId: "lowId", value: "A" })))
+    })
+
+    it("recomputes the kOther denominators when the category limit tightens (graph shortened)", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      const key = { hiId: kOther, lowId: "A" }
+
+      // a stale denominator from a looser limit would push the percent past 100%
+      for (const limit of [20, 12, 8, 4, 2]) {
+        config.setNumberOfCategoriesLimitForRole("y", limit)
+        const expected = overflowCases("hiId")
+        const rowCases = config.rowCases(key)
+        expect(sorted(rowCases)).toEqual(sorted(expected))
+        expect(sorted(config.cellCases(key))).toEqual(sorted(config.allPlottedCases()))
+        // the column spans every y category, overflow included
+        const columnA = config.allPlottedCases().filter(caseId => config.dataset!.getStrValue(caseId, "lowId") === "A")
+        expect(sorted(config.columnCases(key))).toEqual(sorted(columnA))
+        expect(config.subPlotCases(key).length).toBeLessThanOrEqual(rowCases.length)
+      }
+    })
+
+    it("matches a raw-value comparison for every cell when nothing is clamped", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setAttribute("rightSplit", { attributeID: "nId" })
+      setSwapValues("nId", i => `n${i % 3}`)
+      expect(config.allPlottedCases()).toHaveLength(50)
+
+      const valueOf = (caseId: string, attrId: string) => config.dataset!.getStrValue(caseId, attrId)
+      const matching = (cellKey: Record<string, string>, attrIds: string[]) =>
+        config.allPlottedCases().filter(caseId => attrIds.every(id => valueOf(caseId, id) === cellKey[id]))
+
+      config.getAllCellKeys().forEach(cellKey => {
+        expect(sorted(config.cellCases(cellKey))).toEqual(sorted(matching(cellKey, ["nId"])))
+        expect(sorted(config.rowCases(cellKey))).toEqual(sorted(matching(cellKey, ["hiId", "nId"])))
+        expect(sorted(config.columnCases(cellKey))).toEqual(sorted(matching(cellKey, ["lowId", "nId"])))
+      })
+    })
+
+    it("ignores a non-categorical top split in cellCases", () => {
+      const config = tree.config
+      tree.data.addAttribute({ id: "numId", name: "num" })
+      setSwapValues("numId", i => i)
+      setSwapValues("nId", i => `n${i % 2}`)
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setAttribute("rightSplit", { attributeID: "nId" })
+      config.setAttribute("topSplit", { attributeID: "numId" })
+      expect(config.attributeType("topSplit")).not.toBe("categorical")
+
+      const plotted = config.allPlottedCases()
+      expect(plotted.length).toBeGreaterThan(0)
+      config.getAllCellKeys().forEach(cellKey => {
+        const sameRight = plotted.filter(caseId => config.dataset!.getStrValue(caseId, "nId") === cellKey.nId)
+        expect(sorted(config.cellCases(cellKey))).toEqual(sorted(sameRight))
+      })
+    })
+
+    it("resolves the slots of an attribute that occupies two roles with different limits", () => {
+      const config = tree.config
+      tree.data.addAttribute({ id: "dupId", name: "dup" })
+      setSwapValues("dupId", i => "abcd"[i % 4])
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("topSplit", { attributeID: "dupId" })
+      config.setAttribute("y", { attributeID: "dupId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("topSplit", 1)
+      config.setNumberOfCategoriesLimitForRole("y", 3)
+      expect(config.categoryArrayForAttrRole("y", [])).toEqual(["a", "b", kOther])
+
+      // dupId holds the top split's kOther, so only the __IMPOSSIBLE__ entry tells this is y's "b" row
+      const key = { dupId: kOther, __IMPOSSIBLE__: "b", lowId: "A" }
+      const bCases = config.allPlottedCases().filter(caseId => config.dataset!.getStrValue(caseId, "dupId") === "b")
+      expect(bCases.length).toBeGreaterThan(0)
+      expect(sorted(config.rowCases(key))).toEqual(sorted(bCases))
+      expectNumeratorsWithinDenominators()
+    })
+
+    it("maps a raw value outside the categories in a key the grid doesn't generate to the kOther row", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("y", 10)
+      const clampedValue = "v40"
+      expect(config.categoryArrayForAttrRole("y", [])).not.toContain(clampedValue)
+      const key = { hiId: clampedValue, lowId: "A" }
+      expect(config.cellIndexer().indicesForCellKey(key)).toEqual([])
+
+      const expected = overflowCases("hiId")
+      expect(expected.length).toBeGreaterThan(1)
+      expect(sorted(config.rowCases(key))).toEqual(sorted(expected))
+    })
+
+    it("matches no case for a key the grid doesn't generate that lacks one of the roles' attributes", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("y", 10)
+
+      // rowCases compares y, which this key doesn't name
+      expect(config.rowCases({ lowId: "A" })).toEqual([])
+    })
+
+    it("ignores the empty impossible cells that share a key when an attribute occupies three roles", () => {
+      const config = tree.config
+      tree.data.addAttribute({ id: "dupId", name: "dup" })
+      setSwapValues("dupId", i => "abcd"[i % 4])
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("topSplit", { attributeID: "dupId" })
+      config.setAttribute("rightSplit", { attributeID: "dupId" })
+      config.setAttribute("x", { attributeID: "dupId" })
+      config.setNumberOfCategoriesLimitForRole("topSplit", 1)
+      config.setNumberOfCategoriesLimitForRole("rightSplit", 2)
+      config.setNumberOfCategoriesLimitForRole("x", 3)
+      expect(config.categoryArrayForAttrRole("rightSplit", [])).toEqual(["a", kOther])
+      expect(config.categoryArrayForAttrRole("x", [])).toEqual(["a", "b", kOther])
+
+      const casesWith = (values: string) =>
+        config.allPlottedCases().filter(caseId => values.includes(config.dataset!.getStrValue(caseId, "dupId")!))
+      // The populated "a" and "b" cells each share their key with empty cells no case can occupy
+      // (e.g. right = a with x = b), so only the populated cell's slices may be counted.
+      const aKey = { dupId: kOther, __IMPOSSIBLE__: "a" }
+      const bKey = { dupId: kOther, __IMPOSSIBLE__: "b" }
+      expect(config.cellIndexer().indicesForCellKey(aKey).length).toBeGreaterThan(1)
+      expect(config.cellIndexer().indicesForCellKey(bKey).length).toBeGreaterThan(1)
+
+      // "a" is the only value in right's "a" slot: 100%, not 25%
+      expect(sorted(config.cellCases(aKey))).toEqual(sorted(casesWith("a")))
+      expect(sorted(config.rowCases(aKey))).toEqual(sorted(casesWith("a")))
+      expect(sorted(config.columnCases(aKey))).toEqual(sorted(casesWith("a")))
+      // "b" shares right's kOther slot with c and d: 33%, not 25%
+      expect(sorted(config.cellCases(bKey))).toEqual(sorted(casesWith("bcd")))
+      expect(sorted(config.rowCases(bKey))).toEqual(sorted(casesWith("bcd")))
+      expect(sorted(config.columnCases(bKey))).toEqual(sorted(casesWith("b")))
+      expectNumeratorsWithinDenominators()
+    })
+
+    it("keeps a real category spelled like kOther apart from the overflow", () => {
+      const config = tree.config
+      setSwapValues("hiId", i => i % 10 === 0 ? kOther : `v${i % 10}`)
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("y", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setNumberOfCategoriesLimitForRole("y", 4)
+      const yCats = config.categoryArrayForAttrRole("y", [])
+      expect(yCats.filter(cat => cat === kOther)).toHaveLength(2)
+
+      expectNumeratorsWithinDenominators()
+    })
+  })
+
+  describe("caseDataWithSubPlot", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    it("derives subPlotNum from bucket membership, not from joinedCaseDataArrays", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+
+      // Simulate a case the indexer could not slot by removing it from the buckets, and confirm
+      // caseDataWithSubPlot reads bucket membership rather than joinedCaseDataArrays.
+      const excludedCaseID = config.joinedCaseDataArrays[0].caseID
+      const bucketsWithoutExcluded = config.casesByCellIndex()
+        .map(bucket => bucket.filter(caseID => caseID !== excludedCaseID))
+      jest.spyOn(config, "casesByCellIndex").mockReturnValue(bucketsWithoutExcluded)
+
+      try {
+        const caseData = config.caseDataWithSubPlot
+        const excluded = caseData.find(cd => cd.caseID === excludedCaseID)
+
+        expect(excluded).toBeDefined()
+        expect(excluded?.subPlotNum).toBeUndefined()
+      } finally {
+        jest.restoreAllMocks()
+      }
+    })
+
+    it("reflects a new cell layout after the caches are invalidated", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      const before = config.caseDataWithSubPlot.map(cd => cd.subPlotNum)
+
+      // Changing only the categories limit re-shapes the cell grid without touching
+      // joinedCaseDataArrays. An unobserved read only shows that invalidation reaches the caches;
+      // the reaction test below shows that it reaches an observer.
+      config.setNumberOfCategoriesLimitForRole("x", 3)
+      const after = config.caseDataWithSubPlot.map(cd => cd.subPlotNum)
+
+      expect(after).not.toEqual(before)
+      expect(Math.max(...after.filter((n): n is number => n != null))).toBeLessThan(3)
+    })
+
+    it("re-fires an active reaction observing casesByCellIndex after the caches are invalidated", () => {
+      // Observes casesByCellIndex rather than caseDataWithSubPlot, which returns the same array
+      // instance as joinedCaseDataArrays with only its subPlotNum fields changed, so a
+      // reference-equality reaction on it would not fire.
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+
+      const seen: number[][] = []
+      const disposer = reaction(
+        () => config.casesByCellIndex().map(bucket => bucket.length),
+        (bucketSizes) => seen.push(bucketSizes),
+        { name: "GraphDataConfigurationTest casesByCellIndex reaction", fireImmediately: true }
+      )
+      try {
+        expect(seen.length).toBe(1)
+        const before = seen[0]
+
+        config.setNumberOfCategoriesLimitForRole("x", 3)
+
+        expect(seen.length).toBe(2)
+        const after = seen[1]
+        expect(after).not.toEqual(before)
+        expect(after.length).toBe(3)
+      } finally {
+        disposer()
+      }
+    })
+
+    it("assigns each plotted case the index of the bucket containing it", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+
+      const buckets = config.casesByCellIndex()
+      const byCaseId = new Map(config.caseDataWithSubPlot.map(cd => [cd.caseID, cd.subPlotNum]))
+      buckets.forEach((ids, cellIndex) => {
+        ids.forEach(id => expect(byCaseId.get(id)).toBe(cellIndex))
+      })
+    })
+
+    it("reads the buckets directly instead of calling subPlotCases per cell", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "hiId" })
+      // several cells, so a per-cell loop would call subPlotCases more than once
+      config.setNumberOfCategoriesLimitForRole("x", 5)
+
+      const subPlotCasesSpy = jest.spyOn(config, "subPlotCases")
+      const caseData = config.caseDataWithSubPlot
+      expect(caseData.length).toBeGreaterThan(0)
+      expect(subPlotCasesSpy).not.toHaveBeenCalled()
+      subPlotCasesSpy.mockRestore()
+    })
+  })
+
+  describe("kOther assignment per role", () => {
+    beforeEach(() => {
+      addSwapFixture(tree)
+    })
+
+    const expectEveryCaseBucketedByItsOwnValues = (config: typeof tree.config) => {
+      const buckets = config.casesByCellIndex()
+      expect(buckets.reduce((sum, ids) => sum + ids.length, 0)).toBe(config.allPlottedCases().length)
+      const indexer = config.cellIndexer()
+      buckets.forEach((caseIds, cellIndex) => {
+        const cellKey = indexer.cellKeyForIndex(cellIndex)
+        caseIds.forEach(caseId => {
+          (["x", "y", "topSplit", "rightSplit"] as const).forEach(role => {
+            const attrId = config.attributeID(role)
+            if (attrId && config.attributeType(role) === "categorical") {
+              expect(cellKey[attrId]).toBe(config.categoricalValueForCaseInRole(caseId, role))
+            }
+          })
+        })
+      })
+    }
+
+    it("draws a clamped y's overflow while x holds a limit that clamps nothing", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setAttribute("y", { attributeID: "hiId" })
+      // every categorical axis stores a limit; x's is far above its two categories
+      config.setNumberOfCategoriesLimitForRole("x", 40)
+      config.setNumberOfCategoriesLimitForRole("y", 4)
+
+      expectEveryCaseBucketedByItsOwnValues(config)
+      const yOther = config.subPlotCases({ lowId: "A", hiId: kOther })
+      expect(yOther.length).toBeGreaterThan(0)
+      yOther.forEach(caseId => expect(config.categoricalValueForCaseInRole(caseId, "y")).toBe(kOther))
+    })
+
+    it("buckets by topSplit and rightSplit independently", () => {
+      tree.data.addAttribute({ id: "modId", name: "mod" })
+      tree.data.items.forEach((item, i) => tree.data.setCaseValues([{ __id__: item.__id__, modId: `m${i % 3}` }]))
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setAttribute("topSplit", { attributeID: "modId" })
+      config.setAttribute("rightSplit", { attributeID: "hiId" })
+      config.setNumberOfCategoriesLimitForRole("rightSplit", 4)
+
+      expect(config.cellIndexer().cellCount).toBe(2 * 3 * 4)  // x * top * right, distinct counts
+      expectEveryCaseBucketedByItsOwnValues(config)
+    })
+
+    it("assigns each role's overflow to that role's own kOther slot", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("x", { attributeID: "lowId" })
+      config.setAttribute("topSplit", { attributeID: "hiId" })
+
+      // clamp both roles at once
+      config.setNumberOfCategoriesLimitForRole("x", 1)
+      config.setNumberOfCategoriesLimitForRole("topSplit", 2)
+
+      const xCats = config.categoryArrayForAttrRole("x", [])
+      const topCats = config.categoryArrayForAttrRole("topSplit", [])
+      expect(xCats[xCats.length - 1]).toBe(kOther)
+      expect(topCats[topCats.length - 1]).toBe(kOther)
+
+      expectEveryCaseBucketedByItsOwnValues(config)
+    })
+
+    it("places each case in its own cell when one attribute is on three roles", () => {
+      const config = tree.config
+      config.setDataset(tree.data, tree.metadata)
+      config.setAttribute("topSplit", { attributeID: "hiId" })
+      config.setAttribute("rightSplit", { attributeID: "hiId" })
+      config.setAttribute("x", { attributeID: "hiId" })
+      config.setNumberOfCategoriesLimitForRole("topSplit", 1)
+      config.setNumberOfCategoriesLimitForRole("rightSplit", 2)
+      config.setNumberOfCategoriesLimitForRole("x", 3)
+
+      // the cell key can't name three values for one attribute, so derive each case's cell from
+      // its clamped value in each role and check it was bucketed there
+      const indexer = config.cellIndexer()
+      const slot = (caseId: string, role: "topSplit" | "rightSplit" | "x") =>
+        config.categoryArrayForAttrRole(role).indexOf(config.categoricalValueForCaseInRole(caseId, role))
+      const rightCount = config.categoryArrayForAttrRole("rightSplit").length
+      const xCount = config.categoryArrayForAttrRole("x").length
+      const buckets = config.casesByCellIndex()
+      config.allPlottedCases().forEach(caseId => {
+        const cellIndex = (slot(caseId, "topSplit") * rightCount + slot(caseId, "rightSplit")) * xCount +
+                          slot(caseId, "x")
+        expect(buckets[cellIndex]).toContain(caseId)
+        expect(config.subPlotCases(indexer.cellKeyForIndex(cellIndex))).toContain(caseId)
+      })
+    })
   })
 })
 
@@ -1063,7 +1940,8 @@ describe("DataConfigurationModel legend range overrides", () => {
     t.metadata.setAttributeBinningType("legId", "quantile")
     t.metadata.setAttributeBinCount("legId", 3)
     t.config.setLegendQuantilesAreLocked(true)
-    const frozen = t.config.legendNumericColorScale
+    const frozenThresholds = getScaleThresholds(t.config.legendNumericColorScale)
+    const frozenColors = t.config.legendNumericColorScale.range()
     expect(t.config.legendBinDataExtents).toBeUndefined()
 
     // make the data degenerate (four 1s plus 2 and 3) — unlocked this would trigger the threshold repair
@@ -1073,9 +1951,358 @@ describe("DataConfigurationModel legend range overrides", () => {
       { __id__: caseId("c5"), legId: 1 },
       { __id__: caseId("c6"), legId: 1 }
     ])
-    // the frozen scale is still used (same instance) and the repair's bin extents stay opted out
-    expect(t.config.legendNumericColorScale).toBe(frozen)
+    // the locked edges and colors are still used and the repair's bin extents stay opted out
+    expect(getScaleThresholds(t.config.legendNumericColorScale)).toEqual(frozenThresholds)
+    expect(t.config.legendNumericColorScale.range()).toEqual(frozenColors)
     expect(t.config.legendBinDataExtents).toBeUndefined()
+  })
+})
+
+describe("GraphDataConfigurationModel locked legend", () => {
+  // Adds a "leg" attribute with one case per value (ids c0, c1, ...) and connects the data.
+  function addLegendData(t: Instance<typeof TreeModel>, values: Array<number | string>) {
+    t.data.addAttribute({ id: "legId", name: "leg" })
+    t.metadata.setData(t.data)
+    t.data.addCases(toCanonical(t.data, values.map((leg, i) => ({ __id__: `c${i}`, leg }))))
+    t.config.setDataset(t.data, t.metadata)
+  }
+  // A tree with "leg" as the legend. By default: eleven cases with legend values 0, 10, ..., 100,
+  // default (quantile) binning, 5 bins.
+  function makeTree(values: Array<number | string> = Array.from({ length: 11 }, (_, i) => i * 10)) {
+    const t = TreeModel.create({ data: {}, metadata: {}, config: {} })
+    addLegendData(t, values)
+    t.config.setAttribute("legend", { attributeID: "legId" })
+    return t
+  }
+  const thresholdsOf = (t: Instance<typeof TreeModel>) => getScaleThresholds(t.config.legendNumericColorScale)
+  const caseIdOf = (t: Instance<typeof TreeModel>, itemId: string) => t.data.getItemChildCaseId(itemId)!
+
+  describe("keeps the range, edges, and colors fixed while the data changes", () => {
+    it("keeps the range and edges when the top cases are hidden", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      const thresholds = thresholdsOf(t)
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+      expect(t.config.legendLockedMin).toBe(0)
+      expect(t.config.legendLockedMax).toBe(100)
+
+      t.config.setHiddenCases([caseIdOf(t, "c10"), caseIdOf(t, "c9")])
+      // the live range shrinks, but the legend does not
+      expect(t.config.liveLegendDisplayRange).toEqual({ min: 0, max: 80 })
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+      expect(thresholdsOf(t)).toEqual(thresholds)
+    })
+
+    it("keeps the displayed bin count when hiding cases lowers the live bin count", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      expect(t.config.displayedLegendBinCount).toBe(5)
+
+      // leave only 3 distinct values visible
+      t.config.setHiddenCases(["c3", "c4", "c5", "c6", "c7", "c8", "c9", "c10"].map(id => caseIdOf(t, id)))
+      expect(t.config.legendBinCount).toBe(3)
+      expect(t.config.displayedLegendBinCount).toBe(5)
+
+      t.config.setLegendQuantilesAreLocked(false)
+      expect(t.config.displayedLegendBinCount).toBe(3)
+    })
+
+    it("gives a new case above the locked max the missing color", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      t.data.addCases(toCanonical(t.data, [{ __id__: "big", leg: 150 }]))
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "big"))).toBe(missingColor)
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "c10"))).not.toBe(missingColor)
+    })
+
+    it("gives a new date above the locked max the missing color", () => {
+      const t = makeTree(Array.from({ length: 6 }, (_, i) => `${2020 + i}-06-15`))
+      expect(t.config.attributeType("legend")).toBe("date")
+      t.config.setLegendQuantilesAreLocked(true)
+
+      t.data.addCases(toCanonical(t.data, [{ __id__: "later", leg: "2030-06-15" }]))
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "later"))).toBe(missingColor)
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "c5"))).not.toBe(missingColor)
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "c0"))).not.toBe(missingColor)
+    })
+
+    it("selects the last bin up to the locked max, not the live max", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      const lastBin = thresholdsOf(t).length
+      t.config.setHiddenCases([caseIdOf(t, "c10")])
+      t.data.addCases(toCanonical(t.data, [{ __id__: "big", leg: 150 }]))
+      // the live max is now 150, but the locked max is 100
+      expect(t.config.liveLegendDisplayRange.max).toBe(150)
+      const binCases = t.config.getCasesForLegendBin(lastBin)
+      expect(binCases).not.toContain(caseIdOf(t, "big"))
+      expect(binCases).toContain(caseIdOf(t, "c9"))
+    })
+
+    it("keeps a locked one-bin legend when a second distinct value arrives", () => {
+      const t = makeTree([5, 5])
+      t.config.setLegendQuantilesAreLocked(true)
+      expect(t.config.legendQuantiles.length).toBe(0)
+      expect(t.config.legendDisplayRange).toEqual({ min: 5, max: 5 })
+
+      t.data.addCases(toCanonical(t.data, [{ __id__: "seven", leg: 7 }]))
+      expect(t.config.legendNumericColorScale.range().length).toBe(1)
+      expect(thresholdsOf(t)).toEqual([])
+      expect(t.config.legendDisplayRange).toEqual({ min: 5, max: 5 })
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "seven"))).toBe(missingColor)
+    })
+
+    it("saves the positive log domain in log mode, and keeps it when a larger value arrives", () => {
+      const t = makeTree([-5, 0, 2, 8, 32])
+      t.metadata.setAttributeBinningType("legId", "logarithmic")
+      const liveThresholds = thresholdsOf(t)
+      t.config.setLegendQuantilesAreLocked(true)
+      expect(t.config.legendLockedMin).toBe(2)
+      expect(t.config.legendLockedMax).toBe(32)
+      expect(thresholdsOf(t)).toEqual(liveThresholds)
+
+      // a value above the locked max does not change the locked legend, and is "missing"
+      t.data.addCases(toCanonical(t.data, [{ __id__: "big", leg: 100 }]))
+      expect(t.config.liveLegendDisplayRange.max).toBe(100)
+      expect(t.config.legendDisplayRange).toEqual({ min: 2, max: 32 })
+      expect(thresholdsOf(t)).toEqual(liveThresholds)
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "big"))).toBe(missingColor)
+    })
+
+    // The edges for 0, 10, ..., 100 fall on data values (20, 40, 60, 80) for both bin types, so this
+    // also checks that a value exactly on an edge keeps its color.
+    it.each(["quantile", "quantize"] as const)(
+      "keeps the colors of a locked legend the same as just before it was locked (%s bins)", binningType => {
+        const t = makeTree()
+        t.metadata.setAttributeBinningType("legId", binningType)
+        expect(thresholdsOf(t)).toEqual([20, 40, 60, 80])
+        const colorsOfCases = () => t.data.items.map(item => t.config.getLegendColorForCase(caseIdOf(t, item.__id__)))
+        const before = colorsOfCases()
+        expect(new Set(before).size).toBe(5)
+        t.config.setLegendQuantilesAreLocked(true)
+        expect(colorsOfCases()).toEqual(before)
+      })
+
+    it("keeps the locked range when a Min/Max override is set while locked", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      const thresholds = thresholdsOf(t)
+      t.metadata.setAttributeLegendMin("legId", 20)
+      t.metadata.setAttributeLegendMax("legId", 60)
+      // the live range follows the override, but the locked range wins
+      expect(t.config.liveLegendDisplayRange).toEqual({ min: 20, max: 60 })
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+      expect(thresholdsOf(t)).toEqual(thresholds)
+      expect(t.config.getLegendColorForCase(caseIdOf(t, "c10"))).not.toBe(missingColor)
+    })
+  })
+
+  describe("undo and saved state", () => {
+    it("restores the lock and its saved values when an unlock is undone", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      const thresholds = thresholdsOf(t)
+      t.config.setHiddenCases([caseIdOf(t, "c10")])
+
+      const recorder = recordPatches(t.config)
+      t.config.setLegendQuantilesAreLocked(false)
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 90 })
+      recorder.stop()
+      recorder.undo()
+
+      expect(t.config.legendQuantilesAreLocked).toBe(true)
+      expect(thresholdsOf(t)).toEqual(thresholds)
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+    })
+
+    // Creates a config from a snapshot, then connects data with only two distinct values (15, 25).
+    function makeTreeFromConfigSnapshot(lockProps: Record<string, unknown>) {
+      const t = TreeModel.create({
+        data: {}, metadata: {},
+        config: { _attributeDescriptions: { legend: { attributeID: "legId" } }, ...lockProps }
+      })
+      // the snapshot already sets the legend attribute, so no setAttribute here
+      addLegendData(t, [15, 25])
+      return t
+    }
+
+    it("builds the scale and range from a snapshot, even with fewer distinct values than bins", () => {
+      const t = makeTreeFromConfigSnapshot({
+        legendQuantilesAreLocked: true, legendQuantiles: [10, 20, 30, 40], legendLockedMin: 0, legendLockedMax: 50
+      })
+      expect(t.config.legendBinCount).toBe(2)
+      expect(thresholdsOf(t)).toEqual([10, 20, 30, 40])
+      expect(t.config.legendNumericColorScale.range().length).toBe(5)
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 50 })
+    })
+
+    it("loads an old locked snapshot without a saved min and max, using the live range", () => {
+      const t = makeTreeFromConfigSnapshot({ legendQuantilesAreLocked: true, legendQuantiles: [10, 20, 30, 40] })
+      expect(thresholdsOf(t)).toEqual([10, 20, 30, 40])
+      expect(t.config.legendNumericColorScale.range().length).toBe(5)
+      expect(t.config.legendDisplayRange).toEqual({ min: 15, max: 25 })
+    })
+
+    it("uses the live legend for a locked snapshot with no saved values", () => {
+      const t = makeTreeFromConfigSnapshot({ legendQuantilesAreLocked: true })
+      expect(t.config.hasLockedLegendScale).toBe(false)
+      expect(t.config.displayedLegendBinCount).toBe(2)
+      expect(thresholdsOf(t)).toEqual(getScaleThresholds(t.config.liveLegendNumericColorScale))
+      expect(t.config.legendDisplayRange).toEqual({ min: 15, max: 25 })
+    })
+  })
+
+  describe("recomputes the locked values when the legend attribute changes", () => {
+    // Adds a numeric attribute with values 1000, 1100, ..., 2000 (no overlap with leg's 0..100),
+    // and a categorical attribute.
+    function addOtherAttributes(t: Instance<typeof TreeModel>) {
+      t.data.addAttribute({ id: "bigId", name: "big" })
+      t.data.addAttribute({ id: "catId", name: "cat" })
+      t.data.setCaseValues(Array.from({ length: 11 }, (_, i) => (
+        { __id__: caseIdOf(t, `c${i}`), bigId: 1000 + i * 100, catId: i % 2 ? "odd" : "even" }
+      )))
+    }
+    // the locked values match what the live data gives now
+    function expectLockedToMatchLive(t: Instance<typeof TreeModel>) {
+      expect(t.config.legendQuantilesAreLocked).toBe(true)
+      expect(t.config.legendQuantiles.slice()).toEqual(getScaleThresholds(t.config.liveLegendNumericColorScale))
+      expect(t.config.legendDisplayRange).toEqual(t.config.liveLegendDisplayRange)
+    }
+
+    it("uses the new attribute's values when it does not overlap the old one", () => {
+      const t = makeTree()
+      addOtherAttributes(t)
+      t.config.setLegendQuantilesAreLocked(true)
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+
+      t.config.setAttribute("legend", { attributeID: "bigId" })
+      expect(t.config.legendDisplayRange).toEqual({ min: 1000, max: 2000 })
+      expect(thresholdsOf(t).every(edge => edge > 1000 && edge < 2000)).toBe(true)
+      expectLockedToMatchLive(t)
+    })
+
+    // The lock and its saved values, to compare with the cleared state
+    const lockState = (t: Instance<typeof TreeModel>) => ({
+      locked: t.config.legendQuantilesAreLocked,
+      quantiles: t.config.legendQuantiles.slice(),
+      min: t.config.legendLockedMin,
+      max: t.config.legendLockedMax
+    })
+    const kUnlocked = { locked: false, quantiles: [], min: undefined, max: undefined }
+
+    it("unlocks when the legend changes to a categorical attribute, and stays unlocked after", () => {
+      const t = makeTree()
+      addOtherAttributes(t)
+      t.config.setLegendQuantilesAreLocked(true)
+
+      t.config.setAttribute("legend", { attributeID: "catId" })
+      expect(lockState(t)).toEqual(kUnlocked)
+
+      t.config.setAttribute("legend", { attributeID: "bigId" })
+      expect(lockState(t)).toEqual(kUnlocked)
+    })
+
+    it("unlocks when the legend is treated as categorical", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      t.config.setAttributeType("legend", "categorical")
+      expect(lockState(t)).toEqual(kUnlocked)
+    })
+
+    it("unlocks when the legend attribute is removed", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      t.config.removeAttributeFromRole("legend", "legId")
+      expect(lockState(t)).toEqual(kUnlocked)
+    })
+
+    it("unlocks when the attributes are cleared", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      t.config.clearAttributes()
+      expect(lockState(t)).toEqual(kUnlocked)
+    })
+
+    it("restores the lock when the removal is undone", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      const thresholds = thresholdsOf(t)
+
+      const recorder = recordPatches(t.config)
+      t.config.removeAttributeFromRole("legend", "legId")
+      recorder.stop()
+      expect(lockState(t)).toEqual(kUnlocked)
+      recorder.undo()
+
+      expect(t.config.attributeID("legend")).toBe("legId")
+      expect(t.config.legendQuantilesAreLocked).toBe(true)
+      expect(thresholdsOf(t)).toEqual(thresholds)
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+    })
+
+    it("recomputes when the legend is treated as a date", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      // Hide the top cases first. The locked values do not change, so a change after "Treat as"
+      // shows that the values were recomputed.
+      t.config.setHiddenCases([caseIdOf(t, "c10"), caseIdOf(t, "c9")])
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+
+      t.config.setAttributeType("legend", "date")
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 80 })
+      expectLockedToMatchLive(t)
+    })
+
+    it("restores the old locked values when the attribute change is undone", () => {
+      const t = makeTree()
+      addOtherAttributes(t)
+      t.config.setLegendQuantilesAreLocked(true)
+      const thresholds = thresholdsOf(t)
+
+      const recorder = recordPatches(t.config)
+      t.config.setAttribute("legend", { attributeID: "bigId" })
+      recorder.stop()
+      expect(t.config.legendDisplayRange).toEqual({ min: 1000, max: 2000 })
+      recorder.undo()
+
+      expect(t.config.attributeID("legend")).toBe("legId")
+      expect(t.config.legendQuantilesAreLocked).toBe(true)
+      expect(thresholdsOf(t)).toEqual(thresholds)
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+    })
+
+    it("keeps the locked values when the same legend attribute is set again", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      const thresholds = thresholdsOf(t)
+      t.config.setHiddenCases([caseIdOf(t, "c10"), caseIdOf(t, "c9")])
+
+      t.config.setAttribute("legend", { attributeID: "legId" })
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+      expect(thresholdsOf(t)).toEqual(thresholds)
+    })
+
+    it("keeps the locked values when the legend is set to the type it already has", () => {
+      const t = makeTree()
+      t.config.setLegendQuantilesAreLocked(true)
+      const thresholds = thresholdsOf(t)
+      t.config.setHiddenCases([caseIdOf(t, "c10"), caseIdOf(t, "c9")])
+
+      t.config.setAttributeType("legend", "numeric")
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+      expect(thresholdsOf(t)).toEqual(thresholds)
+    })
+
+    it("does not change the locked values when another role's attribute changes", () => {
+      const t = makeTree()
+      addOtherAttributes(t)
+      t.config.setLegendQuantilesAreLocked(true)
+      t.config.setHiddenCases([caseIdOf(t, "c10")])
+      t.config.setAttribute("x", { attributeID: "bigId" })
+      t.config.setAttributeType("x", "categorical")
+      expect(t.config.legendDisplayRange).toEqual({ min: 0, max: 100 })
+    })
   })
 })
 

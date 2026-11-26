@@ -1,12 +1,14 @@
 import { CloudFileManager } from "@concord-consortium/cloud-file-manager"
 import { getSnapshot } from "mobx-state-tree"
 import { kWebViewTileType } from "../components/web-view/web-view-defs"
+import { IWebViewModel } from "../components/web-view/web-view-model"
 import { appState } from "../models/app-state"
 import { getGlobalValueManager } from "../models/global/global-value-manager"
 import { SharedDataSet } from "../models/shared/shared-data-set"
 import { getSharedModelManager } from "../models/tiles/tile-environment"
 import { setupTestDataset, testCases } from "../test/dataset-test-utils"
 import { toV2Id } from "../utilities/codap-utils"
+import { createDataContextLink } from "./default-data-context-link"
 import { resolveResources } from "./resource-parser"
 
 import "../components/web-view/web-view-registration"
@@ -27,8 +29,61 @@ describe("DataInteractive ResourceParser", () => {
   const cfm = {} as unknown as CloudFileManager
   const resolve = (resource: string) => resolveResources(resource, "get", tile, cfm)
 
+  it("finds the plugin's default dataContext", () => {
+    const webView = tile.content as IWebViewModel
+    const pluginName = tile.name
+    const pluginTitle = tile._title
+    try {
+      // a plugin with no linked data context and none named for it has no default
+      expect(resolve("").dataContext).toBeUndefined()
+      expect(resolve("dataContext[#default]").dataContext).toBeUndefined()
+      // the match is on the component's name, not its title
+      tile.setTitle("data")
+      expect(resolve("").dataContext).toBeUndefined()
+      tile.setTitle(pluginTitle)
+      // a data context named for the plugin
+      tile.setName("data")
+      expect(resolve("").dataContext?.id).toBe(dataset.id)
+      tile.setName(pluginName)
+      // the linked data context
+      webView.setDataContextId(dataset.id)
+      expect(resolve("").dataContext?.id).toBe(dataset.id)
+      expect(resolve("dataContext[#default]").dataContext?.id).toBe(dataset.id)
+      // a link to a data context that no longer exists is ignored...
+      webView.setDataContextId("deleted")
+      expect(resolve("").dataContext).toBeUndefined()
+      // ...so a data context named for the plugin is found instead
+      tile.setName("data")
+      expect(resolve("").dataContext?.id).toBe(dataset.id)
+    } finally {
+      tile.setName(pluginName)
+      tile.setTitle(pluginTitle)
+      webView.setDataContextId(undefined)
+    }
+  })
+
+  it("finds the host page's default dataContext from the link the embedded server passes", () => {
+    const hostLink = createDataContextLink()
+    const resolveFromHost = (resource: string) => resolveResources(resource, "get", undefined, cfm, hostLink)
+    expect(resolveFromHost("").dataContext).toBeUndefined()
+    hostLink.setDataContextId(dataset.id)
+    expect(resolveFromHost("").dataContext?.id).toBe(dataset.id)
+    expect(resolveFromHost("dataContext[#default]").dataContext?.id).toBe(dataset.id)
+    expect(resolveResources("dataContext", "create", undefined, cfm, hostLink).defaultDataContextLink).toBe(hostLink)
+    // a request from a tile uses its own web view, never the host page's link
+    expect(resolveResources("", "get", tile, cfm, hostLink).dataContext).toBeUndefined()
+    expect(resolveResources("", "get", tile, cfm, hostLink).defaultDataContextLink).toBe(tile.content)
+    const textTile = { id: "TEXT1", content: { type: "Text" } } as any
+    expect(resolveResources("", "get", textTile, cfm, hostLink).defaultDataContextLink).toBeUndefined()
+    expect(resolveResources("", "get", textTile, cfm, hostLink).dataContext).toBeUndefined()
+  })
+
+  it("flags a bare create dataContext as relying on the default", () => {
+    expect(resolveResources("dataContext", "create", tile, cfm).isDefaultDataContext).toBe(true)
+    expect(resolveResources("dataContext[X]", "create", tile, cfm).isDefaultDataContext).toBeFalsy()
+  })
+
   it("finds dataContext", () => {
-    expect(resolve("").dataContext?.id).toBe(dataset.id)
     expect(resolve("dataContext[data]").dataContext?.id).toBe(dataset.id)
     expect(resolve(`dataContext[${toV2Id(dataset.id)}]`).dataContext?.id).toBe(dataset.id)
     expect(resolve("dataContext[unknown]").dataContext).toBeUndefined()
@@ -41,6 +96,12 @@ describe("DataInteractive ResourceParser", () => {
     expect(resolve(`component[Web Page]`).component?.id).toBe(tile.id)
     expect(resolve(`component[${toV2Id(tile.id)}]`).component?.id).toBe(tile.id)
     expect(resolve("component[unknown]").component).toBeUndefined()
+  })
+
+  // Plugins address their monitors as uiNotificationMonitor[<id>] for update and delete.
+  it("passes the uiNotificationMonitor selector through", () => {
+    expect(resolveResources("uiNotificationMonitor[3]", "delete", tile, cfm).uiNotificationMonitor).toBe("3")
+    expect(resolveResources("uiNotificationMonitor[3]", "update", tile, cfm).uiNotificationMonitor).toBe("3")
   })
 
   it("finds globals", () => {

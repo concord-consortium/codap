@@ -3,6 +3,7 @@ $tool-shelf-height: 66px; // Horizontal tool shelf
 
 $announcement-banner-height: 50px;
 
+// keep in sync with kTitleBarHeight in constants.ts
 $title-bar-height: 34px;
 $header-height: 30px;
 
@@ -61,6 +62,11 @@ $drop-zone-plus-color: #e6b800;
   border-radius: $radius;
   outline: 2px solid $focus-outline-color;
   outline-offset: $offset;
+}
+
+@mixin button-focus-outline {
+  outline: 3px solid $focus-outline-color;
+  outline-offset: 2px;
 }
 
 @mixin drop-zone-states {

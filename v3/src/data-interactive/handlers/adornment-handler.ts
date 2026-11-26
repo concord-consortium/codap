@@ -1,4 +1,5 @@
 import { IAdornmentModel } from "../../components/graph/adornments/adornment-models"
+import { booleanValuesError } from "../../components/graph/adornments/utilities/adornment-handler-utils"
 import { IGraphContentModel, isGraphContentModel } from "../../components/graph/models/graph-content-model"
 import { t } from "../../utilities/translation/translate"
 import {
@@ -18,9 +19,23 @@ export interface DIAdornmentHandler {
   delete?: (args: ICreateArgs) => DIHandlerFnResult | DIErrorResult
   get: (adornment: IAdornmentModel, component: IGraphContentModel) => Maybe<Record<string, any>>
   update?: (args: ICreateArgs) => DIHandlerFnResult | DIErrorResult
+  // refuses a value of the wrong type in `create` and `update`, before anything changes
+  validate?: (values: Record<string, unknown>) => DIErrorResult | undefined
 }
 
 const diAdornmentHandlers = new Map<string, DIAdornmentHandler>()
+
+// plugin API changes stay off the undo history: applyModelChange with no undo strings records none
+function withoutHistoryEntry<T>(graphContent: IGraphContentModel, fn: () => T): T {
+  return graphContent.applyModelChange(fn)
+}
+
+// every type's `create` and `update` refuse an `isVisible` that isn't a boolean, and each type its own values
+// of the wrong type
+function valuesError(handler: DIAdornmentHandler, values: DIValues) {
+  const _values = values as Record<string, unknown>
+  return booleanValuesError(_values, ["isVisible"]) ?? handler.validate?.(_values)
+}
 
 export const registerAdornmentHandler = (type: string, handler: DIAdornmentHandler, alias?: string) => {
   diAdornmentHandlers.set(type, handler)
@@ -46,7 +61,9 @@ export const diAdornmentHandler: DIHandler = {
       const handler = diAdornmentHandlers.get(resolvedType)
 
       if (handler?.create) {
-        return handler.create({graphContent, values})
+        const error = valuesError(handler, values)
+        if (error) return error
+        return withoutHistoryEntry(graphContent, () => handler.create!({graphContent, values}))
       }
 
       return errorResult(t("V3.DI.Error.adornmentRequestNotSupported", { vars: [type, "create"] }))
@@ -73,11 +90,11 @@ export const diAdornmentHandler: DIHandler = {
     const handler = diAdornmentHandlers.get(resolvedType)
 
     if (handler?.delete) {
-      return handler.delete({ graphContent, values })
+      return withoutHistoryEntry(graphContent, () => handler.delete!({ graphContent, values }))
     }
 
     // If the adornment doesn't have a delete handler, we just hide the adornment.
-    adornmentsStore.hideAdornment(resolvedType)
+    withoutHistoryEntry(graphContent, () => adornmentsStore.hideAdornment(resolvedType))
     return { success: true }
   },
 
@@ -129,7 +146,9 @@ export const diAdornmentHandler: DIHandler = {
 
       const handler = diAdornmentHandlers.get(resolvedType)
       if (handler?.update) {
-        return handler.update({graphContent, values})
+        const error = valuesError(handler, values)
+        if (error) return error
+        return withoutHistoryEntry(graphContent, () => handler.update!({graphContent, values}))
       } else {
         return errorResult(t("V3.DI.Error.adornmentRequestNotSupported", { vars: [type, "update"] }))
       }

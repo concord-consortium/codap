@@ -1,5 +1,6 @@
 import { comparer, reaction } from "mobx"
 import { addDisposer, onAction } from "mobx-state-tree"
+import { sendNotice } from "../../data-interactive/notification-batch"
 import { Logger } from "../../lib/logger"
 import { createFormulaAdapters } from "../formula/formula-adapter-registry"
 import { FormulaManager } from "../formula/formula-manager"
@@ -8,6 +9,7 @@ import { ITileEnvironment } from "../tiles/tile-environment"
 import { DocumentModel, IDocumentModelSnapshot } from "./document"
 import { IDocumentEnvironment } from "./document-environment"
 import { SharedModelDocumentManager } from "./shared-model-document-manager"
+import { endUndoRedoAnswer, handleUndoHistoryChangeForAnswer } from "../../data-interactive/undo-redo-answer"
 import { AppHistoryService } from "../history/app-history-service"
 import { IHistoryServiceEnv } from "../history/history-service"
 
@@ -76,29 +78,51 @@ export const createDocumentModel = (snapshot?: IDocumentModelSnapshot) => {
 
   historyService.setDependencies(fullEnvironment)
 
-  // Notify plugins when undo/redo stacks are cleared (canUndo/canRedo transition to false)
-  addDisposer(document, reaction(
-    () => ({ canUndo: document.canUndo, canRedo: document.canRedo }),
-    ({ canUndo, canRedo }, prev) => {
-      if (!document.content) return
-      if (prev?.canUndo && !canUndo) {
-        document.content.broadcastMessage({
-          action: "notify",
-          resource: "undoChangeNotice",
-          values: { operation: "clearUndo", canUndo, canRedo }
-        }, () => {})
-      }
-      if (prev?.canRedo && !canRedo) {
-        document.content.broadcastMessage({
-          action: "notify",
-          resource: "undoChangeNotice",
-          values: { operation: "clearRedo", canUndo, canRedo }
-        }, () => {})
-      }
-    },
-    { name: "createDocumentModel.undoRedoNotification",
-      equals: (a, b) => a.canUndo === b.canUndo && a.canRedo === b.canRedo }
-  ))
+  // clearRedo on each new entry and when a change that can't be undone clears the redo list, clearUndo and
+  // clearRedo when the history is erased, and undo or redo on document, as in V2 (undo_history.js). They go out
+  // after the notices of the change being undone or redone, which may still be held (see notification-batch.ts).
+  // a plugin answering undoAction or redoAction in the previous document has nothing to answer in this one
+  endUndoRedoAnswer()
+  document.treeManagerAPI?.undoManager.setHistoryListener((change, entryId) => {
+    handleUndoHistoryChangeForAnswer(change)
+    if (change === "add" || change === "clearRedo" || change === "clearUndo") {
+      // keep the notices of entries in the history and of those still being recorded
+      const undoManager = document.treeManagerAPI?.undoManager
+      historyService.pruneUndoRedoNotices(new Set(undoManager?.liveHistoryEntryIds ?? []))
+    }
+    const { canUndo, canRedo } = document
+    const broadcast = (message: { action: string, resource: string, values: Record<string, unknown> }) =>
+      fullEnvironment.notify && sendNotice(fullEnvironment.notify, message as any, () => {})
+    if (change === "add" || change === "clearRedo") {
+      broadcast({
+        action: "notify",
+        resource: "undoChangeNotice",
+        values: { operation: "clearRedo", canUndo, canRedo }
+      })
+    } else if (change === "clearUndo") {
+      broadcast({
+        action: "notify",
+        resource: "undoChangeNotice",
+        values: { operation: "clearUndo", canUndo, canRedo }
+      })
+    } else if (change === "undo") {
+      broadcast({
+        action: "notify",
+        resource: "document",
+        values: { operation: "undo", canUndo, canRedo }
+      })
+      // then the change's own notice, e.g. deleting the component an undone create made. V2 sent only the
+      // change's notice when it had one (undo_history.js:160-169); the document notice still goes out here.
+      historyService.sendUndoRedoNotices(entryId, "undo")
+    } else {
+      broadcast({
+        action: "notify",
+        resource: "document",
+        values: { operation: "redo", canUndo, canRedo }
+      })
+      historyService.sendUndoRedoNotices(entryId, "redo")
+    }
+  })
 
   // In CLUE we handled exceptions thrown by DocumentModel.create and returned a document
   // with a contentError property. This way the document object would be treated like any
