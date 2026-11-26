@@ -23,6 +23,11 @@ export const GraphLegendHelper = {
   selectCategoryNameForCategoricalLegend(name: string) {
     gle.getCategoricalLegendCategory(name).click()
   },
+  // Clicks a key with a modifier held. Which modifiers toggle depends on the platform; see
+  // hasSelectionModifier in platform-utils.
+  modifierClickCategoryForCategoricalLegend(name: string, modifier: "shiftKey" | "metaKey" | "ctrlKey") {
+    gle.getCategoricalLegendCategory(name).click({ [modifier]: true })
+  },
   selectCategoryColorForCategoricalLegend(name: string) {
     gle.getCategoricalLegendCategory(name).parent().find(".legend-key-shape").click()
   },
@@ -46,8 +51,11 @@ export const GraphLegendHelper = {
       cy.get("body").click(x, y)
     })
   },
+  // Clears the selection by clicking empty plot background. The click has to target the renderer's
+  // canvas, which covers the SVG plot background: useRendererPointerDownDeselect only sees
+  // pointerdowns whose target is the canvas, and only while the tile is selected.
   unselectLegendCategory() {
-        gle.getGraphTile().find(".plot-cell-background").eq(0).click({force:true})
+    gle.getGraphTile().find("canvas").first().click("topLeft")
   },
   // A circle is the only key drawn as arcs, so the arc command tells the two apart without pinning
   // down the exact path data.
@@ -61,6 +69,10 @@ export const GraphLegendHelper = {
   verifyCategoricalLegendKeySelected(name: string) {
     gle.getCategoricalLegendCategory(name).parent().find(".legend-key-shape")
       .should("have.class", "legend-rect-selected")
+  },
+  verifyCategoricalLegendKeyNotSelected(name: string) {
+    gle.getCategoricalLegendCategory(name).parent().find(".legend-key-shape")
+      .should("not.have.class", "legend-rect-selected")
   },
   verifyNumericLegendKeySelected() {
     gle.getNumericLegendCategories().should("have.class", "legend-rect-selected")

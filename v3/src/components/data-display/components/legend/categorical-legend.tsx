@@ -4,6 +4,7 @@ import {mstReaction} from "../../../../utilities/mst-reaction"
 import { mstAutorun } from "../../../../utilities/mst-autorun"
 import { kDefaultPointShape } from "../../../../utilities/point-shape-utils"
 import { setSelectedCases, selectCases } from "../../../../models/data/data-set-utils"
+import { hasSelectionModifier, IModifierKeys } from "../../../../utilities/platform-utils"
 import { getTileModel } from "../../../../models/tiles/tile-model"
 import {axisGap} from "../../../axis/axis-types"
 import { swapCategoriesNotification } from "../../data-display-notifications"
@@ -68,13 +69,17 @@ export const CategoricalLegend =
       }
     }, [layerIndex, setDesiredExtent])
 
-    const handleLegendKeyClick = useCallback((event: any, d: Key) => {
+    const handleLegendKeyClick = useCallback((event: IModifierKeys, d: Key) => {
       const caseIds = dataConfiguration?.getCasesForLegendValue(d.category)
-      if (caseIds) {
-        // This is breaking the graph-legend cypress test
-        // setOrExtendSelection(caseIds, dataConfiguration?.dataset, event.shiftKey)
-        if (event.shiftKey) selectCases(caseIds, dataConfiguration?.dataset)
-        else setSelectedCases(caseIds, dataConfiguration?.dataset)
+      if (!caseIds) return
+      if (hasSelectionModifier(event)) {
+        // Reuses the predicate behind the key's selected styling, so the direction matches what the
+        // key shows. getCasesForLegendValue returns parent cases when the legend attribute lives in
+        // a parent collection; selectCases expands those to their child items in both directions.
+        const isSelected = dataConfiguration?.allCasesForCategoryAreSelected(d.category)
+        selectCases(caseIds, dataConfiguration?.dataset, !isSelected)
+      } else {
+        setSelectedCases(caseIds, dataConfiguration?.dataset)
       }
     }, [dataConfiguration])
 
