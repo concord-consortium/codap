@@ -602,7 +602,8 @@ context("Test selecting and unselecting categories in legend", () => {
    * A legend key selects cases elsewhere rather than being selected itself, so a plain click
    * replaces the selection and a modifier click toggles one category in or out. The command key is
    * platform-exclusive -- cmd on a Mac, ctrl everywhere else -- so the two are tested apart: the
-   * platform's own key toggles, and the other platform's key carries no selection meaning.
+   * platform's own key toggles, and the other platform's key replaces the selection like a plain
+   * click.
    */
   const cmdModifier = Cypress.platform === "darwin" ? "metaKey" : "ctrlKey"
   const foreignModifier = Cypress.platform === "darwin" ? "ctrlKey" : "metaKey"
@@ -645,6 +646,7 @@ context("Test selecting and unselecting categories in legend", () => {
   it("will replace the selection when the other platform's command key is held", () => {
     plotHabitatAgainstDiet()
     glh.selectCategoryNameForCategoricalLegend(arrayOfValues[7].values[0])
+    glh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[0])
     glh.modifierClickCategoryForCategoricalLegend(arrayOfValues[7].values[1], foreignModifier)
     glh.verifyCategoricalLegendKeyNotSelected(arrayOfValues[7].values[0])
     glh.verifyCategoricalLegendKeySelected(arrayOfValues[7].values[1])

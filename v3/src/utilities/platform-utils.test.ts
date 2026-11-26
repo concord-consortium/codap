@@ -15,10 +15,10 @@ const mac = () => loadForPlatform("MacIntel")
 const win = () => loadForPlatform("Win32")
 
 describe("platform-utils", () => {
-  const originalPlatform = Object.getOwnPropertyDescriptor(window.navigator, "platform")
-
+  // loadForPlatform shadows the prototype's platform getter with an own property; removing it
+  // restores the real value.
   afterEach(() => {
-    if (originalPlatform) Object.defineProperty(window.navigator, "platform", originalPlatform)
+    delete (window.navigator as { platform?: string }).platform
   })
 
   describe("isMac / cmdKey", () => {
@@ -53,7 +53,6 @@ describe("platform-utils", () => {
       expect(win().hasSelectionModifier({ shiftKey: true })).toBe(true)
     })
 
-    // ctrl is the secondary-click gesture on a Mac, so it must not toggle a selection there.
     it("accepts cmd but not ctrl on a Mac", () => {
       const { hasSelectionModifier } = mac()
       expect(hasSelectionModifier({ metaKey: true })).toBe(true)
@@ -66,7 +65,6 @@ describe("platform-utils", () => {
       expect(hasSelectionModifier({ metaKey: true })).toBe(false)
     })
 
-    // alt already means option-click zoom on the plot background and rescale on an axis.
     it("ignores alt", () => {
       expect(mac().hasSelectionModifier({ altKey: true })).toBe(false)
       expect(win().hasSelectionModifier({ altKey: true })).toBe(false)
@@ -79,8 +77,6 @@ describe("platform-utils", () => {
   })
 
   describe("preservesSelection", () => {
-    // Deliberately more permissive than hasSelectionModifier: any modifier at all means the click
-    // should not destroy the existing selection, including ctrl on a Mac.
     it("accepts shift, cmd, and ctrl on both platforms", () => {
       for (const load of [mac, win]) {
         const { preservesSelection } = load()

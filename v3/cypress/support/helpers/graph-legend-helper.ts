@@ -23,12 +23,8 @@ export const GraphLegendHelper = {
   selectCategoryNameForCategoricalLegend(name: string) {
     gle.getCategoricalLegendCategory(name).click()
   },
-  /*
-   * Clicks a key with a modifier held. Legend categories are nominal, so shift, cmd, and ctrl all
-   * mean the same thing -- toggle this category -- and each needs its own coverage. cmd and ctrl
-   * are platform-exclusive, so only the one matching the running platform toggles; see
-   * hasSelectionModifier in platform-utils.
-   */
+  // Clicks a key with a modifier held. Which modifiers toggle depends on the platform; see
+  // hasSelectionModifier in platform-utils.
   modifierClickCategoryForCategoricalLegend(name: string, modifier: "shiftKey" | "metaKey" | "ctrlKey") {
     gle.getCategoricalLegendCategory(name).click({ [modifier]: true })
   },
@@ -55,13 +51,9 @@ export const GraphLegendHelper = {
       cy.get("body").click(x, y)
     })
   },
-  /*
-   * Clears the selection by clicking empty plot background. The click has to land on the renderer's
-   * canvas: useRendererPointerDown only deselects when event.target is the canvas itself, and the
-   * canvas is layered over the SVG plot background, so a real pointer never reaches the rect
-   * underneath. Clicking that rect instead -- which needs `force` precisely because the canvas
-   * covers it -- simulates a click no user can perform, and silently does nothing.
-   */
+  // Clears the selection by clicking empty plot background. The click has to target the renderer's
+  // canvas, which covers the SVG plot background: useRendererPointerDownDeselect only sees
+  // pointerdowns whose target is the canvas, and only while the tile is selected.
   unselectLegendCategory() {
     gle.getGraphTile().find("canvas").first().click("topLeft")
   },

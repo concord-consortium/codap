@@ -18,20 +18,16 @@ export function isCommandKeyDown(event: IModifierKeys) {
 }
 
 /*
- * Whether a click should adjust the selection instead of replacing it.
+ * Whether a click should toggle its target in or out of the selection instead of replacing it.
  *
- * Selection targets in the graph, map, and legend are nominal: there is no meaningful span between
- * two categories or two plotted points, so there is nothing for shift to extend that cmd would not
- * do. Every modifier therefore means one thing -- toggle this target in or out. Ordered targets
- * like case table rows are the exception; they read shift separately to extend an anchored range.
+ * Meant for unordered targets such as legend categories: with no meaningful span for shift to
+ * extend, shift and the command key mean the same thing. Ordered targets like case table rows read
+ * shift separately to extend an anchored range.
  *
- * ctrl counts only off the Mac, where it is not the secondary-click gesture. alt is excluded
- * because it is already spoken for: option-click zooms the plot background and rescales axes.
- *
- * New callers should route through here rather than reading modifier flags directly, so that
- * supporting context menus, or deciding ctrl should toggle on the Mac after all, is a single edit.
- * Several selection handlers in the graph, map, and case table still read the flags themselves and
- * have yet to be migrated.
+ * The command key is cmd on a Mac and ctrl elsewhere; on a Mac, ctrl-click is the secondary-click
+ * gesture. alt is excluded because option-click zooms the plot background and rescales axes.
+ * Route modifier checks through here and preservesSelection rather than reading the flags
+ * directly, so a change in modifier policy is a single edit.
  */
 export function hasSelectionModifier(event: IModifierKeys) {
   return !!event.shiftKey || isCommandKeyDown(event)
@@ -39,10 +35,9 @@ export function hasSelectionModifier(event: IModifierKeys) {
 
 /*
  * Whether a click should leave an existing selection alone rather than clearing it. Deliberately
- * more permissive than hasSelectionModifier: acting on a selection should be precise, but
- * destroying one should not happen while the user holds shift, cmd, or ctrl -- including ctrl on a
- * Mac, where the click is opening a context menu rather than asking us to clear. alt is excluded
- * here too, since it means option-click zoom rather than anything about selection.
+ * more permissive than hasSelectionModifier: acting on a selection should be precise, but any of
+ * shift, cmd, or ctrl on either platform keeps a click from destroying one -- including ctrl on a
+ * Mac, where the click opens a context menu. alt is excluded, as in hasSelectionModifier.
  */
 export function preservesSelection(event: IModifierKeys) {
   return !!event.shiftKey || !!event.metaKey || !!event.ctrlKey
