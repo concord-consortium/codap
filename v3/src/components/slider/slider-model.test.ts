@@ -27,6 +27,17 @@ describe("SliderModel", () => {
     g1 = GlobalValue.create({ name: "g1", value: 0 })
   })
 
+  it("steps playback by the fallback increment when the multiple restriction is zero", () => {
+    // a V2 document can save a multiple of 0, which restricts nothing
+    g1.setValue(2)
+    const tree = Tree.create({
+      globalValue: g1,
+      sliderModel: { globalValue: g1.id, multipleOf: 0 }
+    }, { sharedModelManager: mockSharedModelManagerWithGlobalValueManager })
+    expect(tree.sliderModel.nextAnimationValue(1, 0.1)).toBeCloseTo(2.1)
+    expect(tree.sliderModel.nextAnimationValue(-1, 0.1)).toBeCloseTo(1.9)
+  })
+
   it("works as expected with a shared model manager with a global value manager", () => {
     const tree = Tree.create({
       globalValue: g1,

@@ -3,6 +3,7 @@ import { observer } from "mobx-react-lite"
 import {
   Button, ListBox, ListBoxItem, Popover, Select, SelectValue
 } from "react-aria-components"
+import { If } from "../../common/if"
 import { InspectorPalette } from "../../inspector-panel"
 import { ISliderModel } from "../slider-model"
 import {AnimationDirection, AnimationDirections, AnimationMode, AnimationModes, kDefaultAnimationRate}
@@ -132,6 +133,7 @@ export const SliderSettingsPalette =
     const renderMultiplesOfField = () => {
       const isDate = scaleType !== "numeric"
       const inputClass = `slider-input ${isDate ? "multiples-input" : "multiples"}`
+      const units = sliderModel.numericUnits
       return (
         <>
           <span className={inputClass} data-testid="slider-restrict-multiples">
@@ -143,9 +145,16 @@ export const SliderSettingsPalette =
               onFocus={e => { handleSelectOnFocus(e); handleMultiplesOfFocus() }}
               onBlur={handleMultiplesOfBlur}
               onKeyDown={handleInputKeyDown(handleMultiplesOfBlur)}
+              // the units, if any, read with the value
+              aria-describedby={units ? "slider-multiples-units" : undefined}
               data-testid="slider-multiples-value-input"
             />
           </span>
+          <If condition={!!units}>
+            <span id="slider-multiples-units" className="form-label-suffix" data-testid="slider-multiples-units">
+              {units}
+            </span>
+          </If>
           {isDate && (() => {
             const langDatePrecisionOptions =
               t("DG.CaseTable.attributeEditor.datePrecisionOptions").split(" ")

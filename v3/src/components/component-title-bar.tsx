@@ -78,10 +78,13 @@ export const ComponentTitleBar = observer(function ComponentTitleBar(props: ITil
   const handleSubmit = (nextValue: string, restoreFocus = true) => {
     const trimmedNextValue = nextValue.trim()
     if (!preventTitleChange) {
-      if (onHandleTitleChange) {
-        onHandleTitleChange(trimmedNextValue)
-      } else {
-        handleChangeTitle(trimmedNextValue)
+      // an unchanged title isn't stored, so a derived title (e.g. a slider's) keeps following its source
+      if (trimmedNextValue !== title) {
+        if (onHandleTitleChange) {
+          onHandleTitleChange(trimmedNextValue)
+        } else {
+          handleChangeTitle(trimmedNextValue)
+        }
       }
       // Assume the title was successfully changed
       setEditingTitle(trimmedNextValue)

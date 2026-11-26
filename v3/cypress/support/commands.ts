@@ -72,6 +72,7 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, target
     newCollection: ".collection-table-spacer.parentMost",
     prevCollection: ".collection-table:nth-child(1) .codap-column-header:nth-child(2)",
     newTopCardCollection: ".case-card-collection-spacer.parentMost",
+    slider: '.slider-wrapper[data-testid="slider"]',
     webView: '.codap-web-view-body'
   }
 
@@ -164,6 +165,9 @@ Cypress.Commands.add("dragAttributeToTarget", (source, attribute, target, target
       break
     case "webView":
       target_el=el.webView
+      break
+    case "slider":
+      target_el = el.slider
       break
     default:
       target_el = el.tableColumnHeader

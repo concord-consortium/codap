@@ -64,6 +64,19 @@ export const SliderTileElements = {
   getSliderAxis(index = 0) {
     return this.getSliderTile(index).find("[data-testid=slider-axis]")
   },
+  getRangeLowInput(index = 0) {
+    return this.getSliderTile(index).find('[data-testid="slider-range-low"] input')
+  },
+  getRangeHighInput(index = 0) {
+    return this.getSliderTile(index).find('[data-testid="slider-range-high"] input')
+  },
+  // the range's one keyboard stop
+  getRange(index = 0) {
+    return this.getSliderTile(index).find('[data-testid="slider-range"]')
+  },
+  getRangeBody(index = 0) {
+    return this.getSliderTile(index).find('[data-testid="slider-range-body"]')
+  },
   getInspectorIcon() {
     return c.getInspectorPanel().find("[data-testid=slider-values-button]")
   },

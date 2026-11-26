@@ -1,15 +1,17 @@
 import { clsx } from "clsx"
+import { comparer, reaction } from "mobx"
 import { observer } from "mobx-react-lite"
 import { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Input as RAInput, TextField } from "react-aria-components"
 import { useSlider } from "react-aria"
-import { useSliderState } from "@react-stately/slider"
+import { SliderState, useSliderState } from "@react-stately/slider"
 import { useResizeDetector } from "react-resize-detector"
 import PlayIcon from "../../assets/icons/icon-play.svg"
 import PauseIcon from "../../assets/icons/icon-pause.svg"
 import { InstanceIdContext, useNextInstanceId } from "../../hooks/use-instance-id-context"
+import { useTileSelectionContext } from "../../hooks/use-tile-selection-context"
+import { registerTileCollisionDetection } from "../../lib/dnd-kit/dnd-detect-collision"
 import { logMessageWithReplacement } from "../../lib/log-message"
-import { unitsStringToMilliseconds } from "../../utilities/date-utils"
 import { isAliveSafe } from "../../utilities/mst-utils"
 import { t } from "../../utilities/translation/translate"
 import { getNumberOfLevelsForDateAxis } from "../axis/axis-utils"
@@ -17,27 +19,68 @@ import { Axis } from "../axis/components/axis"
 import { AxisProviderContext } from "../axis/hooks/use-axis-provider-context"
 import { AxisLayoutContext } from "../axis/models/axis-layout-context"
 import { isDateAxisModel } from "../axis/models/numeric-axis-models"
+import { If } from "../common/if"
 import { ITileBaseProps } from "../tiles/tile-base-props"
 import { EditableSliderValue } from "./editable-slider-value"
+import { kSliderIdBase, sliderCollisionDetection } from "./slider-drag-drop"
+import { SliderDropHighlight, useSliderAttributeDrop } from "./slider-drop-target"
+import { SliderAttributeMenu } from "./slider-attribute-menu"
 import { SliderAxisLayout } from "./slider-layout"
 import { isSliderModel } from "./slider-model"
 import { changeSliderValueNotification } from "./slider-notifications"
+import { isQuietSliderChange } from "./slider-quiet-change"
+import { rangeChangeOptions } from "./slider-range-change"
+import { SliderRangeThumb } from "./slider-range-thumb"
+import { SliderRangeValues } from "./slider-range-values"
 import { CodapSliderThumb } from "./slider-thumb"
-import { kSliderClass } from "./slider-types"
+import { kNoSelectionResumeProps, kNoSelectionResumeSelector, kSliderClass } from "./slider-types"
+import { rangeFromHandles, sliderGroupLabel, sliderStep } from "./slider-utils"
+import { useSliderCountAnnouncement } from "./use-slider-count-announcement"
+import { useSliderFocusRestore } from "./use-slider-focus-restore"
 
 import "./slider.scss"
 
+// the keys that move the slider's thumb, plus Enter and Space: pressed on its thumb or track, they resume a paused
+// selection slider
+const kResumeSelectionKeys = new Set([
+  "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown", "Enter", " "
+])
+
 const kAxisMargin = 30
+
+registerTileCollisionDetection(kSliderIdBase, sliderCollisionDetection)
 
 export const SliderComponent = observer(function SliderComponent({ tile } : ITileBaseProps) {
   const sliderModel = isAliveSafe(tile?.content) && isSliderModel(tile?.content) ? tile?.content : undefined
   const instanceId = useNextInstanceId("slider")
+  const pausedDescriptionId = `${instanceId}-selection-paused`
   const layout = useMemo(() => new SliderAxisLayout(), [])
   const {width, height, ref: sliderRef} = useResizeDetector()
+  const { setOverlayRef, ...dropHighlight } = useSliderAttributeDrop(instanceId, tile)
+  const wrapperRef = useRef<HTMLDivElement | null>(null)
+  const setWrapperRef = useCallback((elt: HTMLDivElement | null) => {
+    wrapperRef.current = elt
+    sliderRef(elt)
+    setOverlayRef(elt)
+  }, [setOverlayRef, sliderRef])
   const [running, setRunning] = useState(false)
+  // as a graph's attribute labels do, the attribute menu shows its caret while the tile is selected
+  const { isTileSelected } = useTileSelectionContext()
+  // The prompt replaces the thumb, which runs playback, so playback stops with it (and binding an attribute again
+  // doesn't restart it).
+  const isPrompting = !!sliderModel?.isRangeSlider && !sliderModel.attribute
+  useEffect(() => {
+    if (isPrompting) setRunning(false)
+  }, [isPrompting])
+  const [focusAttributeLabel, setFocusAttributeLabel] = useState(false)
+  const clearFocusAttributeLabel = useCallback(() => setFocusAttributeLabel(false), [])
   const [statusMessage, setStatusMessage] = useState("")
   const statusTimeoutRef = useRef<number>()
+  // the message being announced, which a stop of playback caused by the same change, a resume, or a case count adds to
+  const statusMessageRef = useRef("")
   const prevRunningRef = useRef(false)
+  // whether playback is stopping because the selection slider paused, whose announcement the stop is added to
+  const stoppedByPauseRef = useRef(false)
   const multiScale = layout.getAxisMultiScale("bottom")
   const trackRef = useRef<HTMLDivElement | null>(null)
 
@@ -45,9 +88,13 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   // Cancels any pending clear from a previous message to avoid races.
   const showStatusMessage = useCallback((message: string) => {
     window.clearTimeout(statusTimeoutRef.current)
+    statusMessageRef.current = message
     setStatusMessage(message)
     if (message) {
-      statusTimeoutRef.current = window.setTimeout(() => setStatusMessage(""), 1000)
+      statusTimeoutRef.current = window.setTimeout(() => {
+        statusMessageRef.current = ""
+        setStatusMessage("")
+      }, 1000)
     }
   }, [])
 
@@ -59,23 +106,63 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   }, [width, height, layout])
 
   // Step size: use multipleOf when set; otherwise axis resolution for numeric, or unit offset for date
-  const step = sliderModel?.scaleType === "date"
-    ? (sliderModel.multipleOf ?? 1) * unitsStringToMilliseconds(sliderModel.dateMultipleOfUnit) / 1000
-    : (sliderModel?.multipleOf ?? multiScale?.resolution ?? 1)
+  const step = sliderModel ? sliderStep(sliderModel, multiScale?.resolution) : 1
 
   const [minValue, maxValue] = sliderModel?.axis?.domain ?? [0, 1]
 
+  // The React Aria state, and the handle a range change is moving: recorded during onChange, since React Stately
+  // clears its dragging flag before calling onChangeEnd. (The range's keys don't go through React Aria; see
+  // SliderRangeThumb.)
+  const stateRef = useRef<SliderState | null>(null)
+  const activeHandleRef = useRef<number | undefined>(undefined)
+  // whether the range changed during the current press: React Stately calls onChangeEnd on every release, even
+  // of a handle that didn't move, with values rounded to its step
+  const rangeChangedRef = useRef(false)
+  // the range when the current press began, against which rangeFromHandles judges whether a handle is closing
+  const pressStartRangeRef = useRef<[number, number] | undefined>(undefined)
+  const rangeForHandles = useCallback((values: number[]) => {
+    if (!sliderModel) return values as [number, number]
+    const current: [number, number] = [sliderModel.rangeLow, sliderModel.rangeHigh]
+    return rangeFromHandles(values, current, activeHandleRef.current, step, pressStartRangeRef.current ?? current)
+  }, [sliderModel, step])
+
   const handleChange = useCallback((values: number[]) => {
     if (!sliderModel) return
+    // React Aria reports only the user's changes (a drag, a track click, a key), not playback's, and each stops
+    // playback, which would otherwise move the thumb or range out from under the pointer
+    setRunning(false)
+    const ariaState = stateRef.current
+    activeHandleRef.current = [0, 1].find(index => ariaState?.isThumbDragging(index))
+    if (!rangeChangedRef.current) pressStartRangeRef.current = [sliderModel.rangeLow, sliderModel.rangeHigh]
+    rangeChangedRef.current = true
     sliderModel.applyModelChange(
-      () => sliderModel.setDynamicValue(values[0]),
+      () => sliderModel.isRangeSlider
+        ? sliderModel.setDynamicRange(...rangeForHandles(values))
+        : sliderModel.setDynamicValue(values[0]),
       // the global value's observer sends `global[<name>]`
       { noDirty: true }
     )
-  }, [sliderModel])
+  }, [rangeForHandles, sliderModel])
 
   const handleChangeEnd = useCallback((values: number[]) => {
     if (!sliderModel) return
+    // the press is over, whatever the slider's type, so the next one (perhaps after the slider becomes a range
+    // slider) starts afresh
+    const endPress = () => {
+      rangeChangedRef.current = false
+      pressStartRangeRef.current = undefined
+      activeHandleRef.current = undefined
+    }
+    if (sliderModel.isRangeSlider) {
+      // a press that changed nothing shouldn't round the range to the step or create an undo entry
+      if (rangeChangedRef.current) {
+        sliderModel.applyModelChange(() => sliderModel.setRange(...rangeForHandles(values)),
+                                     rangeChangeOptions(sliderModel, tile))
+      }
+      endPress()
+      return
+    }
+    endPress()
     sliderModel.applyModelChange(
       () => sliderModel.setValue(values[0]),
       {
@@ -90,13 +177,13 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
               { name: sliderModel.name, value: values[0] }, "slider")
       }
     )
-  }, [sliderModel, tile])
+  }, [rangeForHandles, sliderModel, tile])
 
   const numberFormatter = useMemo(() => new Intl.NumberFormat(), [])
 
   // React Aria slider state (controlled by sliderModel.value)
   const state = useSliderState({
-    value: [sliderModel?.value ?? 0],
+    value: sliderModel?.isRangeSlider ? [sliderModel.rangeLow, sliderModel.rangeHigh] : [sliderModel?.value ?? 0],
     minValue,
     maxValue,
     step,
@@ -104,9 +191,10 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     onChangeEnd: handleChangeEnd,
     numberFormatter
   })
+  stateRef.current = state
 
   const { groupProps, trackProps } = useSlider(
-    { "aria-label": sliderModel?.name ?? "", minValue, maxValue, step },
+    { "aria-label": sliderGroupLabel(sliderModel, multiScale), minValue, maxValue, step },
     state,
     trackRef
   )
@@ -115,10 +203,86 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
   useEffect(() => {
     if (prevRunningRef.current !== running) {
       const key = running ? "DG.SliderView.animationStarted" : "DG.SliderView.animationStopped"
-      showStatusMessage(t(key))
+      // A change that brings up the prompt, or a selection slider pausing, stops playback after announcing itself, so
+      // the stop is added to that announcement rather than replacing it.
+      const cause = !running && (isPrompting || stoppedByPauseRef.current) ? statusMessageRef.current : ""
+      showStatusMessage(cause ? t("V3.Slider.messageThenStopped", { vars: [cause, t(key)] }) : t(key))
       prevRunningRef.current = running
+      stoppedByPauseRef.current = false
     }
-  }, [running, showStatusMessage])
+  }, [isPrompting, running, showStatusMessage])
+
+  // The case count adds to a message still being announced, e.g. that playback stopped or an attribute was set, but
+  // replaces an earlier count.
+  const lastCountMessageRef = useRef("")
+  const announceCount = useCallback((message: string) => {
+    const prior = statusMessageRef.current === lastCountMessageRef.current ? "" : statusMessageRef.current
+    const combined = prior ? t("V3.Slider.messageThenMessage", { vars: [prior, message] }) : message
+    lastCountMessageRef.current = combined
+    showStatusMessage(combined)
+  }, [showStatusMessage])
+  useSliderCountAnnouncement({ sliderModel, running, announce: announceCount })
+  useSliderFocusRestore(sliderModel, wrapperRef)
+
+  // When another component takes the selection, a selection slider pauses: it stops playback and says so. Only a
+  // change of ownership is announced; a slider that merely looks paused because the data changed keeps playing.
+  // Resuming is announced only after a pause (a slider that starts selecting when it's bound hasn't resumed), and a
+  // choice from a menu, which announces itself, announces neither (see makeQuietSliderChange).
+  useEffect(() => {
+    if (!sliderModel) return
+    let wasPaused = sliderModel.isSelectionPaused
+    return reaction(
+      () => sliderModel.ownsSelection,
+      owns => {
+        if (!sliderModel.isBoundSelectionSlider) return
+        // rebinding to another dataset lets go of the selection without the user pausing the slider
+        if (!owns && sliderModel.isReleasedForRebind) {
+          wasPaused = false
+          return
+        }
+        if (!isQuietSliderChange(sliderModel) && (!owns || wasPaused)) {
+          const message = t(owns ? "V3.Slider.selectionResumed" : "V3.Slider.selectionPaused")
+          // a resume caused by a change that announced itself (e.g. dropping an attribute) adds to that announcement
+          const prior = owns ? statusMessageRef.current : ""
+          showStatusMessage(prior ? t("V3.Slider.messageThenMessage", { vars: [prior, message] }) : message)
+        }
+        wasPaused = !owns
+        if (!owns) {
+          stoppedByPauseRef.current = true
+          setRunning(false)
+        }
+      }, { name: "SliderComponent [selection ownership]" }
+    )
+  }, [sliderModel, showStatusMessage])
+
+  // Announce a change to the slider's type or attribute, whether made by a drop, by undo or redo, or by a plugin, but
+  // not one chosen from a menu (see makeQuietSliderChange), or the slider's state when it appears. The attribute's
+  // presence is tracked too, since deleting the bound attribute leaves its id in place.
+  useEffect(() => {
+    if (!sliderModel) return
+    return reaction(
+      () => ({
+        sliderType: sliderModel.sliderType, attributeId: sliderModel.attributeId, hasAttribute: !!sliderModel.attribute
+      }),
+      (current, previous) => {
+        if (isQuietSliderChange(sliderModel)) return
+        const typeName = t(`V3.Slider.typeName.${current.sliderType}`)
+        const typeChanged = current.sliderType !== previous.sliderType
+        const attrName = sliderModel.attribute?.name
+        if (attrName && (current.attributeId !== previous.attributeId || !previous.hasAttribute)) {
+          showStatusMessage(typeChanged
+            ? t("V3.Slider.typeAndAttributeSet", { vars: [typeName, attrName] })
+            : t("V3.Slider.attributeSet", { vars: [attrName] }))
+        }
+        else if (typeChanged) {
+          showStatusMessage(t("V3.Slider.typeChanged", { vars: [typeName] }))
+        }
+        else if (previous.hasAttribute && !current.hasAttribute) {
+          showStatusMessage(t("V3.Slider.attributeRemoved"))
+        }
+      }, { equals: comparer.structural, name: "SliderComponent [announce type and attribute]" }
+    )
+  }, [sliderModel, showStatusMessage])
 
   const [nameInput, setNameInput] = useState(sliderModel?.name ?? "")
   const nameRevertingRef = useRef(false)
@@ -130,12 +294,40 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
 
   if (!sliderModel) return null
 
+  // a range slider labels its axis with the bound attribute, e.g. "Height (meters)"; with no attribute bound, it
+  // shows only a prompt to choose one
+  const attribute = sliderModel.isRangeSlider ? sliderModel.attribute : undefined
+  const attributeLabel = attribute ? `${attribute.name}${attribute.units ? ` (${attribute.units})` : ""}` : ""
+  const showPrompt = sliderModel.isRangeSlider && !attribute
+  const stopTrackPress = (e: React.SyntheticEvent) => e.stopPropagation()
+
   const axisStyle: CSSProperties = {
     width: width ? width - kAxisMargin : width,
   }
 
   const toggleRunning = () => {
+    // Pressing play resumes a paused selection slider at its current range before it steps. (A click already has, by
+    // its press; Enter or Space on the button hasn't.)
+    if (!running) sliderModel?.resumeSelection()
     setRunning(!running)
+  }
+
+  // Touching the slider resumes a paused selection slider, or re-selects for an active one. Capture runs before the
+  // thumb and track stop the events from propagating.
+  const resumeSelection = () => sliderModel?.resumeSelection()
+  // whether an event within the slider is a gesture on it, i.e. not in a marked element (see kNoSelectionResumeProps)
+  // or a menu portaled out of the slider, whose events still reach it through React
+  const isSelectionGesture = (e: React.SyntheticEvent) => {
+    const target = e.target as Element
+    return e.currentTarget.contains(target) && !target.closest?.(kNoSelectionResumeSelector)
+  }
+  // only the primary pointer's main button, which is all the thumb and track accept, e.g. not a right-click
+  const handlePointerDownCapture = (e: React.PointerEvent) => {
+    if (!e.button && e.isPrimary !== false && isSelectionGesture(e)) resumeSelection()
+  }
+  // Ctrl and Meta chords belong to the system, the browser and screen readers, and don't move the slider
+  const handleTrackKeyDownCapture = (e: React.KeyboardEvent) => {
+    if (kResumeSelectionKeys.has(e.key) && !e.ctrlKey && !e.metaKey && isSelectionGesture(e)) resumeSelection()
   }
 
   const axisClasses = () => {
@@ -171,51 +363,98 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
     <InstanceIdContext.Provider value={instanceId}>
       <AxisProviderContext.Provider value={sliderModel}>
         <AxisLayoutContext.Provider value={layout}>
-          <div {...groupProps} className={clsx(kSliderClass, {twoLevel: sliderModel.axisRequiresTwoLevels()})}
-               ref={sliderRef} data-testid="slider">
-            <div className="slider-control">
-              <button
-                aria-label={running ? t("DG.SliderView.pauseButton") : t("DG.SliderView.playButton")}
-                className={`play-pause ${running ? "running" : "paused"}`}
-                data-testid="slider-play-pause"
-                onClick={toggleRunning}
-              >
-                {running ? <PauseIcon/> : <PlayIcon/>}
-              </button>
-              <div className="slider-inputs">
-                <TextField value={nameInput} onChange={setNameInput}
-                           aria-label={t("DG.SliderView.sliderName")} className="name-input"
-                           data-testid="slider-variable-name">
-                  <RAInput className="name-text-input text-input" data-testid="slider-variable-name-text-input"
-                           size={Math.max(nameInput.length, 3)} onBlur={commitSliderName}
-                           onKeyDown={handleSliderNameKeyDown} />
-                </TextField>
-                <span className="equals-sign">&nbsp;=&nbsp;</span>
-                <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale}
-                                     onStatusMessage={showStatusMessage}/>
+          <div {...groupProps} className={clsx(kSliderClass, {twoLevel: sliderModel.axisRequiresTwoLevels(),
+                                                              hasAttributeLabel: !!attributeLabel,
+                                                              "tile-selected": isTileSelected(),
+                                                              "selection-paused": sliderModel.isSelectionPaused})}
+               ref={setWrapperRef} data-testid="slider" onPointerDownCapture={handlePointerDownCapture}>
+            <If condition={showPrompt}>
+              <div className="slider-attribute-prompt" data-testid="slider-attribute-prompt">
+                {/* choosing removes the prompt, so focus moves to the attribute label's menu that replaces it */}
+                <SliderAttributeMenu className="slider-attribute-prompt-button"
+                                     onSelect={() => setFocusAttributeLabel(true)}>
+                  {t("V3.Slider.prompt")}
+                </SliderAttributeMenu>
               </div>
-            </div>
-            <div {...trackProps} style={{ ...trackProps.style, position: "absolute" }}
-                 ref={trackRef} className="slider">
-              <CodapSliderThumb sliderModel={sliderModel} running={running} setRunning={setRunning}
-                                state={state} trackRef={trackRef}
-              />
-              {/* Stop pointer events from bubbling to React Aria's track handler so that
-                  D3's axis drag behavior (pan/zoom) receives them instead (CODAP-1206). */}
-              <div className={axisClasses()} style={axisStyle}
-                   onPointerDown={e => e.stopPropagation()}>
-                <div className="axis-end min"/>
-                <svg className="slider-axis" data-testid="slider-axis">
-                  <Axis
-                    axisPlace={"bottom"}
-                  />
-                </svg>
-                <div className="axis-end max"/>
+            </If>
+            <If condition={!showPrompt}>
+              <div className="slider-control">
+                <button
+                  aria-label={running ? t("DG.SliderView.pauseButton") : t("DG.SliderView.playButton")}
+                  className={`play-pause ${running ? "running" : "paused"}`}
+                  data-testid="slider-play-pause"
+                  onClick={toggleRunning}
+                >
+                  {running ? <PauseIcon/> : <PlayIcon/>}
+                </button>
+                <div className="slider-inputs">
+                  {sliderModel.isRangeSlider
+                    ? <SliderRangeValues sliderModel={sliderModel} multiScale={multiScale}/>
+                    : <>
+                      <TextField value={nameInput} onChange={setNameInput}
+                                 aria-label={t("DG.SliderView.sliderName")} className="name-input"
+                                 data-testid="slider-variable-name">
+                        <RAInput className="name-text-input text-input" data-testid="slider-variable-name-text-input"
+                                 size={Math.max(nameInput.length, 3)} onBlur={commitSliderName}
+                                 onKeyDown={handleSliderNameKeyDown} />
+                      </TextField>
+                      <span className="equals-sign">&nbsp;=&nbsp;</span>
+                      <EditableSliderValue sliderModel={sliderModel} multiScale={multiScale}
+                                           onStatusMessage={showStatusMessage}/>
+                      </>}
+                </div>
+                {sliderModel.isSelectionPaused &&
+                  <>
+                    <span className="slider-selection-paused-badge" data-testid="slider-selection-paused-badge"
+                          title={t("V3.Slider.selectionPaused.tooltip")} aria-hidden="true">
+                      {t("V3.Slider.selectionPaused.badge")}
+                    </span>
+                    {/* the handles' description while paused (see SliderRangeThumb) */}
+                    <span id={pausedDescriptionId} className="codap-visually-hidden">
+                      {t("V3.Slider.selectionPaused.description")}
+                    </span>
+                  </>}
               </div>
-            </div>
+              <div {...trackProps} style={{ ...trackProps.style, position: "absolute" }}
+                   ref={trackRef} className="slider" data-testid="slider-track"
+                   onKeyDownCapture={handleTrackKeyDownCapture}>
+                {sliderModel.isRangeSlider
+                  ? <SliderRangeThumb sliderModel={sliderModel} tile={tile} running={running} setRunning={setRunning}
+                                      state={state} trackRef={trackRef} step={step}
+                                      describedBy={sliderModel.isSelectionPaused ? pausedDescriptionId : undefined}
+                    />
+                  : <CodapSliderThumb sliderModel={sliderModel} running={running} setRunning={setRunning}
+                                      state={state} trackRef={trackRef}
+                    />}
+                {/* Stop pointer events from bubbling to React Aria's track handler so that
+                    D3's axis drag behavior (pan/zoom) receives them instead (CODAP-1206). */}
+                <div className={axisClasses()} style={axisStyle}
+                     onPointerDown={e => e.stopPropagation()}>
+                  <div className="axis-end min"/>
+                  <svg className="slider-axis" data-testid="slider-axis">
+                    <Axis
+                      axisPlace={"bottom"}
+                    />
+                  </svg>
+                  <div className="axis-end max"/>
+                </div>
+                <If condition={!!attributeLabel}>
+                  {/* keep presses on the label's menu from reaching the track, which would move a range handle */}
+                  <div className="slider-attribute-label" style={axisStyle} data-testid="slider-attribute-label"
+                       {...kNoSelectionResumeProps}
+                       onPointerDown={stopTrackPress} onMouseDown={stopTrackPress} onTouchStart={stopTrackPress}>
+                    <SliderAttributeMenu className="slider-attribute-label-button"
+                                         autoFocus={focusAttributeLabel} onAutoFocus={clearFocusAttributeLabel}>
+                      {attributeLabel}
+                    </SliderAttributeMenu>
+                  </div>
+                </If>
+              </div>
+            </If>
             <div aria-live="polite" className="codap-visually-hidden" role="status">
               {statusMessage}
             </div>
+            <SliderDropHighlight {...dropHighlight}/>
           </div>
         </AxisLayoutContext.Provider>
       </AxisProviderContext.Provider>

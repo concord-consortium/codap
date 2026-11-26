@@ -7,6 +7,7 @@ Event,Placeholders,Value,Parameters,Description
 %@ line intercept,action,,{action: string},User locks or unlocks the line intercept on a scatter plot.
 %@ measure labels,action,,{action: string},User shows or hides measure labels from the graph measures menu.
 %@ outliers,action,,{action: string},User shows or hides box plot outliers.
+%@ residual plot,action,,{action: string},User shows or hides the residual plot below a scatter plot.
 %@ squares of residuals,action,,{action: string},User shows or hides squares of residuals on a scatter plot.
 <plugin-defined>,"positional replaceArgs (0, 1, ...)",,{ [index: string]: string|number|boolean },Arbitrary event emitted by an embedded plugin/iframe via the data-interactive logMessage API; event name and parameters are plugin-defined.
 Add Plugin: %@,"name, url",,"{ name: string, url: string }",User adds a plugin by choosing it from the plugins menu.
@@ -39,11 +40,15 @@ Changed attribute binning type,,,,User changes the legend bins (binning type) se
 Changed attribute color,,,,User changes the high-end color of a numeric legend attribute's color range.
 Changed background color,,,,Logged when the user picks a new plot background color in the point format palette.
 Changed categorical point color,,,,User changes the color assigned to a specific legend category.
+Changed category point shape,,,,User changes the point shape used for one category of a categorical legend.
 Changed point color,,,,User changes the overall point color when the legend attribute is not categorical.
+Changed point shape,,,,User changes the point shape of a graph or map layer that has no categorical legend.
 Changed point size,,,,User finishes dragging the point-size slider in the format inspector.
 Changed point type,,,,User changes the map point display type (points vs heatmap) in the format inspector.
 Changed stroke color,,,,User changes the point stroke color in the format inspector.
 Clear formula for attribute %@,name,,{ name: string },User chooses the delete-formula menu item to remove an attribute's formula.
+Clear legend max,,,,User clears the legend maximum so it follows the data range again.
+Clear legend min,,,,User clears the legend minimum so it follows the data range again.
 Close calculator,,,{ type: string },When the user closes the calculator tile using its title-bar close button.
 Close component: %@,tileType,,{ tileType: string },User closes a component tile from the workspace.
 Combine date and time: %@,"{ name, date, time, formula }",,"{ name: string, date: string, time: string, formula: string }",User combines a date attribute and a time attribute into a new formula attribute using the combine date/time dialog.
@@ -82,6 +87,7 @@ Hide percent adornment,,,,Count adornment auto-hides the percent option when the
 Import from clipboard: %@,"{ method, failed, skipped, outcome, format, permissionDenied }",,"{ method: ""read"" | ""readText"" | ""paste"", failed: string, skipped: string, outcome: ""imported"" | ""empty"" | ""cancelled"", format: ""html"" | ""csv"" | """", permissionDenied: boolean }","User imports data from the clipboard. method ""paste"" means the browser refused direct clipboard access and the user pasted into the fallback dialog; failed and skipped list the read methods that failed or were skipped. outcome ""imported"" means the importer was started, not that the data was parsed successfully. permissionDenied is true when the browser reported clipboard-read as denied before the paste dialog closed; it is always false when the read succeeded."
 Imported data set: %@,{ datasetName },,{ datasetName: string },"User imports a data set, for example from a CSV file or dropped file."
 insert %@ cases,numCases,,{ numCases: number },User inserts one or more new cases into a table.
+Interactive action occurred: %@,logMessage,,,"A plugin reports an undoable action, which adds a step to CODAP's undo history."
 Joined %@ to %@,"sourceCollectionName, destCollectionName",,,"Logged when the user drops an attribute from one table onto an attribute in another, joining the source collection into the destination collection."
 laraData,,,{ [key: string]: unknown },CODAP receives run/embedding data from the hosting LARA environment.
 legendAttributeChange: %@,{to_attribute},,{ to_attribute: string },User changes or drops the attribute used for the map legend.
@@ -114,6 +120,9 @@ Resize all columns,,,,"Logged when a plugin sends an autoScale notification to a
 Resize one case table column,,,,User finishes dragging a case table column divider to resize a single column.
 Resized component: %@,tileID,,{ tileID: string },User resizes a component by dragging a handle or using arrow keys.
 Restore set aside cases,,,,Logged when previously set-aside (hidden) cases are restored to view.
+Set legend bin count,,,,User sets the number of bins in a numeric legend.
+Set legend max,,,,User types a maximum value for a numeric legend.
+Set legend min,,,,User types a minimum value for a numeric legend.
 Set legend quantiles to be %@ed,"prefix (""lock"" or ""unlock""), giving ""locked"" or ""unlocked""",,,"User toggles the ""lock legend quantiles"" checkbox for a numeric legend."
 Set standard error to %@,numStErrs,,{numStErrs: number},User changes the number of standard errors for the standard error adornment.
 Show %@,adornmentType / type,,{ adornmentType: string },User checks the count or percent checkbox to show counts or percentages on the graph.
@@ -125,13 +134,17 @@ Show web view: %@,url,,{ url: string },"A web page tile is shown or created, suc
 sliderAnimationDirection: %@,"{name, direction}",,"{ name: string, direction: string }",User changes the slider animation direction.
 sliderChangeMaximum: %@,"{name, max}",,"{ name: string, max: number }",User changes the maximum value of the slider's axis.
 sliderChangeMinimum: %@,"{name, min}",,"{ name: string, min: number }",User changes the minimum value of the slider's axis.
+sliderConfigureFromAttribute: { attribute: %@ },attribute,,{ attribute: string },"User drops a numeric or date attribute on a slider, configuring it as a visibility (or selection) slider for that attribute."
 sliderDateMultipleOfUnit: %@,"{name, dateMultipleOfUnit}",,"{ name: string, dateMultipleOfUnit: string }",User changes the date unit used for the slider's multiples restriction.
 sliderEdit: { expression: %@ = %@ },"name, value",,"{ name: string, value: number }",User types a new value into the slider's editable value field.
 sliderMaxPerSecond: %@,"{name, maxPerSecond}",,"{ name: string, maxPerSecond: number }",User changes the slider animation speed in frames per second.
 sliderMultiplesOf: %@,"{name, restrictMultiplesOf}",,"{ name: string, restrictMultiplesOf: number }",User sets the value that the slider is restricted to multiples of.
+"sliderRangeChange: { name: %@ = [%@, %@] }","name, low, high",,"{ name: string, low: number, high: number }","User finishes resizing or moving a visibility or selection slider's range thumb, by dragging an edge or the middle or with the keyboard."
+sliderRangeWidth: %@,"{name, rangeWidth}",,"{ name: string, rangeWidth: number }",User types a new range width for a visibility or selection slider in its Config panel.
 sliderRepetitionMode: %@,"{name, mode}",,"{ name: string, mode: string }",User changes the slider animation repetition mode.
 sliderScaleType: %@,"{name, scaleType}",,"{ name: string, scaleType: string }",User changes the slider's scale type between numeric and date.
 sliderThumbDrag: { name: %@ = value: %@ },"name, value",,"{ name: string, value: number }",User drags the slider thumb to change the slider value.
+sliderType: %@,"{name, sliderType}",,"{ name: string, sliderType: string }","User chooses a slider type (variable, visibility or selection) in the slider's Config panel."
 Sort cases by attribute: %@,"{ attributeId, attribute }",,"{ attributeId: string, attribute: string }",User sorts the cases by the values of a chosen attribute.
 Toggle component: %@,componentType,,{ componentType: string },User confirms switching a case tile between table and card view.
 Toggle parent group visibility,,,,Logged when the user clicks an individual parent-case button in the parent-toggles bar to show or hide that group.

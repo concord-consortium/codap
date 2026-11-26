@@ -71,6 +71,14 @@ import { gLocale } from "../../utilities/translation/locale"
 import { t } from "../../utilities/translation/translate"
 import { V2UserTitleModel } from "./v2-user-title-model"
 
+// whether any visibility slider's filter hides the item
+function isItemInSliderFilters(filters: ReadonlyMap<string, ReadonlySet<string>>, itemId: string) {
+  for (const hidden of filters.values()) {
+    if (hidden.has(itemId)) return true
+  }
+  return false
+}
+
 // remnant of derived DataSet implementation that isn't in active use
 interface IEnvContext {
   srcDataSet: IDataSet;
@@ -207,6 +215,14 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
 
   // cached result of filter formula evaluation for each item ID
   filteredOutItemIds: observable.set<string>(),
+  // items hidden by visibility sliders, keyed by the id of each slider's tile; each slider replaces or
+  // clears only its own set
+  // (shallow, so each set is stored as given rather than copied; invalidateCases does the signaling)
+  sliderFilteredOutItemIds: observable.map<string, ReadonlySet<string>>({}, { deep: false }),
+  // Counts the changes to what visibility sliders hide that a change to a slider itself caused (its range,
+  // attribute, type or dataset, or closing it), rather than a change to the data or a document loading. A selection
+  // slider follows only these, so editing data never selects anything (see SliderModel).
+  sliderFilterChangesBySlider: 0,
   filterFormulaError: "",
 
   // Init: this object does not need to change when a snapshot is applied.
@@ -262,7 +278,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   function _validateItemIds() {
     if (!_isValidItemIds) {
       _cachedItemIds = self._itemIds.filter(itemId =>
-        !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
+        !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId) &&
+          !isItemInSliderFilters(self.sliderFilteredOutItemIds, itemId)
       )
       _cachedItems = _cachedItemIds.map(id => ({ __id__: id }))
       _isValidItemIds = true
@@ -397,7 +414,8 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
       appendItemIdsToCache(itemIds: string[]) {
         if (_isValidItemIds) {
           const visibleIds = itemIds.filter(itemId =>
-            !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId)
+            !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId) &&
+            !isItemInSliderFilters(self.sliderFilteredOutItemIds, itemId)
           )
           _cachedItemIds.push(...visibleIds)
           _cachedItems.push(...visibleIds.map(id => ({ __id__: id })))
@@ -497,8 +515,13 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
   isItemSetAside(itemId: string) {
     return self.setAsideItemIdsSet.has(itemId)
   },
+  // hidden by the filter formula or by a visibility slider
   isItemFilteredOut(itemId: string) {
-    return self.filteredOutItemIds.has(itemId)
+    return self.filteredOutItemIds.has(itemId) || isItemInSliderFilters(self.sliderFilteredOutItemIds, itemId)
+  },
+  // the items that aren't set aside or filtered out by the filter formula, whatever sliders hide
+  get itemIdsIgnoringSliderFilters(): string[] {
+    return self._itemIds.filter(itemId => !self.setAsideItemIdsSet.has(itemId) && !self.filteredOutItemIds.has(itemId))
   }
 }))
 .views(self => ({
@@ -776,6 +799,11 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
           Array.from(self.childCollection.caseGroupMap.values()).forEach(caseGroup => {
             self.itemIdChildCaseMap.set(caseGroup.childItemIds[0] ?? caseGroup.hiddenChildItemIds[0], caseGroup)
           })
+          // A hidden item (set aside, filtered out by the filter formula, or hidden by a visibility slider) can't be
+          // selected, so it's deselected along with the items that no longer exist.
+          self.selection.forEach(itemId => {
+            if (self.itemInfoMap.get(itemId)?.isHidden) itemsToValidate.add(itemId)
+          })
           // Defer selection cleanup — flushed by setValidCases() in its runInAction
           if (itemsToValidate.size) {
             self.deferSelectionDelete(itemsToValidate)
@@ -918,6 +946,21 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     })
     return created
   },
+  // hides the given items on behalf of the visibility slider in the tile with the given id
+  // (bySlider: see sliderFilterChangesBySlider)
+  setSliderFilter(sliderTileId: string, hiddenItemIds: ReadonlySet<string>, bySlider = false) {
+    self.sliderFilteredOutItemIds.set(sliderTileId, hiddenItemIds)
+    if (bySlider) ++self.sliderFilterChangesBySlider
+    self.invalidateCases()
+  },
+  // stops hiding items on behalf of the visibility slider in the tile with the given id
+  // (bySlider: see sliderFilterChangesBySlider)
+  clearSliderFilter(sliderTileId: string, bySlider = false) {
+    if (self.sliderFilteredOutItemIds.delete(sliderTileId)) {
+      if (bySlider) ++self.sliderFilterChangesBySlider
+      self.invalidateCases()
+    }
+  },
   clearFilterFormula() {
     self.filterFormula = undefined
     self.filteredOutItemIds.clear()
@@ -930,7 +973,9 @@ export const DataSet = V2UserTitleModel.named("DataSet").props({
     caseOrItemIds.forEach(id => {
       const caseInfo = self.caseInfoMap.get(id)
       if (caseInfo) {
-        caseInfo.childItemIds.forEach(itemId => {
+        // Hidden children too (e.g. by a filter formula or a visibility slider), so they stay set aside with
+        // their case when whatever hides them changes. Restoring a case restores all its hidden children.
+        [...caseInfo.childItemIds, ...caseInfo.hiddenChildItemIds].forEach(itemId => {
           if (!self.setAsideItemIdsSet.has(itemId)) {
             self.setAsideItemIds.push(itemId)
           }

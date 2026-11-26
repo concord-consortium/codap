@@ -1,0 +1,108 @@
+diff --git a/node_modules/react-aria/dist/private/interactions/usePress.cjs b/node_modules/react-aria/dist/private/interactions/usePress.cjs
+index a26db2c..50e094e 100644
+--- a/node_modules/react-aria/dist/private/interactions/usePress.cjs
++++ b/node_modules/react-aria/dist/private/interactions/usePress.cjs
+@@ -250,7 +250,7 @@ function $1d003dcb6308cd89$export$45712eceda6fad21(props) {
+         let pressProps = {
+             onKeyDown (e) {
+                 if ($1d003dcb6308cd89$var$isValidKeyboardEvent(e.nativeEvent, e.currentTarget) && (0, $da02ee888921bc9e$exports.nodeContains)(e.currentTarget, (0, $da02ee888921bc9e$exports.getEventTarget)(e))) {
+-                    if ($1d003dcb6308cd89$var$shouldPreventDefaultKeyboard((0, $da02ee888921bc9e$exports.getEventTarget)(e), e.key)) e.preventDefault();
++                    if ($1d003dcb6308cd89$var$shouldPreventDefaultKeyboard((0, $da02ee888921bc9e$exports.getEventTarget)(e), e)) e.preventDefault();
+                     // If the event is repeating, it may have started on a different element
+                     // after which focus moved to the current element. Ignore these events and
+                     // only handle the first key down event.
+@@ -310,7 +310,7 @@ function $1d003dcb6308cd89$export$45712eceda6fad21(props) {
+         };
+         let onKeyUp = (e)=>{
+             if (state.isPressed && state.target && $1d003dcb6308cd89$var$isValidKeyboardEvent(e, state.target)) {
+-                if ($1d003dcb6308cd89$var$shouldPreventDefaultKeyboard((0, $da02ee888921bc9e$exports.getEventTarget)(e), e.key)) e.preventDefault();
++                if ($1d003dcb6308cd89$var$shouldPreventDefaultKeyboard((0, $da02ee888921bc9e$exports.getEventTarget)(e), e)) e.preventDefault();
+                 let target = (0, $da02ee888921bc9e$exports.getEventTarget)(e);
+                 let wasPressed = (0, $da02ee888921bc9e$exports.nodeContains)(state.target, target);
+                 triggerPressEndEvent($1d003dcb6308cd89$var$createEvent(state.target, e), 'keyboard', wasPressed);
+@@ -713,9 +713,10 @@ function $1d003dcb6308cd89$var$shouldPreventDefaultUp(target) {
+     if ($1d003dcb6308cd89$var$isHTMLAnchorLink(target)) return false;
+     return true;
+ }
+-function $1d003dcb6308cd89$var$shouldPreventDefaultKeyboard(target, key) {
+-    // Don't prevent the contextmenu shortcut on mac.
+-    if ((0, $d0b4a781cf26e80b$exports.isMac)() && key === 'Enter') return false;
++function $1d003dcb6308cd89$var$shouldPreventDefaultKeyboard(target, event) {
++    let key = event.key;
++    // Don't prevent the contextmenu shortcut (Control + Enter) on mac.
++    if ((0, $d0b4a781cf26e80b$exports.isMac)() && key === 'Enter' && event.ctrlKey) return false;
+     if (target instanceof HTMLInputElement) {
+         if (key === 'Enter' && (target.type === 'checkbox' || target.type === 'radio')) // Enter on a checkbox or radio should do an implicit form submission, but not toggle the input.
+         return false;
+diff --git a/node_modules/react-aria/dist/private/interactions/usePress.js b/node_modules/react-aria/dist/private/interactions/usePress.js
+index 26e9323..3f207f7 100644
+--- a/node_modules/react-aria/dist/private/interactions/usePress.js
++++ b/node_modules/react-aria/dist/private/interactions/usePress.js
+@@ -256,7 +256,7 @@ function $a87f4c40785e693b$export$45712eceda6fad21(props) {
+             onKeyDown (e) {
+                 if ($a87f4c40785e693b$var$isValidKeyboardEvent(e.nativeEvent, e.currentTarget) && (0, $d8ac7ed472840322$export$4282f70798064fe0)(e.currentTarget, (0, $d8ac7ed472840322$export$e58f029f0fbfdb29)(e))) {
+                     var _state_metaKeyEvents;
+-                    if ($a87f4c40785e693b$var$shouldPreventDefaultKeyboard((0, $d8ac7ed472840322$export$e58f029f0fbfdb29)(e), e.key)) e.preventDefault();
++                    if ($a87f4c40785e693b$var$shouldPreventDefaultKeyboard((0, $d8ac7ed472840322$export$e58f029f0fbfdb29)(e), e)) e.preventDefault();
+                     // If the event is repeating, it may have started on a different element
+                     // after which focus moved to the current element. Ignore these events and
+                     // only handle the first key down event.
+@@ -318,7 +318,7 @@ function $a87f4c40785e693b$export$45712eceda6fad21(props) {
+             var _state_metaKeyEvents;
+             if (state.isPressed && state.target && $a87f4c40785e693b$var$isValidKeyboardEvent(e, state.target)) {
+                 var _state_metaKeyEvents1;
+-                if ($a87f4c40785e693b$var$shouldPreventDefaultKeyboard((0, $d8ac7ed472840322$export$e58f029f0fbfdb29)(e), e.key)) e.preventDefault();
++                if ($a87f4c40785e693b$var$shouldPreventDefaultKeyboard((0, $d8ac7ed472840322$export$e58f029f0fbfdb29)(e), e)) e.preventDefault();
+                 let target = (0, $d8ac7ed472840322$export$e58f029f0fbfdb29)(e);
+                 let wasPressed = (0, $d8ac7ed472840322$export$4282f70798064fe0)(state.target, target);
+                 triggerPressEndEvent($a87f4c40785e693b$var$createEvent(state.target, e), 'keyboard', wasPressed);
+@@ -723,9 +723,10 @@ function $a87f4c40785e693b$var$shouldPreventDefaultUp(target) {
+     if ($a87f4c40785e693b$var$isHTMLAnchorLink(target)) return false;
+     return true;
+ }
+-function $a87f4c40785e693b$var$shouldPreventDefaultKeyboard(target, key) {
+-    // Don't prevent the contextmenu shortcut on mac.
+-    if ((0, $d5a2be505488529f$export$9ac100e40613ea10)() && key === 'Enter') return false;
++function $a87f4c40785e693b$var$shouldPreventDefaultKeyboard(target, event) {
++    let key = event.key;
++    // Don't prevent the contextmenu shortcut (Control + Enter) on mac.
++    if ((0, $d5a2be505488529f$export$9ac100e40613ea10)() && key === 'Enter' && event.ctrlKey) return false;
+     if (target instanceof HTMLInputElement) {
+         if (key === 'Enter' && (target.type === 'checkbox' || target.type === 'radio')) // Enter on a checkbox or radio should do an implicit form submission, but not toggle the input.
+         return false;
+diff --git a/node_modules/react-aria/dist/private/interactions/usePress.mjs b/node_modules/react-aria/dist/private/interactions/usePress.mjs
+index a966cad..276f9d9 100644
+--- a/node_modules/react-aria/dist/private/interactions/usePress.mjs
++++ b/node_modules/react-aria/dist/private/interactions/usePress.mjs
+@@ -244,7 +244,7 @@ function $d27d541f9569d26d$export$45712eceda6fad21(props) {
+         let pressProps = {
+             onKeyDown (e) {
+                 if ($d27d541f9569d26d$var$isValidKeyboardEvent(e.nativeEvent, e.currentTarget) && (0, $23f2114a1b82827e$export$4282f70798064fe0)(e.currentTarget, (0, $23f2114a1b82827e$export$e58f029f0fbfdb29)(e))) {
+-                    if ($d27d541f9569d26d$var$shouldPreventDefaultKeyboard((0, $23f2114a1b82827e$export$e58f029f0fbfdb29)(e), e.key)) e.preventDefault();
++                    if ($d27d541f9569d26d$var$shouldPreventDefaultKeyboard((0, $23f2114a1b82827e$export$e58f029f0fbfdb29)(e), e)) e.preventDefault();
+                     // If the event is repeating, it may have started on a different element
+                     // after which focus moved to the current element. Ignore these events and
+                     // only handle the first key down event.
+@@ -304,7 +304,7 @@ function $d27d541f9569d26d$export$45712eceda6fad21(props) {
+         };
+         let onKeyUp = (e)=>{
+             if (state.isPressed && state.target && $d27d541f9569d26d$var$isValidKeyboardEvent(e, state.target)) {
+-                if ($d27d541f9569d26d$var$shouldPreventDefaultKeyboard((0, $23f2114a1b82827e$export$e58f029f0fbfdb29)(e), e.key)) e.preventDefault();
++                if ($d27d541f9569d26d$var$shouldPreventDefaultKeyboard((0, $23f2114a1b82827e$export$e58f029f0fbfdb29)(e), e)) e.preventDefault();
+                 let target = (0, $23f2114a1b82827e$export$e58f029f0fbfdb29)(e);
+                 let wasPressed = (0, $23f2114a1b82827e$export$4282f70798064fe0)(state.target, target);
+                 triggerPressEndEvent($d27d541f9569d26d$var$createEvent(state.target, e), 'keyboard', wasPressed);
+@@ -707,9 +707,10 @@ function $d27d541f9569d26d$var$shouldPreventDefaultUp(target) {
+     if ($d27d541f9569d26d$var$isHTMLAnchorLink(target)) return false;
+     return true;
+ }
+-function $d27d541f9569d26d$var$shouldPreventDefaultKeyboard(target, key) {
+-    // Don't prevent the contextmenu shortcut on mac.
+-    if ((0, $2add3ce32c6007eb$export$9ac100e40613ea10)() && key === 'Enter') return false;
++function $d27d541f9569d26d$var$shouldPreventDefaultKeyboard(target, event) {
++    let key = event.key;
++    // Don't prevent the contextmenu shortcut (Control + Enter) on mac.
++    if ((0, $2add3ce32c6007eb$export$9ac100e40613ea10)() && key === 'Enter' && event.ctrlKey) return false;
+     if (target instanceof HTMLInputElement) {
+         if (key === 'Enter' && (target.type === 'checkbox' || target.type === 'radio')) // Enter on a checkbox or radio should do an implicit form submission, but not toggle the input.
+         return false;
