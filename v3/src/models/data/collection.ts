@@ -580,6 +580,10 @@ export const CollectionModel = V2Model
         _groupingChangeVersion.get()
         return _caseIdsOrderedHash
       },
+      // Changes each time the cases are regrouped, even when the case ids and their order don't.
+      get groupingChangeVersion() {
+        return _groupingChangeVersion.get()
+      },
       completeCaseGroups(parentCases: Maybe<CaseInfo[]>) {
         const newCaseIds = _pendingNewCaseIds
         _pendingNewCaseIds = undefined

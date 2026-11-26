@@ -2,7 +2,7 @@ import { parse, isFunctionNode } from "mathjs/number"
 import type { MathNode } from "mathjs"
 import { IFormulaDependency, ILocalAttributeDependency, isLocalAttributeDependency } from "../formula-types"
 import { typedFnRegistry } from "../functions/math"
-import { basicCanonicalNameToDependency, localAttrIdToCanonical } from "./name-mapping-utils"
+import { basicCanonicalNameToDependency, CASE_INDEX_FAKE_ATTR_ID, localAttrIdToCanonical } from "./name-mapping-utils"
 import { isNonFunctionSymbolNode } from "./mathjs-utils"
 
 export const ifSelfReference = (dependency?: IFormulaDependency, formulaAttributeId?: string) =>
@@ -160,4 +160,23 @@ export const getSelfReferenceDirection = (
   if (hasNextSelf) return "reverse"
   if (hasPrevSelf) return "forward"
   return "none"
+}
+
+// Analyzes the formula with a single parse. A formula is order-sensitive if it uses caseIndex or calls an aggregate
+// or semi-aggregate function (e.g. mean(), count(), prev()), since its results then depend on case positions or on
+// which cases are grouped together.
+export const getAggregateAndOrderSensitivity = (formulaCanonical: string) => {
+  const caseIndexCanonical = localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID)
+  let hasAggregate = false
+  let usesCaseIndex = false
+  parse(formulaCanonical).traverse((node, path, parent) => {
+    if (isFunctionNode(node)) {
+      const fn = typedFnRegistry[node.fn.name]
+      if (fn?.isAggregate || fn?.isSemiAggregate) hasAggregate = true
+    }
+    else if (isNonFunctionSymbolNode(node, parent) && node.name === caseIndexCanonical) {
+      usesCaseIndex = true
+    }
+  })
+  return { hasAggregate, orderSensitive: hasAggregate || usesCaseIndex }
 }

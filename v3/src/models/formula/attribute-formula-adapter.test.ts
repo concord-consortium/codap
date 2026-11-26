@@ -85,6 +85,53 @@ describe("AttributeFormulaAdapter", () => {
     })
   })
 
+  describe("recalculateFormula and stale item values", () => {
+    // a parent case whose items hold differing stored values
+    const getStaleParentCaseEnv = () => {
+      const formulaManager = new FormulaManager()
+      const dataSet = createDataSet({
+        attributes: [{ name: "g" }, { name: "v" }, { name: "ci", formula: { display: "caseIndex" } }]
+      }, { formulaManager })
+      const gId = dataSet.attrIDFromName("g")!
+      dataSet.addCases([
+        { __id__: "i1", [gId]: "a" },
+        { __id__: "i2", [gId]: "a" },
+        { __id__: "i3", [gId]: "a" },
+        { __id__: "i4", [gId]: "b" },
+        { __id__: "i5", [gId]: "b" }
+      ])
+      const ciAttr = dataSet.attrFromName("ci")!
+      dataSet.moveAttributeToNewCollection(gId)
+      const parentCollection = dataSet.collections[0]
+      dataSet.moveAttribute(ciAttr.id, { collection: parentCollection.id })
+      const adapter = new AttributeFormulaAdapter(formulaManager.getAdapterApi())
+      formulaManager.addDataSet(dataSet)
+      formulaManager.addAdapters([adapter])
+      const context = { dataSet, formula: ciAttr.formula! }
+      const extraMetadata = { dataSetId: dataSet.id, attributeId: ciAttr.id, boundariesLoaded: false }
+      // The first item of each parent case holds the correct value; the others hold stale values
+      ciAttr.setValue(0, 1)
+      ciAttr.setValue(1, 99)
+      ciAttr.setValue(2, 98)
+      ciAttr.setValue(3, 2)
+      ciAttr.setValue(4, 97)
+      return { adapter, dataSet, ciAttr, context, extraMetadata }
+    }
+
+    it("writes every item of a parent case when forceWrite is set", () => {
+      const { adapter, ciAttr, context, extraMetadata } = getStaleParentCaseEnv()
+      adapter.recalculateFormula(context, extraMetadata, "ALL_CASES", { forceWrite: true })
+      expect([0, 1, 2].map(i => ciAttr.numValue(i))).toEqual([1, 1, 1])
+      expect([3, 4].map(i => ciAttr.numValue(i))).toEqual([2, 2])
+    })
+
+    it("skips results that match the case's first item when forceWrite isn't set", () => {
+      const { adapter, ciAttr, context, extraMetadata } = getStaleParentCaseEnv()
+      adapter.recalculateFormula(context, extraMetadata, "ALL_CASES")
+      expect([0, 1, 2, 3, 4].map(i => ciAttr.numValue(i))).toEqual([1, 99, 98, 2, 97])
+    })
+  })
+
   describe("setError", () => {
     it("should store error in DataSet case values", () => {
       const { adapter, attribute, dataSet, context, extraMetadata } = getTestEnv()
@@ -223,37 +270,6 @@ describe("AttributeFormulaAdapter", () => {
       const error = adapter.getFormulaError(
         contextMap.get(aAttr.formula!.id)!, metadataMap.get(aAttr.formula!.id)!)
       expect(error).toMatch(/Circular reference/)
-    })
-  })
-
-  describe("setupFormulaObservers", () => {
-    it("should setup observer detecting hierarchy updates", () => {
-      const dataSet = createDataSet({
-        attributes: [
-          { name: "foo", formula: { display: "1 + 2" } },
-          { name: "bar" }
-        ]
-      })
-      dataSet.addCases([{ __id__: "1" }])
-      const attribute = dataSet.attributes[0]
-      const formula = attribute.formula!
-      formula.setCanonicalExpression(formula.display)
-      const dataSets = new Map<string, IDataSet>([[dataSet.id, dataSet]])
-      const context = { dataSet, formula }
-      const extraMetadata = { dataSetId: dataSet.id, attributeId: attribute.id }
-      const api = {
-        getDatasets: jest.fn(() => dataSets),
-        getBoundaryManager: jest.fn(),
-        getGlobalValueManager: jest.fn(),
-        getFormulaExtraMetadata: jest.fn(() => extraMetadata),
-        getFormulaContext: jest.fn(() => context),
-      }
-      const adapter = new AttributeFormulaAdapter(api)
-      adapter.setupFormulaObservers(context, extraMetadata)
-
-      expect(dataSet.getValueAtFullItemIndex(0, attribute.id)).toEqual("")
-      dataSet.moveAttributeToNewCollection(dataSet.attrIDFromName("bar")!)
-      expect(dataSet.getValueAtFullItemIndex(0, attribute.id)).toEqual(3) // formula has been recalculated
     })
   })
 })

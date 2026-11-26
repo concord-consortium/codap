@@ -1,5 +1,5 @@
-import { getSelfReferenceDirection } from "./formula-dependency-utils"
-import { localAttrIdToCanonical } from "./name-mapping-utils"
+import { getAggregateAndOrderSensitivity, getSelfReferenceDirection } from "./formula-dependency-utils"
+import { CASE_INDEX_FAKE_ATTR_ID, localAttrIdToCanonical } from "./name-mapping-utils"
 
 describe("getSelfReferenceDirection", () => {
   const selfId = "self_attr_id"
@@ -42,5 +42,26 @@ describe("getSelfReferenceDirection", () => {
   it("returns 'none' when arguments are missing or attributeId is empty", () => {
     expect(getSelfReferenceDirection("", selfId)).toBe("none")
     expect(getSelfReferenceDirection(`prev(${self}, 0)`, "")).toBe("none")
+  })
+})
+
+describe("getAggregateAndOrderSensitivity", () => {
+  const x = localAttrIdToCanonical("x")
+  const caseIndex = localAttrIdToCanonical(CASE_INDEX_FAKE_ATTR_ID)
+  const aggregate = { hasAggregate: true, orderSensitive: true }
+  it("flags aggregate and semi-aggregate functions as aggregates and order-sensitive", () => {
+    expect(getAggregateAndOrderSensitivity(`mean(${x})`)).toEqual(aggregate)
+    expect(getAggregateAndOrderSensitivity("count()")).toEqual(aggregate)
+    expect(getAggregateAndOrderSensitivity(`prev(${x}, 0)`)).toEqual(aggregate)
+  })
+  it("flags caseIndex as order-sensitive but not an aggregate", () => {
+    const caseIndexOnly = { hasAggregate: false, orderSensitive: true }
+    expect(getAggregateAndOrderSensitivity(caseIndex)).toEqual(caseIndexOnly)
+    expect(getAggregateAndOrderSensitivity(`${caseIndex} * 2`)).toEqual(caseIndexOnly)
+  })
+  it("flags neither otherwise", () => {
+    const neither = { hasAggregate: false, orderSensitive: false }
+    expect(getAggregateAndOrderSensitivity("random()")).toEqual(neither)
+    expect(getAggregateAndOrderSensitivity(`${x} + 1`)).toEqual(neither)
   })
 })

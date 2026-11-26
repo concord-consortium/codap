@@ -152,19 +152,3 @@ export const observeSymbolNameChanges = (dataSets: Map<string, IDataSet>,
     disposeGlobalValueManagerReaction()
   }
 }
-
-export const observeDatasetHierarchyChanges = (dataSet: IDataSet,
-  recalculateCallback: (casesToRecalculate?: CaseList) => void) => {
-  // When any collection is added or removed, or attribute is moved between collections,
-  // we need to recalculate the formula.
-  const disposeAttrCollectionReaction = reaction(
-    () => Object.fromEntries(dataSet.collections.map(c => [ c.id, c.attributes.map(a => a?.id) ])),
-    () => recalculateCallback("ALL_CASES"),
-    {
-      equals: comparer.structural,
-      name: "observeDatasetHierarchyChanges dataset collections reaction"
-    }
-  )
-
-  return disposeAttrCollectionReaction
-}

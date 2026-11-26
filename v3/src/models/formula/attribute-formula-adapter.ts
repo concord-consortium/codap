@@ -6,10 +6,9 @@ import { isFormulaAttr, isValidFormulaAttr } from "../data/attribute"
 import { CaseInfo, ICase, IGroupedCase, symParent } from "../data/data-set-types"
 import { IFormula } from "./formula"
 import { registerFormulaAdapter } from "./formula-adapter-registry"
-import { IFormulaContext, IFormulaExtraMetadata, CaseList } from "./formula-manager-types"
+import { IFormulaContext, IFormulaExtraMetadata, IRecalculateOptions } from "./formula-manager-types"
 import { IFormulaAdapterApi, FormulaManagerAdapter } from "./formula-manager-adapter"
 import { FormulaMathJsScope, NO_PARENT_KEY } from "./formula-mathjs-scope"
-import { observeDatasetHierarchyChanges } from "./formula-observers"
 import { FValue, ILocalAttributeDependency, ILookupDependency } from "./formula-types"
 import { UNDEF_RESULT } from "./functions/function-utils"
 import { math } from "./functions/math"
@@ -111,7 +110,7 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
   }
 
   recalculateFormula(formulaContext: IFormulaContext, extraMetadata: IAttrFormulaExtraMetadata,
-    casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES") {
+    casesToRecalculateDesc: ICase[] | "ALL_CASES" = "ALL_CASES", options?: IRecalculateOptions) {
     if (formulaContext.formula.empty) {
       // Do nothing. Recalculating of empty formula would erase dataset values.
       return
@@ -130,7 +129,9 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
       // formula recalculations, tile re-renders).
       const { attributeId } = extraMetadata
       const attr = dataSet.attrFromID(attributeId)
-      const changedResults = attr
+      // A forced write skips filtering: the filter only compares against a case's first item, so it can
+      // drop results for the other items of a case whose items hold differing stored values.
+      const changedResults = attr && !options?.forceWrite
         ? prf.measure("Formula.filterChanged", () => {
             // Capture Maps/arrays locally to avoid repeated MST proxy access in the loop
             const { caseInfoMap, itemInfoMap } = dataSet
@@ -268,13 +269,6 @@ export class AttributeFormulaAdapter extends FormulaManagerAdapter {
       __id__: c.__id__,
       [attributeId]: errorMsg
     })), [attributeId])
-  }
-
-  setupFormulaObservers(formulaContext: IFormulaContext, extraMetadata: IAttrFormulaExtraMetadata) {
-    const { dataSet } = formulaContext
-    return observeDatasetHierarchyChanges(dataSet, (casesToRecalculate?: CaseList) => {
-      this.recalculateFormula(formulaContext, extraMetadata, casesToRecalculate)
-    })
   }
 
   getFormulaError(formulaContext: IFormulaContext, extraMetadata: IAttrFormulaExtraMetadata) {

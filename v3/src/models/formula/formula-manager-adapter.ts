@@ -3,7 +3,9 @@ import { IDataSet } from "../data/data-set"
 import { IGlobalValueManager } from "../global/global-value-manager"
 import { ITileContentModel } from "../tiles/tile-content"
 import { IFormula } from "./formula"
-import { IFormulaManagerAdapter, IFormulaContext, IFormulaExtraMetadata, CaseList } from "./formula-manager-types"
+import {
+  IFormulaManagerAdapter, IFormulaContext, IFormulaExtraMetadata, CaseList, IRecalculateOptions
+} from "./formula-manager-types"
 
 export interface IFormulaAdapterApi {
   getDatasets: () => Map<string, IDataSet>
@@ -35,7 +37,8 @@ export class FormulaManagerAdapter implements IFormulaManagerAdapter {
     return [] as Array<{ formula: IFormula; extraMetadata: any; }>
   }
 
-  recalculateFormula(formulaContext: IFormulaContext, extraMetadata: any, casesToRecalculateDesc?: CaseList) {
+  recalculateFormula(formulaContext: IFormulaContext, extraMetadata: any, casesToRecalculateDesc?: CaseList,
+    options?: IRecalculateOptions) {
     // subclasses should override
   }
 
