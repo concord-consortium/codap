@@ -104,13 +104,19 @@ export const SliderConfigPalette =
       if (kWidthEntryPattern.test(value)) setEditedWidth(value)
     }
 
-    const handleWidthKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") handleAcceptWidth()
-      // Escape also dismisses the palette, which must then discard the edit rather than commit it
+    // Escape also dismisses the palette, which must then discard a pending edit rather than commit it. The field and
+    // its unit menu act as one control (see handleUnitChange), so Escape from the unit button discards it too; while
+    // the unit menu is open, focus is in its popover, and Escape just closes the menu.
+    const discardWidthEditOnEscape = (e: React.KeyboardEvent) => {
       if (e.key === "Escape") {
         setEditedWidth(undefined)
         acceptWidthRef.current = () => undefined
       }
+    }
+
+    const handleWidthKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") handleAcceptWidth()
+      discardWidthEditOnEscape(e)
     }
 
     // A unit chosen while an edit is pending applies to the edit, so typing "2" and choosing days means 2 days. So the
@@ -205,7 +211,8 @@ export const SliderConfigPalette =
                   isDisabled={!isBound}
                 >
                   <Button ref={unitButtonRef} className="slider-select slider-date-unit"
-                          onBlur={handleWidthControlBlur} data-testid="slider-range-width-unit">
+                          onBlur={handleWidthControlBlur} onKeyDown={discardWidthEditOnEscape}
+                          data-testid="slider-range-width-unit">
                     {/* a SelectValue, so the unit is part of the button's accessible name */}
                     <SelectValue>{isBound ? unitLabel : ""}</SelectValue>
                     <span aria-hidden="true" className="select-arrow">▾</span>

@@ -27,6 +27,8 @@ describe("rangeFromHandles", () => {
     expect(rangeFromHandles([4, 4.05], [4, 4], 1, step, [4, 5])).toEqual([4, 4])
     // 2.8 steps from the other end collapses; 4 steps doesn't
     expect(rangeFromHandles([4, 4.14], [4, 4.5], 1, step, [4, 5])).toEqual([4, 4])
+    // exactly 3 steps collapses, though floating point makes 5 - 4.85 a hair more than 3 * 0.05
+    expect(rangeFromHandles([4.85, 5], [4, 5], 0, step)).toEqual([5, 5])
     expect(rangeFromHandles([4, 4.2], [4, 4.5], 1, step, [4, 5])).toEqual([4, 4.2])
   })
 

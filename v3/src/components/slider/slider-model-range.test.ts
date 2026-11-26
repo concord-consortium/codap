@@ -34,6 +34,17 @@ describe("SliderModel range", () => {
     expect(slider.rangeHigh).toBeGreaterThanOrEqual(slider.rangeLow)
   })
 
+  it("shows only the exact value at a zero-width range, not a distinct value a hair away", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    const tiny = dataSet.addAttribute({ name: "tiny" })
+    const values = [0, 1e-16, 1, 2, 3, 4]
+    dataSet.setCaseValues(dataSet.itemIds.map((__id__, i) => ({ __id__, [tiny.id]: values[i] })))
+    slider.configureFromAttribute(dataSet, tiny.id)
+    slider.setRange(0, 0)
+    expect([slider.rangeLow, slider.rangeHigh]).toEqual([0, 0])
+    expect(slider.sliderHiddenItemIds.size).toBe(5)
+  })
+
   it("snaps a zero-width range to a value present in the data", async () => {
     const { slider } = await setupRangeSlider()
     slider.setRange(3.4, 3.4)
@@ -369,6 +380,32 @@ describe("SliderModel playback steps", () => {
     slider.setMultipleOf(2)
     slider.setValue(2)
     expect(slider.nextAnimationValue(1, 0.25)).toBe(4)
+  })
+})
+
+describe("SliderModel playback steps at the limits of floating point", () => {
+  it("steps a zero-width range on even when a multiple is too small to change its value", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    const big = dataSet.addAttribute({ name: "big" })
+    const values = [1e9, 1e9 + 1, 1e9 + 2, 1e9 + 3, 1e9 + 4, 1e9 + 5]
+    dataSet.setCaseValues(dataSet.itemIds.map((__id__, i) => ({ __id__, [big.id]: values[i] })))
+    slider.configureFromAttribute(dataSet, big.id)
+    slider.setMultipleOf(1e-8)
+    slider.setRange(1e9, 1e9)
+    // 1e9 + 1e-8 rounds back to 1e9
+    expect(slider.nextAnimationValue(1, 1)).toBe(1e9 + 1)
+  })
+
+  it("signals the end of a zero-width range's playback even where max + 1 would round back to max", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    const huge = dataSet.addAttribute({ name: "huge" })
+    const values = [0, 2e15, 4e15, 6e15, 8e15, 1e16]
+    dataSet.setCaseValues(dataSet.itemIds.map((__id__, i) => ({ __id__, [huge.id]: values[i] })))
+    slider.configureFromAttribute(dataSet, huge.id)
+    slider.setRange(1e16, 1e16)
+    expect(slider.nextAnimationValue(1, 1)).toBeGreaterThan(slider.valueDomain[1])
+    slider.setRange(0, 0)
+    expect(slider.nextAnimationValue(-1, 1)).toBeLessThan(slider.valueDomain[0])
   })
 })
 

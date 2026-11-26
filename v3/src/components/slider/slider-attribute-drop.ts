@@ -13,9 +13,11 @@ export function isSliderAttributeUsable(slider: ISliderModel, dataSet?: IDataSet
   return !!slider.configurationExtent(dataSet, attrId)
 }
 
-// whether the slider is already bound to the attribute, which configuring it from again leaves alone
+// Whether the slider is already bound to the attribute in a way that configuring it from again would leave alone.
+// A binding the attribute has since become incompatible with (e.g. a change of its type to Date) can be repaired by
+// configuring the slider from it again.
 function isBoundTo(slider: ISliderModel, dataSet: IDataSet, attrId: string) {
-  return slider.dataSetId === dataSet.id && slider.attributeId === attrId
+  return slider.dataSetId === dataSet.id && slider.attributeId === attrId && slider.isAttributeCompatible
 }
 
 // Whether an attribute drag onto the slider should be accepted: one that can configure it, other than the attribute

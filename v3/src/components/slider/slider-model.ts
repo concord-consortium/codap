@@ -190,16 +190,31 @@ export const SliderModel = TileContentModel
   }))
   .views(self => ({
     // A test of whether a value lies within the inclusive range; a missing or non-finite value never does. The
-    // tolerance keeps a case at either end when floating point leaves the bound a hair inside it. The bounds are worked
-    // out once per pass over the cases.
+    // tolerance keeps a case at either end when floating point leaves the bound a hair inside it. A collapsed range is
+    // snapped to a data value, so it matches that value exactly; a tolerance would also take in a distinct value a hair
+    // away. The bounds are worked out once per pass over the cases.
     get rangeTest(): (value?: number | null) => boolean {
+      if (self.width === 0) {
+        const at = self.rangeLow
+        return value => value != null && value === at
+      }
       const low = self.rangeLow - 8 * Number.EPSILON * Math.max(1, Math.abs(self.rangeLow))
       const high = self.rangeHigh + 8 * Number.EPSILON * Math.max(1, Math.abs(self.rangeHigh))
       return value => value != null && isFinite(value) && value >= low && value <= high
     },
+    // Whether the bound attribute's values can be judged against the range: not while it has a formula (see
+    // configurationExtent), e.g. one added after binding, nor once a change of its type to or from Date leaves its
+    // values in different units from the slider's scale. The slider applies its range again once it's reconfigured.
+    get isAttributeCompatible() {
+      const { attribute } = self
+      if (!self.dataSet || !attribute || attribute.hasFormula) return false
+      return (attribute.type === "date") === (self.scaleType === "date")
+    }
+  }))
+  .views(self => ({
     // whether this is a selection slider bound to an attribute it can select by (the visibility slider's condition)
     get isBoundSelectionSlider() {
-      return self.sliderType === "selection" && !!self.dataSet && !!self.attribute && !self.attribute.hasFormula
+      return self.sliderType === "selection" && self.isAttributeCompatible
     }
   }))
   .views(self => ({
@@ -281,10 +296,12 @@ export const SliderModel = TileContentModel
               tolerance: kTolerance * increment
             }
           : undefined
-        const isNext = (v: number) => step ? sign * (v - step.target) >= -step.tolerance : sign * (v - self.value) > 0
+        // the next value must move, even when a multiple too small to change the value leaves the target on it
+        const isNext = (v: number) =>
+          sign * (v - self.value) > 0 && (step ? sign * (v - step.target) >= -step.tolerance : true)
         const next = sign > 0 ? values.find(isNext) : [...values].reverse().find(isNext)
-        const [min, max] = self.valueDomain
-        return next ?? (sign > 0 ? max + 1 : min - 1)
+        // past the last value, signal the end with an infinity: rounding can return max + 1 to the axis, but not it
+        return next ?? sign * Infinity
       }
       // Otherwise playback steps by the multiple restriction, as for a variable slider, or else by the fallback step.
       // A range's low end needn't be on a multiple (a drag of its ends ignores the restriction; see sliderStep), so a
@@ -294,7 +311,8 @@ export const SliderModel = TileContentModel
         const next = sign > 0 ? Math.floor(multiples + kTolerance) + 1 : Math.ceil(multiples - kTolerance) - 1
         return next * increment
       }
-      return self.value + sign * (increment ?? fallbackIncrement)
+      // a multiple of zero (e.g. from a V2 document) is no restriction, so it steps by the fallback
+      return self.value + sign * (increment || fallbackIncrement)
     },
     // bounded by the value domain, so a range slider's playback wraps or stops when its high end reaches the axis
     validateValue(value: number, belowMin: FixValueFn, aboveMax: FixValueFn) {
@@ -557,9 +575,7 @@ export const SliderModel = TileContentModel
       addDisposer(self, reaction(
         () => {
           const dataSet = self.dataSet
-          // not while the attribute has a formula (see configurationExtent), e.g. one added after binding
-          const applies = self.sliderType === "visibility" && !!dataSet && !!self.attribute &&
-                          !self.attribute.hasFormula
+          const applies = self.sliderType === "visibility" && self.isAttributeCompatible
           const hidden = applies ? self.sliderHiddenItemIds : undefined
           const { rangeLow: low, rangeHigh: high, sliderType, attributeId } = self
           return { dataSet, hidden, low, high, sliderType, attributeId }

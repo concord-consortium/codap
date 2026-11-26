@@ -167,6 +167,8 @@ export const SliderRangeThumb = observer(function SliderRangeThumb({
     stopTrackPress(e)
     // only the primary pointer's main button drags (not a right-click or a second finger)
     if (!e.isPrimary || e.button !== 0) return
+    // as the keys do, grabbing the range stops playback, which would otherwise move it out from under the pointer
+    if (running) setRunning(false)
     e.currentTarget.setPointerCapture(e.pointerId)
     // so the keys move the range once it's been dragged
     rangeRef.current?.focus({ preventScroll: true })

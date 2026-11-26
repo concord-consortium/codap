@@ -373,6 +373,19 @@ describe("SliderConfigPalette", () => {
       expect(slider.rangeWidth).toBe(3 * week)
     })
 
+    it("discards a pending edit when Escape dismisses the palette from the unit button", async () => {
+      const { slider, unmount } = await setupDateSlider(6 * month, 1.2 * month)
+      const input = screen.getByTestId("slider-range-width-input")
+      await userEvent.clear(input)
+      await userEvent.type(input, "2")
+      await userEvent.tab()
+      expect(screen.getByTestId("slider-range-width-unit")).toHaveFocus()
+      await userEvent.keyboard("{Escape}")
+      // Escape dismisses the palette, which removes it
+      unmount()
+      expect(slider.rangeWidth).toBeCloseTo(1.2 * month)
+    })
+
     it("rescales the shown width, not the stored one, when the unit changes", async () => {
       const { slider } = await setupDateSlider(2 * year, 2 * week)
       // two weeks, in years

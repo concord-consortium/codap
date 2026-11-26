@@ -128,6 +128,9 @@ export const SliderComponent = observer(function SliderComponent({ tile } : ITil
 
   const handleChange = useCallback((values: number[]) => {
     if (!sliderModel) return
+    // React Aria reports only the user's changes (a drag, a track click, a key), not playback's, and each stops
+    // playback, which would otherwise move the thumb or range out from under the pointer
+    setRunning(false)
     const ariaState = stateRef.current
     activeHandleRef.current = [0, 1].find(index => ariaState?.isThumbDragging(index))
     if (!rangeChangedRef.current) pressStartRangeRef.current = [sliderModel.rangeLow, sliderModel.rangeHigh]

@@ -129,6 +129,17 @@ describe("SliderComponent", () => {
       screen.getByTestId("slider-attribute-menu-button"))
   })
 
+  it("stops playback when the user moves the thumb", async () => {
+    const { tile } = await setupSliderAndData()
+    renderSlider(tile)
+    fireEvent.click(screen.getByTestId("slider-play-pause"))
+    expect(screen.getByTestId("slider-play-pause")).toHaveClass("running")
+    const thumb = screen.getByRole("slider")
+    fireEvent.keyDown(thumb, { key: "ArrowRight" })
+    fireEvent.keyUp(thumb, { key: "ArrowRight" })
+    expect(screen.getByTestId("slider-play-pause")).toHaveClass("paused")
+  })
+
   it("stops playback when the prompt replaces the controls, so binding again doesn't restart it", async () => {
     const { tile, dataSet, slider } = await setupSliderAndData()
     slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
@@ -458,6 +469,32 @@ describe("SliderComponent: the range's keyboard stop", () => {
     expect(slider.rangeHigh - slider.rangeLow).toBeCloseTo(1)
   })
 
+  it("stops playback when the range is grabbed, so the animation doesn't move it out from under the pointer",
+      async () => {
+    const { tile } = await setupRange()
+    renderSlider(tile)
+    fireEvent.click(screen.getByTestId("slider-play-pause"))
+    expect(screen.getByTestId("slider-play-pause")).toHaveClass("running")
+    const body = screen.getByTestId("slider-range-body")
+    // JSDom has neither PointerEvent (so fireEvent would drop isPrimary and the button) nor pointer capture
+    body.setPointerCapture = jest.fn()
+    const OriginalPointerEvent = window.PointerEvent
+    window.PointerEvent = class extends MouseEvent {
+      isPrimary: boolean
+      constructor(type: string, init?: PointerEventInit) {
+        super(type, init)
+        this.isPrimary = init?.isPrimary ?? true
+      }
+    } as any
+    try {
+      fireEvent.pointerDown(body, { button: 0, isPrimary: true })
+      expect(screen.getByTestId("slider-play-pause")).toHaveClass("paused")
+    }
+    finally {
+      window.PointerEvent = OriginalPointerEvent
+    }
+  })
+
   it("widens the range from its upper edge with Alt+Right", async () => {
     const { tile, slider } = await setupRange()
     renderSlider(tile)
@@ -768,11 +805,25 @@ describe("SliderComponent: announcing case counts", () => {
   it("counts only the cases that aren't set aside or filtered out by the filter formula", async () => {
     const { tile, dataSet, slider } = await setupRange()
     renderSlider(tile)
-    // a3 = 1, set aside; the range [2, 4] then shows 2, 3 and 4 of the other five
+    // a3 = 1, set aside, and a3 = 6, filtered out (as a filter formula's results would); the range [2, 4] then shows
+    // 2, 3 and 4 of the other four
     act(() => dataSet.hideCasesOrItems(a3ItemIds(dataSet, a3 => a3 === 1)))
+    act(() => dataSet.updateFilterFormulaResults(
+      a3ItemIds(dataSet, a3 => a3 === 6).map(itemId => ({ itemId, result: false })), {}))
     act(() => slider.setRange(2, 4))
     wait(kCountAnnouncementDelay)
-    expect(status()).toHaveTextContent(/^3 of 5 cases visible$/)
+    expect(status()).toHaveTextContent(/^3 of 4 cases visible$/)
+  })
+
+  it("announces no count for a visibility slider whose attribute has a formula, which stops it hiding cases",
+      async () => {
+    const { tile, dataSet, slider } = await setupRange()
+    renderSlider(tile)
+    act(() => dataSet.attrFromName("a3")!.setDisplayExpression("caseIndex"))
+    wait(kCountAnnouncementDelay)
+    act(() => slider.setRange(2, 4))
+    wait(kCountAnnouncementDelay)
+    expect(status()).not.toHaveTextContent(/cases? visible/)
   })
 
   it("says 'case' of a single visible case", async () => {

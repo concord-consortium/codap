@@ -13,6 +13,15 @@ describe("playbackStartTestValue", () => {
     expect(playbackStartTestValue(slider, -1)).toBeGreaterThan(slider.valueDomain[0])
   })
 
+  it("plays a collapsed range one data value before the end on to the last value, then past the end", async () => {
+    const { dataSet, slider } = await setupSliderAndData()
+    slider.configureFromAttribute(dataSet, dataSet.attrFromName("a3")!.id)
+    slider.setRange(5, 5)
+    expect(slider.nextAnimationValue(1, 1)).toBe(6)
+    slider.setRange(6, 6)
+    expect(slider.nextAnimationValue(1, 1)).toBeGreaterThan(slider.valueDomain[1])
+  })
+
   it("keeps the variable slider's start check, which includes its increment", async () => {
     const { slider } = await setupSliderAndData()
     slider.setMultipleOf(2)

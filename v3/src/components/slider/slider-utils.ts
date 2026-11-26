@@ -66,7 +66,8 @@ export function rangeFromHandles(values: number[], current: readonly [number, nu
   const low = activeIndex === 1 ? startLow : values[0]
   const high = activeIndex === 0 ? startHigh : values[1]
   const isClosing = high - low < startHigh - startLow
-  if (activeIndex != null && isClosing && high - low <= kCollapseSnapSteps * step) {
+  // the tolerance keeps a handle exactly kCollapseSnapSteps away collapsing when floating point leaves it a hair beyond
+  if (activeIndex != null && isClosing && high - low <= kCollapseSnapSteps * step * (1 + 1e-9)) {
     const stationary = activeIndex === 0 ? startHigh : startLow
     return [stationary, stationary]
   }

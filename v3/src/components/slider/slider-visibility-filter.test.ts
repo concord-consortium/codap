@@ -169,6 +169,24 @@ describe("visibility slider and formula attributes", () => {
   })
 })
 
+describe("visibility slider and attribute type changes", () => {
+  it("stops hiding cases when its numeric attribute becomes a date, and can be reconfigured from it", async () => {
+    const setup = await setupVisibilitySlider()
+    const a3 = setup.dataSet.attrFromName("a3")!
+    expect(setup.dataSet.itemIds).toHaveLength(1)
+    // as a date, a3's values are read as seconds since the epoch, far outside the numeric range
+    a3.setUserType("date")
+    expect(setup.slider.isAttributeCompatible).toBe(false)
+    expect(setup.dataSet.itemIds).toHaveLength(6)
+    // configuring the slider from the attribute again (as dropping it does) rebinds it on a date scale
+    expect(configureSliderFromAttribute(setup.tile, setup.dataSet, a3.id)).toBe(true)
+    expect(setup.slider.scaleType).toBe("date")
+    expect(setup.slider.isAttributeCompatible).toBe(true)
+    // once compatible, configuring it from the same attribute leaves it alone
+    expect(configureSliderFromAttribute(setup.tile, setup.dataSet, a3.id)).toBe(false)
+  })
+})
+
 describe("visibility slider updates", () => {
   it("doesn't regroup the cases when a range change hides the same cases", async () => {
     const setup = await setupVisibilitySlider()
